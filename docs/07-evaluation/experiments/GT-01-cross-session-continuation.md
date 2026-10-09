@@ -1,6 +1,6 @@
 # GT-01 — Cross-session Continuation Experiment
 
-- **Status:** Protocol draft; not yet executable and no results collected.
+- **Status:** Fixture committed; dry run not yet executed; no results collected.
 - **Golden Task:** GT-01
 - **Protocol version:** 0.1.0
 - **Primary question:** Does an explicit handoff improve correct continuation of a bounded task in a fresh session, compared with relying on the native Coding Agent harness and repository state alone?
@@ -30,11 +30,9 @@ Run the smallest comparison that answers the question. Keep model, harness, fixt
 
 ## 3. Candidate task fixture
 
-The fixture must be a small, versioned repository created specifically for evaluation—not the live Nemons source tree. Choose a bounded software task with deterministic acceptance checks and enough meaningful intermediate state to require a handoff.
+The fixture is now committed under [`docs/07-evaluation/fixtures/gt-01/`](../fixtures/gt-01/). It is a small Python utility task with a participant workspace separated from evaluator-only artifacts. The current fixture is a **candidate fixture**, not yet a validated benchmark. Do not start scored runs until the dry run confirms reset reproducibility, checkpoint quality, and session isolation.
 
-Recommended task shape: add one narrowly scoped behavior to a small utility module, with tests and a short implementation note. Session A performs the initial investigation and a predeclared subset of the work, then stops at a frozen checkpoint. Session B must inspect the repository, reconstruct the current state, and finish the task.
-
-The exact task, repository commit, tests, and checkpoint are **not yet selected or committed**. Do not start scored runs until these are pinned. The fixture should contain:
+The fixture contains:
 - A clear task statement and explicit exclusions.
 - A small codebase with a reproducible setup and test command.
 - Acceptance tests that check behavior, not similarity to a reference patch.
@@ -126,7 +124,7 @@ Do not estimate unavailable token/cost data silently. Mark it missing and report
 
 ## 7. Reset and isolation requirements
 
-The fixture is not yet committed, so this section is a required implementation checklist rather than a verified procedure.
+The fixture is committed, but this section remains a required checklist rather than a verified procedure. The reset and isolation process has not yet been exercised against a real Coding Agent harness.
 
 - Reset to the exact fixture commit before every session-A run.
 - Save session A's checkpoint as an immutable commit or patch and restore that exact state for each session-B condition.
@@ -196,7 +194,7 @@ Copy one record per run and preserve the original records.
 
 Do not label this experiment executable until all mandatory items are complete:
 
-- [ ] Fixture repository and versioned task prompt exist.
+- [x] Candidate fixture repository and versioned task prompt are committed (GT-01 fixture v1).
 - [ ] Deterministic reset procedure is tested.
 - [ ] Checkpoint and session-isolation procedure is verified.
 - [ ] Acceptance tests and scoring rubric are frozen.
@@ -209,4 +207,4 @@ Do not label this experiment executable until all mandatory items are complete:
 
 ## Current conclusion
 
-**Protocol only. No fixture has been committed, no run has been executed, and no performance result is available.** The next implementation step is to create the isolated fixture and test the reset/session-isolation procedure. Only then should an unscored pilot be run.
+**Fixture and protocol committed; execution remains unverified. No dry run or performance result is available.** The next step is to run the fixture through a real Coding Agent harness, validate reset/session isolation, and record deviations. Only after those checks pass should an unscored pilot be run.
