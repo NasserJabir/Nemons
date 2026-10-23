@@ -1,14 +1,30 @@
 {
   "name": "nemos-project",
-  "version": "4.2.0",
-  "description": "Nemos - transparent orchestration layer for coding agents (final release)",
+  "version": "4.2.1",
+  "description": "Nemos - transparent orchestration layer for coding agents (v4.2.1 release)",
   "private": true,
   "scripts": {
     "start": "node nemos/bin/nemos.js daemon start",
     "stop": "node nemos/bin/nemos.js daemon stop",
     "health": "node nemos/bin/nemos.js health",
-    "verify": "node nemos/bin/nemos.js verify"
+    "verify": "node nemos/bin/nemos.js verify",
+    "test:daemon": "cd nemos && node tests/unit-tests.js && node tests/v421-persona-tests.js && node tests/v421-bridge-tests.js",
+    "test:core": "cd nemos-core && npm test",
+    "test:all": "npm run test:daemon && npm run test:core",
+    "typecheck:core": "cd nemos-core && npx tsc --noEmit",
+    "build:core": "cd nemos-core && npm install && npm run build",
+    "smoke": "cd nemos && NEMONS_PORT=3456 node bin/nemons.js daemon start && sleep 2 && curl -sf http://127.0.0.1:3456/health | jq . && node bin/nemons.js daemon stop"
   },
-  "engines": { "node": ">=18" },
-  "license": "MIT"
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/NasserJabir/Nemons",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NasserJabir/Nemons.git"
+  },
+  "bugs": {
+    "url": "https://github.com/NasserJabir/Nemons/issues"
+  }
 }

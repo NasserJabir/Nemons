@@ -1,7 +1,7 @@
 {
   "name": "@nemons/core",
-  "version": "0.1.0-stage0",
-  "description": "Nemons — Standalone Agent Runtime. Operational intelligence and governed continuity above Coding Agents.",
+  "version": "4.2.1",
+  "description": "Nemos core runtime - TypeScript implementation of the Nemos operational intelligence layer (Stage 0-I + 10 research improvements + P2/P3 features)",
   "type": "module",
   "license": "MIT",
   "engines": {
@@ -18,5 +18,13 @@
     "@types/node": "^22.0.0",
     "typescript": "^5.5.0",
     "vitest": "^2.1.0"
+  },
+  "homepage": "https://github.com/NasserJabir/Nemons",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NasserJabir/Nemons.git"
+  },
+  "bugs": {
+    "url": "https://github.com/NasserJabir/Nemons/issues"
   }
 }

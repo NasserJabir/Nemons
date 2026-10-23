@@ -1,7 +1,7 @@
 {
   "name": "@nemons/cli",
   "version": "4.2.1",
-  "description": "Nemons — transparent orchestration layer for coding agents. Auto-triggers Context Pack, Evidence Collection, and Verification Loop on every prompt.",
+  "description": "Nemons \u2014 transparent orchestration layer for coding agents. Auto-triggers Context Pack, Evidence Collection, and Verification Loop on every prompt.",
   "main": "src/index.js",
   "bin": {
     "nemons": "bin/nemons.js"
@@ -11,10 +11,11 @@
     "dev": "node --watch bin/nemons.js daemon start",
     "test": "node tests/run-all.js",
     "test:unit": "node tests/unit-tests.js",
-    "test:v421": "node tests/v421-persona-tests.js",
+    "test:v421": "node tests/v421-persona-tests.js && node tests/v421-bridge-tests.js",
     "verify": "node bin/nemons.js verify",
-    "lint": "echo 'TODO: implement linting'",
-    "build": "echo 'No build step required (plain Node.js)'"
+    "lint": "for f in $(find src -name *.js); do node --check \"$f\" || exit 1; done; node --check bin/nemons.js",
+    "build": "echo 'No build step required (plain Node.js)'",
+    "test:all": "node tests/unit-tests.js && npm run test:v421"
   },
   "engines": {
     "node": ">=18"
@@ -38,12 +39,12 @@
   ],
   "author": "Nemons Project",
   "license": "MIT",
-  "homepage": "https://github.com/your-org/nemons",
+  "homepage": "https://github.com/NasserJabir/Nemons",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/nemons.git"
+    "url": "https://github.com/NasserJabir/Nemons.git"
   },
   "bugs": {
-    "url": "https://github.com/your-org/nemons/issues"
+    "url": "https://github.com/NasserJabir/Nemons/issues"
   }
 }
