@@ -48,8 +48,22 @@ class HierarchicalCoT {
     const p = (problem || "").toLowerCase();
     const parts = [];
     if (p.includes("and")) {
-      const split = problem.split(/\s+and\s+/i);
-      for (const s of split) parts.push(s.trim());
+      // v4.2.1-fix (rev 3): CodeQL flagged the original regex
+      // `/\s+and\s+/i` as a potential ReDoS risk because the
+      // `\s+` quantifier on a user-controlled string could cause
+      // quadratic backtracking on inputs with many whitespace
+      // characters in a row.
+      //
+      // Fix: normalize whitespace first (replace runs of whitespace
+      // with a single space), then split on the literal " and "
+      // (lowercase, since we already lowercased). This avoids the
+      // regex engine entirely and is both faster and safe.
+      const normalized = p.replace(/\s+/g, " ").trim();
+      const split = normalized.split(" and ");
+      for (const s of split) {
+        const trimmed = s.trim();
+        if (trimmed) parts.push(trimmed);
+      }
     }
     if (parts.length === 0) {
       parts.push("analyze requirements", "design solution", "implement code", "verify correctness");
