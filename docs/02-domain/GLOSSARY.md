@@ -1,0 +1,22 @@
+# Glossary
+
+- **Coding Agent:** an agentic coding system that plans, uses tools, and performs work through a harness.
+- **Coding Agent Harness:** the environment implementing the agent loop, model/tool interaction, execution permissions, and related runtime behavior.
+- **Nemons Runtime:** the independent layer coordinating operational assets, state, evidence, and continuity across harnesses and runs.
+- **Meta-Harness:** a layer that governs or coordinates existing harnesses without replacing their inner loops.
+- **Run:** a bounded execution attempt with an identity, task, selected assets, events, and outcome.
+- **Context:** information currently supplied to a model or agent for a task or stage.
+- **Context Pack:** a curated, versioned bundle of selected information delivered for a particular task/stage.
+- **Memory:** durable records maintained under admission, provenance, retention, and retrieval policies.
+- **Knowledge:** a claim or model of the world represented with source, scope, status, and evidence.
+- **Evidence:** a trace, test result, artifact, observation, or source that supports or challenges a claim.
+- **Provenance:** traceable origin and transformation history for a claim, asset, or evidence item.
+- **Persona:** an operational profile describing behavior, priorities, and working conventions; not an authorization grant.
+- **Skill:** a reusable procedural asset for performing a class of work.
+- **Experience:** a record of an execution episode, including context, actions, outcomes, and attribution.
+- **Candidate:** an asset or claim proposed but not yet adopted.
+- **Adoption:** explicit promotion into a trusted operational state under the relevant governance gate.
+- **Staleness:** reduced reliability caused by time, changed sources, changed scope, or superseding evidence.
+- **Adapter:** a boundary implementation translating between Nemons contracts and a particular Coding Agent harness.
+- **Hard-deny:** a protected action or condition that cannot be overridden by normal asset selection or prior approval.
+- **Golden Task:** a versioned evaluation task with explicit inputs, acceptance criteria, and expected evidence.
