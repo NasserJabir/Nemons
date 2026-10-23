@@ -1,0 +1,164 @@
+# ============================================================
+# Nemons MCP Server Configuration (Claude Code, Cursor, Kiro)
+# Apply best practices from MCP Security Guide (CSA 2026)
+# ============================================================
+
+# Place this in your coding agent's MCP config:
+# - Claude Code:  ~/.claude/mcp.json
+# - Cursor:       Settings → MCP → Add Server
+# - Kiro:         MCP servers panel → Open MCP Config
+
+mcpServers:
+  nemons:
+    # Transport: stdio for local daemon
+    type: stdio
+    command: npx
+    args:
+      - "@nemons/mcp-adapter"
+      - "--daemon-url=http://127.0.0.1:3456"
+    
+    # OAuth 2.1 (best practice from MCP 2025-11-25 spec)
+    # For local daemon, use simple bearer token
+    env:
+      NEMONS_AUTH_TOKEN: "${NEMONS_AUTH_TOKEN}"
+      NEMONS_LOG_LEVEL: info
+    
+    # Timeout — generous for long-running agent tasks
+    timeout: 600000
+    
+    # Tools exposed by the Nemons MCP server
+    tools:
+      - name: nemons_analyze_prompt
+        description: Analyze prompt to decide if Nemons should intercept
+        inputSchema:
+          type: object
+          properties:
+            prompt:
+              type: string
+              description: The user's prompt
+            project_root:
+              type: string
+              description: Absolute path to project root
+            adapter:
+              type: string
+              enum: [opencode, claude-code, codex, kimi, qoder, cline]
+          required: [prompt, project_root, adapter]
+      
+      - name: nemons_get_context_pack
+        description: Load relevant Context Pack for current task
+        inputSchema:
+          type: object
+          properties:
+            pack_id:
+              type: string
+              description: Pack ID returned from analyze_prompt
+          required: [pack_id]
+      
+      - name: nemons_collect_evidence
+        description: Collect Evidence after agent response (diffs, tests, lint)
+        inputSchema:
+          type: object
+          properties:
+            run_id:
+              type: string
+            diff:
+              type: string
+            test_results:
+              type: object
+          required: [run_id]
+      
+      - name: nemons_evaluate_run
+        description: Run verification loop — evaluate success criteria
+        inputSchema:
+          type: object
+          properties:
+            run_id:
+              type: string
+            evidence:
+              type: object
+          required: [run_id, evidence]
+      
+      - name: nemons_store_experience
+        description: Store successful run as Experience for future reuse
+        inputSchema:
+          type: object
+          properties:
+            run_id:
+              type: string
+            derived_skills:
+              type: array
+              items:
+                type: string
+          required: [run_id]
+      
+      - name: nemons_retrieve_similar_experiences
+        description: Find similar past experiences for context enrichment
+        inputSchema:
+          type: object
+          properties:
+            prompt:
+              type: string
+            limit:
+              type: integer
+              default: 3
+          required: [prompt]
+      
+      - name: nemons_health_check
+        description: Verify Nemons daemon is healthy and responsive
+        inputSchema:
+          type: object
+          properties: {}
+
+# ============================================================
+# Security Best Practices (from MCP Security Maturity Model)
+# ============================================================
+security:
+  # Level 1: Basic
+  authentication:
+    method: bearer_token
+    token_env: NEMONS_AUTH_TOKEN
+    rotate_days: 90
+  
+  # Level 2: Advanced
+  authorization:
+    rbac: true
+    tool_level_permissions:
+      nemons_store_experience:
+        required_role: contributor
+      nemons_retrieve_similar_experiences:
+        required_role: reader
+    
+  # Level 3: Integrated
+  input_validation:
+    schema_enforcement: true
+    reject_malformed: true
+    sanitize_before_execution: true
+    max_prompt_length: 10000
+    max_diff_size: 100000
+  
+  # Level 4: Enterprise
+  observability:
+    audit_logs: structured
+    log_all_tool_invocations: true
+    log_all_failures: true
+    retention_days: 90
+    
+  rate_limits:
+    requests_per_minute: 60
+    burst_limit: 10
+  
+  execution:
+    isolation: sandboxed
+    supply_chain_validation: true
+    behavioral_monitoring: true
+
+# ============================================================
+# Network Isolation
+# ============================================================
+network:
+  bind: 127.0.0.1        # localhost only
+  port: 3456
+  tls: false              # local, not needed
+  # For remote daemon (enterprise):
+  # tls: true
+  # cert_path: /etc/nemons/tls/

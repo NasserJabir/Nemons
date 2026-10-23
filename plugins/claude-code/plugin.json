@@ -1,0 +1,47 @@
+{
+  "name": "nemons",
+  "version": "1.0.0",
+  "description": "Nemons transparent orchestrator — auto-triggers on every prompt",
+  "skills": [
+    {
+      "name": "nemons-orchestrator",
+      "path": "skills/nemons-orchestrator.md",
+      "auto_load": true,
+      "auto_trigger": true
+    }
+  ],
+  "mcp_servers": [
+    {
+      "name": "nemons-daemon",
+      "type": "remote",
+      "url": "http://127.0.0.1:3456/mcp",
+      "transport": "stdio",
+      "auto_invoke": true,
+      "tools": [
+        "nemons.analyze_prompt",
+        "nemons.get_context_pack",
+        "nemons.collect_evidence",
+        "nemons.evaluate_run",
+        "nemons.store_experience",
+        "nemons.retrieve_similar_experiences",
+        "nemons.health_check"
+      ]
+    }
+  ],
+  "hooks": {
+    "session.start": {
+      "command": "curl -s -X POST http://127.0.0.1:3456/sessions/start -H 'Content-Type: application/json' -d '{\"adapter\":\"claude-code\",\"session_id\":\"$CLAUDE_SESSION_ID\"}'",
+      "blocking": false
+    },
+    "session.end": {
+      "command": "curl -s -X POST http://127.0.0.1:3456/sessions/end -H 'Content-Type: application/json' -d '{\"session_id\":\"$CLAUDE_SESSION_ID\"}'",
+      "blocking": false
+    }
+  },
+  "permissions": {
+    "allow": [
+      "Skill(nemons-orchestrator)"
+    ],
+    "deny": []
+  }
+}

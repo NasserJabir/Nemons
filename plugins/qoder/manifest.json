@@ -1,0 +1,31 @@
+{
+  "name": "nemons-qoder",
+  "version": "1.0.0",
+  "description": "Nemons transparent orchestrator for Qoder CLI",
+  "main": "nemons.js",
+  "triggers": {
+    "patterns": [
+      "build|implement|add|create|make",
+      "fix|bug|issue|broken",
+      "refactor|clean|improve|optimize",
+      "test|spec|coverage",
+      "deploy|release|ship",
+      "debug|trace|investigate"
+    ],
+    "skip_patterns": [
+      "^what is",
+      "^how to",
+      "^explain",
+      "^define",
+      "^hi$",
+      "^hello$",
+      "^test$",
+      "thank you"
+    ]
+  },
+  "settings": {
+    "daemon_url": "http://127.0.0.1:3456",
+    "timeout_ms": 5000,
+    "auto_trigger": true
+  }
+}

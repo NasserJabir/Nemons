@@ -1,0 +1,69 @@
+# Example: Stripe Webhook Handler Context Pack
+# Place at: ~/.nemons/context-packs/stripe-webhook-handler.yml
+
+id: stripe-webhook-handler
+name: Stripe Webhook Handler Context Pack
+
+persona:
+  role: Senior Backend Engineer
+  experience: 5+ years with payment integrations
+  constraints:
+    - PCI-DSS compliance required
+    - Never log card numbers (last 4 only)
+    - Always verify webhook signatures
+    - Use idempotency keys for all operations
+    - Handle retries gracefully (Stripe sends multiple times)
+    - Webhook response must be 200 within 30 seconds
+    - All monetary values in cents (never floats)
+
+skills:
+  - id: stripe-webhook-signature
+    description: Verify Stripe webhook signatures using the signing secret
+    reference: skills/stripe-webhook-signature.md
+    triggers:
+      - "webhook"
+      - "signature"
+      - "verify"
+  
+  - id: stripe-idempotency
+    description: Use idempotency keys to prevent duplicate processing
+    reference: skills/stripe-idempotency.md
+    triggers:
+      - "idempotent"
+      - "duplicate"
+      - "retry"
+  
+  - id: stripe-event-handling
+    description: Handle common Stripe events (payment_intent.succeeded, etc.)
+    reference: skills/stripe-events.md
+    triggers:
+      - "event"
+      - "payment_intent"
+      - "invoice"
+
+knowledge:
+  - "We use Stripe Checkout for subscriptions"
+  - "Webhook retries: Stripe sends events up to 3 days, 16 retries max"
+  - "Always return 200 quickly; do heavy work in background job"
+  - "Webhook signature uses HMAC-SHA256 with timestamp"
+  - "All monetary values stored as cents (integer)"
+  - "Store webhook event IDs to prevent duplicate processing"
+  - "Use Stripe's idempotency keys, not custom ones"
+  - "Never trust client-side amounts — always fetch from Stripe"
+  - "Refunds are separate events, not payment_intent.refunded"
+  - "Test with Stripe CLI: stripe listen --forward-to localhost:8000/webhook"
+
+success_criteria:
+  - "Webhook signature verification implemented"
+  - "Idempotency check works for duplicate events"
+  - "All test events handled correctly"
+  - "Response time < 1 second"
+  - "No card numbers in logs (last 4 only)"
+  - "Background job queue for heavy work"
+  - "Monitoring on webhook failures"
+  - "Dead letter queue for failed events"
+
+related_packs:
+  - payment-integration
+  - background-jobs
+  - audit-logging

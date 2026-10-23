@@ -1,0 +1,88 @@
+# Example: Custom Context Pack
+
+Place this file at: `~/.nemons/context-packs/auth-feature.yml`
+
+```yaml
+id: auth-feature
+name: Authentication Feature Context Pack
+
+persona:
+  role: Senior Backend Engineer
+  experience: 5+ years with OAuth/JWT
+  constraints:
+    - OAuth 2.1 required
+    - Never log JWT tokens
+    - Always validate token signatures
+    - Use HTTPS for all auth endpoints
+    - Implement rate limiting on login
+    - Store passwords with bcrypt (cost >= 12)
+
+skills:
+  - id: jwt-validation
+    description: Validate JWT signatures and claims
+    reference: skills/jwt-validation.md
+    triggers:
+      - "jwt"
+      - "token"
+      - "verify"
+  
+  - id: oauth-flow
+    description: Implement OAuth 2.1 authorization code flow
+    reference: skills/oauth-flow.md
+    triggers:
+      - "oauth"
+      - "google login"
+      - "github login"
+  
+  - id: session-management
+    description: Secure session handling with httpOnly cookies
+    reference: skills/sessions.md
+    triggers:
+      - "session"
+      - "login"
+      - "logout"
+
+knowledge:
+  - "We use idempotency keys for all auth operations"
+  - "Refresh tokens rotate on each use"
+  - "Session timeout is 15 minutes for admin, 7 days for users"
+  - "All auth routes are under /api/auth/*"
+  - "We use PostgreSQL with row-level security on user tables"
+
+success_criteria:
+  - "All auth tests pass"
+  - "No JWT tokens in logs"
+  - "Rate limiting enabled on /login"
+  - "HTTPS enforced on auth endpoints"
+  - "bcrypt cost >= 12"
+  - "No password in plaintext anywhere"
+  - "Refresh token rotation implemented"
+
+related_packs:
+  - user-management
+  - rate-limiting
+  - audit-logging
+```
+
+## How to Use This Pack
+
+```bash
+# 1. Copy to context-packs directory
+cp examples/auth-feature.yml ~/.nemons/context-packs/
+
+# 2. Restart daemon
+nemons daemon restart
+
+# 3. Test — Nemons will auto-select this pack when prompt mentions "auth" or "login"
+opencode
+> implement user login with Google OAuth
+# → Nemons will inject this pack automatically
+```
+
+## Other Example Packs
+
+- `payment-integration.yml` — Stripe/PayPal flows
+- `api-design.yml` — REST/GraphQL conventions
+- `frontend-component.yml` — React component patterns
+- `database-migration.yml` — Schema changes
+- `test-suite.yml` — Test coverage rules

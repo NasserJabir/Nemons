@@ -1,0 +1,4 @@
+class RateLimiter{constructor(){this.limits={default:{windowMs:60000,max:60},strict:{windowMs:60000,max:10}};this.requests=new Map()}
+check(endpoint,clientId){clientId=clientId||"default";const key=clientId+":"+endpoint;const now=Date.now();const config=this.limits.default;if(!this.requests.has(key))this.requests.set(key,[]);const ts=this.requests.get(key);while(ts.length>0&&ts[0]<now-config.windowMs)ts.shift();if(ts.length>=config.max)return{allowed:false,limit:config.max,remaining:0};ts.push(now);return{allowed:true,remaining:config.max-ts.length,limit:config.max}}
+stats(){return{tiers:Object.keys(this.limits),tracked:this.requests.size}}}
+module.exports={RateLimiter};
