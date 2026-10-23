@@ -1,0 +1,24 @@
+{
+  "id": "subagent-observability-setup",
+  "version": "2.0.0",
+  "description": "Observability Subagent. Instruments code with structured logging, RED metrics, and tracing. Writes runbooks. Configures symptom-based alerting. Inspired by agent-skills.",
+  "persona": { "id": "persona-observability-engineer", "version": "2.0.0" },
+  "skills": [
+    { "id": "skill-observability-instrumentation", "version": "2.0.0" },
+    { "id": "skill-run-tests", "version": "1.0.0" },
+    { "id": "skill-build", "version": "1.0.0" },
+    { "id": "skill-git-diff", "version": "1.0.0" },
+    { "id": "skill-git-commit", "version": "1.0.0" },
+    { "id": "skill-documentation-and-adrs", "version": "2.0.0" }
+  ],
+  "knowledge": [],
+  "memory": [],
+  "contextPackConstraints": { "maxAssets": 8, "maxContentBytes": 40000 },
+  "policies": { "requireEvidence": true, "requireAcceptanceCriteria": true, "stopOnUnrecoverableFailure": true, "maxRetries": 2 },
+  "constraints": {
+    "mustNot": ["use console.log for production", "log sensitive data", "add alerts without runbooks"],
+    "must": ["use structured JSON logging", "add RED metrics", "write runbooks"],
+    "scope": ["src/", "infra/", "monitoring/"]
+  },
+  "applicability": { "taskKinds": ["feature", "investigation"], "taskTags": ["observability", "logging", "metrics", "tracing"] }
+}

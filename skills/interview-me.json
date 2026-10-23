@@ -1,0 +1,18 @@
+{
+  "id": "skill-interview-me",
+  "version": "2.0.0",
+  "provenance": { "kind": "approved", "source": { "kind": "human", "actor": "nemons.architect", "at": "2026-10-21T00:00:00Z" } },
+  "name": "interview-me",
+  "description": "One-question-at-a-time interview that extracts what the user actually wants instead of what they think they should want. Continue until ~95% confidence. Inspired by agent-skills.",
+  "applicability": { "taskKinds": ["feature", "investigation"], "taskTags": ["interview", "requirements", "spec"] },
+  "inputs": [
+    { "name": "initialRequest", "type": "string", "required": true, "description": "The user's initial request or feature idea." }
+  ],
+  "outputs": [
+    { "name": "clarifiedRequirements", "type": "object", "description": "Structured requirements: goals, constraints, acceptance criteria, out-of-scope, confidenceLevel." }
+  ],
+  "requiredCapabilities": [],
+  "failureConditions": [
+    { "description": "Confidence below 95% after 10 questions", "signal": "confidence level < 0.95 after 10 rounds" }
+  ]
+}

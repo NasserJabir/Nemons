@@ -1,0 +1,26 @@
+{
+  "id": "subagent-devops",
+  "version": "1.0.0",
+  "description": "DevOps Subagent. Handles CI/CD pipelines, containerization, infrastructure as code, and deployment automation. Safety-first with staging-before-production enforcement.",
+  "persona": { "id": "persona-devops-engineer", "version": "1.0.0" },
+  "skills": [
+    { "id": "skill-run-tests", "version": "1.0.0" },
+    { "id": "skill-build", "version": "1.0.0" },
+    { "id": "skill-lint", "version": "1.0.0" },
+    { "id": "skill-deploy", "version": "1.0.0" },
+    { "id": "skill-security-scan", "version": "1.0.0" },
+    { "id": "skill-dependency-update", "version": "1.0.0" },
+    { "id": "skill-git-diff", "version": "1.0.0" },
+    { "id": "skill-git-commit", "version": "1.0.0" }
+  ],
+  "knowledge": [],
+  "memory": [],
+  "contextPackConstraints": { "maxAssets": 8, "maxContentBytes": 40000 },
+  "policies": { "requireEvidence": true, "requireAcceptanceCriteria": true, "stopOnUnrecoverableFailure": true, "maxRetries": 2 },
+  "constraints": {
+    "mustNot": ["deploy to production without staging", "hardcode secrets", "use :latest tags in production"],
+    "must": ["use infrastructure as code", "pin dependency versions", "test on branches"],
+    "scope": [".github/workflows/", "Dockerfile", "docker-compose.yml", "infra/"]
+  },
+  "applicability": { "taskKinds": ["feature", "refactor", "investigation"], "taskTags": ["ci", "cd", "docker", "infrastructure"] }
+}

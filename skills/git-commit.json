@@ -1,0 +1,58 @@
+{
+  "id": "skill-git-commit",
+  "version": "1.0.0",
+  "provenance": {
+    "kind": "approved",
+    "source": {
+      "kind": "human",
+      "actor": "nemons.architect",
+      "at": "2026-10-21T00:00:00Z"
+    }
+  },
+  "name": "git-commit",
+  "description": "Stage and commit changes with a descriptive message. Verifies that tests pass before committing. Creates an evidence record of the commit hash for provenance tracking.",
+  "applicability": {
+    "taskKinds": ["test-fix", "feature", "refactor"],
+    "taskTags": ["git", "commit", "vcs"]
+  },
+  "inputs": [
+    {
+      "name": "message",
+      "type": "string",
+      "required": true,
+      "description": "The commit message describing the change."
+    },
+    {
+      "name": "runTestsFirst",
+      "type": "boolean",
+      "required": false,
+      "description": "If true (default), run the test suite before committing. Abort if tests fail."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "commitHash",
+      "type": "string",
+      "description": "The SHA of the created commit, for evidence/provenance tracking."
+    }
+  ],
+  "requiredCapabilities": [
+    { "capability": "tool.git.commit", "required": true },
+    { "capability": "tool.shell.exec", "required": true },
+    { "capability": "tool.test.run", "required": false, "fallbackCapability": "tool.shell.exec" }
+  ],
+  "failureConditions": [
+    {
+      "description": "Tests fail before commit",
+      "signal": "test suite exit code is non-zero"
+    },
+    {
+      "description": "Nothing to commit",
+      "signal": "git commit exits with 'nothing to commit'"
+    },
+    {
+      "description": "Not a git repository",
+      "signal": "git command fails with 'not a git repository'"
+    }
+  ]
+}

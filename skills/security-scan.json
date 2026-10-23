@@ -1,0 +1,19 @@
+{
+  "id": "skill-security-scan",
+  "version": "1.0.0",
+  "provenance": { "kind": "approved", "source": { "kind": "human", "actor": "nemons.architect", "at": "2026-10-21T00:00:00Z" } },
+  "name": "security-scan",
+  "description": "Run security scanners (npm audit, ESLint security rules) and report vulnerabilities categorized by severity (critical, high, moderate, low). Checks for known CVEs in dependencies.",
+  "applicability": { "taskKinds": ["review", "test-fix"], "taskTags": ["security", "audit", "vulnerability", "cve"] },
+  "inputs": [
+    { "name": "fix", "type": "boolean", "required": false, "description": "If true, run npm audit fix. Default: false." }
+  ],
+  "outputs": [
+    { "name": "report", "type": "object", "description": "Security report: vulnerabilityCount, severity breakdown, affectedPackages, fixable count." }
+  ],
+  "requiredCapabilities": [{ "capability": "tool.shell.exec", "required": true }, { "capability": "tool.file.read", "required": true }],
+  "failureConditions": [
+    { "description": "npm audit not available", "signal": "command exits with 'npm audit not available'" },
+    { "description": "Critical vulnerabilities found", "signal": "report contains severity=critical" }
+  ]
+}

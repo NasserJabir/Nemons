@@ -1,0 +1,47 @@
+{
+  "id": "skill-git-diff",
+  "version": "1.0.0",
+  "provenance": {
+    "kind": "approved",
+    "source": {
+      "kind": "human",
+      "actor": "nemons.architect",
+      "at": "2026-10-21T00:00:00Z"
+    }
+  },
+  "name": "git-diff",
+  "description": "Show the git diff of changes made during the Run. Captures what files were modified and the specific changes in each file.",
+  "applicability": {
+    "taskKinds": ["test-fix", "refactor", "feature"],
+    "taskTags": ["git", "diff", "changes"]
+  },
+  "inputs": [
+    {
+      "name": "staged",
+      "type": "boolean",
+      "required": false,
+      "description": "If true, show only staged changes (--cached). If false, show all unstaged changes."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "diff",
+      "type": "string",
+      "description": "The unified diff output showing all file changes."
+    }
+  ],
+  "requiredCapabilities": [
+    { "capability": "tool.git.diff", "required": true },
+    { "capability": "tool.shell.exec", "required": true }
+  ],
+  "failureConditions": [
+    {
+      "description": "Not a git repository",
+      "signal": "git diff exits with 'not a git repository'"
+    },
+    {
+      "description": "No changes to show",
+      "signal": "git diff output is empty"
+    }
+  ]
+}

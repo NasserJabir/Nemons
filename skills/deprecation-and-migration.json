@@ -1,0 +1,20 @@
+{
+  "id": "skill-deprecation-and-migration",
+  "version": "2.0.0",
+  "provenance": { "kind": "approved", "source": { "kind": "human", "actor": "nemons.architect", "at": "2026-10-21T00:00:00Z" } },
+  "name": "deprecation-and-migration",
+  "description": "Treat code as liability. Distinguish compulsory vs advisory deprecation. Follow migration patterns. Remove zombie code. Inspired by agent-skills.",
+  "applicability": { "taskKinds": ["refactor", "feature"], "taskTags": ["deprecation", "migration", "cleanup", "zombie-code"] },
+  "inputs": [
+    { "name": "target", "type": "string", "required": true, "description": "API, module, or feature to deprecate." },
+    { "name": "replacement", "type": "string", "required": false, "description": "The replacement API or module path." }
+  ],
+  "outputs": [
+    { "name": "deprecationPlan", "type": "object", "description": "Plan: deprecationType (compulsory/advisory), migrationSteps, timeline, affectedConsumers." }
+  ],
+  "requiredCapabilities": [{ "capability": "tool.file.read", "required": true }, { "capability": "tool.file.write", "required": true }, { "capability": "tool.shell.exec", "required": true }],
+  "failureConditions": [
+    { "description": "Breaking change without deprecation period", "signal": "API removed without deprecation warning" },
+    { "description": "No migration path", "signal": "replacement is undefined for compulsory deprecation" }
+  ]
+}

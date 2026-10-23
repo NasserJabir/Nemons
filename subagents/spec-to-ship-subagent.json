@@ -1,0 +1,30 @@
+{
+  "id": "subagent-spec-to-ship",
+  "version": "2.0.0",
+  "description": "Full lifecycle Subagent: spec → plan → build → test → review → ship. Uses interview-me for requirements, spec-driven-development for PRD, incremental-implementation for coding, TDD for testing, code-review for QA, and verification before shipping. Inspired by agent-skills.",
+  "persona": { "id": "persona-spec-driven-architect", "version": "2.0.0" },
+  "skills": [
+    { "id": "skill-interview-me", "version": "2.0.0" },
+    { "id": "skill-spec-driven-development", "version": "2.0.0" },
+    { "id": "skill-incremental-implementation", "version": "2.0.0" },
+    { "id": "skill-tdd", "version": "2.0.0" },
+    { "id": "skill-systematic-debugging", "version": "2.0.0" },
+    { "id": "skill-code-review", "version": "1.0.0" },
+    { "id": "skill-verification-before-completion", "version": "2.0.0" },
+    { "id": "skill-documentation-and-adrs", "version": "2.0.0" },
+    { "id": "skill-git-commit", "version": "1.0.0" },
+    { "id": "skill-git-diff", "version": "1.0.0" },
+    { "id": "skill-build", "version": "1.0.0" },
+    { "id": "skill-lint", "version": "1.0.0" }
+  ],
+  "knowledge": [],
+  "memory": [],
+  "contextPackConstraints": { "maxAssets": 15, "maxContentBytes": 80000 },
+  "policies": { "requireEvidence": true, "requireAcceptanceCriteria": true, "stopOnUnrecoverableFailure": true, "maxRetries": 3 },
+  "constraints": {
+    "mustNot": ["start coding before spec is approved", "ship without verification", "mix multiple features in one task"],
+    "must": ["write spec before code", "implement incrementally", "verify before completion", "document decisions"],
+    "scope": ["src/", "tests/", "docs/"]
+  },
+  "applicability": { "taskKinds": ["feature"], "taskTags": ["full-lifecycle", "spec", "build", "ship"] }
+}

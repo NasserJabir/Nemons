@@ -1,0 +1,20 @@
+{
+  "id": "skill-incremental-implementation",
+  "version": "2.0.0",
+  "provenance": { "kind": "approved", "source": { "kind": "human", "actor": "nemons.architect", "at": "2026-10-21T00:00:00Z" } },
+  "name": "incremental-implementation",
+  "description": "Implement thin vertical slices end-to-end. Each slice = implement → test → verify → commit. Use feature flags for safe rollouts. Keep changes rollback-friendly. Each slice independently deployable. Inspired by agent-skills.",
+  "applicability": { "taskKinds": ["feature"], "taskTags": ["incremental", "vertical-slice", "feature-flag", "atomic-commit"] },
+  "inputs": [
+    { "name": "taskList", "type": "object", "required": true, "description": "Ordered list of atomic tasks from spec-driven-development." }
+  ],
+  "outputs": [
+    { "name": "commitLog", "type": "object", "description": "List of commits: hash, message, files changed, tests passed." }
+  ],
+  "requiredCapabilities": [{ "capability": "tool.shell.exec", "required": true }, { "capability": "tool.file.read", "required": true }, { "capability": "tool.file.write", "required": true }, { "capability": "tool.git.commit", "required": true }],
+  "failureConditions": [
+    { "description": "Slice tests fail", "signal": "test suite fails after implementing a slice" },
+    { "description": "Slice too large", "signal": "single slice touches > 5 files or > 200 lines" },
+    { "description": "No commit after slice", "signal": "implementation continued without committing the previous slice" }
+  ]
+}

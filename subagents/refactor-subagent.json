@@ -1,0 +1,49 @@
+{
+  "id": "subagent-refactor",
+  "version": "1.0.0",
+  "description": "A Subagent configuration for code refactoring. Combines the Refactor Engineer persona with the run-tests, git-diff, and git-commit skills. Designed for tasks where code quality needs improvement without changing behavior.",
+  "persona": {
+    "id": "persona-refactor-engineer",
+    "version": "1.0.0"
+  },
+  "skills": [
+    {
+      "id": "skill-run-tests",
+      "version": "1.0.0"
+    },
+    {
+      "id": "skill-git-diff",
+      "version": "1.0.0"
+    },
+    {
+      "id": "skill-git-commit",
+      "version": "1.0.0"
+    }
+  ],
+  "knowledge": [],
+  "memory": [],
+  "contextPackConstraints": {
+    "maxAssets": 8,
+    "maxContentBytes": 40000
+  },
+  "policies": {
+    "requireEvidence": true,
+    "requireAcceptanceCriteria": true,
+    "stopOnUnrecoverableFailure": false,
+    "maxRetries": 2
+  },
+  "constraints": {
+    "mustNot": [
+      "change the public API",
+      "reduce test coverage",
+      "mix refactoring with feature additions"
+    ],
+    "scope": [
+      "src/"
+    ]
+  },
+  "applicability": {
+    "taskKinds": ["refactor"],
+    "taskTags": ["clean-code", "maintainability"]
+  }
+}

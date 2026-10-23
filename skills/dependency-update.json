@@ -1,0 +1,21 @@
+{
+  "id": "skill-dependency-update",
+  "version": "1.0.0",
+  "provenance": { "kind": "approved", "source": { "kind": "human", "actor": "nemons.architect", "at": "2026-10-21T00:00:00Z" } },
+  "name": "dependency-update",
+  "description": "Safely update project dependencies. Checks for breaking changes, runs tests before and after update, and generates a change report with risk assessment.",
+  "applicability": { "taskKinds": ["refactor", "test-fix"], "taskTags": ["npm", "dependencies", "update", "security"] },
+  "inputs": [
+    { "name": "package", "type": "string", "required": false, "description": "Specific package to update. If omitted, updates all outdated packages." },
+    { "name": "targetVersion", "type": "string", "required": false, "description": "Target version (e.g., 'latest', 'patch', 'minor')." }
+  ],
+  "outputs": [
+    { "name": "report", "type": "object", "description": "Update report: packagesUpdated, packagesSkipped, breakingChanges, testsPassedBefore, testsPassedAfter." }
+  ],
+  "requiredCapabilities": [{ "capability": "tool.shell.exec", "required": true }, { "capability": "tool.file.read", "required": true }, { "capability": "tool.file.write", "required": true }],
+  "failureConditions": [
+    { "description": "Tests fail after update", "signal": "test suite fails after dependency update" },
+    { "description": "Breaking changes detected", "signal": "updated package has a major version bump" },
+    { "description": "Lockfile conflict", "signal": "npm install exits with lockfile conflict" }
+  ]
+}

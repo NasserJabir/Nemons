@@ -1,0 +1,22 @@
+{
+  "id": "skill-systematic-debugging",
+  "version": "2.0.0",
+  "provenance": { "kind": "approved", "source": { "kind": "human", "actor": "nemons.architect", "at": "2026-10-21T00:00:00Z" } },
+  "name": "systematic-debugging",
+  "description": "Five-phase debugging: REPRODUCE → LOCALIZE → REDUCE → FIX → GUARD. Never guess at the cause. Never fix the symptom. Always add a regression test. Includes root-cause-tracing and defense-in-depth techniques. Inspired by superpowers.",
+  "applicability": { "taskKinds": ["test-fix", "investigation"], "taskTags": ["debug", "bug", "root-cause", "error", "stack-trace"] },
+  "inputs": [
+    { "name": "errorOutput", "type": "string", "required": true, "description": "The error message or stack trace." },
+    { "name": "reproSteps", "type": "string", "required": false, "description": "Steps to reproduce the error." }
+  ],
+  "outputs": [
+    { "name": "rootCauseAnalysis", "type": "object", "description": "Analysis: errorType, rootCause, affectedFile, affectedLine, reproductionSteps, suggestedFix, confidenceLevel." },
+    { "name": "regressionTest", "type": "string", "description": "The created regression test file path." }
+  ],
+  "requiredCapabilities": [{ "capability": "tool.shell.exec", "required": true }, { "capability": "tool.file.read", "required": true }, { "capability": "tool.test.run", "required": false, "fallbackCapability": "tool.shell.exec" }],
+  "failureConditions": [
+    { "description": "Error cannot be reproduced", "signal": "reproduction steps fail to trigger the error" },
+    { "description": "Root cause cannot be determined", "signal": "no clear source file or line in the stack trace" },
+    { "description": "Fix introduces new failures", "signal": "test suite fails after the fix" }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "id": "subagent-fullstack",
+  "version": "1.0.0",
+  "description": "Full-Stack development Subagent. Handles end-to-end features spanning API, database, and UI layers. TDD-first approach with comprehensive testing.",
+  "persona": { "id": "persona-fullstack-developer", "version": "1.0.0" },
+  "skills": [
+    { "id": "skill-run-tests", "version": "1.0.0" },
+    { "id": "skill-build", "version": "1.0.0" },
+    { "id": "skill-lint", "version": "1.0.0" },
+    { "id": "skill-git-diff", "version": "1.0.0" },
+    { "id": "skill-git-commit", "version": "1.0.0" },
+    { "id": "skill-db-migrate", "version": "1.0.0" },
+    { "id": "skill-doc-generate", "version": "1.0.0" }
+  ],
+  "knowledge": [],
+  "memory": [],
+  "contextPackConstraints": { "maxAssets": 15, "maxContentBytes": 80000 },
+  "policies": { "requireEvidence": true, "requireAcceptanceCriteria": true, "stopOnUnrecoverableFailure": true, "maxRetries": 3 },
+  "constraints": {
+    "mustNot": ["skip any layer of the stack", "hardcode environment values", "ignore error handling"],
+    "must": ["use TypeScript types across the stack", "write tests for all layers", "run the full test suite"],
+    "scope": ["src/", "tests/", "prisma/", "components/"]
+  },
+  "applicability": { "taskKinds": ["feature"], "taskTags": ["fullstack", "react", "nextjs", "api"] }
+}

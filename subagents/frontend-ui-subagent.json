@@ -1,0 +1,25 @@
+{
+  "id": "subagent-frontend-ui",
+  "version": "1.0.0",
+  "description": "Frontend UI development Subagent. Handles component design, accessibility, responsive layouts, and client-side state management. Accessibility-first approach with WCAG compliance.",
+  "persona": { "id": "persona-frontend-ui-engineer", "version": "1.0.0" },
+  "skills": [
+    { "id": "skill-run-tests", "version": "1.0.0" },
+    { "id": "skill-lint", "version": "1.0.0" },
+    { "id": "skill-build", "version": "1.0.0" },
+    { "id": "skill-git-diff", "version": "1.0.0" },
+    { "id": "skill-git-commit", "version": "1.0.0" },
+    { "id": "skill-performance-profile", "version": "1.0.0" },
+    { "id": "skill-debug", "version": "1.0.0" }
+  ],
+  "knowledge": [],
+  "memory": [],
+  "contextPackConstraints": { "maxAssets": 10, "maxContentBytes": 50000 },
+  "policies": { "requireEvidence": true, "requireAcceptanceCriteria": true, "stopOnUnrecoverableFailure": false, "maxRetries": 2 },
+  "constraints": {
+    "mustNot": ["ignore accessibility", "use any type for props", "hardcode API URLs"],
+    "must": ["use semantic HTML", "handle loading/error states", "test user interactions"],
+    "scope": ["src/components/", "src/pages/", "src/hooks/"]
+  },
+  "applicability": { "taskKinds": ["feature", "refactor"], "taskTags": ["react", "vue", "svelte", "css", "ui"] }
+}

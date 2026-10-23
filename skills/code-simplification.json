@@ -1,0 +1,21 @@
+{
+  "id": "skill-code-simplification",
+  "version": "2.0.0",
+  "provenance": { "kind": "approved", "source": { "kind": "human", "actor": "nemons.architect", "at": "2026-10-21T00:00:00Z" } },
+  "name": "code-simplification",
+  "description": "Reduce complexity while preserving exact behavior. Apply Chesterton's Fence (understand before removing). Rule of 500 (no file > 500 lines, no function > 50 lines). Eliminate dead code, redundant branches, unnecessary abstractions. Inspired by agent-skills.",
+  "applicability": { "taskKinds": ["refactor"], "taskTags": ["simplify", "complexity", "clean-code", "dead-code"] },
+  "inputs": [
+    { "name": "targetFile", "type": "string", "required": true, "description": "The file to simplify." }
+  ],
+  "outputs": [
+    { "name": "beforeMetrics", "type": "object", "description": "Complexity before: lineCount, cyclomaticComplexity, functionCount." },
+    { "name": "afterMetrics", "type": "object", "description": "Complexity after: lineCount, cyclomaticComplexity, functionCount." },
+    { "name": "changes", "type": "object", "description": "List of changes: type (extract/inline/remove/dead-code), description, lineRange." }
+  ],
+  "requiredCapabilities": [{ "capability": "tool.file.read", "required": true }, { "capability": "tool.file.write", "required": true }, { "capability": "tool.shell.exec", "required": true }],
+  "failureConditions": [
+    { "description": "Behavior changed during simplification", "signal": "test results differ before and after" },
+    { "description": "Removed code without understanding", "signal": "no comment explaining why the code existed" }
+  ]
+}

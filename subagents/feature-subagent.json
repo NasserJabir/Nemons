@@ -1,0 +1,54 @@
+{
+  "id": "subagent-feature",
+  "version": "1.0.0",
+  "description": "A Subagent configuration for implementing new features using TDD. Combines the Feature Engineer persona with all available skills. Designed for tasks where a new feature needs to be implemented following test-first development.",
+  "persona": {
+    "id": "persona-feature-engineer",
+    "version": "1.0.0"
+  },
+  "skills": [
+    {
+      "id": "skill-run-tests",
+      "version": "1.0.0"
+    },
+    {
+      "id": "skill-build",
+      "version": "1.0.0"
+    },
+    {
+      "id": "skill-git-diff",
+      "version": "1.0.0"
+    },
+    {
+      "id": "skill-git-commit",
+      "version": "1.0.0"
+    }
+  ],
+  "knowledge": [],
+  "memory": [],
+  "contextPackConstraints": {
+    "maxAssets": 12,
+    "maxContentBytes": 60000
+  },
+  "policies": {
+    "requireEvidence": true,
+    "requireAcceptanceCriteria": true,
+    "stopOnUnrecoverableFailure": true,
+    "maxRetries": 3
+  },
+  "constraints": {
+    "mustNot": [
+      "implement features without tests",
+      "break existing tests",
+      "add more than one feature per Run"
+    ],
+    "scope": [
+      "src/",
+      "tests/"
+    ]
+  },
+  "applicability": {
+    "taskKinds": ["feature"],
+    "taskTags": ["tdd", "new-feature"]
+  }
+}

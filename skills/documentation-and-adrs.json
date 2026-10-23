@@ -1,0 +1,20 @@
+{
+  "id": "skill-documentation-and-adrs",
+  "version": "2.0.0",
+  "provenance": { "kind": "approved", "source": { "kind": "human", "actor": "nemons.architect", "at": "2026-10-21T00:00:00Z" } },
+  "name": "documentation-and-adrs",
+  "description": "Write Architecture Decision Records (ADRs), API documentation, and inline documentation. Document the 'why' not the 'what'. Inspired by agent-skills.",
+  "applicability": { "taskKinds": ["feature", "refactor", "review"], "taskTags": ["docs", "adr", "api-doc", "readme"] },
+  "inputs": [
+    { "name": "topic", "type": "string", "required": true, "description": "What to document: architecture decision, API, module, or feature." },
+    { "name": "format", "type": "string", "required": false, "description": "Output format: 'adr', 'api-doc', 'readme', 'inline'. Default: 'adr'." }
+  ],
+  "outputs": [
+    { "name": "document", "type": "string", "description": "The generated document content." },
+    { "name": "filePath", "type": "string", "description": "Where the document was saved." }
+  ],
+  "requiredCapabilities": [{ "capability": "tool.file.read", "required": true }, { "capability": "tool.file.write", "required": true }],
+  "failureConditions": [
+    { "description": "Documenting the 'what' instead of the 'why'", "signal": "document contains only code description without rationale" }
+  ]
+}
