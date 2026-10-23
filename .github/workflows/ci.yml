@@ -182,16 +182,25 @@ jobs:
       - name: Check for hardcoded secrets in source
         run: |
           # Look for common secret patterns. Excludes:
-          #   - node_modules/, .git/
+          #   - node_modules/, .git/, dist/
           #   - *.md (documentation may mention example secrets)
-          #   - WORKLOG.md, CHANGELOG.md (may discuss secrets)
+          #   - **/tests/** (test fixtures that intentionally exercise the secret detector
+          #     with synthetic strings like "sk-abc123def456...")
+          #   - **/build-scripts/** (Python build scripts that contain the same test fixtures)
+          #   - *.tar.gz, *.zip (binary archives)
           if grep -rE "(sk-ant-[a-zA-Z0-9]{20,}|sk-[a-zA-Z0-9]{20,}|AKIA[A-Z0-9]{16}|github_pat_[a-zA-Z0-9]{20,})" \
               --exclude-dir=node_modules \
               --exclude-dir=.git \
               --exclude-dir=dist \
+              --exclude-dir=tests \
+              --exclude-dir=build-scripts \
               --exclude="*.md" \
               --exclude="*.tar.gz" \
               --exclude="*.zip" \
+              --exclude="*_test.ts" \
+              --exclude="*_test.js" \
+              --exclude="*.test.ts" \
+              --exclude="*.test.js" \
               . ; then
             echo "Found hardcoded secrets!"
             exit 1
