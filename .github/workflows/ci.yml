@@ -32,6 +32,15 @@ on:
 # the policy visible in the run logs).
 env:
   NEMONS_RELEASE_POLICY: ${{ startsWith(github.ref, 'refs/tags/v') && 'strict' || 'advisory' }}
+  # v4.2.1-fix (rev 3): set NEMONS_HOME + NEMONS_PORT at the workflow
+  # level so ALL steps in test-daemon use the same isolated home and
+  # the same port. Previously each step set NEMONS_HOME inline, but
+  # the stop step FORGOT to — so it looked in ~/.nemos/run/daemon.pid
+  # instead of /tmp/nemos-ci-smoke/run/daemon.pid and reported
+  # "Daemon not running (no PID file)" while the port was still
+  # bound. This caused the smoke test to fail.
+  NEMONS_HOME: /tmp/nemos-ci-smoke
+  NEMONS_PORT: "3456"
 
 jobs:
   test-daemon:
@@ -82,23 +91,21 @@ jobs:
 
       - name: Smoke test — start daemon
         working-directory: ./nemos
-        run: |
-          NEMONS_HOME=/tmp/nemos-ci-smoke \
-          NEMONS_PORT=3456 \
-          node bin/nemons.js daemon start
-        env:
-          NEMONS_HOME: /tmp/nemos-ci-smoke
+        run: node bin/nemons.js daemon start
+        # v4.2.1-fix (rev 3): NEMONS_HOME and NEMONS_PORT are now set
+        # at the workflow level so the stop step (which previously
+        # forgot to set them inline) reads the same values.
 
       - name: Smoke test — verify /health and /core/status
         working-directory: ./nemos
         run: |
           set -e
           echo "--- /health ---"
-          curl -sf http://127.0.0.1:3456/health | jq -e '.status == "healthy" and .core_loaded == true'
+          curl -sf http://127.0.0.1:${NEMONS_PORT}/health | jq -e '.status == "healthy" and .core_loaded == true'
           echo "--- /core/status ---"
-          curl -sf http://127.0.0.1:3456/core/status | jq -e '.bridge_loaded == true and (.available_apis | length) >= 17'
+          curl -sf http://127.0.0.1:${NEMONS_PORT}/core/status | jq -e '.bridge_loaded == true and (.available_apis | length) >= 17'
           echo "--- /core/sha256 ---"
-          HASH=$(curl -sf "http://127.0.0.1:3456/core/sha256?s=hello" | jq -r .hash)
+          HASH=$(curl -sf "http://127.0.0.1:${NEMONS_PORT}/core/sha256?s=hello" | jq -r .hash)
           [ "$HASH" = "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824" ]
 
       - name: Smoke test — stop daemon and verify it died
@@ -109,16 +116,16 @@ jobs:
           # can't be killed, so this is a real check.
           node bin/nemons.js daemon stop
           # Verify the port is free (no leftover listener)
-          if ss -tln 2>/dev/null | grep -q ':3456'; then
-            echo "ERROR: port 3456 still bound after daemon stop"
+          if ss -tln 2>/dev/null | grep -q ":${NEMONS_PORT}"; then
+            echo "ERROR: port ${NEMONS_PORT} still bound after daemon stop"
             exit 1
           fi
           # Macos doesn't have `ss` — fall back to nc
-          if command -v nc >/dev/null && nc -z 127.0.0.1 3456 </dev/null 2>/dev/null; then
-            echo "ERROR: port 3456 still accepting connections after daemon stop"
+          if command -v nc >/dev/null && nc -z 127.0.0.1 ${NEMONS_PORT} </dev/null 2>/dev/null; then
+            echo "ERROR: port ${NEMONS_PORT} still accepting connections after daemon stop"
             exit 1
           fi
-          echo "✓ daemon stopped, port 3456 verified free"
+          echo "✓ daemon stopped, port ${NEMONS_PORT} verified free"
 
       - name: Upload logs on failure
         if: failure()
