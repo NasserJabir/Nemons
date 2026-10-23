@@ -1,0 +1,46 @@
+{
+  "id": "skill-read-error",
+  "version": "1.0.0",
+  "provenance": {
+    "kind": "approved",
+    "source": {
+      "kind": "human",
+      "actor": "nemons.architect",
+      "at": "2026-10-21T00:00:00Z"
+    }
+  },
+  "name": "read-error",
+  "description": "Read and parse a test failure error message to identify the failing test, the expected vs actual values, and the source file/line where the assertion failed. Extracts structured information from the error for root-cause analysis.",
+  "applicability": {
+    "taskKinds": ["test-fix"],
+    "taskTags": ["vitest", "jest", "mocha", "node-test"]
+  },
+  "inputs": [
+    {
+      "name": "testOutput",
+      "type": "string",
+      "required": true,
+      "description": "The raw stdout/stderr output from the test runner."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "analysis",
+      "type": "object",
+      "description": "Structured analysis containing: failingTestName, expectedValue, actualValue, sourceFile, sourceLine, errorType."
+    }
+  ],
+  "requiredCapabilities": [
+    { "capability": "tool.file.read", "required": true }
+  ],
+  "failureConditions": [
+    {
+      "description": "No failing tests in the output",
+      "signal": "test output contains 'pass' and no 'fail' entries"
+    },
+    {
+      "description": "Error format not recognized",
+      "signal": "no assertion error or stack trace found in the output"
+    }
+  ]
+}

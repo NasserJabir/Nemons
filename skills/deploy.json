@@ -1,0 +1,22 @@
+{
+  "id": "skill-deploy",
+  "version": "1.0.0",
+  "provenance": { "kind": "approved", "source": { "kind": "human", "actor": "nemons.architect", "at": "2026-10-21T00:00:00Z" } },
+  "name": "deploy",
+  "description": "Deploy the application to a target environment (staging or production). Runs pre-deploy checks (tests, lint, build), deploys, and runs post-deploy health checks.",
+  "applicability": { "taskKinds": ["feature", "investigation"], "taskTags": ["deploy", "ci", "staging", "production"] },
+  "inputs": [
+    { "name": "environment", "type": "string", "required": true, "description": "Target environment: 'staging' or 'production'." },
+    { "name": "skipTests", "type": "boolean", "required": false, "description": "If true, skip pre-deploy tests. Default: false (not recommended)." }
+  ],
+  "outputs": [
+    { "name": "result", "type": "object", "description": "Deployment result: environment, version, url, status, durationMs, healthCheckPassed." }
+  ],
+  "requiredCapabilities": [{ "capability": "tool.shell.exec", "required": true }, { "capability": "tool.test.run", "required": false, "fallbackCapability": "tool.shell.exec" }],
+  "failureConditions": [
+    { "description": "Pre-deploy tests fail", "signal": "test suite exit code is non-zero" },
+    { "description": "Build fails", "signal": "build command exits with non-zero" },
+    { "description": "Post-deploy health check fails", "signal": "health check endpoint returns non-200" },
+    { "description": "Production deploy without staging", "signal": "environment=production and no staging deploy in history" }
+  ]
+}

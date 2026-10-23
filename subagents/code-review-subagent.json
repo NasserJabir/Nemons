@@ -1,0 +1,24 @@
+{
+  "id": "subagent-code-review",
+  "version": "1.0.0",
+  "description": "Code review Subagent. Handles PR reviews for correctness, security, performance, and style. Produces structured review reports with actionable feedback. Approves only when acceptance criteria are met.",
+  "persona": { "id": "persona-code-reviewer", "version": "1.0.0" },
+  "skills": [
+    { "id": "skill-code-review", "version": "1.0.0" },
+    { "id": "skill-security-scan", "version": "1.0.0" },
+    { "id": "skill-lint", "version": "1.0.0" },
+    { "id": "skill-run-tests", "version": "1.0.0" },
+    { "id": "skill-git-diff", "version": "1.0.0" },
+    { "id": "skill-performance-profile", "version": "1.0.0" }
+  ],
+  "knowledge": [],
+  "memory": [],
+  "contextPackConstraints": { "maxAssets": 8, "maxContentBytes": 40000 },
+  "policies": { "requireEvidence": true, "requireAcceptanceCriteria": true, "stopOnUnrecoverableFailure": true, "maxRetries": 1 },
+  "constraints": {
+    "mustNot": ["approve without reading the full diff", "request style-only changes without explanation"],
+    "must": ["verify tests exist and pass", "check for security implications", "provide actionable feedback"],
+    "scope": ["src/", "tests/"]
+  },
+  "applicability": { "taskKinds": ["review"], "taskTags": ["code-review", "pr", "quality"] }
+}

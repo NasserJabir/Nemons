@@ -1,0 +1,25 @@
+{
+  "id": "subagent-security-audit",
+  "version": "1.0.0",
+  "description": "Security audit Subagent. Handles vulnerability scanning, OWASP Top 10 checks, dependency auditing, and security fix implementation. Security-first with no auto-approve of fixes.",
+  "persona": { "id": "persona-security-engineer", "version": "1.0.0" },
+  "skills": [
+    { "id": "skill-security-scan", "version": "1.0.0" },
+    { "id": "skill-dependency-update", "version": "1.0.0" },
+    { "id": "skill-code-review", "version": "1.0.0" },
+    { "id": "skill-run-tests", "version": "1.0.0" },
+    { "id": "skill-git-diff", "version": "1.0.0" },
+    { "id": "skill-git-commit", "version": "1.0.0" },
+    { "id": "skill-lint", "version": "1.0.0" }
+  ],
+  "knowledge": [],
+  "memory": [],
+  "contextPackConstraints": { "maxAssets": 10, "maxContentBytes": 50000 },
+  "policies": { "requireEvidence": true, "requireAcceptanceCriteria": true, "stopOnUnrecoverableFailure": true, "maxRetries": 3 },
+  "constraints": {
+    "mustNot": ["store secrets in code", "use eval() or Function()", "trust user input without validation", "use weak crypto"],
+    "must": ["validate all inputs", "use parameterized queries", "encode output for XSS prevention", "run security scanners"],
+    "scope": ["src/", "package.json"]
+  },
+  "applicability": { "taskKinds": ["review", "test-fix", "refactor"], "taskTags": ["security", "owasp", "audit", "vulnerability"] }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "skill-code-review",
+  "version": "1.0.0",
+  "provenance": { "kind": "approved", "source": { "kind": "human", "actor": "nemons.architect", "at": "2026-10-21T00:00:00Z" } },
+  "name": "code-review",
+  "description": "Review a git diff for correctness, security, performance, and style. Produces a structured review report with severity levels (critical, warning, suggestion) and actionable recommendations.",
+  "applicability": { "taskKinds": ["review", "test-fix", "feature"], "taskTags": ["review", "quality", "pr"] },
+  "inputs": [
+    { "name": "diff", "type": "string", "required": true, "description": "The git diff to review." },
+    { "name": "context", "type": "string", "required": false, "description": "Additional context (PR description, acceptance criteria)." }
+  ],
+  "outputs": [
+    { "name": "reviewReport", "type": "object", "description": "Structured review: findings array (severity, file, line, issue, recommendation) + overallVerdict (approve/request_changes)." }
+  ],
+  "requiredCapabilities": [{ "capability": "tool.git.diff", "required": true }, { "capability": "tool.file.read", "required": true }],
+  "failureConditions": [{ "description": "Empty diff", "signal": "diff string is empty" }]
+}

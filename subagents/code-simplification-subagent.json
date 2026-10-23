@@ -1,0 +1,23 @@
+{
+  "id": "subagent-code-simplification",
+  "version": "2.0.0",
+  "description": "Code simplification Subagent. Reduces complexity while preserving behavior. Applies Chesterton's Fence, Rule of 500, dead code elimination. Inspired by agent-skills.",
+  "persona": { "id": "persona-code-simplifier", "version": "2.0.0" },
+  "skills": [
+    { "id": "skill-code-simplification", "version": "2.0.0" },
+    { "id": "skill-run-tests", "version": "1.0.0" },
+    { "id": "skill-lint", "version": "1.0.0" },
+    { "id": "skill-git-diff", "version": "1.0.0" },
+    { "id": "skill-git-commit", "version": "1.0.0" }
+  ],
+  "knowledge": [],
+  "memory": [],
+  "contextPackConstraints": { "maxAssets": 6, "maxContentBytes": 30000 },
+  "policies": { "requireEvidence": true, "requireAcceptanceCriteria": true, "stopOnUnrecoverableFailure": true, "maxRetries": 2 },
+  "constraints": {
+    "mustNot": ["change behavior during simplification", "remove code without understanding", "merge with feature work"],
+    "must": ["understand before removing", "keep tests green", "commit separately"],
+    "scope": ["src/"]
+  },
+  "applicability": { "taskKinds": ["refactor"], "taskTags": ["simplify", "complexity", "clean-code"] }
+}

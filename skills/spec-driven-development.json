@@ -1,0 +1,20 @@
+{
+  "id": "skill-spec-driven-development",
+  "version": "2.0.0",
+  "provenance": { "kind": "approved", "source": { "kind": "human", "actor": "nemons.architect", "at": "2026-10-21T00:00:00Z" } },
+  "name": "spec-driven-development",
+  "description": "Write a PRD before any code. Covers objectives, commands, structure, code style, testing, and boundaries. Decompose into atomic tasks (~100 lines each) with acceptance criteria and dependency ordering. Inspired by agent-skills.",
+  "applicability": { "taskKinds": ["feature", "investigation"], "taskTags": ["spec", "prd", "planning", "architecture"] },
+  "inputs": [
+    { "name": "featureRequest", "type": "string", "required": true, "description": "The feature request or user story." }
+  ],
+  "outputs": [
+    { "name": "prd", "type": "object", "description": "Product Requirements Document: objective, commands, structure, style, testing, boundaries." },
+    { "name": "taskBreakdown", "type": "object", "description": "Ordered list of atomic tasks, each with: description, acceptance criteria, dependencies." }
+  ],
+  "requiredCapabilities": [{ "capability": "tool.file.read", "required": true }, { "capability": "tool.file.write", "required": true }],
+  "failureConditions": [
+    { "description": "Spec not approved before implementation", "signal": "implementation started before spec review" },
+    { "description": "Tasks too large", "signal": "any task estimated > 100 lines of change" }
+  ]
+}

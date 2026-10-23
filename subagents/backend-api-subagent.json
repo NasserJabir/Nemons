@@ -1,0 +1,27 @@
+{
+  "id": "subagent-backend-api",
+  "version": "1.0.0",
+  "description": "Backend API development Subagent. Handles REST/GraphQL endpoint design, database operations, authentication, and API documentation. Security-first approach with input validation.",
+  "persona": { "id": "persona-backend-api-engineer", "version": "1.0.0" },
+  "skills": [
+    { "id": "skill-run-tests", "version": "1.0.0" },
+    { "id": "skill-build", "version": "1.0.0" },
+    { "id": "skill-lint", "version": "1.0.0" },
+    { "id": "skill-git-diff", "version": "1.0.0" },
+    { "id": "skill-git-commit", "version": "1.0.0" },
+    { "id": "skill-db-migrate", "version": "1.0.0" },
+    { "id": "skill-security-scan", "version": "1.0.0" },
+    { "id": "skill-doc-generate", "version": "1.0.0" },
+    { "id": "skill-debug", "version": "1.0.0" }
+  ],
+  "knowledge": [],
+  "memory": [],
+  "contextPackConstraints": { "maxAssets": 12, "maxContentBytes": 60000 },
+  "policies": { "requireEvidence": true, "requireAcceptanceCriteria": true, "stopOnUnrecoverableFailure": true, "maxRetries": 3 },
+  "constraints": {
+    "mustNot": ["expose sensitive data in responses", "use raw SQL without parameterization", "skip auth checks"],
+    "must": ["validate all inputs", "use parameterized queries", "return proper HTTP status codes"],
+    "scope": ["src/api/", "src/services/", "prisma/"]
+  },
+  "applicability": { "taskKinds": ["feature", "test-fix"], "taskTags": ["api", "rest", "graphql", "backend"] }
+}

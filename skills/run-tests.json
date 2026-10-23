@@ -1,0 +1,47 @@
+{
+  "id": "skill-run-tests",
+  "version": "1.0.0",
+  "provenance": {
+    "kind": "approved",
+    "source": {
+      "kind": "human",
+      "actor": "nemons.architect",
+      "at": "2026-10-21T00:00:00Z"
+    }
+  },
+  "name": "run-tests",
+  "description": "Run the project's test suite and report failures. Supports vitest, jest, and node:test runners. Automatically detects the test runner from package.json.",
+  "applicability": {
+    "taskKinds": ["test-fix", "refactor", "feature"],
+    "taskTags": ["vitest", "jest", "mocha", "node-test"]
+  },
+  "inputs": [
+    {
+      "name": "filter",
+      "type": "string",
+      "required": false,
+      "description": "Optional test file pattern to filter (e.g., 'users.test.ts'). If omitted, runs all tests."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "report",
+      "type": "object",
+      "description": "Test results including pass count, fail count, and failure details."
+    }
+  ],
+  "requiredCapabilities": [
+    { "capability": "tool.shell.exec", "required": true },
+    { "capability": "tool.file.read", "required": true }
+  ],
+  "failureConditions": [
+    {
+      "description": "Test runner not found in package.json",
+      "signal": "npm test exits with code 1 and stderr contains 'no test specified'"
+    },
+    {
+      "description": "No test files match the filter",
+      "signal": "test runner output contains 'no tests found'"
+    }
+  ]
+}

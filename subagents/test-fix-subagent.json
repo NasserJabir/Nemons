@@ -1,0 +1,54 @@
+{
+  "id": "subagent-test-fix",
+  "version": "1.0.0",
+  "description": "A Subagent configuration for fixing failing tests. Combines the Test-Fix Engineer persona with the run-tests, read-error, git-diff, and git-commit skills. Designed for tasks where a test is failing and needs to be fixed.",
+  "persona": {
+    "id": "persona-test-fix-engineer",
+    "version": "1.0.0"
+  },
+  "skills": [
+    {
+      "id": "skill-run-tests",
+      "version": "1.0.0"
+    },
+    {
+      "id": "skill-read-error",
+      "version": "1.0.0"
+    },
+    {
+      "id": "skill-git-diff",
+      "version": "1.0.0"
+    },
+    {
+      "id": "skill-git-commit",
+      "version": "1.0.0"
+    }
+  ],
+  "knowledge": [],
+  "memory": [],
+  "contextPackConstraints": {
+    "maxAssets": 10,
+    "maxContentBytes": 50000
+  },
+  "policies": {
+    "requireEvidence": true,
+    "requireAcceptanceCriteria": true,
+    "stopOnUnrecoverableFailure": true,
+    "maxRetries": 3
+  },
+  "constraints": {
+    "mustNot": [
+      "modify unrelated files",
+      "disable or skip failing tests",
+      "introduce new dependencies"
+    ],
+    "scope": [
+      "src/",
+      "tests/"
+    ]
+  },
+  "applicability": {
+    "taskKinds": ["test-fix"],
+    "taskTags": ["vitest", "jest", "mocha", "node-test"]
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "id": "skill-build",
+  "version": "1.0.0",
+  "provenance": {
+    "kind": "approved",
+    "source": {
+      "kind": "human",
+      "actor": "nemons.architect",
+      "at": "2026-10-21T00:00:00Z"
+    }
+  },
+  "name": "build",
+  "description": "Run the project's build command (npm run build) and verify it succeeds. Captures build output, warnings, and errors for evidence collection.",
+  "applicability": {
+    "taskKinds": ["feature", "refactor"],
+    "taskTags": ["build", "compile", "tsc"]
+  },
+  "inputs": [],
+  "outputs": [
+    {
+      "name": "buildResult",
+      "type": "object",
+      "description": "Build result including exit code, stdout, stderr, and success/failure status."
+    }
+  ],
+  "requiredCapabilities": [
+    { "capability": "tool.shell.exec", "required": true }
+  ],
+  "failureConditions": [
+    {
+      "description": "Build command not defined",
+      "signal": "npm run build exits with 'missing script: build'"
+    },
+    {
+      "description": "TypeScript compilation errors",
+      "signal": "tsc output contains 'error TS'"
+    }
+  ]
+}

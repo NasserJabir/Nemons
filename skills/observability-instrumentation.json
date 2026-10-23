@@ -1,0 +1,20 @@
+{
+  "id": "skill-observability-instrumentation",
+  "version": "2.0.0",
+  "provenance": { "kind": "approved", "source": { "kind": "human", "actor": "nemons.architect", "at": "2026-10-21T00:00:00Z" } },
+  "name": "observability-instrumentation",
+  "description": "Instrument code with structured logging, RED metrics, and OpenTelemetry tracing. Configure symptom-based alerting with runbooks. Inspired by agent-skills.",
+  "applicability": { "taskKinds": ["feature", "investigation"], "taskTags": ["observability", "logging", "metrics", "tracing", "opentelemetry"] },
+  "inputs": [
+    { "name": "targetPath", "type": "string", "required": true, "description": "File or directory to instrument." },
+    { "name": "instrumentationLevel", "type": "string", "required": false, "description": "Level: 'logs' (structured logging only), 'metrics' (logs + RED metrics), 'full' (logs + metrics + tracing). Default: 'metrics'." }
+  ],
+  "outputs": [
+    { "name": "instrumentationReport", "type": "object", "description": "Report: filesInstrumented, logStatementsAdded, metricsAdded, tracesAdded, runbookPath." }
+  ],
+  "requiredCapabilities": [{ "capability": "tool.file.read", "required": true }, { "capability": "tool.file.write", "required": true }, { "capability": "tool.shell.exec", "required": true }],
+  "failureConditions": [
+    { "description": "console.log used instead of structured logging", "signal": "diff contains console.log" },
+    { "description": "Sensitive data in logs", "signal": "diff contains password, token, or PII in log statements" }
+  ]
+}

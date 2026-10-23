@@ -1,0 +1,20 @@
+{
+  "id": "skill-lint",
+  "version": "1.0.0",
+  "provenance": { "kind": "approved", "source": { "kind": "human", "actor": "nemons.architect", "at": "2026-10-21T00:00:00Z" } },
+  "name": "lint",
+  "description": "Run ESLint and Prettier on the codebase, report violations, and auto-fix where possible. Produces a summary of lint errors, warnings, and auto-fixed files.",
+  "applicability": { "taskKinds": ["refactor", "feature", "test-fix"], "taskTags": ["eslint", "prettier", "lint", "format"] },
+  "inputs": [
+    { "name": "fix", "type": "boolean", "required": false, "description": "If true, run with --fix flag to auto-fix violations. Default: false." },
+    { "name": "path", "type": "string", "required": false, "description": "Specific file or directory to lint. Default: src/." }
+  ],
+  "outputs": [
+    { "name": "report", "type": "object", "description": "Lint report: errorCount, warningCount, fixedCount, files." }
+  ],
+  "requiredCapabilities": [{ "capability": "tool.shell.exec", "required": true }],
+  "failureConditions": [
+    { "description": "ESLint not configured", "signal": "command exits with 'no eslint configuration found'" },
+    { "description": "Lint errors exceed threshold", "signal": "errorCount > 0 and fix=false" }
+  ]
+}

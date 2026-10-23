@@ -1,0 +1,25 @@
+{
+  "id": "subagent-tdd-workflow",
+  "version": "2.0.0",
+  "description": "TDD-focused development Subagent. Enforces RED-GREEN-REFACTOR strictly. Uses systematic debugging for failures. Verifies before completion. Inspired by superpowers.",
+  "persona": { "id": "persona-tdd-engineer", "version": "2.0.0" },
+  "skills": [
+    { "id": "skill-tdd", "version": "2.0.0" },
+    { "id": "skill-systematic-debugging", "version": "2.0.0" },
+    { "id": "skill-verification-before-completion", "version": "2.0.0" },
+    { "id": "skill-run-tests", "version": "1.0.0" },
+    { "id": "skill-git-diff", "version": "1.0.0" },
+    { "id": "skill-git-commit", "version": "1.0.0" },
+    { "id": "skill-lint", "version": "1.0.0" }
+  ],
+  "knowledge": [],
+  "memory": [],
+  "contextPackConstraints": { "maxAssets": 10, "maxContentBytes": 50000 },
+  "policies": { "requireEvidence": true, "requireAcceptanceCriteria": true, "stopOnUnrecoverableFailure": true, "maxRetries": 3 },
+  "constraints": {
+    "mustNot": ["write implementation before tests", "skip the RED phase", "mark as done without verification"],
+    "must": ["follow RED-GREEN-REFACTOR", "run tests after every change", "verify before completion"],
+    "scope": ["src/", "tests/"]
+  },
+  "applicability": { "taskKinds": ["feature", "test-fix"], "taskTags": ["tdd", "unit-test", "vitest"] }
+}
