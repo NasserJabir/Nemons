@@ -1,0 +1,208 @@
+# ============================================================
+# Monitoring Configuration — Nemons metrics & alerting
+# ============================================================
+
+# ─── Metrics Collection ───
+metrics:
+  enabled: true
+  interval_seconds: 60              # scrape every minute
+  storage: ~/.nemons/metrics/
+  retention_days: 90
+  
+  # Core metrics (always tracked)
+  core:
+    - name: runs_total
+      type: counter
+      labels: [adapter, status, pack_id]
+    
+    - name: run_duration_ms
+      type: histogram
+      labels: [adapter, pack_id]
+      buckets: [1000, 5000, 10000, 60000, 300000, 600000]
+    
+    - name: verification_pass_rate
+      type: gauge
+      labels: [adapter, pack_id]
+    
+    - name: cost_per_run_usd
+      type: histogram
+      labels: [adapter]
+      buckets: [0.01, 0.10, 0.50, 1, 5, 10]
+    
+    - name: experience_reuse_rate
+      type: gauge
+      description: "% of runs that reused past experiences"
+    
+    - name: evidence_collection_time_ms
+      type: histogram
+      labels: [evidence_type]
+    
+    - name: context_pack_build_time_ms
+      type: histogram
+      labels: [pack_id]
+    
+    - name: verification_loop_iterations
+      type: histogram
+      labels: [adapter]
+      buckets: [1, 2, 3, 5, 10]
+    
+    - name: daemon_memory_mb
+      type: gauge
+    
+    - name: daemon_cpu_percent
+      type: gauge
+  
+  # Business metrics
+  business:
+    - name: time_saved_per_run_minutes
+      type: gauge
+      description: "Estimated time saved via experience reuse"
+    
+    - name: bugs_prevented_total
+      type: counter
+      labels: [severity]
+    
+    - name: skills_active_count
+      type: gauge
+    
+    - name: experiences_total
+      type: gauge
+      labels: [domain, complexity]
+
+# ─── Alerting Rules ───
+alerting:
+  enabled: true
+  evaluation_interval: 60s
+  
+  rules:
+    # ─── Critical (page immediately) ───
+    - name: daemon_down
+      condition: "up == 0 for 1m"
+      severity: critical
+      action: page_on_call
+      cooldown: 300s
+    
+    - name: success_rate_critical
+      condition: "verification_pass_rate < 0.4 for 10m"
+      severity: critical
+      action: page_on_call + slack
+      cooldown: 600s
+    
+    # ─── Warning (notify team) ───
+    - name: success_rate_low
+      condition: "verification_pass_rate < 0.6 for 30m"
+      severity: warning
+      action: slack_notify
+      cooldown: 1800s
+    
+    - name: cost_per_run_high
+      condition: "cost_per_run_usd > 5"
+      severity: warning
+      action: flag_for_review + slack
+      cooldown: 3600s
+    
+    - name: slow_runs
+      condition: "avg_run_duration_ms > 600000 for 15m"
+      severity: warning
+      action: slack_notify
+      cooldown: 1800s
+    
+    - name: daemon_memory_high
+      condition: "daemon_memory_mb > 2048"
+      severity: warning
+      action: restart_daemon
+      cooldown: 600s
+    
+    # ─── Info (log only) ───
+    - name: experience_reuse_low
+      condition: "experience_reuse_rate < 0.2 for 1h"
+      severity: info
+      action: log + dashboard_suggestion
+      message: "Consider improving context packs — low reuse"
+    
+    - name: verification_loop_iterations_high
+      condition: "avg verification_loop_iterations > 2"
+      severity: info
+      action: log
+      message: "Agents need multiple retries — check evaluation criteria"
+  
+  # ─── Notification Channels ───
+  channels:
+    - type: slack
+      webhook: ${SLACK_WEBHOOK_URL}
+      channel: "#nemons-alerts"
+      severity: [critical, warning]
+    
+    - type: pagerduty
+      api_key: ${PAGERDUTY_API_KEY}
+      service_id: ${PAGERDUTY_SERVICE_ID}
+      severity: [critical]
+    
+    - type: email
+      smtp: ${SMTP_CONFIG}
+      to: ["oncall@team.com"]
+      severity: [critical, warning]
+    
+    - type: webhook
+      url: ${CUSTOM_WEBHOOK_URL}
+      severity: [critical]
+
+# ─── Dashboard ───
+dashboard:
+  enabled: true
+  url: http://localhost:3456
+  refresh_interval: 30s
+  
+  panels:
+    - title: "Run Overview"
+      metrics: [runs_total, run_duration_ms, verification_pass_rate]
+      time_range: last_24h
+    
+    - title: "Per-Adapter Performance"
+      metrics: [runs_total, verification_pass_rate]
+      group_by: adapter
+    
+    - title: "Cost Analysis"
+      metrics: [cost_per_run_usd]
+      aggregation: [daily_sum, weekly_avg]
+    
+    - title: "Experiences Growth"
+      metrics: [experiences_total, experience_reuse_rate]
+      time_range: last_30d
+    
+    - title: "Verification Health"
+      metrics: [verification_loop_iterations, verification_pass_rate]
+      group_by: pack_id
+    
+    - title: "Daemon Health"
+      metrics: [daemon_memory_mb, daemon_cpu_percent]
+      time_range: last_1h
+
+# ─── Log Aggregation ───
+logs:
+  destination: ~/.nemons/logs/
+  rotation:
+    max_size_mb: 100
+    max_files: 30
+    compress: true
+  
+  levels:
+    daemon: info
+    interceptor: info
+    evaluator: debug
+    evidence_collector: info
+    context_pack_builder: debug
+  
+  # Forward to external log aggregator (optional)
+  forward:
+    enabled: false
+    type: elasticsearch       # or splunk, datadog
+    url: ${LOG_AGGREGATOR_URL}
+    api_key: ${LOG_AGGREGATOR_KEY}
+
+# ─── Tracing (optional, for debugging) ───
+tracing:
+  enabled: false
+  sampling_rate: 0.1          # 10% of runs
+  exporter: otlp              # or jaeger, zipkin
+  endpoint: ${OTLP_ENDPOINT}

@@ -1,0 +1,18 @@
+extends: default
+
+rules:
+  # Allow longer lines for code blocks in markdown
+  line-length:
+    max: 200
+    code-blocks: false
+  
+  # Allow inline headings (for badge headers)
+  heading-increment: disable
+  
+  # Allow multiple top-level headings (used for language sections)
+  first-line-heading: disable
+  
+  # Less strict on blank lines
+  blank-lines:
+    max: 2
+    max-end-of-file: 1

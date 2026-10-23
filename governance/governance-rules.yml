@@ -1,0 +1,140 @@
+# ============================================================
+# Governance Rules — Nemons change management
+# Hierarchical approval based on impact level
+# ============================================================
+
+# Skill/Context Pack change categories
+change_categories:
+  
+  # ─── LOW IMPACT (auto-approve) ───
+  - id: low
+    description: "Trivial changes that don't affect agent behavior"
+    auto_approve: true
+    examples:
+      - fix_typo
+      - update_skill_description
+      - add_comment_to_skill
+      - rename_internal_variable
+      - format_yaml
+    notification: log_only
+  
+  # ─── MEDIUM IMPACT (1 approval) ───
+  - id: medium
+    description: "Changes that affect how agent works on specific tasks"
+    requires_approval: 1
+    approver_role: tech_lead
+    notification: email + slack
+    examples:
+      - add_new_skill
+      - modify_persona
+      - change_knowledge_base_entry
+      - update_evaluation_criteria_level_3      # nice-to-have only
+      - add_new_context_pack
+      - modify_filter_patterns
+  
+  # ─── HIGH IMPACT (2 approvals) ───
+  - id: high
+    description: "Changes affecting core architecture or security"
+    requires_approval: 2
+    approver_roles:
+      - tech_lead
+      - architect
+    notification: email + slack + dashboard_alert
+    examples:
+      - change_context_pack
+      - modify_evaluation_criteria_level_1      # must-pass
+      - modify_evaluation_criteria_level_2      # should-pass
+      - change_governance_rules
+      - change_security_config
+      - change_redaction_patterns
+      - modify_default_adapter
+      - delete_context_pack
+      - delete_skill
+
+# ─── Pre-merge Checks ───
+pre_merge:
+  required:
+    - all_tests_pass
+    - nemons_validate_config
+    - no_secrets_in_diff
+    - no_breaking_changes_to_shared_packs
+  
+  forbidden:
+    - direct_modify_to_main_branch
+    - change_to_governance_without_two_approvals
+
+# ─── Branching Strategy ───
+branches:
+  main:
+    protected: true
+    requires_pr: true
+    requires_approval: high_impact_rules
+  
+  skills/*:
+    allowed_modifier: any_contributor
+    auto_merge_on_approval: medium_impact
+  
+  experimental/*:
+    auto_merge_on_approval: low_impact
+    allowed_modifier: any_contributor
+
+# ─── Rollback Policy ───
+rollback:
+  enabled: true
+  max_age_hours: 168                # 7 days rollback window
+  requires_approval: low
+  notification: log_only
+
+# ─── Audit Trail ───
+audit:
+  log_changes: true
+  log_approvals: true
+  log_rollbacks: true
+  log_all_runs: true
+  retention_days: 365
+  storage: ~/.nemons/audit/
+  format: structured_json
+  hash_chain: true                  # tamper-proof audit log
+
+# ─── Team Roles ───
+roles:
+  contributor:
+    can: [create_draft_skill, propose_changes, run_locally]
+    cannot: [merge_to_main, change_governance]
+  
+  tech_lead:
+    can: [approve_medium_impact, merge_to_main, modify_persona]
+    cannot: [change_governance_rules, modify_security]
+  
+  architect:
+    can: [approve_high_impact, change_governance, modify_security]
+    cannot: [delete_audit_logs]
+  
+  admin:
+    can: [everything]
+    cannot: [delete_audit_logs]      # never
+
+# ─── Notification Channels ───
+notifications:
+  channels:
+    - type: slack
+      webhook: ${SLACK_WEBHOOK_URL}
+      events: [medium_impact_proposed, high_impact_proposed, approval_needed]
+    
+    - type: email
+      smtp: ${SMTP_CONFIG}
+      events: [high_impact_proposed, rollback_executed, security_violation]
+    
+    - type: dashboard
+      url: http://localhost:3456/governance
+      events: [all]
+
+# ─── Compliance ───
+compliance:
+  frameworks:
+    - SOC2
+    - ISO27001
+  export:
+    format: csv
+    schedule: monthly
+    destination: ${COMPLIANCE_EXPORT_DIR}

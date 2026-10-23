@@ -1,0 +1,22 @@
+{
+  "name": "nemons-trae",
+  "version": "1.0.0",
+  "description": "Nemons transparent orchestrator for Trae IDE (ByteDance)",
+  "type": "trae-plugin",
+  "entry": "nemons.js",
+  "triggers": {
+    "ide_mode": true,
+    "solo_mode": true,
+    "patterns": [
+      "build|implement|add|create",
+      "fix|bug|issue|broken",
+      "refactor|clean|improve",
+      "deploy|release|ship"
+    ]
+  },
+  "config": {
+    "daemon_url": "http://127.0.0.1:3456",
+    "auto_trigger": true,
+    "intercept_solo_mode": true
+  }
+}

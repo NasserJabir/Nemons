@@ -1,0 +1,28 @@
+# Nemons
+
+Transparent orchestration layer for coding agents.
+
+## Description
+
+Nemons is a transparent orchestration layer that sits between you and your coding agent (OpenCode, Claude Code, Codex, Kiro, Kimi Code, Qoder, Cline, Trae). It auto-triggers on every prompt to:
+
+1. Inject the right Context Pack (persona + skills + knowledge)
+2. Collect Evidence (diffs, tests, lint — with auto-secret-redaction)
+3. Run the Verification Loop (3-tier: must-pass / should-pass / nice-to-have)
+4. Store Experiences — successful runs become memory for future prompts
+
+## Badges
+
+Add these badges to your project's README:
+
+```markdown
+![Nemons](https://img.shields.io/badge/powered%20by-nemons-blue.svg)
+```
+
+```markdown
+[![Nemons Verified](https://img.shields.io/badge/nemons-verified-success.svg)](https://github.com/your-org/nemons)
+```
+
+## Topics
+
+`coding-agent` `orchestrator` `mcp` `verification` `evidence-collection` `context-pack` `subagents` `openai` `anthropic` `opencode` `claude-code` `codex` `audit` `governance`

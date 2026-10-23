@@ -1,0 +1,287 @@
+# ============================================================
+# Nemons Daemon Configuration — best practices applied
+# ============================================================
+
+daemon:
+  port: 3456
+  host: 127.0.0.1              # localhost only for security
+  log_level: info              # debug | info | warn | error
+  pid_file: ~/.nemons/run/daemon.pid
+  data_dir: ~/.nemons
+  
+  # Performance
+  max_concurrent_runs: 3       # cap parallel work
+  request_timeout_ms: 300000   # 5 min for long tasks
+  shutdown_grace_ms: 10000
+
+# ---------- Transparent Interception (every prompt) ----------
+interception:
+  mode: transparent             # capture every prompt + response
+  capture_every_prompt: true
+  capture_every_response: true
+  inject_context_pack: true     # add Context Pack before agent sees prompt
+  
+  # Smart filtering (avoid overhead on trivial prompts)
+  filters:
+    min_prompt_length: 20       # skip "hello", "test"
+    require_code_intent: true   # only intercept code-related prompts
+    
+    skip_patterns:              # regex patterns to skip
+      - "^what is"
+      - "^how to"
+      - "^explain"
+      - "^define"
+      - "^hi$|^hello$|^test$"
+      - "thank you"
+    
+    intercept_patterns:         # always intercept these
+      - "build|implement|add|create|make"
+      - "fix|bug|issue|broken"
+      - "refactor|clean|improve|optimize"
+      - "test|spec|coverage"
+      - "deploy|release|ship"
+      - "debug|trace|investigate"
+  
+  # Which adapters to intercept
+  targets:
+    - adapter: opencode
+      process_pattern: "opencode*"
+      intercept: true
+    
+    - adapter: claude-code
+      process_pattern: "claude*"
+      intercept: true
+    
+    - adapter: codex
+      process_pattern: "codex*"
+      intercept: true
+    
+    - adapter: kimi
+      process_pattern: "kimi*"
+      intercept: true
+    
+    - adapter: qoder
+      process_pattern: "qoder*"
+      intercept: true
+    
+    - adapter: cline
+      process_pattern: "cline*"
+      intercept: true
+
+# ---------- Context Pack Builder ----------
+context_packs:
+  auto_select: true             # pick best pack for the task
+  cache_ttl_seconds: 3600       # 1 hour cache
+  
+  # Selection strategy
+  selection:
+    by_keywords: true           # match prompt keywords to pack
+    by_file_paths: true        # match files mentioned in prompt
+    by_recent_history: true    # recent packs get priority
+    by_project_root: true      # project-specific packs first
+  
+  # Invalidate cache on
+  invalidate_on:
+    - git_push
+    - skill_change
+    - persona_change
+
+# ---------- Evidence Collector ----------
+evidence:
+  strategy: smart_selective     # not "collect everything"
+  
+  always_collect:
+    - git_diff
+    - git_hash_before
+    - git_hash_after
+    - prompt_text
+    - response_text
+  
+  conditional_collect:
+    - name: test_results
+      when: "language in [js, ts, py, go, rs]"
+      command: ["npm", "test"]   # auto-fallback to pytest/cargo
+    
+    - name: lint_results
+      when: "has_linter_config"
+    
+    - name: type_check
+      when: "uses_typescript"
+      command: ["npx", "tsc", "--noEmit"]
+    
+    - name: bundle_size
+      when: "frontend_change"
+    
+    - name: db_migrations
+      when: "touches_db_schema"
+  
+  skip_collect:
+    - "diff_size > 1000 lines"  # too big, no value
+    - "binary_files"
+    - "node_modules/**"
+    - ".git/**"
+    - "dist/**"
+    - "build/**"
+
+# ---------- Verification Loop ----------
+verification:
+  max_retries: 2
+  on_failure: enrich_context_and_retry
+  
+  evaluation_criteria:
+    # Level 1: must pass (else fail run)
+    must_pass:
+      - tests_pass: true
+      - no_syntax_errors: true
+      - no_security_violations: true
+      - no_secrets_in_diff: true
+    
+    # Level 2: should pass (>= 80% required)
+    should_pass:
+      - coverage_delta: ">= 0"        # don't decrease coverage
+      - no_new_lint_warnings: true
+      - diff_size: "< 500 lines"      # reasonable change
+      - follows_conventions: true
+    
+    # Level 3: nice to have (warning only)
+    nice_to_have:
+      - includes_tests: true
+      - has_documentation: true
+      - uses_existing_patterns: true
+  
+  retry_enrichment:
+    add_similar_experiences: 3   # pull 3 similar past experiences
+    add_failed_evidence: true    # show what went wrong
+    add_conventions: true        # remind of project conventions
+
+# ---------- Experiences (memory) ----------
+experiences:
+  store_on_success: true
+  store_on_failure: false        # only learn from success
+  
+  retention:
+    max_per_skill: 50            # cap experiences per skill
+    max_age_days: 180            # delete after 6 months
+    min_reuse_count: 1           # delete never-used experiences
+  
+  auto_cleanup:
+    schedule: weekly             # weekly cleanup job
+    on_low_relevance: true       # delete unused experiences
+  
+  categorization:
+    by_adapter: true             # separate by coding agent
+    by_domain: true              # separate by domain
+    by_complexity: true          # simple | medium | complex
+
+# ---------- Security (best practices from MCP security guide) ----------
+security:
+  sandbox:
+    enabled: true
+    network_access: whitelist   # only whitelisted hosts
+    filesystem_access: repo_only
+    
+  network_whitelist:
+    - "api.anthropic.com"
+    - "api.openai.com"
+    - "api.moonshot.cn"
+    - "github.com"
+    - "registry.npmjs.org"
+  
+  secrets:
+    never_in_context_pack: true
+    never_in_evidence: true
+    never_in_experiences: true
+  
+  redaction:
+    patterns:
+      - 'API_KEY_\w+'
+      - 'Bearer \w+'
+      - 'password\s*=\s*[''"]\w+[''"]'
+      - 'sk-ant-\w+'
+      - 'sk-\w+'
+      - 'AKIA\w+'                # AWS access keys
+      - '-----BEGIN.*PRIVATE KEY-----'
+    replace_with: "[REDACTED]"
+  
+  permissions:
+    adapter_can_write: true
+    adapter_can_run_tests: true
+    adapter_can_run_shell: limited
+    adapter_can_access_network: false  # unless whitelisted
+    adapter_can_install_packages: false
+  
+  audit:
+    log_all_runs: true
+    log_all_evidence: true
+    log_all_approvals: true
+    retention_days: 90
+
+# ---------- Governance ----------
+governance:
+  approval_rules:
+    - impact: low                # auto-approve
+      examples: [fix_typo, update_skill_description, add_comment]
+      auto_approve: true
+    
+    - impact: medium             # 1 approval
+      examples: [add_new_skill, modify_persona, change_knowledge]
+      requires_approval: 1
+      approver_role: tech_lead
+    
+    - impact: high              # 2 approvals
+      examples: [change_context_pack, modify_evaluation_criteria, change_governance]
+      requires_approval: 2
+      approver_roles: [tech_lead, architect]
+
+# ---------- Performance ----------
+performance:
+  caching:
+    context_packs: true
+    experiences: true
+    cache_ttl_seconds: 3600
+  
+  parallelism:
+    multi_adapter_runs: false   # one agent at a time per project
+    parallel_evidence_collection: true
+    max_concurrent: 3
+  
+  batch:
+    similar_tasks: true         # batch similar prompts
+    cache_run_results: true     # reuse identical results
+    cache_key: [task_hash, context_pack_hash, adapter_version]
+  
+  lazy_loading:
+    skills: true                # load only relevant skills
+    experiences: true           # load top-N relevant
+
+# ---------- Monitoring ----------
+monitoring:
+  metrics:
+    track:
+      - success_rate_by_adapter
+      - success_rate_by_pack
+      - avg_run_duration_ms
+      - cost_per_run_usd
+      - experience_reuse_rate
+      - verification_loop_iterations
+      - evidence_collection_time_ms
+      - context_pack_build_time_ms
+  
+  alerting:
+    - condition: "success_rate < 0.6"
+      action: notify_team
+      channel: slack
+    
+    - condition: "cost_per_run > 5"
+      action: flag_for_review
+    
+    - condition: "experience_reuse_rate < 0.2"
+      action: suggest_pack_improvement
+    
+    - condition: "avg_run_duration > 600000"
+      action: warn_slow_runs
+  
+  dashboard:
+    enabled: true
+    port: 3456                   # same as daemon
+    url: http://localhost:3456

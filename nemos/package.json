@@ -1,0 +1,49 @@
+{
+  "name": "@nemons/cli",
+  "version": "4.2.1",
+  "description": "Nemons — transparent orchestration layer for coding agents. Auto-triggers Context Pack, Evidence Collection, and Verification Loop on every prompt.",
+  "main": "src/index.js",
+  "bin": {
+    "nemons": "bin/nemons.js"
+  },
+  "scripts": {
+    "start": "node bin/nemons.js daemon start",
+    "dev": "node --watch bin/nemons.js daemon start",
+    "test": "node tests/run-all.js",
+    "test:unit": "node tests/unit-tests.js",
+    "test:v421": "node tests/v421-persona-tests.js",
+    "verify": "node bin/nemons.js verify",
+    "lint": "echo 'TODO: implement linting'",
+    "build": "echo 'No build step required (plain Node.js)'"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "nemons",
+    "coding-agent",
+    "orchestrator",
+    "mcp",
+    "claude-code",
+    "opencode",
+    "verification",
+    "evidence",
+    "context-pack",
+    "subagents"
+  ],
+  "author": "Nemons Project",
+  "license": "MIT",
+  "homepage": "https://github.com/your-org/nemons",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/nemons.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/nemons/issues"
+  }
+}
