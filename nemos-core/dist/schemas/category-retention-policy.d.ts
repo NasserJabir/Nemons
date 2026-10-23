@@ -1,0 +1,110 @@
+/**
+ * Nemons Schema — Category-Conditioned Retention Policy
+ *
+ * The CategoryRetentionPolicy conditions memory retention decisions on
+ * the semantic category of the Memory record. Strict categories
+ * (values, predictions) require stronger provenance before retention;
+ * lenient categories (facts, procedures, decisions) can be retained
+ * as observed.
+ *
+ * Architectural principles enforced here:
+ *   - "Category-Conditioned Memory Retention" (ADR-0014):
+ *     "an assertion weakly supported by its source can be stored and
+ *     later reused as established fact." The policy prevents this by
+ *     requiring stronger provenance for weakly-supported categories.
+ *   - "Retrieved is not approved": retention with a stricter threshold
+ *     doesn't mean the record is approved — it means the record's
+ *     provenance must meet a higher bar before it's retained at all.
+ *   - "No silent mutation": the policy is read-only — it checks
+ *     retention eligibility without modifying any records.
+ *
+ * Research source: https://arxiv.org/abs/2610.07100
+ * "Values/beliefs have only 77.9% source support (vs. 96.2% for others).
+ * Category-conditioned thresholds reduce unsupported retentions by ~36%."
+ */
+import type { MemoryRecord } from "./memory.js";
+import type { MemoryCategory } from "./memory.js";
+import type { ProvenanceKind } from "../core/provenance.js";
+/**
+ * The retention policy for category-conditioned retention (ADR-0014).
+ *
+ * Fields:
+ *   - `strictCategories`: categories requiring stronger provenance.
+ *     Default: ["value", "prediction"] (from the paper's finding that
+ *     values/beliefs have only 77.9% source support).
+ *   - `lenientCategories`: categories that can be retained as observed.
+ *     Default: ["fact", "procedure", "decision"].
+ *   - `strictProvenanceMinimum`: the minimum ProvenanceKind for strict
+ *     categories. Default: "reviewed" — must be at least reviewed.
+ *   - `lenientProvenanceMinimum`: the minimum for lenient categories.
+ *     Default: "observed" — can be retained as observed.
+ */
+export interface CategoryRetentionPolicy {
+    readonly strictCategories: readonly MemoryCategory[];
+    readonly lenientCategories: readonly MemoryCategory[];
+    readonly strictProvenanceMinimum: ProvenanceKind;
+    readonly lenientProvenanceMinimum: ProvenanceKind;
+}
+/**
+ * Default retention policy (ADR-0014).
+ *
+ * Encodes the paper's finding:
+ *   - Values/beliefs have 77.9% source support → require "reviewed"
+ *   - Predictions are unverified by definition → require "reviewed"
+ *   - Facts/procedures/decisions are typically well-evidenced → "observed" OK
+ */
+export declare const DEFAULT_CATEGORY_RETENTION_POLICY: CategoryRetentionPolicy;
+/**
+ * The result of a retention check.
+ *
+ * - `retain`: the record meets the retention policy.
+ * - `flagForReview`: the record's category is strict but its provenance
+ *   is below the strict minimum. The record should be reviewed before
+ *   retention (or rejected).
+ * - `reject`: the record's provenance is below even the lenient minimum
+ *   (should not happen with the default policy, but possible with
+ *   custom policies).
+ */
+export type RetentionCheckResult = {
+    readonly kind: "retain";
+    readonly reason: string;
+} | {
+    readonly kind: "flagForReview";
+    readonly reason: string;
+    readonly requiredProvenance: ProvenanceKind;
+    readonly currentProvenance: ProvenanceKind;
+} | {
+    readonly kind: "reject";
+    readonly reason: string;
+};
+/**
+ * Checks whether a Memory record should be retained, based on its
+ * category and provenance.
+ *
+ * Algorithm:
+ *   1. Determine the record's category (default: "uncategorized").
+ *   2. If the category is in `strictCategories`:
+ *      a. Check if `provenance.kind` meets `strictProvenanceMinimum`.
+ *      b. If yes → retain.
+ *      c. If no → flagForReview (needs stronger provenance).
+ *   3. If the category is in `lenientCategories`:
+ *      a. Check if `provenance.kind` meets `lenientProvenanceMinimum`.
+ *      b. If yes → retain.
+ *      c. If no → reject.
+ *   4. If the category is "uncategorized" or not in any list:
+ *      a. Use the lenient minimum (backward-compatible behavior).
+ *
+ * @param record - the Memory record to check
+ * @param policy - the retention policy (default: DEFAULT_CATEGORY_RETENTION_POLICY)
+ * @returns the retention check result
+ */
+export declare function checkRetention(record: MemoryRecord, policy?: CategoryRetentionPolicy): RetentionCheckResult;
+/**
+ * Returns true iff the retention check result is "retain".
+ */
+export declare function shouldRetain(result: RetentionCheckResult): boolean;
+/**
+ * Returns true iff the retention check result is "flagForReview".
+ */
+export declare function needsReview(result: RetentionCheckResult): boolean;
+//# sourceMappingURL=category-retention-policy.d.ts.map

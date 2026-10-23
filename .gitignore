@@ -8,7 +8,7 @@ package-lock.json
 *.log
 
 # Test artifacts
-/tmp/nemons-test-*/
+/tmp/nemos-test-*/
 coverage/
 .nyc_output/
 
@@ -20,10 +20,22 @@ coverage/
 .DS_Store
 
 # Build artifacts
-dist/
-build/
-*.tar.gz
-*.zip
+# v4.2.1-fix: previously `dist/` (no leading slash) matched every
+# directory named dist anywhere in the tree — including
+# nemos-core/dist/, which is the PRE-BUILT artifact users need to
+# run the bridge without a build step. Scoping to /dist/ means only
+# the repo-root dist/ (which the daemon doesn't actually produce)
+# is ignored. nemos-core/dist/ is explicitly tracked.
+/dist/
+/build/
+
+# v4.2.1-fix: previously `*.tar.gz` and `*.zip` matched every archive
+# in the tree — including releases/nemos-project-v4.2.1.tar.gz and
+# .zip which are intentionally tracked so users can download them
+# directly from the repo. Removed those blanket patterns.
+# If you really want to ignore stray archives at the repo root, use:
+# /*.tar.gz
+# /*.zip
 
 # Environment
 .env

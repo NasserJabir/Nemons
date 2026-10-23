@@ -68,16 +68,21 @@ console.log("\n=== Nemos v4.2.1 Bridge Integration Tests ===\n");
   });
 
   // Wait for daemon to be ready
+  // v4.2.1-fix: extended from 8s to 20s because the daemon also
+  // has to dynamic-import the @nemons/core ESM package, which can
+  // take a few seconds on cold starts (especially on CI machines
+  // with slow disk I/O).
   await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("daemon did not start in 8s")), 8000);
+    const timer = setTimeout(() => reject(new Error("daemon did not start in 20s")), 20000);
     child.stdout.on("data", (d) => {
+      process.stdout.write(d.toString());
       if (d.toString().includes("listening")) {
         clearTimeout(timer);
-        // Give the bridge 500ms more to settle
-        setTimeout(resolve, 500);
+        // Give the bridge 1s more to settle
+        setTimeout(resolve, 1000);
       }
     });
-    child.stderr.on("data", (d) => { /* ignore */ });
+    child.stderr.on("data", (d) => { process.stderr.write(d.toString()); });
   });
 
   try {

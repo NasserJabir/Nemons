@@ -37,15 +37,38 @@
 const path = require("path");
 const fs = require("fs");
 
-// Resolve three candidate locations for the @nemons/core dist root:
-//   1. Sibling directory (./nemos-core/dist) — monorepo layout
-//   2. Parent's node_modules/@nemons/core/dist — npm install
-//   3. Hardcoded /home/z/my-project/dist — dev sandbox
+// Resolve candidate locations for the @nemons/core dist root.
+// The bridge sits at nemos/src/utils/nemos-bridge.js, so:
+//   __dirname = <repo>/nemos/src/utils/
+// To reach <repo>/nemos-core/dist/ we need to go up THREE levels
+// (utils -> src -> nemos -> repo root), then into the sibling nemos-core/ directory.
+// The previous version had only ONE ".." which pointed to
+// <repo>/nemos/nemos-core/dist - a directory that did not exist.
+// (An even earlier version had TWO ".." which still pointed into nemos/.)
+// It worked in the dev sandbox only because the third hardcoded
+// candidate (/home/z/my-project/dist) happened to be available.
+//
+// v4.2.1-fix: corrected the sibling-directory path + removed the
+// dev-sandbox fallback (production deployments should not depend
+// on a hardcoded absolute path). Added an NEMONS_CORE_DIST env
+// override so users can point at a custom-built core if needed.
 const CORE_DIST_CANDIDATES = [
-  path.resolve(__dirname, "..", "nemos-core", "dist"),
-  path.resolve(__dirname, "..", "..", "node_modules", "@nemons", "core", "dist"),
-  "/home/z/my-project/dist",
-];
+  // 1. Env override (highest priority - explicit user intent)
+  process.env.NEMONS_CORE_DIST,
+  // 2. Sibling directory in monorepo layout:
+  //    __dirname = <repo>/nemos/src/utils/
+  //    3x ".." -> <repo>/
+  //    then nemos-core/dist -> <repo>/nemos-core/dist
+  path.resolve(__dirname, "..", "..", "..", "nemos-core", "dist"),
+  // 3. Daemon-local install (npm install @nemons/core inside nemos/):
+  //    2x ".." -> <repo>/nemos/
+  //    then node_modules/@nemos/core/dist
+  path.resolve(__dirname, "..", "..", "node_modules", "@nemos", "core", "dist"),
+  // 4. Repo-root install:
+  //    3x ".." -> <repo>/
+  //    then node_modules/@nemos/core/dist
+  path.resolve(__dirname, "..", "..", "..", "node_modules", "@nemos", "core", "dist"),
+].filter(Boolean);
 
 function findCoreDist() {
   for (const candidate of CORE_DIST_CANDIDATES) {
