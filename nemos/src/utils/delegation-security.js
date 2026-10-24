@@ -1,6 +1,6 @@
 // Bounded Agents — Delegation Security (arXiv:2608.15888)
 // Agentic Principal Chain (APC): 6 authorization checks
-// Reduces exfiltration from 75-100% to 0%
+// (scope, budget, composition, intent, depth, resources)
 class DelegationSecurity {
   constructor(){this.chains=new Map()}
   
@@ -121,6 +121,6 @@ class DelegationSecurity {
     return{delegated:true,child_id:childId,restricted_scope:restrictedScope};
   }
   
-  stats(){return{chains:this.chains.size,checks:6,reference:"arXiv:2608.15888",exfiltration_reduction:"75-100% → 0%"}}
+  stats(){return{chains:this.chains.size,checks:6,reference:"arXiv:2608.15888"}}
 }
 module.exports={DelegationSecurity};

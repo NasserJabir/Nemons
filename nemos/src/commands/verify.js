@@ -1,7 +1,12 @@
 // ============================================================
 // nemons verify — end-to-end test suite
 // ============================================================
-const NEMONS_URL = "http://127.0.0.1:3456";
+// Target URL: resolved through runtime-config so verify always talks
+// to the same port the daemon actually listens on (explicit option,
+// NEMONS_PORT env, config file, then 3456). opts.url can still
+// override per-call.
+const { resolvePort } = require("../utils/runtime-config");
+const NEMONS_URL = `http://127.0.0.1:${resolvePort()}`;
 
 let PASS = 0, FAIL = 0, SKIP = 0;
 
@@ -156,7 +161,7 @@ module.exports = async function (subcommandOrOpts, optsArg) {
       },
     }),
   });
-  if (evalResult.ok && evalResult.data?.passed === true) {
+  if (evalResult.ok && evalResult.data?.pass === true) {
     green("Verification passed, experience stored");
     PASS++;
   } else {

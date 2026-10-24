@@ -2,7 +2,7 @@
 // Compile heterogeneous knowledge into Skill Contracts stored in SkillBank
 // 98.85% success rate with RAG
 const fs=require("fs").promises,path=require("path"),os=require("os");
-const N=process.env.NEMONS_HOME||path.join(os.homedir(),".nemos");
+const N=require("./runtime-config").nemonsHome();
 const D=path.join(N,"skillbank");
 
 class SkillCompiler {

@@ -179,7 +179,7 @@ async function runTests() {
       },
     }),
   });
-  if (evalPass.ok && evalPass.data.passed === true) ok("verification passed");
+  if (evalPass.ok && evalPass.data.pass === true) ok("verification passed");
   else bad("verification should have passed");
 
   // Test 7: Verification fail
@@ -194,7 +194,7 @@ async function runTests() {
       },
     }),
   });
-  if (evalFail.ok && evalFail.data.passed === false) ok("verification correctly failed");
+  if (evalFail.ok && evalFail.data.pass === false) ok("verification correctly failed");
   else bad("should have failed");
 
   // Test 8: Metrics

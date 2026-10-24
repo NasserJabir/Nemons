@@ -6,10 +6,20 @@
 // THROUGH the coding agent's adapter (not direct API call).
 // ============================================================
 
+// Every layer reports a tri-state `status`: "pass" (checked and held),
+// "fail" (checked and failed), "inconclusive" (nothing to check — e.g.
+// no response/context supplied). Only a definitive "fail" blocks the
+// overall verdict; "inconclusive" is recorded, never silently counted
+// as a failure.
+const PASS = "pass", FAIL = "fail", INCONCLUSIVE = "inconclusive";
+
 // Layer 1: Grounding Check (pure text analysis — no LLM needed)
 function groundingCheck(response, context) {
   if (!response || !context) {
-    return { pass: false, reason: "missing_response_or_context", ratio: 0, layer: "grounding", method: "text_overlap" };
+    // Nothing to ground — that is unknown, not failed. Gating on this
+    // as a hard fail made every evidence-only verification return
+    // pass:false regardless of its deterministic evidence.
+    return { status: INCONCLUSIVE, reason: "missing_response_or_context", ratio: 0, layer: "grounding", method: "text_overlap" };
   }
   const responseTokens = new Set(response.toLowerCase().split(/\s+/).filter(t => t.length > 4));
   const contextTokens = new Set(context.toLowerCase().split(/\s+/).filter(t => t.length > 4));
@@ -19,8 +29,10 @@ function groundingCheck(response, context) {
     if (contextTokens.has(token)) groundedCount++;
   }
   const groundingRatio = totalCount > 0 ? groundedCount / totalCount : 0;
+  const pass = groundingRatio > 0.5;
   return {
-    pass: groundingRatio > 0.5,
+    pass,
+    status: pass ? PASS : FAIL,
     ratio: Math.round(groundingRatio * 100) / 100,
     checked_tokens: totalCount, grounded_tokens: groundedCount,
     layer: "grounding", method: "text_overlap",
@@ -32,11 +44,12 @@ async function selfConsistencyCheck(evidence, options) {
   const opts = options || {};
   const threshold = opts.threshold || 0.7;
   if (!evidence || !evidence.test_results) {
-    return { pass: true, reason: "no_tests_to_check", samples: 0, layer: "self_consistency", method: "test_consistency" };
+    return { pass: true, status: INCONCLUSIVE, reason: "no_tests_to_check", samples: 0, layer: "self_consistency", method: "test_consistency" };
   }
   const consistent = evidence.test_results.passed === true;
   const ratio = consistent ? 1.0 : 0.0;
-  return { pass: ratio >= threshold, ratio, samples: opts.samples || 3, reason: consistent ? "tests_consistent" : "tests_inconsistent", layer: "self_consistency", method: "test_consistency" };
+  const pass = ratio >= threshold;
+  return { pass, status: pass ? PASS : FAIL, ratio, samples: opts.samples || 3, reason: consistent ? "tests_consistent" : "tests_inconsistent", layer: "self_consistency", method: "test_consistency" };
 }
 
 // Layer 3: LLM-as-a-Judge
@@ -116,8 +129,8 @@ function heuristicJudge(prompt, response, criteria, evidence) {
   
   const allPassed = checks.every(c => c.pass);
   const avgScore = checks.reduce((s, c) => s + c.score, 0) / checks.length;
-  
-  return { pass: allPassed, score: Math.round(avgScore * 100) / 100, checks, judge_id: "heuristic_v1", method: "heuristic" };
+
+  return { pass: allPassed, status: allPassed ? PASS : FAIL, score: Math.round(avgScore * 100) / 100, checks, judge_id: "heuristic_v1", method: "heuristic" };
 }
 
 // Layer 4: Constraint Verification (deterministic)
@@ -129,7 +142,13 @@ function constraintCheck(evidence, constraints) {
   if (constraints?.check_tests !== false) results.push({ name: "tests_pass", pass: evidence.tests_pass === true, severity: "coercive", layer: "constraints" });
   if (constraints?.check_coverage !== false) { const delta = evidence.coverage_delta; results.push({ name: "coverage_maintained", pass: delta === undefined || delta >= 0, severity: "normative", layer: "constraints" }); }
   if (constraints?.check_diff_size !== false) { const diffSize = evidence.diff_size || 0; results.push({ name: "diff_reasonable", pass: diffSize < 500, severity: "normative", layer: "constraints" }); }
-  return { pass: results.every(r => r.pass), results, layer: "constraints", method: "deterministic" };
+  const coerciveFailed = results.filter(r => r.severity === "coercive" && !r.pass).map(r => r.name);
+  return {
+    pass: results.every(r => r.pass),
+    status: coerciveFailed.length > 0 ? FAIL : PASS,
+    failed_coercive: coerciveFailed,
+    results, layer: "constraints", method: "deterministic",
+  };
 }
 
 // Main: Run all 4 layers
@@ -139,9 +158,20 @@ async function verify(params) {
   const consistency = await selfConsistencyCheck(evidence);
   const judge = await llmJudge({ prompt, response, criteria, evidence });
   const constraints_result = constraintCheck(evidence, constraints || {});
-  const allPassed = grounding.pass && consistency.pass && judge.pass && constraints_result.pass;
+  const layerList = [grounding, consistency, judge, constraints_result];
+  const anyFail = layerList.some(l => l.status === FAIL);
+  const inconclusiveLayers = layerList.filter(l => l.status === INCONCLUSIVE).map(l => l.layer);
+  const failures = [
+    ...constraints_result.failed_coercive.map(name => `constraint:${name}`),
+    ...layerList.filter(l => l.status === FAIL && l !== constraints_result).map(l => l.layer),
+  ];
+  const pass = !anyFail;
   return {
-    pass: allPassed,
+    pass,
+    passed: pass, // alias kept for older consumers; `pass` is canonical
+    verdict: pass ? (inconclusiveLayers.length > 0 ? "pass_with_inconclusive_layers" : "pass") : "fail",
+    inconclusive_layers: inconclusiveLayers,
+    failures,
     layers: { grounding, self_consistency: consistency, llm_judge: judge, constraints: constraints_result },
     // v2.5.1: No llm_used flag (Nemos never calls LLM directly)
     judge_id: judge.judge_id,

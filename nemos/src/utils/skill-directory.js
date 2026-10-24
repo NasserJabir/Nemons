@@ -2,7 +2,7 @@
 // 163 skills, 16 areas, progressive disclosure
 // Each skill = directory + instruction.md + reference.md + scripts/
 const fs=require("fs").promises,path=require("path"),os=require("os");
-const N=process.env.NEMONS_HOME||path.join(os.homedir(),".nemos");
+const N=require("./runtime-config").nemonsHome();
 const D=path.join(N,"skill-directory");
 
 class SkillDirectory {

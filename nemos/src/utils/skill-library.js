@@ -1,5 +1,5 @@
 const fs=require("fs").promises,path=require("path"),os=require("os");
-const D=process.env.NEMONS_HOME||path.join(os.homedir(),".nemos");
+const D=require("./runtime-config").nemonsHome();
 const S=path.join(D,"skills");
 class SL{async register(s){const id=s.id||`skill-${Date.now().toString(36)}`;const f={...s,id,success_rate:1.0,total_uses:0,created_at:new Date().toISOString()};await fs.mkdir(S,{recursive:true});await fs.writeFile(path.join(S,id+".json"),JSON.stringify(f,null,2));return f}
 async retrieve(q,l){l=l||5;const all=await this.list();return all.map(s=>({...s,_score:0.5*(s.success_rate||1)})).sort((a,b)=>b._score-a._score).slice(0,l)}
