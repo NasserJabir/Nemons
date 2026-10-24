@@ -5,7 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — P3 readability, route split & honest surface
+## [4.3.0] - 2026-10-24
+
+The P0–P3 hardening cycle: security fixes, daemon restructure,
+core durability, and honest surface documentation. All 1343 checks
+green locally and in CI.
 
 ### Changed — zero minified modules remain
 
@@ -44,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   explicitly not covered by version-stability guarantees. Consumers are
   directed to build on the core loop.
 
-## [Unreleased] — P2 core polish (@nemons/core)
+**P2 — core polish (@nemons/core)**
 
 ### Fixed — governed review decisions now survive a restart
 
@@ -98,7 +102,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ids (traversal payloads + arbitrary garbage) can never escape the
   records directory. fast-check added as a devDependency.
 
-## [Unreleased] — P1 daemon restructure
+**P1 — daemon restructure**
 
 ### Fixed — stateful endpoints that were functionally broken
 
@@ -178,7 +182,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   kanban-board, a2a-protocol, rate-limiter have already been rewritten
   readable.)
 
-## [Unreleased] — P0 security & correctness hardening
+**P0 — security & correctness hardening**
 
 ### Security (all previously verified live-exploitable, now gated by `tests/security-tests.js`)
 

@@ -8,19 +8,24 @@ Nemons is a **meta-harness / runtime above Coding Agent harnesses**, not a repla
 
 ## Project status
 
-**v4.2.1 — Persona-Driven Pipeline + @nemons/core Bridge.** This repository
-now contains BOTH the formal specification (thesis, charter, research, domain
-model, requirements, architecture, contracts, evaluation, decisions) AND a
-complete working implementation.
+**v4.3.0 — Hardened release.** The P0–P3 quality cycle (2026-10-24) closed
+the daemon's security holes (path traversal, timing-leaky auth, unwired
+rate limiting — each gated by regression tests), restructured the daemon
+around a composition root and domain route modules, made governed review
+decisions durable in `@nemons/core`, shipped a consumable npm package
+surface, and rewrote every minified module readable. All 1343 checks pass
+locally and in CI. This repository contains BOTH the formal specification
+(thesis, charter, research, domain model, requirements, architecture,
+contracts, evaluation, decisions) AND a complete working implementation.
 
 The implementation consists of:
 
 - **`nemos/`** — the JS daemon (CommonJS) that users run via 7 coding-agent
   plugins (OpenCode, Claude Code, Codex, Kimi, Cline, Qoder, Trae). Provides
-  130+ HTTP endpoints, transparent prompt interception, evidence collection,
+  170+ HTTP endpoints, transparent prompt interception, evidence collection,
   3-tier verification loop, persona-driven skill/harness/subagent selection.
 - **`nemos-core/`** — the TypeScript `@nemons/core` package (ESM, strict mode,
-  1215 tests, 16 ADRs). Implements governed evolution, persistent stores,
+  1221 tests, 16 ADRs). Implements governed evolution, persistent stores,
   paired evaluation, action interception, regression detection, ablation
   testing, and import/export. Loaded by the JS daemon via a single 213-line
   bridge shim at `nemos/src/utils/nemos-bridge.js`.

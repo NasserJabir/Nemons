@@ -1,7 +1,7 @@
 {
   "name": "nemos-project",
-  "version": "4.2.1",
-  "description": "Nemos - transparent orchestration layer for coding agents (v4.2.1 release)",
+  "version": "4.3.0",
+  "description": "Nemos - transparent orchestration layer for coding agents (v4.3.0 release)",
   "private": true,
   "scripts": {
     "start": "node nemos/bin/nemos.js daemon start",

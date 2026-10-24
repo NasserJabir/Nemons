@@ -1,6 +1,6 @@
 {
   "name": "@nemons/cli",
-  "version": "4.2.1",
+  "version": "4.3.0",
   "description": "Nemons \u2014 transparent orchestration layer for coding agents. Auto-triggers Context Pack, Evidence Collection, and Verification Loop on every prompt.",
   "main": "src/index.js",
   "bin": {

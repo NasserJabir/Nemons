@@ -1,6 +1,6 @@
 {
   "name": "@nemons/core",
-  "version": "4.2.1",
+  "version": "4.3.0",
   "description": "Nemos core runtime - TypeScript implementation of the Nemos operational intelligence layer (Stage 0-I + 10 research improvements + P2/P3 features)",
   "type": "module",
   "license": "MIT",
