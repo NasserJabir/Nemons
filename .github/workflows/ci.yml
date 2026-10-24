@@ -245,11 +245,16 @@ jobs:
           # would use it: the exports map, types entry and files list
           # are all exercised. Before this, package.json had no
           # main/exports/types — Node could not resolve @nemons/core.
-          npm pack
+          # NOTE: the tarball name is resolved via ls, NOT a quoted
+          # glob — "$.../nemons-core-*.tgz" suppresses shell expansion
+          # and npm receives a literal `*` (this exact bug failed CI).
+          npm pack >/dev/null
+          TARBALL=$(ls nemons-core-*.tgz | head -1)
+          echo "tarball: $TARBALL"
           CONSUMER_DIR=$(mktemp -d)
           cd "$CONSUMER_DIR"
-          npm init -y >/dev/null
-          npm install "$GITHUB_WORKSPACE/nemos-core/nemons-core-*.tgz"
+          echo '{"name":"consumer-smoke","private":true}' > package.json
+          npm install --no-audit --no-fund "$GITHUB_WORKSPACE/nemos-core/$TARBALL"
           node -e "
           import('@nemons/core').then(m => {
             const k = Object.keys(m);
