@@ -12,10 +12,11 @@
     "test": "node tests/run-all.js",
     "test:unit": "node tests/unit-tests.js",
     "test:v421": "node tests/v421-persona-tests.js && node tests/v421-bridge-tests.js",
+    "test:security": "node tests/security-tests.js",
     "verify": "node bin/nemons.js verify",
-    "lint": "for f in $(find src -name *.js); do node --check \"$f\" || exit 1; done; node --check bin/nemons.js",
+    "lint": "node scripts/lint.js",
     "build": "echo 'No build step required (plain Node.js)'",
-    "test:all": "node tests/unit-tests.js && npm run test:v421"
+    "test:all": "node tests/unit-tests.js && npm run test:v421 && npm run test:security"
   },
   "engines": {
     "node": ">=18"

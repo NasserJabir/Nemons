@@ -51,6 +51,15 @@ export interface CandidateStore {
      */
     transition(id: CandidateId, toStatus: CandidateStatus, reviewEntry: Omit<ReviewEntry, "from" | "to">): CandidateRecord;
     /**
+     * Appends an entry to the candidate's review trail WITHOUT changing
+     * its status. The sanctioned way for the governed engine to record a
+     * review decision (e.g. an approval whose rules are not yet
+     * satisfied) — previously the engine built the updated record and
+     * never stored it, so the persisted view and the engine's view
+     * diverged silently.
+     */
+    appendReviewTrail(id: CandidateId, reviewEntry: Omit<ReviewEntry, "from" | "to">): CandidateRecord;
+    /**
      * Returns the version chain for an asset — the ordered list of
      * candidates that target the given assetId. The order is from
      * newest to oldest (by `proposedAt`).
@@ -80,6 +89,7 @@ export declare class InMemoryCandidateStore implements CandidateStore {
     get(id: CandidateId): CandidateRecord | undefined;
     list(): readonly CandidateRecord[];
     transition(id: CandidateId, toStatus: CandidateStatus, reviewEntry: Omit<ReviewEntry, "from" | "to">): CandidateRecord;
+    appendReviewTrail(id: CandidateId, reviewEntry: Omit<ReviewEntry, "from" | "to">): CandidateRecord;
     getVersionChain(assetId: string): readonly CandidateRecord[];
     getActiveApproved(assetId: string): CandidateRecord | undefined;
     size(): number;

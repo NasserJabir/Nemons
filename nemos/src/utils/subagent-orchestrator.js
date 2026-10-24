@@ -20,7 +20,7 @@ const fs = require("fs").promises;
 const path = require("path");
 const os = require("os");
 
-const NEMONS_HOME = process.env.NEMONS_HOME || path.join(os.homedir(), ".nemos");
+const NEMONS_HOME = require("./runtime-config").nemonsHome();
 
 // v4.2.1: persona role → domain (mirror of harness-router.ROLE_TO_DOMAIN
 // to avoid a circular import; if you change one, change both).

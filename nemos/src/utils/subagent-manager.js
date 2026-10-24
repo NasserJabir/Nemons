@@ -2,7 +2,7 @@
 // 3 memory modes: inherit-full, inherit-partial, agent-agnostic
 // 2 lifespan modes: one-time, persistent
 const fs=require("fs").promises,path=require("path"),os=require("os");
-const N=process.env.NEMONS_HOME||path.join(os.homedir(),".nemos");
+const N=require("./runtime-config").nemonsHome();
 const D=path.join(N,"subagents");
 
 class SubagentManager {

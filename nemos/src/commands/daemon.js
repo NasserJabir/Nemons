@@ -23,9 +23,9 @@ const path = require("path");
 const os = require("os");
 const fs = require("fs").promises;
 
-const NEMONS_HOME = process.env.NEMONS_HOME || path.join(os.homedir(), ".nemons");
+const { nemonsHome, resolvePort } = require("../utils/runtime-config");
+const NEMONS_HOME = nemonsHome();
 const PID_FILE = path.join(NEMONS_HOME, "run", "daemon.pid");
-const DEFAULT_PORT = 3456;
 
 // v4.2.1-fix: tuneable timeouts so CI can override them if needed
 const SOFT_KILL_TIMEOUT_MS = parseInt(process.env.NEMONS_STOP_SOFT_TIMEOUT || "5000", 10);
@@ -128,7 +128,7 @@ module.exports = async function (action, opts) {
       child.unref();
 
       // Wait for health
-      const port = parseInt(opts.port || process.env.NEMONS_PORT || DEFAULT_PORT, 10);
+      const port = resolvePort({ explicit: opts.port, configPath });
       for (let i = 0; i < 30; i++) {
         await new Promise((r) => setTimeout(r, 200));
         try {
@@ -186,7 +186,7 @@ module.exports = async function (action, opts) {
       }
 
       // v4.2.1-fix: best-effort verify the port is free too
-      const port = parseInt(opts.port || process.env.NEMONS_PORT || DEFAULT_PORT, 10);
+      const port = resolvePort({ explicit: opts.port, configPath });
       const portFree = await portIsFree(port);
       if (!portFree) {
         console.warn(`⚠ Process ${pid} exited but port ${port} is still bound (TIME_WAIT or another daemon)`);

@@ -230,6 +230,52 @@ export class PersistentCandidateStore {
   }
 
   /**
+   * Appends an entry to the candidate's review trail WITHOUT changing
+   * its status, and PERSISTS the updated record. The persistent
+   * counterpart of CandidateStore.appendReviewTrail — this is what
+   * makes governed review decisions (including an approval whose
+   * rules are not yet satisfied) survive a restart.
+   */
+  async appendReviewTrail(
+    id: CandidateId,
+    reviewEntry: Omit<ReviewEntry, "from" | "to">,
+  ): Promise<CandidateRecord> {
+    const result = await this.backend.get(id);
+    if (result.kind === "missing") {
+      throw new ContractValidationError(
+        `Cannot appendReviewTrail: CandidateRecord not found: ${id}`,
+        { details: { candidateId: id } },
+      );
+    }
+    if (result.kind === "corrupt") {
+      throw new ContractValidationError(
+        `Cannot appendReviewTrail: CandidateRecord is corrupt (quarantined): ${id}. Reason: ${result.reason}`,
+        { details: { candidateId: id, reason: result.reason } },
+      );
+    }
+
+    const current = result.record;
+    const fromStatus = current.status;
+    const newReviewEntry: ReviewEntry = {
+      ...reviewEntry,
+      from: fromStatus as unknown as ReviewEntry["from"], // status-as-kind for the trail
+      to: fromStatus as unknown as ReviewEntry["to"],
+    };
+
+    const updated: CandidateRecord = {
+      ...current,
+      provenance: {
+        ...current.provenance,
+        reviewTrail: [...(current.provenance.reviewTrail ?? []), newReviewEntry],
+      },
+    };
+
+    validateCandidateRecord(updated);
+    await this.backend.add(updated as CandidateRecord & { id: string });
+    return updated;
+  }
+
+  /**
    * Returns the version chain for an asset — the ordered list of
    * candidates that target the given assetId. The order is newest first.
    */

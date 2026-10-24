@@ -64,14 +64,9 @@ jobs:
         working-directory: ./nemos
         run: npm install --production
 
-      - name: Syntax check all daemon source files
+      - name: Syntax check all daemon source files (cross-platform)
         working-directory: ./nemos
-        run: |
-          set -e
-          for f in $(find src -name "*.js"); do
-            node --check "$f"
-          done
-          node --check bin/nemons.js
+        run: node scripts/lint.js
 
       - name: Run legacy unit tests (35 tests, no exceptions)
         working-directory: ./nemos
@@ -88,6 +83,22 @@ jobs:
       - name: Run v4.2.1 @nemons/core bridge integration tests (22 tests)
         working-directory: ./nemos
         run: node tests/v421-bridge-tests.js
+
+      - name: Run security tests (path containment, auth, rate limit)
+        working-directory: ./nemos
+        run: node tests/security-tests.js
+        # Release-blocking: these tests exist because real vulnerabilities
+        # existed (traversal write via /evidence, traversal read via
+        # /context-pack, unvalidated ids in kanban/a2a filenames,
+        # timing-leaky token compare, unwired rate limiter). A failure
+        # here means a vulnerability is back.
+
+      - name: Run e2e suite (run-all — spawns a real daemon)
+        working-directory: ./nemos
+        run: npm test
+        # This suite was NOT in CI before, which is why the /evaluate
+        # `pass` vs `passed` field drift shipped undetected. It starts
+        # and stops its own daemon on an isolated NEMONS_HOME.
 
       - name: Smoke test — start daemon
         working-directory: ./nemos
@@ -107,6 +118,12 @@ jobs:
           echo "--- /core/sha256 ---"
           HASH=$(curl -sf "http://127.0.0.1:${NEMONS_PORT}/core/sha256?s=hello" | jq -r .hash)
           [ "$HASH" = "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824" ]
+
+      - name: Smoke test — run `nemons verify` against the live daemon
+        working-directory: ./nemos
+        run: node bin/nemons.js verify
+        # verify now honors NEMONS_PORT, so it targets this daemon.
+        # This was previously absent from CI and its Test 7 was broken.
 
       - name: Smoke test — stop daemon and verify it died
         working-directory: ./nemos
@@ -135,6 +152,48 @@ jobs:
           path: ~/.nemons/logs/
           retention-days: 7
 
+  test-daemon-windows:
+    name: Daemon Tests (Windows, Node 22)
+    runs-on: windows-latest
+    # The installers claim Windows 10/11 support, but nothing in CI
+    # ran on Windows — the old bash lint loop failed there. This job
+    # covers lint + the four in-process suites. The daemon
+    # spawn/stop e2e suites (run-all, smoke) stay on the unix matrix
+    # until their SIGTERM-based process lifecycle is hardened for
+    # Windows semantics.
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install daemon dependencies
+        working-directory: ./nemos
+        run: npm install --production
+
+      - name: Syntax check all daemon source files
+        working-directory: ./nemos
+        run: node scripts/lint.js
+
+      - name: Run legacy unit tests
+        working-directory: ./nemos
+        run: node tests/unit-tests.js
+
+      - name: Run v4.2.1 persona-driven pipeline tests
+        working-directory: ./nemos
+        run: node tests/v421-persona-tests.js
+
+      - name: Run v4.2.1 @nemons/core bridge integration tests
+        working-directory: ./nemos
+        run: node tests/v421-bridge-tests.js
+
+      - name: Run security tests
+        working-directory: ./nemos
+        run: node tests/security-tests.js
+
   test-core:
     name: TS Core Tests (TypeScript @nemons/core)
     runs-on: ubuntu-latest
@@ -162,6 +221,43 @@ jobs:
       - name: Run vitest suite (1215 tests, no exceptions)
         working-directory: ./nemos-core
         run: npm test
+
+      - name: Guard — committed dist/ is fresh (no drift vs a clean build)
+        working-directory: ./nemos-core
+        run: |
+          # nemos-core/dist/ is intentionally tracked (see .gitignore for
+          # the decision record) so plugin users can run the daemon
+          # without a build step. This guard makes staleness impossible:
+          # if a source change wasn't accompanied by a rebuild+commit,
+          # the diff below fails the gate.
+          npm run build
+          cd ..
+          git diff --exit-code -- nemos-core/dist/ || {
+            echo "❌ nemos-core/dist/ is STALE — rebuild (`cd nemos-core && npm run build`) and commit the result."
+            exit 1
+          }
+          echo "✓ committed dist matches a clean build"
+
+      - name: Consumer smoke test — npm pack → install → import
+        working-directory: ./nemos-core
+        run: |
+          # Proves the package is consumable the way a real consumer
+          # would use it: the exports map, types entry and files list
+          # are all exercised. Before this, package.json had no
+          # main/exports/types — Node could not resolve @nemons/core.
+          npm pack
+          CONSUMER_DIR=$(mktemp -d)
+          cd "$CONSUMER_DIR"
+          npm init -y >/dev/null
+          npm install "$GITHUB_WORKSPACE/nemos-core/nemons-core-*.tgz"
+          node -e "
+          import('@nemons/core').then(m => {
+            const k = Object.keys(m);
+            if (!k.includes('DefaultGovernedEvolutionEngine')) throw new Error('missing engine export');
+            if (k.length < 100) throw new Error('suspiciously few exports: ' + k.length);
+            console.log('consumer import OK —', k.length, 'exports');
+          }).catch(e => { console.error(e.message); process.exit(1); });
+          "
 
       - name: Verify built dist/ loads via the daemon bridge
         working-directory: ./nemos
@@ -193,14 +289,9 @@ jobs:
         working-directory: ./nemos
         run: npm install
 
-      - name: Syntax check all JS files
+      - name: Syntax check all JS files (cross-platform)
         working-directory: ./nemos
-        run: |
-          set -e
-          for f in $(find src -name "*.js"); do
-            node --check "$f"
-          done
-          node --check bin/nemons.js
+        run: node scripts/lint.js
 
       - name: Verify all package.json files are valid JSON
         run: |

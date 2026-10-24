@@ -1,12 +1,18 @@
 // ============================================================
 // Nemons Storage Layer — file-based persistence
+//
+// All writes go through the atomic helpers: data is written to a
+// temp file in the same directory and renamed over the target, so a
+// crash mid-write can never leave a truncated/corrupt record behind
+// (a plain fs.writeFile can, and did for evidence/experiences).
 // ============================================================
 
 const fs = require("fs").promises;
 const path = require("path");
-const os = require("os");
+const crypto = require("crypto");
+const { nemonsHome } = require("../utils/runtime-config");
 
-const NEMONS_HOME = process.env.NEMONS_HOME || path.join(os.homedir(), ".nemons");
+const NEMONS_HOME = nemonsHome();
 
 /**
  * Initialize storage directories
@@ -28,13 +34,29 @@ async function initialize() {
 }
 
 /**
- * Save a JSON object to a file
+ * Atomic write: temp file + rename (same directory → same filesystem,
+ * so the rename is atomic). Caller decides serialization.
+ */
+async function writeAtomic(fullPath, data) {
+  await fs.mkdir(path.dirname(fullPath), { recursive: true });
+  const tmp = `${fullPath}.${crypto.randomBytes(4).toString("hex")}.tmp`;
+  await fs.writeFile(tmp, data);
+  await fs.rename(tmp, fullPath);
+  return fullPath;
+}
+
+/**
+ * Save a JSON object to a file (atomically).
+ * `filename` becomes a path component under NEMONS_HOME/<dir> — it is
+ * validated so a hostile name can never traverse out of the dir.
  */
 async function saveJSON(dir, filename, data) {
+  const { isSafeId } = require("../utils/path-guard");
+  if (!isSafeId(filename)) {
+    throw new Error(`invalid storage filename: ${JSON.stringify(String(filename).slice(0, 32))}`);
+  }
   const fullPath = path.join(NEMONS_HOME, dir, filename);
-  await fs.mkdir(path.dirname(fullPath), { recursive: true });
-  await fs.writeFile(fullPath, JSON.stringify(data, null, 2));
-  return fullPath;
+  return writeAtomic(fullPath, JSON.stringify(data, null, 2));
 }
 
 /**
@@ -123,6 +145,7 @@ module.exports = {
   initialize,
   saveJSON,
   loadJSON,
+  writeAtomic,
   listFiles,
   deleteFile,
   getStats,

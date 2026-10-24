@@ -1,5 +1,5 @@
 const fs=require("fs").promises,path=require("path"),os=require("os"),crypto=require("crypto");
-const N=process.env.NEMONS_HOME||path.join(os.homedir(),".nemos");
+const N=require("./runtime-config").nemonsHome();
 const F=path.join(N,"audit","provenance-chain.json");
 class PT{async init(){await fs.mkdir(path.dirname(F),{recursive:true});try{await fs.access(F)}catch{await fs.writeFile(F,JSON.stringify({entries:[]}))}}
 async load(){try{return JSON.parse(await fs.readFile(F,"utf8"))}catch{return{entries:[]}}}

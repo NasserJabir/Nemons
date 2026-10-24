@@ -2,7 +2,7 @@
 // Agents share failure experiences for collective learning
 // NeurIPS 2026 Meta-Agents Workshop
 const fs=require("fs").promises,path=require("path"),os=require("os");
-const N=process.env.NEMONS_HOME||path.join(os.homedir(),".nemos");
+const N=require("./runtime-config").nemonsHome();
 const D=path.join(N,"metashare");
 
 class MetaShare {

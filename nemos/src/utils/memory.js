@@ -1,5 +1,5 @@
 const fs=require("fs").promises,path=require("path"),os=require("os");
-const N=process.env.NEMONS_HOME||path.join(os.homedir(),".nemos");
+const N=require("./runtime-config").nemonsHome();
 class M{constructor(){this.types={episodic:path.join(N,"memory","episodic"),semantic:path.join(N,"memory","semantic"),procedural:path.join(N,"memory","procedural"),working:path.join(N,"memory","working")};this.working=new Map()}
 async init(){for(const d of Object.values(this.types))await fs.mkdir(d,{recursive:true})}
 async store(t,d){await this.init();const id=d.id||`${t}-${Date.now().toString(36)}`;const f={id,type:t,timestamp:new Date().toISOString(),...d};await fs.writeFile(path.join(this.types[t],id+".json"),JSON.stringify(f,null,2));return f}

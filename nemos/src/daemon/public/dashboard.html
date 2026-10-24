@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nemons Dashboard</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --border: #334155;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --primary: #3b82f6;
+    --success: #10b981;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --code: #0f172a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2rem;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .logo-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  .logo h1 {
+    font-size: 1.5rem;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .logo .version {
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+  .status-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--success);
+    color: white;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  .status-badge.offline {
+    background: var(--danger);
+  }
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary);
+  }
+  .card-label {
+    color: var(--muted);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+  }
+  .card-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .card-value.success { color: var(--success); }
+  .card-value.warn { color: var(--warn); }
+  .card-value.danger { color: var(--danger); }
+  .card-sub {
+    color: var(--muted);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+  section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  section h2 {
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-left: auto;
+    font-weight: normal;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    color: var(--muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+  }
+  td code {
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    background: var(--bg);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    color: var(--primary);
+  }
+  .method {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: monospace;
+    min-width: 50px;
+    text-align: center;
+  }
+  .method.GET { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+  .method.POST { background: rgba(59, 130, 246, 0.2); color: var(--primary); }
+  .method.PUT { background: rgba(245, 158, 11, 0.2); color: var(--warn); }
+  .method.DELETE { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+  .experience-item {
+    padding: 0.75rem 1rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    font-family: monospace;
+    font-size: 0.875rem;
+  }
+  .experience-item .meta {
+    color: var(--muted);
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+  }
+  .empty {
+    color: var(--muted);
+    text-align: center;
+    padding: 2rem;
+    font-style: italic;
+  }
+  .footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.875rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+  }
+  .footer a {
+    color: var(--primary);
+    text-decoration: none;
+  }
+  .refresh-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: background 0.2s;
+  }
+  .refresh-btn:hover {
+    background: #2563eb;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">N</div>
+      <div>
+        <h1>Nemons</h1>
+        <div class="version">v<span id="version">1.0.0</span> — Transparent Orchestrator</div>
+      </div>
+    </div>
+    <div>
+      <span class="status-badge" id="status">
+        <span class="status-dot"></span>
+        <span id="status-text">Checking...</span>
+      </span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-label">Uptime</div>
+      <div class="card-value" id="uptime">—</div>
+      <div class="card-sub" id="uptime-sub">since —</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Experiences Stored</div>
+      <div class="card-value success" id="experiences">—</div>
+      <div class="card-sub">successful runs</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Memory Usage</div>
+      <div class="card-value" id="memory">—</div>
+      <div class="card-sub">RSS</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Config Loaded</div>
+      <div class="card-value" id="config">—</div>
+      <div class="card-sub" id="config-sub">—</div>
+    </div>
+  </div>
+
+  <section>
+    <h2>
+      API Endpoints
+      <span class="badge">10 routes</span>
+    </h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Endpoint</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="method GET">GET</span></td><td><code>/health</code></td><td>Daemon health check</td></tr>
+        <tr><td><span class="method GET">GET</span></td><td><code>/metrics</code></td><td>Daemon metrics</td></tr>
+        <tr><td><span class="method POST">POST</span></td><td><code>/analyze</code></td><td>Analyze prompt — should intercept?</td></tr>
+        <tr><td><span class="method GET">GET</span></td><td><code>/context-pack/:id</code></td><td>Get context pack</td></tr>
+        <tr><td><span class="method POST">POST</span></td><td><code>/evidence</code></td><td>Store evidence (with redaction)</td></tr>
+        <tr><td><span class="method POST">POST</span></td><td><code>/evaluate</code></td><td>Run verification loop</td></tr>
+        <tr><td><span class="method GET">GET</span></td><td><code>/experiences</code></td><td>List experiences</td></tr>
+        <tr><td><span class="method POST">POST</span></td><td><code>/experiences</code></td><td>Store new experience</td></tr>
+        <tr><td><span class="method GET">GET</span></td><td><code>/governance/rules</code></td><td>Get governance rules</td></tr>
+        <tr><td><span class="method POST">POST</span></td><td><code>/sessions/start</code></td><td>Session audit (start)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>
+      Recent Experiences
+      <span class="badge"><span id="exp-count">0</span> total</span>
+    </h2>
+    <div id="experiences-list">
+      <div class="empty">No experiences yet. Run your coding agent on a prompt like:<br>
+      <code>implement a hello world function</code><br>
+      to see experiences appear here.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>
+      Try It: Analyze a Prompt
+      <span class="badge">test interceptor</span>
+    </h2>
+    <div style="display: flex; gap: 0.5rem;">
+      <input type="text" id="test-prompt" placeholder="e.g., implement a hello world function" 
+        style="flex: 1; padding: 0.75rem; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem;">
+      <button class="refresh-btn" onclick="analyzePrompt()">Analyze</button>
+    </div>
+    <div id="analyze-result" style="margin-top: 1rem; font-family: monospace; font-size: 0.875rem; color: var(--muted);">
+      Result will appear here.
+    </div>
+  </section>
+
+  <div class="footer">
+    Nemons Daemon — running on port 3456 |
+    <a href="https://github.com/your-org/nemons">GitHub</a> |
+    Auto-refresh in <span id="countdown">30</span>s |
+    <button class="refresh-btn" style="margin-left: 0.5rem;" onclick="loadData()">Refresh now</button>
+  </div>
+</div>
+
+<script>
+let countdown = 30;
+
+function formatUptime(seconds) {
+  if (seconds < 60) return Math.floor(seconds) + 's';
+  if (seconds < 3600) return Math.floor(seconds / 60) + 'm ' + Math.floor(seconds % 60) + 's';
+  if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ' + Math.floor((seconds % 3600) / 60) + 'm';
+  return Math.floor(seconds / 86400) + 'd ' + Math.floor((seconds % 86400) / 3600) + 'h';
+}
+
+async function loadData() {
+  try {
+    // Health
+    const health = await fetch('/health').then(r => r.json());
+    document.getElementById('version').textContent = health.version || '1.0.0';
+    document.getElementById('uptime').textContent = formatUptime(health.uptime || 0);
+    document.getElementById('uptime-sub').textContent = 'since ' + new Date(Date.now() - (health.uptime || 0) * 1000).toLocaleTimeString();
+    document.getElementById('config').textContent = health.config_loaded ? '✓' : '✗';
+    document.getElementById('config-sub').textContent = health.home ? health.home : '—';
+    
+    const statusEl = document.getElementById('status');
+    const statusText = document.getElementById('status-text');
+    if (health.status === 'healthy') {
+      statusEl.classList.remove('offline');
+      statusText.textContent = 'Healthy';
+    } else {
+      statusEl.classList.add('offline');
+      statusText.textContent = 'Unhealthy';
+    }
+  } catch (err) {
+    const statusEl = document.getElementById('status');
+    statusEl.classList.add('offline');
+    document.getElementById('status-text').textContent = 'Offline';
+  }
+  
+  try {
+    // Metrics
+    const metrics = await fetch('/metrics').then(r => r.json());
+    document.getElementById('experiences').textContent = metrics.experiences_total || 0;
+    document.getElementById('memory').textContent = (metrics.daemon_memory_mb || 0) + ' MB';
+  } catch {}
+  
+  try {
+    // Experiences
+    const exp = await fetch('/experiences?limit=5').then(r => r.json());
+    document.getElementById('exp-count').textContent = exp.total || 0;
+    const list = document.getElementById('experiences-list');
+    if (exp.experiences && exp.experiences.length > 0) {
+      // DOM-built rendering — stored XSS fix. Experience ids and
+      // prompts are user/agent-controlled strings; they must never be
+      // interpolated into innerHTML.
+      list.textContent = '';
+      for (const e of exp.experiences) {
+        const item = document.createElement('div');
+        item.className = 'experience-item';
+        const id = document.createElement('strong');
+        id.textContent = e.id;
+        const ts = document.createElement('span');
+        ts.style.color = 'var(--muted)';
+        ts.textContent = ' · ' + new Date(e.timestamp).toLocaleString();
+        item.appendChild(id);
+        item.appendChild(ts);
+        if (e.prompt) {
+          const meta = document.createElement('div');
+          meta.className = 'meta';
+          meta.textContent = e.prompt.slice(0, 80) + (e.prompt.length > 80 ? '...' : '');
+          item.appendChild(meta);
+        }
+        list.appendChild(item);
+      }
+    } else {
+      const empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.textContent = 'No experiences yet. Run your coding agent on a prompt like: ';
+      const code = document.createElement('code');
+      code.textContent = 'implement a hello world function';
+      empty.appendChild(code);
+      empty.appendChild(document.createTextNode(' to see experiences appear here.'));
+      list.textContent = '';
+      list.appendChild(empty);
+    }
+  } catch {}
+}
+
+async function analyzePrompt() {
+  const prompt = document.getElementById('test-prompt').value.trim();
+  if (!prompt) return;
+  
+  const resultEl = document.getElementById('analyze-result');
+  resultEl.textContent = 'Analyzing...';
+  resultEl.style.color = 'var(--muted)';
+  
+  try {
+    const res = await fetch('/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt,
+        project_root: '/',
+        adapter: 'opencode'
+      })
+    });
+    const data = await res.json();
+    // textContent, not innerHTML — the analyzed payload may contain
+    // attacker-controlled strings echoed back by the API.
+    const pre = document.createElement('pre');
+    pre.style.color = 'var(--text)';
+    pre.style.whiteSpace = 'pre-wrap';
+    pre.textContent = JSON.stringify(data, null, 2);
+    resultEl.textContent = '';
+    resultEl.appendChild(pre);
+  } catch (err) {
+    resultEl.textContent = 'Error: ' + err.message;
+    resultEl.style.color = 'var(--danger)';
+  }
+}
+
+// Auto-refresh
+setInterval(() => {
+  countdown--;
+  document.getElementById('countdown').textContent = countdown;
+  if (countdown <= 0) {
+    loadData();
+    countdown = 30;
+  }
+}, 1000);
+
+// Initial load
+loadData();
+
+// Enter key for prompt
+document.getElementById('test-prompt').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') analyzePrompt();
+});
+</script>
+</body>
+</html>
