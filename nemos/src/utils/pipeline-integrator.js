@@ -4,6 +4,8 @@
 // Everything is CHAINED from persona selection, not independent.
 // ============================================================
 
+const VERSION = require("../../package.json").version;
+
 const { PersonaBuilder } = require("./persona-builder");
 const { MultiPersona } = require("./multi-persona");
 const { PersonaRecaster } = require("./persona-recaster");
@@ -280,7 +282,7 @@ class PipelineIntegrator {
         "no_security_violations",
       ],
       built_at: new Date().toISOString(),
-      pipeline_version: "4.2.1",
+      pipeline_version: VERSION,
       persona_driven: true,
     };
 
@@ -529,7 +531,7 @@ class PipelineIntegrator {
   // Stats
   async stats() {
     return {
-      pipeline_version: "4.2.1",
+      pipeline_version: VERSION,
       persona_driven: true,
       components: [
         "persona_builder",

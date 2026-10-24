@@ -88,7 +88,8 @@ console.log("\n=== Nemos v4.2.1 Bridge Integration Tests ===\n");
   try {
     // === /health ===
     let r = await request("GET", "/health");
-    record("health reports version 4.2.1", r.body.version === "4.2.1", `got ${r.body.version}`);
+    const EXPECTED_VERSION = require("../package.json").version;
+    record("health reports package version " + EXPECTED_VERSION, r.body.version === EXPECTED_VERSION, `got ${r.body.version}`);
     record("health reports core_loaded=true", r.body.core_loaded === true, `core_loaded=${r.body.core_loaded}`);
     record("health reports core_path non-null", typeof r.body.core_path === "string" && r.body.core_path.length > 0);
 

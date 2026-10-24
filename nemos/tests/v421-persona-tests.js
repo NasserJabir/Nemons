@@ -401,10 +401,12 @@ test("PI: augmentSubagentRole returns unchanged for already-overridden roles", (
   assert.ok(pi.augmentSubagentRole("security-implementer", { domain: "security" }) === "security-implementer");
 });
 
-test("PI: stats reports v4.2.1", async () => {
+test("PI: stats reports the package version", async () => {
   const pi = new PipelineIntegrator();
   const stats = await pi.stats();
-  assert.ok(stats.pipeline_version === "4.2.1");
+  // Version-agnostic: must match nemos/package.json, not a pinned string —
+  // a version bump must never have to touch tests.
+  assert.ok(stats.pipeline_version === require("../package.json").version);
   assert.ok(stats.persona_driven === true);
 });
 
