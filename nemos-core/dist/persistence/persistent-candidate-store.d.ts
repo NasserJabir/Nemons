@@ -90,6 +90,14 @@ export declare class PersistentCandidateStore {
      */
     transition(id: CandidateId, toStatus: CandidateStatus, reviewEntry: Omit<ReviewEntry, "from" | "to">): Promise<CandidateRecord>;
     /**
+     * Appends an entry to the candidate's review trail WITHOUT changing
+     * its status, and PERSISTS the updated record. The persistent
+     * counterpart of CandidateStore.appendReviewTrail — this is what
+     * makes governed review decisions (including an approval whose
+     * rules are not yet satisfied) survive a restart.
+     */
+    appendReviewTrail(id: CandidateId, reviewEntry: Omit<ReviewEntry, "from" | "to">): Promise<CandidateRecord>;
+    /**
      * Returns the version chain for an asset — the ordered list of
      * candidates that target the given assetId. The order is newest first.
      */

@@ -90,6 +90,18 @@ export interface ReviewEntry {
   readonly actor: string;
   readonly evidenceRef?: EvidenceId;
   readonly reason: string;
+  /**
+   * The structured review decision this entry records, when the entry
+   * was produced by a governed review (`recordReview`). Persisting the
+   * decision INSIDE the review trail is what makes approval state
+   * survive a restart — the governed-evolution engine derives its
+   * qualifying-approver count from these fields instead of from an
+   * in-memory map. Entries produced by plain status transitions
+   * (propose, rollback, supersede, …) leave it undefined.
+   */
+  readonly decision?: "approve" | "reject" | "request_changes";
+  /** The reviewer's verbatim comment, when `decision` is present. */
+  readonly comment?: string;
 }
 
 /**

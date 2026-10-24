@@ -63,6 +63,19 @@ export interface CandidateStore {
   ): CandidateRecord;
 
   /**
+   * Appends an entry to the candidate's review trail WITHOUT changing
+   * its status. The sanctioned way for the governed engine to record a
+   * review decision (e.g. an approval whose rules are not yet
+   * satisfied) — previously the engine built the updated record and
+   * never stored it, so the persisted view and the engine's view
+   * diverged silently.
+   */
+  appendReviewTrail(
+    id: CandidateId,
+    reviewEntry: Omit<ReviewEntry, "from" | "to">,
+  ): CandidateRecord;
+
+  /**
    * Returns the version chain for an asset — the ordered list of
    * candidates that target the given assetId. The order is from
    * newest to oldest (by `proposedAt`).
@@ -185,6 +198,38 @@ export class InMemoryCandidateStore implements CandidateStore {
     const updated: CandidateRecord = {
       ...current,
       status: toStatus,
+      provenance: {
+        ...current.provenance,
+        reviewTrail: [...(current.provenance.reviewTrail ?? []), newReviewEntry],
+      },
+    };
+
+    validateCandidateRecord(updated);
+    this.records.set(id, updated);
+    return { ...updated };
+  }
+
+  appendReviewTrail(
+    id: CandidateId,
+    reviewEntry: Omit<ReviewEntry, "from" | "to">,
+  ): CandidateRecord {
+    const current = this.records.get(id);
+    if (!current) {
+      throw new ContractValidationError(
+        `Cannot appendReviewTrail: CandidateRecord not found: ${id}`,
+        { details: { candidateId: id } },
+      );
+    }
+
+    const fromStatus = current.status;
+    const newReviewEntry: ReviewEntry = {
+      ...reviewEntry,
+      from: fromStatus as unknown as ReviewEntry["from"], // status-as-kind for the trail
+      to: fromStatus as unknown as ReviewEntry["to"],
+    };
+
+    const updated: CandidateRecord = {
+      ...current,
       provenance: {
         ...current.provenance,
         reviewTrail: [...(current.provenance.reviewTrail ?? []), newReviewEntry],

@@ -47,15 +47,35 @@ export const DEFAULT_GOVERNED_RULES = {
  * The engine enforces the governed rules during `recordReview` (for
  * `approve` decisions) and `tryApprove`. The candidate is only
  * transitioned to `approved` when ALL applicable rules are satisfied.
+ *
+ * Review decisions are derived from the candidate's persisted review
+ * trail (`provenance.reviewTrail` entries carrying a `decision`
+ * field) — NOT from in-memory state. This is deliberate: an approval
+ * recorded before a process restart must still count after the
+ * restart, and the project's own invariant is that governance state
+ * survives the process ("records survive restart").
  */
 export class DefaultGovernedEvolutionEngine {
     store;
     rules;
-    // Track review decisions per candidate for the rules check
-    reviewDecisions = new Map();
     constructor(store, rules = DEFAULT_GOVERNED_RULES) {
         this.store = store;
         this.rules = rules;
+    }
+    /**
+     * Rebuilds the ReviewDecision list for a candidate from its persisted
+     * review trail. Entries without a `decision` field (plain lifecycle
+     * transitions) are ignored.
+     */
+    decisionsFromTrail(candidate) {
+        return (candidate.provenance.reviewTrail ?? [])
+            .filter((e) => e.decision !== undefined)
+            .map((e) => ({
+            reviewer: e.actor,
+            decision: e.decision,
+            comment: e.comment ?? "",
+            at: e.at,
+        }));
     }
     propose(input) {
         const nowIso = new Date().toISOString();
@@ -147,10 +167,12 @@ export class DefaultGovernedEvolutionEngine {
         if (current.status !== "under_review") {
             throw new LifecycleViolationError(`Cannot record review: candidate is in status ${current.status} (expected 'under_review').`, { details: { candidateId, status: current.status } });
         }
-        // Track the decision for the rules check
-        const decisions = this.reviewDecisions.get(candidateId) ?? [];
-        decisions.push(decision);
-        this.reviewDecisions.set(candidateId, decisions);
+        // Decisions for the rules check: everything already persisted in
+        // the review trail, plus the decision being recorded now.
+        const decisions = [
+            ...this.decisionsFromTrail(current),
+            decision,
+        ];
         const nowIso = new Date().toISOString();
         if (decision.decision === "approve") {
             // Check the governed rules
@@ -160,20 +182,24 @@ export class DefaultGovernedEvolutionEngine {
                     at: nowIso,
                     actor: decision.reviewer,
                     reason: decision.comment,
+                    decision: "approve",
+                    comment: decision.comment,
                 };
                 const updated = this.store.transition(candidateId, "approved", reviewEntry);
                 return { candidate: updated, approvalResult: approval };
             }
-            // Rules not satisfied — record the decision but stay in under_review
+            // Rules not satisfied — persist the decision on the trail and
+            // stay in under_review. (Previously the engine built the updated
+            // record but never stored it, so this approval silently vanished
+            // from the persisted view — and from any restart.)
             const reviewEntry = {
                 at: nowIso,
                 actor: decision.reviewer,
                 reason: `Approval recorded but rules not yet satisfied: ${approval.reasons.join("; ")}`,
+                decision: "approve",
+                comment: decision.comment,
             };
-            // Append to the review trail WITHOUT transitioning status
-            // (transition from under_review to under_review is forbidden;
-            // we use a sentinel "no-op" by directly updating the trail)
-            const updated = this.appendReviewEntry(current, reviewEntry);
+            const updated = this.store.appendReviewTrail(candidateId, reviewEntry);
             return { candidate: updated, approvalResult: approval };
         }
         if (decision.decision === "reject") {
@@ -181,6 +207,8 @@ export class DefaultGovernedEvolutionEngine {
                 at: nowIso,
                 actor: decision.reviewer,
                 reason: `Rejected: ${decision.comment}`,
+                decision: "reject",
+                comment: decision.comment,
             };
             const updated = this.store.transition(candidateId, "rejected", reviewEntry);
             return { candidate: updated };
@@ -190,6 +218,8 @@ export class DefaultGovernedEvolutionEngine {
             at: nowIso,
             actor: decision.reviewer,
             reason: `Changes requested: ${decision.comment}`,
+            decision: "request_changes",
+            comment: decision.comment,
         };
         const updated = this.store.transition(candidateId, "proposed", reviewEntry);
         return { candidate: updated };
@@ -306,34 +336,6 @@ export class DefaultGovernedEvolutionEngine {
             return { kind: "denied", reasons };
         }
         return { kind: "approved", candidate };
-    }
-    // ─── Internal: append a review entry without changing status ───
-    appendReviewEntry(candidate, entry) {
-        // We can't use `transition` because under_review → under_review
-        // is forbidden. Instead, we directly append to the review trail.
-        // This is a controlled mutation via the engine.
-        const fullEntry = {
-            ...entry,
-            from: "under_review",
-            to: "under_review",
-        };
-        const updated = {
-            ...candidate,
-            provenance: {
-                ...candidate.provenance,
-                reviewTrail: [...(candidate.provenance.reviewTrail ?? []), fullEntry],
-            },
-        };
-        // The store doesn't have a direct update method; we use a transition
-        // hack: transition to under_review from under_review is forbidden,
-        // so we cannot use `transition`. Instead, we work around by NOT
-        // storing the no-op update — the in-memory engine keeps its own
-        // view via `reviewDecisions`. For Stage F baseline, this is OK.
-        // A persistent implementation would expose an `appendReviewEntry`
-        // method on the store.
-        //
-        // For now: return the updated record (the engine's view).
-        return updated;
     }
 }
 //# sourceMappingURL=governed-evolution-engine.js.map

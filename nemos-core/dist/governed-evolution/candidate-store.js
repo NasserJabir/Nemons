@@ -102,6 +102,28 @@ export class InMemoryCandidateStore {
         this.records.set(id, updated);
         return { ...updated };
     }
+    appendReviewTrail(id, reviewEntry) {
+        const current = this.records.get(id);
+        if (!current) {
+            throw new ContractValidationError(`Cannot appendReviewTrail: CandidateRecord not found: ${id}`, { details: { candidateId: id } });
+        }
+        const fromStatus = current.status;
+        const newReviewEntry = {
+            ...reviewEntry,
+            from: fromStatus, // status-as-kind for the trail
+            to: fromStatus,
+        };
+        const updated = {
+            ...current,
+            provenance: {
+                ...current.provenance,
+                reviewTrail: [...(current.provenance.reviewTrail ?? []), newReviewEntry],
+            },
+        };
+        validateCandidateRecord(updated);
+        this.records.set(id, updated);
+        return { ...updated };
+    }
     getVersionChain(assetId) {
         // Find all candidates targeting this assetId
         const candidates = this.list().filter((c) => c.assetId === assetId);

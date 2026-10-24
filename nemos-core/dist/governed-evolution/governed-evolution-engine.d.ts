@@ -185,12 +185,24 @@ export interface GovernedEvolutionEngine {
  * The engine enforces the governed rules during `recordReview` (for
  * `approve` decisions) and `tryApprove`. The candidate is only
  * transitioned to `approved` when ALL applicable rules are satisfied.
+ *
+ * Review decisions are derived from the candidate's persisted review
+ * trail (`provenance.reviewTrail` entries carrying a `decision`
+ * field) — NOT from in-memory state. This is deliberate: an approval
+ * recorded before a process restart must still count after the
+ * restart, and the project's own invariant is that governance state
+ * survives the process ("records survive restart").
  */
 export declare class DefaultGovernedEvolutionEngine implements GovernedEvolutionEngine {
     private readonly store;
     private readonly rules;
-    private readonly reviewDecisions;
     constructor(store: CandidateStore, rules?: GovernedRules);
+    /**
+     * Rebuilds the ReviewDecision list for a candidate from its persisted
+     * review trail. Entries without a `decision` field (plain lifecycle
+     * transitions) are ignored.
+     */
+    private decisionsFromTrail;
     propose(input: ProposeCandidateInput): CandidateRecord;
     requestReview(candidateId: CandidateId, requestedBy: string, comment: string): CandidateRecord;
     recordReview(candidateId: CandidateId, decision: ReviewDecision): {
@@ -207,6 +219,5 @@ export declare class DefaultGovernedEvolutionEngine implements GovernedEvolution
     getActiveApproved(assetId: string): CandidateRecord | undefined;
     getCandidate(id: CandidateId): CandidateRecord | undefined;
     private checkGovernedRules;
-    private appendReviewEntry;
 }
 //# sourceMappingURL=governed-evolution-engine.d.ts.map
