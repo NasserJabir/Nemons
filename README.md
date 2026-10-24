@@ -34,23 +34,33 @@ The implementation consists of:
   project's evolution (Stage 0 → Stage I + 10 research-driven improvements +
   P2/P3 features + v4.2.1 fixes).
 
-CI gate (`.github/workflows/ci.yml`) runs 5 jobs on every push and PR:
+CI gate (`.github/workflows/ci.yml`) runs 6 jobs on every push and PR:
 
 1. **Daemon Tests** (matrix: ubuntu-latest × macos-latest, Node 18/20/22) —
-   syntax check + 35 legacy unit tests + 33 v4.2.1 persona tests + 22 v4.2.1
-   bridge integration tests + smoke test (start + verify `/health` +
-   `/core/status` + `/core/sha256` + stop + verify port freed)
-2. **TS Core Tests** (ubuntu-latest, Node 22) — strict typecheck + build +
-   vitest (1215 tests) + verify bridge loads freshly built dist
-3. **Code Quality** (lint + JSON validity)
-4. **Security Advisory** (npm audit at all severities, informational only —
+   cross-platform syntax check + 35 legacy unit tests + 33 v4.2.1 persona
+   tests + 22 v4.2.1 bridge integration tests + 21 security tests (path
+   containment, auth, rate limiting) + e2e `npm test` (spawns a real
+   daemon, 11 checks) + smoke test (start + `/health` + `/core/status` +
+   `/core/sha256` + `nemons verify` + stop + verify port freed)
+2. **Daemon Tests (Windows)** — lint + all four in-process suites on
+   windows-latest (Node 22)
+3. **TS Core Tests** (ubuntu-latest, Node 22) — strict typecheck + build +
+   vitest (1221 tests incl. 3 review-decision durability + 3 fast-check
+   property suites) + committed-dist freshness guard + npm-pack consumer
+   smoke test + verify bridge loads freshly built dist
+4. **Code Quality** (cross-platform lint + JSON validity)
+5. **Security Advisory** (npm audit at all severities, informational only —
    surfaces in the GitHub Security tab)
-5. **Security Gate (release-blocking)** — strict npm audit at `moderate`
+6. **Security Gate (release-blocking)** — strict npm audit at `moderate`
    threshold + hardcoded-secret scan. This job blocks any release with
    known moderate-or-higher vulnerabilities OR hardcoded secrets.
 
-Verification status: **1305 / 1305 tests passing** (35 legacy + 33 v4.2.1
-persona + 22 v4.2.1 bridge + 1215 TS core), 0 open exceptions in the CI gate.
+Verification status: **1343 / 1343 tests passing** (35 legacy + 33 v4.2.1
+persona + 22 v4.2.1 bridge + 21 security + 11 e2e + 1221 TS core), 0 open
+exceptions in the CI gate. Security regression tests in
+`nemos/tests/security-tests.js` gate the daemon's path-containment, auth,
+and rate-limiting guarantees — every test there corresponds to a real
+vulnerability that was fixed; a failure means one is back.
 
 This repository is the documentation-first foundation for the project: thesis,
 charter, research, domain model, requirements, architecture, contracts,
@@ -96,6 +106,28 @@ being silently treated as accepted requirements.
 | `docs/06-contracts` | Asset and integration contracts |
 | `docs/07-evaluation` | Evaluation, Golden Tasks, metrics, baselines |
 | `docs/08-decisions` | Architecture decision records |
+
+## Product core loop vs. experimental surface
+
+The daemon exposes 170+ HTTP endpoints, but the **product core loop** —
+the path every coding-agent integration actually exercises, and the
+surface covered end-to-end by the test suites — is small:
+
+```
+/analyze (intercept + context pack)
+   → /evidence (collect + redact)
+   → /evaluate (4-layer verification)
+   → /experiences (store what was learned)
+   → /core/* (governed evolution via @nemons/core)
+   (+ /health, /metrics for observability)
+```
+
+Everything else (research modules, harness routing, delegation security,
+skillbank, kanban/A2A, …) is **experimental surface**: it is functional,
+sits behind the same auth/rate-limiting middleware, and is validated by
+the security suite where exercised — but it is NOT part of the supported
+product loop and may change or be removed without a major version.
+Consumers should build on the core loop.
 
 ## Scope boundary
 
