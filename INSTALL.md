@@ -298,6 +298,21 @@ kill -9 <PID>
 taskkill /PID <PID> /F
 ```
 
+#### Daemon won't stop — "no PID file"
+`daemon stop` reads the PID file from the SAME home the daemon was started
+with. If you started the daemon with a custom `NEMONS_HOME` (or a custom
+port via `NEMONS_PORT`), pass the same values to stop:
+
+```bash
+# Linux / macOS
+NEMONS_HOME=/path/to/home node bin/nemons.js daemon stop
+
+# Windows (PowerShell)
+$env:NEMONS_HOME="C:\path\to\home"; node bin\nemons.js daemon stop
+```
+
+With the default home (`~/.nemons`), plain `nemons daemon stop` works.
+
 ### Getting Help
 
 If you're still stuck:

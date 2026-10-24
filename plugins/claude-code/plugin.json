@@ -16,7 +16,9 @@
       "type": "remote",
       "url": "http://127.0.0.1:3456/mcp",
       "transport": "stdio",
-      "auto_invoke": true,
+      "auto_invoke": false,
+      "status": "planned",
+      "note": "The daemon does NOT implement an /mcp endpoint yet (GET /mcp returns 404 — plugin audit, WORKLOG Task 24). The declared transport is also contradictory (remote + stdio). Until a spec-correct MCP endpoint ships, use the HTTP API and hooks below, which are live.",
       "tools": [
         "nemons.analyze_prompt",
         "nemons.get_context_pack",

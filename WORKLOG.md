@@ -1806,3 +1806,122 @@ The gap the user identified is now closed in BOTH directions:
 What's still deferred (by design — not gaps):
 - Stage C real-harness execution (requires explicit owner authorization on real adapter)
 - P3 features F-020 / F-057 / F-058 (require NLU / reactive / multi-agent capabilities)
+
+---
+
+Task ID: 24
+Agent: main (Z.ai)
+Task: v4.3.0 hardening cycle (P0-P3) — security, daemon restructure, core durability, honest surface — plus release, two live CI fixes, and the first plugin audit
+
+=== Scope (user approved the 4-phase roadmap proposed 2026-10-23) ===
+
+P0 — security & correctness (all previously verified live-exploitable):
+- src/utils/path-guard.js (new): isSafeId() + resolveWithin() single choke point.
+  Closed traversal WRITE via POST /evidence (run_id interpolated into path),
+  traversal READ via GET /context-pack/:id (..%2f), and a third hole found
+  during the fix: kanban/a2a interpolated body-supplied ids into filenames
+  (both modules rewritten readable with boundary validation).
+- Auth: crypto.timingSafeEqual replaces !== ; X-Nemons-Token accepted.
+- RateLimiter (existed, never wired) now shared-instance middleware
+  (429 + Retry-After; verified live: 48x200 then 22x429 on a 70-hit burst).
+- Verifier tri-state (pass/fail/inconclusive) + passed alias + failures list;
+  fixed the e2e pass/passed field drift that made npm test 2/10 and
+  nemons verify 1/10 fail while README claimed 1305/1305 (CI never ran them).
+- tests/security-tests.js (21 tests): every test maps to a real fixed
+  vulnerability; wired into npm run test:all and CI.
+- scripts/lint.js: cross-platform syntax check (bash loop failed on Windows).
+
+P1 — daemon restructure:
+- src/daemon/services.js composition root: 100+ per-request `new Module()`
+  hoisted to boot-time singletons (delegation chains now survive across
+  requests — verified live create->authorize; every */stats endpoint reports
+  real accumulated state). 7 more registries added later (identity,
+  candidateLifecycle, stateManager, tool/adapter contracts, execEnvironment).
+- server.js 1757 -> 560 lines; route table extracted verbatim into 6 domain
+  modules under src/daemon/routes/ (research-v21/v23/v24, production-v25,
+  platform-v40, core-bridge) registered in original order via shared ctx.
+- runtime-config.js (new): single resolvePort()/nemonsHome()/migrateLegacyHome()
+  — 20 modules moved off legacy ~/.nemos; server/start/stop/verify unified.
+- storage.js atomic writes (temp+rename); /evidence + /experiences routed
+  through it; storage filenames traversal-validated.
+- Dashboard XSS fixed (static file src/daemon/public/dashboard.html,
+  textContent rendering, was innerHTML with stored payloads).
+- JSON 404 + central error middleware; /investigate now investigates the
+  actual request (was hardcoded "test").
+- /metrics honest: real counters (runs_total/intercepts/evidence; pass_rate
+  null until data — was hardcoded 0 and 1.0).
+- evolution-engine.js rewritten readable with score_source:"random_unmeasured"
+  honesty labels; marketing strings ("75-100% -> 0%", "up to 15%") removed.
+- All 15 minified modules rewritten readable (prettier + identifier renames);
+  lint readability guard with EMPTY allowlist — minified code cannot re-enter.
+
+P2 — core polish (@nemons/core):
+- Governed review decisions now derive from the PERSISTED reviewTrail
+  (optional decision/comment on ReviewEntry) — in-memory Map deleted; the
+  "approve but rules not satisfied" dead write removed via new
+  appendReviewTrail() on both CandidateStore and PersistentCandidateStore.
+- D1/D2/D3 durability tests prove store persistence + restart equivalence.
+- package.json exports/types/files/main + prepublishOnly — npm-pack consumer
+  flow verified (179 exports).
+- fast-check property tests (3 properties, 150 cases): round-trip,
+  hash order-independence, path containment.
+- CI: committed-dist freshness guard (git diff --exit-code vs fresh build)
+  + npm-pack consumer smoke test.
+
+P3 — honest surface:
+- README: "Product core loop vs experimental surface" section; v4.3.0
+  status line; stale counts corrected (170+ endpoints, 1221 core tests).
+- CHANGELOG: full P0-P3 record, released as [4.3.0] - 2026-10-24.
+
+=== Release mechanics (2026-10-24) ===
+- Branch quality/hardening-p0-p3 (3 commits) -> PR #10 -> merged to main.
+- GitHub Release v4.3.0 created (tag re-pointed once, see below):
+  https://github.com/NasserJabir/Nemons/releases/tag/v4.3.0
+- Decision recorded: NO archives committed to git — GitHub auto-attaches
+  source zip/tar.gz per tag; the 14 version-specific build-scripts stay
+  historical (a generic script would replace them if archives are ever needed).
+
+=== Two live CI incidents — both caught by the new gate, both fixed ===
+1. Consumer smoke (fix commit 4124dc7): quoted glob "...nemons-core-*.tgz"
+   suppressed shell expansion -> npm got a literal star -> ENOENT.
+   Fixed by capturing the tarball via ls; verified by exact local replication.
+2. Version pins (release commit 2fdf53e): bridge-tests pinned /health to the
+   literal "4.2.1" and pipeline-integrator hardcoded its version twice —
+   the version bump broke CI. Fixed by making nemos/package.json the single
+   version source; tests assert consistency, not a pinned string.
+   LESSON (process): the release commit skipped the full local suite run
+   after the version bump. Rule going forward: every suite on FINAL content
+   before any push. Tag v4.3.0 + release re-pointed to the green commit.
+
+=== First plugin audit (all 7 plugins, empirical against a live daemon) ===
+- Scripts (cline/codex/kimi/opencode): call /analyze, /context-pack,
+  /evidence, /evaluate, /experiences — ALL 200 OK.
+- claude-code plugin.json hooks: /sessions/start, /sessions/end — 200 OK.
+- FINDING: claude-code declares an MCP server at 127.0.0.1:3456/mcp with
+  7 tools (nemons.analyze_prompt et al) — GET /mcp returns 404; the daemon
+  implements NO MCP endpoint, and the manifest itself is contradictory
+  (type:"remote" with transport:"stdio"). Marked planned in the manifest;
+  implementing spec-correct MCP (initialize/tools/list/tools/call +
+  Streamable-HTTP session semantics) is a feature, not a patch.
+
+=== Fresh-user validation (post-release) ===
+- Clean clone from GitHub -> npm install (4s) -> daemon boots with
+  core_loaded=true from the committed dist (zero build) -> dashboard 200
+  -> clean stop. The release experience works as advertised.
+- Documented in INSTALL.md: daemon stop requires the same NEMONS_HOME the
+  daemon was started with (non-default homes).
+
+=== Final state ===
+- 1343/1343 checks green locally and in CI (35+33+22+21+11 daemon, 1221 core).
+- main green (CI - Tests + CodeQL), release v4.3.0 pointing at the green commit.
+
+=== StrykerJS baseline (first mutation run) ===
+- stryker.conf.json committed; scoped to src/evaluation/paired-evaluator.ts
+  (the ADR-0013 delta math) with coverageAnalysis:"perTest".
+- Result: mutation score 63.12% (89 killed / 48 survived / 4 no-coverage,
+  141 mutants, 18s execution). This is the HONEST test-strength baseline —
+  the 1221 tests cover behavior well but leave string-formatting and some
+  branch mutants alive (e.g. lines.join("\n") -> join("") survives).
+- Raising this score is now measurable work: `npx stryker run` in
+  nemos-core; fix survivors one assertion at a time. Next candidates:
+  paired-evaluator survivors, then fs-json-store.

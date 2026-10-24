@@ -29,6 +29,8 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@stryker-mutator/core": "^10.1.1",
+    "@stryker-mutator/vitest-runner": "^10.1.1",
     "@types/node": "^22.0.0",
     "fast-check": "^3.23.2",
     "typescript": "^5.5.0",

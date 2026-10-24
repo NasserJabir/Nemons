@@ -1,0 +1,13 @@
+{
+  "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker-js/master/packages/api/schema/stryker-schema.json",
+  "packageManager": "npm",
+  "testRunner": "vitest",
+  "reporters": ["clear-text", "progress"],
+  "coverageAnalysis": "perTest",
+  "mutate": ["src/evaluation/paired-evaluator.ts"],
+  "concurrency": 2,
+  "timeoutMS": 30000,
+  "tempDirName": "stryker-tmp",
+  "cleanTempDir": true,
+  "incremental": false
+}
