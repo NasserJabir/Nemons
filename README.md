@@ -69,7 +69,9 @@ The supported product path is intentionally narrower than the daemon's full endp
 
 ## Project status
 
-**Reported project version: v4.3.0 — Hardened release.**
+**Reported project version: v4.4.0 — Hardened release, professional dashboard.**
+
+The project status supplied for 2026-10-26 reports the v4.3.0 P0–P3 quality cycle (closure of path traversal, timing-leaky authentication, and rate-limiting wiring; a daemon composition root and domain route modules; durable governed review decisions in `@nemons/core`; a consumable npm package surface; readable source modules), followed by v4.4.0 additions: a redesigned zero-dependency dashboard with live KPI cards and a verification-loop tester, the first empirical audit of all 7 coding-agent plugins, and a StrykerJS mutation-testing baseline (63.12% on `paired-evaluator.ts`).
 
 The project status supplied for 2026-10-24 reports the closure of the P0–P3 quality cycle, including fixes for path traversal, timing-leaky authentication, and rate-limiting wiring; a daemon composition root and domain route modules; durable governed review decisions in `@nemons/core`; a consumable npm package surface; and readable source modules.
 

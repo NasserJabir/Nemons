@@ -5,6 +5,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.0] - 2026-10-26
+
+### Added — professional dashboard redesign
+
+- The daemon dashboard (`/`, `/dashboard`, `/ui`) was rebuilt from scratch
+  in the dark developer-console design language (quiet surfaces, one accent,
+  tabular numerals, 11px letter-spaced labels): pulsing health indicator,
+  six live KPI cards (evaluations + pass rate, experiences, evidence,
+  intercepts, memory, core APIs), a verification-loop tester with verdict
+  pills and JSON output, a recent-experiences feed, system and docs panels,
+  and a 5s auto-refresh. Still one self-contained HTML file with **zero
+  external assets** — no CDNs, no fonts, no frameworks. All dynamic
+  rendering remains textContent-only (stored-XSS safe). Verified live in a
+  browser: KPIs update in real time and the analyzer returns an intercepted
+  verdict with the full context pack.
+
+### Added — first plugin audit (all 7 plugins, empirical)
+
+- Audited against a live daemon: the JS/TS plugins' core-loop calls
+  (analyze/context-pack/evidence/evaluate/experiences) and claude-code's
+  session hooks all return 200.
+- **Finding**: claude-code's manifest declared an MCP server at `/mcp`
+  with 7 tools — the daemon implements NO MCP endpoint (404), and the
+  manifest transport was contradictory (remote + stdio). The manifest now
+  honestly marks the MCP surface `planned` with `auto_invoke: false`;
+  implementing a spec-correct MCP endpoint is a tracked future feature.
+
+### Added — StrykerJS mutation-testing baseline
+
+- `stryker.conf.json` committed (scoped, `coverageAnalysis: perTest`);
+  first run on `paired-evaluator.ts`: **mutation score 63.12%**
+  (89 killed / 48 survived / 141 mutants). The honest test-strength
+  baseline — raising it is now measurable work via `npx stryker run`.
+
+### Changed — documentation
+
+- WORKLOG Task 24: the full P0–P3 record, release mechanics, both live CI
+  incidents with their lessons, the plugin audit, and the fresh-user
+  validation.
+- INSTALL.md: `daemon stop` requires the same `NEMONS_HOME` the daemon was
+  started with (non-default homes).
+
 ## [4.3.0] - 2026-10-24
 
 The P0–P3 hardening cycle: security fixes, daemon restructure,

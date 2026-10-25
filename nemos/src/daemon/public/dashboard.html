@@ -3,479 +3,473 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nemons Dashboard</title>
+<title>Nemons — Agent Runtime</title>
 <style>
+  /* ============================================================
+     Nemons Dashboard — self-contained, zero external assets.
+     Design language: dark developer-console (Linear/Vercel school):
+     quiet surfaces, one accent, tabular numerals, 11px letter-spaced
+     labels, generous spacing. All dynamic rendering uses textContent
+     (stored-XSS safe — see WORKLOG Task 24).
+     ============================================================ */
   :root {
-    --bg: #0f172a;
-    --card: #1e293b;
-    --border: #334155;
-    --text: #e2e8f0;
-    --muted: #94a3b8;
-    --primary: #3b82f6;
-    --success: #10b981;
-    --warn: #f59e0b;
-    --danger: #ef4444;
-    --code: #0f172a;
+    --bg: #08090d;
+    --surface: #0e1016;
+    --surface-2: #12151d;
+    --border: #1c2029;
+    --border-strong: #262b38;
+    --text: #e6e8ee;
+    --muted: #8b91a0;
+    --faint: #565c6b;
+    --accent: #5eead4;
+    --accent-dim: rgba(94, 234, 212, 0.12);
+    --ok: #34d399;
+    --warn: #fbbf24;
+    --bad: #f87171;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: var(--bg);
+    font-family: var(--sans);
+    background:
+      radial-gradient(1200px 500px at 70% -10%, rgba(94, 234, 212, 0.05), transparent 60%),
+      var(--bg);
     color: var(--text);
-    line-height: 1.6;
-    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
   }
-  .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem 1rem;
-  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px 48px; }
+
+  /* ---------- Header ---------- */
   header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 2rem;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 2rem;
+    display: flex; align-items: center; gap: 14px;
+    padding: 20px 0 28px;
   }
   .logo {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 700; letter-spacing: 0.12em; font-size: 15px;
   }
-  .logo-icon {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    font-weight: bold;
+  .logo .mark {
+    width: 22px; height: 22px; border-radius: 7px;
+    background: linear-gradient(135deg, var(--accent), #3b82f6);
+    box-shadow: 0 0 18px rgba(94, 234, 212, 0.35);
   }
-  .logo h1 {
-    font-size: 1.5rem;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  .pill {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em;
+    color: var(--muted); border: 1px solid var(--border-strong);
+    border-radius: 999px; padding: 3px 10px; background: var(--surface);
   }
-  .logo .version {
-    color: var(--muted);
-    font-size: 0.875rem;
+  .spacer { flex: 1; }
+  .health {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12.5px; color: var(--muted);
   }
-  .status-badge {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: var(--success);
-    color: white;
-    border-radius: 999px;
-    font-size: 0.875rem;
-    font-weight: 500;
+  .health .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--ok);
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.5);
+    animation: pulse 2.2s infinite;
   }
-  .status-badge.offline {
-    background: var(--danger);
-  }
-  .status-dot {
-    width: 8px;
-    height: 8px;
-    background: white;
-    border-radius: 50%;
-    animation: pulse 2s infinite;
-  }
+  .health .dot.bad { background: var(--bad); animation: none; }
   @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+    0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.45); }
+    70% { box-shadow: 0 0 0 7px rgba(52, 211, 153, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
   }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
+
+  /* ---------- KPI cards ---------- */
+  .kpis {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px;
+    margin-bottom: 14px;
   }
+  @media (max-width: 900px) { .kpis { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 560px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
   .card {
-    background: var(--card);
+    background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.5rem;
-    transition: transform 0.2s, border-color 0.2s;
+    border-radius: 14px;
+    padding: 16px 16px 14px;
+    transition: border-color .15s ease;
   }
-  .card:hover {
-    transform: translateY(-2px);
-    border-color: var(--primary);
+  .card:hover { border-color: var(--border-strong); }
+  .kpi .label {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.14em;
+    color: var(--faint); margin-bottom: 8px;
   }
-  .card-label {
-    color: var(--muted);
-    font-size: 0.875rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.5rem;
+  .kpi .value {
+    font-family: var(--mono); font-size: 24px; font-weight: 600;
+    font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
   }
-  .card-value {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--text);
-  }
-  .card-value.success { color: var(--success); }
-  .card-value.warn { color: var(--warn); }
-  .card-value.danger { color: var(--danger); }
-  .card-sub {
-    color: var(--muted);
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
-  }
-  section {
-    background: var(--card);
+  .kpi .sub { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+  .kpi .sub.ok { color: var(--ok); }
+  .kpi .sub.warn { color: var(--warn); }
+
+  /* ---------- Panels ---------- */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+  .panel {
+    background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
+    border-radius: 14px;
+    overflow: hidden;
   }
-  section h2 {
-    font-size: 1.125rem;
-    margin-bottom: 1rem;
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  .panel .head {
+    display: flex; align-items: center; gap: 8px;
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted);
   }
-  .badge {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    font-size: 0.75rem;
-    color: var(--muted);
-    margin-left: auto;
-    font-weight: normal;
+  .panel .head .count {
+    margin-left: auto; font-family: var(--mono); font-size: 11px;
+    color: var(--faint); font-weight: 400;
   }
-  table {
-    width: 100%;
-    border-collapse: collapse;
+  .panel .body { padding: 14px 16px 16px; }
+
+  /* ---------- Analyzer ---------- */
+  textarea {
+    width: 100%; min-height: 74px; resize: vertical;
+    background: var(--surface-2); color: var(--text);
+    border: 1px solid var(--border-strong); border-radius: 10px;
+    padding: 11px 12px; font-family: var(--mono); font-size: 12.5px;
+    outline: none; transition: border-color .15s ease;
   }
-  th, td {
-    text-align: left;
-    padding: 0.75rem 1rem;
+  textarea:focus { border-color: rgba(94, 234, 212, 0.45); }
+  textarea::placeholder { color: var(--faint); }
+  .btn {
+    margin-top: 10px;
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent-dim); color: var(--accent);
+    border: 1px solid rgba(94, 234, 212, 0.35);
+    border-radius: 9px; padding: 7px 14px;
+    font-size: 12.5px; font-weight: 600; cursor: pointer;
+    transition: background .15s ease;
+  }
+  .btn:hover { background: rgba(94, 234, 212, 0.2); }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+  .btn kbd {
+    font-family: var(--mono); font-size: 10px; color: var(--faint);
+    border: 1px solid var(--border-strong); border-radius: 4px; padding: 0 4px;
+  }
+  .result {
+    margin-top: 12px;
+    background: #0a0c11; border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px;
+    max-height: 300px; overflow: auto;
+  }
+  .result pre {
+    font-family: var(--mono); font-size: 11.5px; line-height: 1.55;
+    color: #a8b3c4; white-space: pre-wrap; word-break: break-word;
+  }
+  .verdict {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 11px; border-radius: 6px;
+    padding: 3px 8px; margin-bottom: 8px;
+  }
+  .verdict.pass { color: var(--ok); background: rgba(52, 211, 153, 0.1); }
+  .verdict.fail { color: var(--bad); background: rgba(248, 113, 113, 0.1); }
+
+  /* ---------- Experiences feed ---------- */
+  .feed { display: flex; flex-direction: column; }
+  .exp {
+    padding: 11px 2px;
     border-bottom: 1px solid var(--border);
   }
-  th {
-    color: var(--muted);
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: 500;
+  .exp:last-child { border-bottom: none; }
+  .exp .row1 { display: flex; align-items: baseline; gap: 8px; }
+  .exp .id { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+  .exp .ts { margin-left: auto; font-size: 11px; color: var(--faint); }
+  .exp .prompt {
+    margin-top: 3px; font-size: 12.5px; color: var(--muted);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  td code {
-    font-family: 'SFMono-Regular', Consolas, monospace;
-    background: var(--bg);
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.875rem;
-    color: var(--primary);
+  .empty { padding: 18px 0; font-size: 12.5px; color: var(--faint); }
+
+  /* ---------- System panel ---------- */
+  .sys { display: flex; flex-direction: column; gap: 9px; }
+  .sysrow { display: flex; align-items: center; gap: 10px; font-size: 12.5px; }
+  .sysrow .k { color: var(--faint); width: 130px; flex-shrink: 0; }
+  .sysrow .v {
+    font-family: var(--mono); font-size: 11.5px; color: var(--muted);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  .method {
-    display: inline-block;
-    padding: 0.125rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    font-family: monospace;
-    min-width: 50px;
-    text-align: center;
+  .flag {
+    font-family: var(--mono); font-size: 10.5px; border-radius: 5px;
+    padding: 2px 7px; flex-shrink: 0;
   }
-  .method.GET { background: rgba(16, 185, 129, 0.2); color: var(--success); }
-  .method.POST { background: rgba(59, 130, 246, 0.2); color: var(--primary); }
-  .method.PUT { background: rgba(245, 158, 11, 0.2); color: var(--warn); }
-  .method.DELETE { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
-  .experience-item {
-    padding: 0.75rem 1rem;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    margin-bottom: 0.5rem;
-    font-family: monospace;
-    font-size: 0.875rem;
-  }
-  .experience-item .meta {
-    color: var(--muted);
-    font-size: 0.75rem;
-    margin-top: 0.25rem;
-  }
-  .empty {
-    color: var(--muted);
-    text-align: center;
-    padding: 2rem;
-    font-style: italic;
-  }
-  .footer {
-    text-align: center;
-    color: var(--muted);
-    font-size: 0.875rem;
-    padding-top: 2rem;
+  .flag.on { color: var(--ok); background: rgba(52, 211, 153, 0.1); }
+  .flag.off { color: var(--bad); background: rgba(248, 113, 113, 0.1); }
+
+  footer {
+    margin-top: 22px; padding-top: 16px;
     border-top: 1px solid var(--border);
+    display: flex; gap: 16px; align-items: center;
+    font-size: 11.5px; color: var(--faint);
   }
-  .footer a {
-    color: var(--primary);
-    text-decoration: none;
-  }
-  .refresh-btn {
-    background: var(--primary);
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.875rem;
-    font-weight: 500;
-    transition: background 0.2s;
-  }
-  .refresh-btn:hover {
-    background: #2563eb;
-  }
+  footer .mono { font-family: var(--mono); }
+  footer .right { margin-left: auto; }
 </style>
 </head>
 <body>
-<div class="container">
+<div class="wrap">
   <header>
-    <div class="logo">
-      <div class="logo-icon">N</div>
-      <div>
-        <h1>Nemons</h1>
-        <div class="version">v<span id="version">1.0.0</span> — Transparent Orchestrator</div>
-      </div>
-    </div>
-    <div>
-      <span class="status-badge" id="status">
-        <span class="status-dot"></span>
-        <span id="status-text">Checking...</span>
-      </span>
-    </div>
+    <div class="logo"><span class="mark"></span>NEMONS</div>
+    <span class="pill" id="ver">v—</span>
+    <span class="pill" id="uptime-pill">uptime —</span>
+    <div class="spacer"></div>
+    <div class="health"><span class="dot" id="health-dot"></span><span id="health-text">connecting…</span></div>
   </header>
 
-  <div class="grid">
-    <div class="card">
-      <div class="card-label">Uptime</div>
-      <div class="card-value" id="uptime">—</div>
-      <div class="card-sub" id="uptime-sub">since —</div>
+  <section class="kpis">
+    <div class="card kpi">
+      <div class="label">Evaluations</div>
+      <div class="value" id="kpi-runs">—</div>
+      <div class="sub" id="kpi-passrate">pass rate —</div>
     </div>
-    <div class="card">
-      <div class="card-label">Experiences Stored</div>
-      <div class="card-value success" id="experiences">—</div>
-      <div class="card-sub">successful runs</div>
+    <div class="card kpi">
+      <div class="label">Experiences</div>
+      <div class="value" id="kpi-exp">—</div>
+      <div class="sub">stored lessons</div>
     </div>
-    <div class="card">
-      <div class="card-label">Memory Usage</div>
-      <div class="card-value" id="memory">—</div>
-      <div class="card-sub">RSS</div>
+    <div class="card kpi">
+      <div class="label">Evidence</div>
+      <div class="value" id="kpi-evidence">—</div>
+      <div class="sub">files collected</div>
     </div>
-    <div class="card">
-      <div class="card-label">Config Loaded</div>
-      <div class="card-value" id="config">—</div>
-      <div class="card-sub" id="config-sub">—</div>
+    <div class="card kpi">
+      <div class="label">Intercepts</div>
+      <div class="value" id="kpi-intercepts">—</div>
+      <div class="sub">prompts captured</div>
     </div>
-  </div>
-
-  <section>
-    <h2>
-      API Endpoints
-      <span class="badge">10 routes</span>
-    </h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Method</th>
-          <th>Endpoint</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td><span class="method GET">GET</span></td><td><code>/health</code></td><td>Daemon health check</td></tr>
-        <tr><td><span class="method GET">GET</span></td><td><code>/metrics</code></td><td>Daemon metrics</td></tr>
-        <tr><td><span class="method POST">POST</span></td><td><code>/analyze</code></td><td>Analyze prompt — should intercept?</td></tr>
-        <tr><td><span class="method GET">GET</span></td><td><code>/context-pack/:id</code></td><td>Get context pack</td></tr>
-        <tr><td><span class="method POST">POST</span></td><td><code>/evidence</code></td><td>Store evidence (with redaction)</td></tr>
-        <tr><td><span class="method POST">POST</span></td><td><code>/evaluate</code></td><td>Run verification loop</td></tr>
-        <tr><td><span class="method GET">GET</span></td><td><code>/experiences</code></td><td>List experiences</td></tr>
-        <tr><td><span class="method POST">POST</span></td><td><code>/experiences</code></td><td>Store new experience</td></tr>
-        <tr><td><span class="method GET">GET</span></td><td><code>/governance/rules</code></td><td>Get governance rules</td></tr>
-        <tr><td><span class="method POST">POST</span></td><td><code>/sessions/start</code></td><td>Session audit (start)</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>
-      Recent Experiences
-      <span class="badge"><span id="exp-count">0</span> total</span>
-    </h2>
-    <div id="experiences-list">
-      <div class="empty">No experiences yet. Run your coding agent on a prompt like:<br>
-      <code>implement a hello world function</code><br>
-      to see experiences appear here.</div>
+    <div class="card kpi">
+      <div class="label">Memory</div>
+      <div class="value" id="kpi-mem">—</div>
+      <div class="sub">resident set</div>
+    </div>
+    <div class="card kpi">
+      <div class="label">Core APIs</div>
+      <div class="value" id="kpi-core">—</div>
+      <div class="sub" id="kpi-core-sub">bridge —</div>
     </div>
   </section>
 
-  <section>
-    <h2>
-      Try It: Analyze a Prompt
-      <span class="badge">test interceptor</span>
-    </h2>
-    <div style="display: flex; gap: 0.5rem;">
-      <input type="text" id="test-prompt" placeholder="e.g., implement a hello world function" 
-        style="flex: 1; padding: 0.75rem; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem;">
-      <button class="refresh-btn" onclick="analyzePrompt()">Analyze</button>
+  <section class="grid">
+    <div class="panel">
+      <div class="head">Verification loop</div>
+      <div class="body">
+        <textarea id="test-prompt" placeholder="implement a hello world function in src/utils.ts" spellcheck="false"></textarea>
+        <button class="btn" id="analyze-btn">Run /analyze <kbd>Enter</kbd></button>
+        <div class="result" id="analyze-result" hidden>
+          <div id="analyze-verdict"></div>
+          <pre id="analyze-json"></pre>
+        </div>
+      </div>
     </div>
-    <div id="analyze-result" style="margin-top: 1rem; font-family: monospace; font-size: 0.875rem; color: var(--muted);">
-      Result will appear here.
+
+    <div class="panel">
+      <div class="head">Recent experiences <span class="count" id="exp-count"></span></div>
+      <div class="body">
+        <div class="feed" id="experiences-list"><div class="empty">Loading…</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="head">System</div>
+      <div class="body sys">
+        <div class="sysrow"><span class="k">Core bridge</span><span class="flag" id="sys-core">—</span><span class="v" id="sys-core-path"></span></div>
+        <div class="sysrow"><span class="k">Config</span><span class="flag" id="sys-config">—</span></div>
+        <div class="sysrow"><span class="k">Home</span><span class="v" id="sys-home"></span></div>
+        <div class="sysrow"><span class="k">Rate limiter</span><span class="v" id="sys-ratelimit"></span></div>
+        <div class="sysrow"><span class="k">Governance</span><span class="v" id="sys-governance"></span></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="head">Docs</div>
+      <div class="body sys">
+        <div class="sysrow"><span class="k">API surface</span><a class="v" href="/api-docs" style="color:var(--accent);text-decoration:none">/api-docs</a></div>
+        <div class="sysrow"><span class="k">OpenAPI spec</span><a class="v" href="/openapi" style="color:var(--accent);text-decoration:none">/openapi</a></div>
+        <div class="sysrow"><span class="k">Metrics</span><a class="v" href="/metrics" style="color:var(--accent);text-decoration:none">/metrics</a></div>
+        <div class="sysrow"><span class="k">Health</span><a class="v" href="/health" style="color:var(--accent);text-decoration:none">/health</a></div>
+        <div class="sysrow"><span class="k">Rate limit</span><a class="v" href="/rate-limit/stats" style="color:var(--accent);text-decoration:none">/rate-limit/stats</a></div>
+      </div>
     </div>
   </section>
 
-  <div class="footer">
-    Nemons Daemon — running on port 3456 |
-    <a href="https://github.com/your-org/nemons">GitHub</a> |
-    Auto-refresh in <span id="countdown">30</span>s |
-    <button class="refresh-btn" style="margin-left: 0.5rem;" onclick="loadData()">Refresh now</button>
-  </div>
+  <footer>
+    <span class="mono" id="foot-home">—</span>
+    <span class="right">auto-refresh 5s · Nemons Agent Runtime</span>
+  </footer>
 </div>
 
 <script>
-let countdown = 30;
+'use strict';
+// All rendering is textContent-only (stored-XSS safe). Every fetch is
+// guarded so one failing endpoint never blanks the whole dashboard.
+const $ = (id) => document.getElementById(id);
+const setNum = (id, v) => { $(id).textContent = (v === null || v === undefined) ? '—' : String(v); };
 
-function formatUptime(seconds) {
-  if (seconds < 60) return Math.floor(seconds) + 's';
-  if (seconds < 3600) return Math.floor(seconds / 60) + 'm ' + Math.floor(seconds % 60) + 's';
-  if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ' + Math.floor((seconds % 3600) / 60) + 'm';
-  return Math.floor(seconds / 86400) + 'd ' + Math.floor((seconds % 86400) / 3600) + 'h';
+async function jget(path) {
+  const res = await fetch(path);
+  if (!res.ok) throw new Error(path + ' → ' + res.status);
+  return res.json();
 }
 
-async function loadData() {
-  try {
-    // Health
-    const health = await fetch('/health').then(r => r.json());
-    document.getElementById('version').textContent = health.version || '1.0.0';
-    document.getElementById('uptime').textContent = formatUptime(health.uptime || 0);
-    document.getElementById('uptime-sub').textContent = 'since ' + new Date(Date.now() - (health.uptime || 0) * 1000).toLocaleTimeString();
-    document.getElementById('config').textContent = health.config_loaded ? '✓' : '✗';
-    document.getElementById('config-sub').textContent = health.home ? health.home : '—';
-    
-    const statusEl = document.getElementById('status');
-    const statusText = document.getElementById('status-text');
-    if (health.status === 'healthy') {
-      statusEl.classList.remove('offline');
-      statusText.textContent = 'Healthy';
-    } else {
-      statusEl.classList.add('offline');
-      statusText.textContent = 'Unhealthy';
-    }
-  } catch (err) {
-    const statusEl = document.getElementById('status');
-    statusEl.classList.add('offline');
-    document.getElementById('status-text').textContent = 'Offline';
+function renderHealth(h) {
+  const ok = h.status === 'healthy';
+  $('health-dot').classList.toggle('bad', !ok);
+  $('health-text').textContent = ok ? 'Operational' : 'Degraded';
+  $('ver').textContent = 'v' + (h.version || '—');
+  const up = Math.floor(h.uptime || 0);
+  const m = Math.floor(up / 60), s = up % 60;
+  $('uptime-pill').textContent = 'uptime ' + (m > 0 ? m + 'm ' : '') + s + 's';
+  $('sys-home').textContent = h.home || '—';
+  $('foot-home').textContent = h.home || '—';
+  const cfg = $('sys-config');
+  cfg.textContent = h.config_loaded ? 'loaded' : 'missing';
+  cfg.className = 'flag ' + (h.config_loaded ? 'on' : 'off');
+}
+
+function renderMetrics(m) {
+  setNum('kpi-runs', m.runs_total);
+  const pr = $('kpi-passrate');
+  if (m.verification_pass_rate === null || m.verification_pass_rate === undefined) {
+    pr.textContent = 'pass rate — no data yet';
+    pr.className = 'sub';
+  } else {
+    pr.textContent = 'pass rate ' + Math.round(m.verification_pass_rate * 100) + '%';
+    pr.className = 'sub ' + (m.verification_pass_rate >= 0.8 ? 'ok' : 'warn');
   }
-  
+  setNum('kpi-exp', m.experiences_total);
+  setNum('kpi-evidence', m.evidence_stored_total);
+  setNum('kpi-intercepts', m.intercepts_total);
+  setNum('kpi-mem', (m.daemon_memory_mb || 0) + ' MB');
+}
+
+function renderCore(c) {
+  const n = (c.available_apis || []).length;
+  setNum('kpi-core', n);
+  const sub = $('kpi-core-sub');
+  sub.textContent = c.bridge_loaded ? 'bridge loaded' : 'not loaded';
+  sub.className = 'sub ' + (c.bridge_loaded ? 'ok' : 'warn');
+  const flag = $('sys-core');
+  flag.textContent = c.bridge_loaded ? 'loaded' : 'offline';
+  flag.className = 'flag ' + (c.bridge_loaded ? 'on' : 'off');
+  $('sys-core-path').textContent = c.core_path || '';
+}
+
+function renderRateLimit(r) {
+  $('sys-ratelimit').textContent = r.tracked + ' endpoint(s) tracked · ' + (r.tiers || []).join(', ');
+}
+
+function renderGovernance(g) {
+  $('sys-governance').textContent = g.message ? g.message : Object.keys(g).length + ' rule(s) loaded';
+}
+
+async function renderExperiences() {
+  const list = $('experiences-list');
   try {
-    // Metrics
-    const metrics = await fetch('/metrics').then(r => r.json());
-    document.getElementById('experiences').textContent = metrics.experiences_total || 0;
-    document.getElementById('memory').textContent = (metrics.daemon_memory_mb || 0) + ' MB';
-  } catch {}
-  
-  try {
-    // Experiences
-    const exp = await fetch('/experiences?limit=5').then(r => r.json());
-    document.getElementById('exp-count').textContent = exp.total || 0;
-    const list = document.getElementById('experiences-list');
-    if (exp.experiences && exp.experiences.length > 0) {
-      // DOM-built rendering — stored XSS fix. Experience ids and
-      // prompts are user/agent-controlled strings; they must never be
-      // interpolated into innerHTML.
-      list.textContent = '';
-      for (const e of exp.experiences) {
-        const item = document.createElement('div');
-        item.className = 'experience-item';
-        const id = document.createElement('strong');
-        id.textContent = e.id;
-        const ts = document.createElement('span');
-        ts.style.color = 'var(--muted)';
-        ts.textContent = ' · ' + new Date(e.timestamp).toLocaleString();
-        item.appendChild(id);
-        item.appendChild(ts);
-        if (e.prompt) {
-          const meta = document.createElement('div');
-          meta.className = 'meta';
-          meta.textContent = e.prompt.slice(0, 80) + (e.prompt.length > 80 ? '...' : '');
-          item.appendChild(meta);
-        }
-        list.appendChild(item);
-      }
-    } else {
+    const exp = await jget('/experiences?limit=6');
+    $('exp-count').textContent = exp.total + ' total';
+    list.textContent = '';
+    if (!exp.experiences || exp.experiences.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'empty';
-      empty.textContent = 'No experiences yet. Run your coding agent on a prompt like: ';
-      const code = document.createElement('code');
-      code.textContent = 'implement a hello world function';
-      empty.appendChild(code);
-      empty.appendChild(document.createTextNode(' to see experiences appear here.'));
-      list.textContent = '';
+      empty.textContent = 'No experiences yet — run your coding agent on a task to populate this feed.';
       list.appendChild(empty);
+      return;
     }
-  } catch {}
+    // DOM-built rows, textContent-only (stored-XSS safe)
+    for (const e of exp.experiences) {
+      const row = document.createElement('div');
+      row.className = 'exp';
+      const row1 = document.createElement('div');
+      row1.className = 'row1';
+      const id = document.createElement('span');
+      id.className = 'id';
+      id.textContent = e.id;
+      const ts = document.createElement('span');
+      ts.className = 'ts';
+      ts.textContent = new Date(e.timestamp).toLocaleString();
+      row1.appendChild(id);
+      row1.appendChild(ts);
+      row.appendChild(row1);
+      if (e.prompt) {
+        const p = document.createElement('div');
+        p.className = 'prompt';
+        p.textContent = e.prompt;
+        p.title = e.prompt;
+        row.appendChild(p);
+      }
+      list.appendChild(row);
+    }
+  } catch {
+    list.textContent = '';
+    const empty = document.createElement('div');
+    empty.className = 'empty';
+    empty.textContent = 'Experiences feed unavailable.';
+    list.appendChild(empty);
+  }
+}
+
+async function refresh() {
+  // Health drives the header; everything else fails independently.
+  try { renderHealth(await jget('/health')); } catch {
+    $('health-dot').classList.add('bad');
+    $('health-text').textContent = 'Unreachable';
+  }
+  try { renderMetrics(await jget('/metrics')); } catch {}
+  try { renderCore(await jget('/core/status')); } catch {}
+  try { renderRateLimit(await jget('/rate-limit/stats')); } catch {}
+  try { renderGovernance(await jget('/governance/rules')); } catch {}
+  await renderExperiences();
 }
 
 async function analyzePrompt() {
-  const prompt = document.getElementById('test-prompt').value.trim();
+  const prompt = $('test-prompt').value.trim();
   if (!prompt) return;
-  
-  const resultEl = document.getElementById('analyze-result');
-  resultEl.textContent = 'Analyzing...';
-  resultEl.style.color = 'var(--muted)';
-  
+  const btn = $('analyze-btn');
+  const resultEl = $('analyze-result');
+  const verdictEl = $('analyze-verdict');
+  const jsonEl = $('analyze-json');
+  btn.disabled = true;
+  resultEl.hidden = false;
+  verdictEl.textContent = '';
+  verdictEl.className = 'verdict';
+  jsonEl.textContent = 'Analyzing…';
   try {
     const res = await fetch('/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        prompt,
-        project_root: '/',
-        adapter: 'opencode'
-      })
+      body: JSON.stringify({ prompt, project_root: '/', adapter: 'dashboard' }),
     });
     const data = await res.json();
-    // textContent, not innerHTML — the analyzed payload may contain
-    // attacker-controlled strings echoed back by the API.
-    const pre = document.createElement('pre');
-    pre.style.color = 'var(--text)';
-    pre.style.whiteSpace = 'pre-wrap';
-    pre.textContent = JSON.stringify(data, null, 2);
-    resultEl.textContent = '';
-    resultEl.appendChild(pre);
+    // textContent-only rendering — the payload may echo arbitrary strings
+    jsonEl.textContent = JSON.stringify(data, null, 2);
+    if (data.should_intercept) {
+      verdictEl.textContent = '■ intercepted — ' + (data.reason || '');
+      verdictEl.className = 'verdict pass';
+    } else {
+      verdictEl.textContent = '□ skipped — ' + (data.reason || 'no trigger pattern');
+      verdictEl.className = 'verdict fail';
+    }
+    await renderExperiences();
   } catch (err) {
-    resultEl.textContent = 'Error: ' + err.message;
-    resultEl.style.color = 'var(--danger)';
+    jsonEl.textContent = 'Error: ' + err.message;
+  } finally {
+    btn.disabled = false;
   }
 }
 
-// Auto-refresh
-setInterval(() => {
-  countdown--;
-  document.getElementById('countdown').textContent = countdown;
-  if (countdown <= 0) {
-    loadData();
-    countdown = 30;
-  }
-}, 1000);
-
-// Initial load
-loadData();
-
-// Enter key for prompt
-document.getElementById('test-prompt').addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') analyzePrompt();
+$('analyze-btn').addEventListener('click', analyzePrompt);
+$('test-prompt').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); analyzePrompt(); }
 });
+
+refresh();
+setInterval(refresh, 5000);
 </script>
 </body>
 </html>
