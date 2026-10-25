@@ -1,143 +1,163 @@
 # Nemons
 
-**Nemons is an Agent Runtime independent of any Coding Agent.** It manages Context, Personas, Skills, Subagents, Tools, Memory, and Evidence across execution cycles to preserve knowledge and experience when work moves between Coding Agents and turn prior results into reusable, verifiable, governed operational knowledge.
+<p align="center">
+  <strong>An independent Agent Runtime for continuity, evidence, and governed reuse across Coding Agents.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/NasserJabir/Nemons/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/NasserJabir/Nemons/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/NasserJabir/Nemons/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/NasserJabir/Nemons?display_name=tag"></a>
+  <a href="https://github.com/NasserJabir/Nemons/issues"><img alt="Issues" src="https://img.shields.io/github/issues/NasserJabir/Nemons"></a>
+</p>
+
+Nemons is an **Agent Runtime independent of any Coding Agent**. It coordinates operational context and assets across execution cycles so that knowledge and experience can travel with work—even when that work moves between Coding Agents.
 
 > **Governing principle:** Generation may be free; adoption is always guarded.
 
-Nemons is a **meta-harness / runtime above Coding Agent harnesses**, not a replacement for them. The underlying harness remains responsible for its agent loop, model interaction, tool invocation, permissions, and execution environment. Nemons governs continuity, cross-session state, asset lifecycle, evidence, and controlled reuse across agents.
+Nemons is a **meta-harness above Coding Agent harnesses**, not a replacement for them. The underlying harness remains responsible for its agent loop, model interaction, tool invocation, permissions, and execution environment. Nemons focuses on continuity, evidence, asset lifecycle, and controlled reuse.
+
+## Why Nemons?
+
+Coding Agents can complete tasks, but useful context and lessons are often scattered across sessions, tools, prompts, and repositories. Reusing generated assets without provenance or review can also turn one mistake into a repeated failure.
+
+Nemons is designed to help teams:
+
+- **Carry operational context forward** across sessions and supported Coding Agents.
+- **Build a traceable record of execution** with evidence and provenance.
+- **Evaluate before trusting** rather than treating a successful test or model judgment as proof of correctness.
+- **Govern reusable assets** such as Personas, Skills, and Subagents through explicit lifecycle and review controls.
+- **Learn without silent mutation**: generated or learned changes remain candidates until the appropriate gate is passed.
+
+## Architecture at a glance
+
+```text
+Coding Agent / Harness
+        │
+        ▼
+Nemons daemon (`nemos/`)
+  intercept · context · evidence · evaluation
+        │
+        ▼
+Nemons Core (`nemos-core/`)
+  contracts · validation · governed evolution
+        │
+        ▼
+Traceable operational assets and execution history
+```
+
+The daemon is the integration-facing runtime. The TypeScript `@nemons/core` package provides core contracts and governed operations. The bridge at `nemos/src/utils/nemos-bridge.js` connects the daemon to the core package.
+
+### Core execution loop
+
+The supported product path is intentionally narrower than the daemon's full endpoint surface:
+
+```text
+/analyze
+   → /evidence
+   → /evaluate
+   → /experiences
+   → /core/*
+```
+
+- `/analyze` — intercept work and assemble a Context Pack.
+- `/evidence` — collect and redact execution evidence.
+- `/evaluate` — verify results against multiple checks.
+- `/experiences` — record reusable lessons from execution.
+- `/core/*` — validate and govern asset evolution.
+
+`/health` and `/metrics` support operational visibility. Other endpoint families—including research modules, harness routing, delegation, skillbank, and Kanban/A2A features—are experimental and may change or be removed without a major-version guarantee. Build integrations on the core loop unless a capability is explicitly documented as supported.
 
 ## Project status
 
-**v4.3.0 — Hardened release.** The P0–P3 quality cycle (2026-10-24) closed
-the daemon's security holes (path traversal, timing-leaky auth, unwired
-rate limiting — each gated by regression tests), restructured the daemon
-around a composition root and domain route modules, made governed review
-decisions durable in `@nemons/core`, shipped a consumable npm package
-surface, and rewrote every minified module readable. All 1343 checks pass
-locally and in CI. This repository contains BOTH the formal specification
-(thesis, charter, research, domain model, requirements, architecture,
-contracts, evaluation, decisions) AND a complete working implementation.
+**Reported project version: v4.3.0 — Hardened release.**
 
-The implementation consists of:
+The project status supplied for 2026-10-24 reports the closure of the P0–P3 quality cycle, including fixes for path traversal, timing-leaky authentication, and rate-limiting wiring; a daemon composition root and domain route modules; durable governed review decisions in `@nemons/core`; a consumable npm package surface; and readable source modules.
 
-- **`nemos/`** — the JS daemon (CommonJS) that users run via 7 coding-agent
-  plugins (OpenCode, Claude Code, Codex, Kimi, Cline, Qoder, Trae). Provides
-  170+ HTTP endpoints, transparent prompt interception, evidence collection,
-  3-tier verification loop, persona-driven skill/harness/subagent selection.
-- **`nemos-core/`** — the TypeScript `@nemons/core` package (ESM, strict mode,
-  1221 tests, 16 ADRs). Implements governed evolution, persistent stores,
-  paired evaluation, action interception, regression detection, ablation
-  testing, and import/export. Loaded by the JS daemon via a single 213-line
-  bridge shim at `nemos/src/utils/nemos-bridge.js`.
-- **`personas/`** — 18 ready-to-use personas (2 YML + 16 JSON).
-- **`subagents/`** — 13 ready-to-use subagent definitions.
-- **`skills/`** — 24 ready-to-use skill definitions.
-- **`releases/`** — downloadable archives (`nemos-project-v4.2.1.tar.gz` +
-  `.zip`) for users who want a snapshot without git.
-- **`build-scripts/`** — Python build scripts for reproducible releases.
-- **`WORKLOG.md`** — 1808-line task log documenting 23 task IDs across the
-  project's evolution (Stage 0 → Stage I + 10 research-driven improvements +
-  P2/P3 features + v4.2.1 fixes).
+The same report records **1,343 passing checks** across daemon, integration, security, end-to-end, and TypeScript core suites. Treat the live CI workflow and tagged release artifacts as the authoritative source for current status; counts in documentation are snapshots and can become stale.
 
-CI gate (`.github/workflows/ci.yml`) runs 6 jobs on every push and PR:
+### Implementation
 
-1. **Daemon Tests** (matrix: ubuntu-latest × macos-latest, Node 18/20/22) —
-   cross-platform syntax check + 35 legacy unit tests + 33 v4.2.1 persona
-   tests + 22 v4.2.1 bridge integration tests + 21 security tests (path
-   containment, auth, rate limiting) + e2e `npm test` (spawns a real
-   daemon, 11 checks) + smoke test (start + `/health` + `/core/status` +
-   `/core/sha256` + `nemons verify` + stop + verify port freed)
-2. **Daemon Tests (Windows)** — lint + all four in-process suites on
-   windows-latest (Node 22)
-3. **TS Core Tests** (ubuntu-latest, Node 22) — strict typecheck + build +
-   vitest (1221 tests incl. 3 review-decision durability + 3 fast-check
-   property suites) + committed-dist freshness guard + npm-pack consumer
-   smoke test + verify bridge loads freshly built dist
-4. **Code Quality** (cross-platform lint + JSON validity)
-5. **Security Advisory** (npm audit at all severities, informational only —
-   surfaces in the GitHub Security tab)
-6. **Security Gate (release-blocking)** — strict npm audit at `moderate`
-   threshold + hardcoded-secret scan. This job blocks any release with
-   known moderate-or-higher vulnerabilities OR hardcoded secrets.
+| Path | Responsibility |
+|---|---|
+| `nemos/` | JavaScript daemon (CommonJS), HTTP API, integrations, evidence collection, and verification flow |
+| `nemos-core/` | TypeScript `@nemons/core` package (ESM, strict mode), validation, stores, evaluation, and governed evolution |
+| `personas/` | Ready-to-use operational Persona definitions |
+| `subagents/` | Ready-to-use Subagent definitions |
+| `skills/` | Reusable Skill definitions |
+| `plugins/` | Coding Agent integration plugins |
+| `docs/` | Project specification, architecture, contracts, evaluation, and decisions |
+| `releases/` | Snapshot archives, where available |
+| `build-scripts/` | Release build tooling |
+| `WORKLOG.md` | Development and execution history |
 
-Verification status: **1343 / 1343 tests passing** (35 legacy + 33 v4.2.1
-persona + 22 v4.2.1 bridge + 21 security + 11 e2e + 1221 TS core), 0 open
-exceptions in the CI gate. Security regression tests in
-`nemos/tests/security-tests.js` gate the daemon's path-containment, auth,
-and rate-limiting guarantees — every test there corresponds to a real
-vulnerability that was fixed; a failure means one is back.
+The repository contains both the formal project specification and a working implementation. The specification remains the place to understand intended behavior and unresolved decisions; implementation details should not silently override the documented requirements.
 
-This repository is the documentation-first foundation for the project: thesis,
-charter, research, domain model, requirements, architecture, contracts,
-evaluation, and decisions. Unresolved choices must remain explicit rather than
-being silently treated as accepted requirements.
+## Getting started
 
-## Start here
+1. Read the [Project Map](NEMONS_PROJECT_MAP.md) to navigate the repository.
+2. Read the [daemon quick start](nemos/README.md) for local setup and health checks.
+3. Read the [Architecture](docs/04-architecture/ARCHITECTURE.md) before building an integration.
+4. Review the [Product Requirements](docs/03-requirements/PRD.md) and [Evaluation Strategy](docs/07-evaluation/EVALUATION.md) to understand the intended behavior and verification model.
 
-- [Project map](NEMONS_PROJECT_MAP.md)
-- [Thesis](NEMONS_THESIS.md)
-- [Vision](docs/00-charter/VISION.md)
-- [Problem statement](docs/00-charter/PROBLEM.md)
-- [Non-goals](docs/00-charter/NON_GOALS.md)
-- [Research references](docs/01-research/REFERENCES.md)
-- [Research matrix](docs/01-research/RESEARCH_MATRIX.md)
-- [Research gaps](docs/01-research/RESEARCH_GAPS.md)
-- [Product requirements](docs/03-requirements/PRD.md)
-- [Architecture](docs/04-architecture/ARCHITECTURE.md)
-- [Evaluation strategy](docs/07-evaluation/EVALUATION.md)
+For a conceptual introduction, start with the [Thesis](NEMONS_THESIS.md) and [Vision](docs/00-charter/VISION.md).
 
 ## Design invariants
 
-- **Identity ≠ Instance.** Identity is not a particular process or session.
+These invariants constrain implementation and future evolution:
+
+- **Identity ≠ Instance.** An identity is not tied to one process or session.
 - **Memory ≠ Context.** Memory is a governed source; retrieval and curation determine what enters a task's Context Pack.
-- **Persona ≠ Authorization.** A persona describes operational behavior; it grants no permissions.
-- **Use ≠ Adopt.** Use or evaluation does not automatically make an asset trusted.
+- **Persona ≠ Authorization.** A Persona describes operational behavior and grants no permissions.
+- **Use ≠ Adopt.** Using or evaluating an asset does not automatically make it trusted.
 - **Test passed ≠ task correct.** Evidence must be assessed against task intent and acceptance criteria.
 - **LLM judge approved ≠ truth.** Model-based review is supporting evidence, not ground truth by itself.
-- **No silent mutation.** Generated or learned assets remain candidates until the appropriate governance gate is passed.
-- **Hard-deny rules are non-overridable.** No prior approval, persona, skill, or model output may bypass destructive-action denial or security boundaries.
+- **No silent mutation.** Generated or learned assets remain candidates until the required governance gate is passed.
+- **Hard-deny rules are non-overridable.** Prior approval, Personas, Skills, and model output cannot bypass destructive-action denial or security boundaries.
 - **Evidence requires provenance.** Claims and asset changes should identify their source, scope, version, and rationale.
-- **No fifth memory layer.** Preserve the four established memory-related layers: Markdown Source of Truth; rebuildable derived index; ephemeral runtime state; handoff/delivery artifact.
+- **No fifth memory layer.** Preserve the four established layers: Markdown Source of Truth; rebuildable derived index; ephemeral runtime state; and handoff/delivery artifact.
 
-## Documentation map
+## Documentation
 
-| Area | Purpose |
+| Area | What it covers |
 |---|---|
-| `docs/00-charter` | Vision, problem, non-goals |
-| `docs/01-research` | References, research matrix, gaps |
-| `docs/02-domain` | Glossary, domain model, lifecycles |
-| `docs/03-requirements` | PRD, requirements, use cases |
-| `docs/04-architecture` | Runtime boundaries and architecture |
-| `docs/06-contracts` | Asset and integration contracts |
-| `docs/07-evaluation` | Evaluation, Golden Tasks, metrics, baselines |
-| `docs/08-decisions` | Architecture decision records |
+| [Project Map](NEMONS_PROJECT_MAP.md) | Repository navigation |
+| [Thesis](NEMONS_THESIS.md) | Core concept and rationale |
+| [Vision](docs/00-charter/VISION.md) | Project vision |
+| [Problem Statement](docs/00-charter/PROBLEM.md) | Problem definition |
+| [Non-goals](docs/00-charter/NON_GOALS.md) | Explicit scope boundaries |
+| [Research References](docs/01-research/REFERENCES.md) | Source literature and references |
+| [Research Matrix](docs/01-research/RESEARCH_MATRIX.md) | Research-to-design mapping |
+| [Research Gaps](docs/01-research/RESEARCH_GAPS.md) | Open research questions |
+| [Domain Model](docs/02-domain/) | Concepts, entities, and lifecycles |
+| [Product Requirements](docs/03-requirements/PRD.md) | Product requirements |
+| [Architecture](docs/04-architecture/ARCHITECTURE.md) | Runtime boundaries and architecture |
+| [Contracts](docs/06-contracts/) | Asset and integration contracts |
+| [Evaluation](docs/07-evaluation/EVALUATION.md) | Evaluation strategy and evidence |
+| [Architecture Decisions](docs/08-decisions/) | Decision records |
 
-## Product core loop vs. experimental surface
+## Security and trust model
 
-The daemon exposes 170+ HTTP endpoints, but the **product core loop** —
-the path every coding-agent integration actually exercises, and the
-surface covered end-to-end by the test suites — is small:
+Security is part of the runtime boundary, not a feature that Personas or model instructions can override. The reported CI pipeline includes regression coverage for path containment, authentication, and rate limiting, plus a release-blocking dependency audit and hardcoded-secret scan.
 
-```
-/analyze (intercept + context pack)
-   → /evidence (collect + redact)
-   → /evaluate (4-layer verification)
-   → /experiences (store what was learned)
-   → /core/* (governed evolution via @nemons/core)
-   (+ /health, /metrics for observability)
-```
+If you discover a security issue, avoid posting exploit details in a public issue. Use the repository's supported private reporting mechanism if one is enabled; otherwise contact the maintainer privately before disclosure.
 
-Everything else (research modules, harness routing, delegation security,
-skillbank, kanban/A2A, …) is **experimental surface**: it is functional,
-sits behind the same auth/rate-limiting middleware, and is validated by
-the security suite where exercised — but it is NOT part of the supported
-product loop and may change or be removed without a major version.
-Consumers should build on the core loop.
+## Scope boundaries
 
-## Scope boundary
+Nemons does not:
 
-Nemons manages operational assets and execution continuity across Coding Agents. It does not replace the underlying Coding Agent harness, train model weights, silently rewrite governance, or treat unverified generated output as trusted memory.
+- Replace the underlying Coding Agent harness or its execution loop.
+- Train model weights.
+- Treat unverified generated output as trusted Memory.
+- Silently change governance, security boundaries, identity, capabilities, approval thresholds, or evidence rules.
 
-## Change discipline
+New ideas begin as proposals, are linked to evidence, and are evaluated against the project invariants. A candidate is not an accepted asset.
 
-New ideas begin as proposals, are linked to evidence, and are evaluated against the project invariants. A generated candidate is not an accepted asset. Changes to governance, security boundaries, identity, capabilities, approval thresholds, or evidence rules cannot be autonomously adopted.
+## Contributing
+
+Contributions should preserve the design invariants and distinguish implemented behavior from proposals. Before submitting a change, review the relevant requirements, architecture, contracts, and evaluation documentation. Include tests and evidence for behavioral changes, especially those affecting security, governance, identity, or asset lifecycle.
+
+Open an issue for a substantial design proposal before investing in a large implementation. Keep unresolved choices explicit rather than presenting assumptions as accepted requirements.
+
+## License
+
+Check the repository's [LICENSE](LICENSE) file for the terms that apply to this project.
