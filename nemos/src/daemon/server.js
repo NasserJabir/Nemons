@@ -40,8 +40,19 @@ const DIRS = ["context-packs", "experiences", "evidence", "logs", "audit"];
 const app = express();
 app.use(express.json({ limit: "10mb" }));
 
+// Malformed JSON on /mcp must be a spec-correct JSON-RPC parse error
+// (-32700, HTTP 400) instead of falling through to the generic 500.
+app.use((err, req, res, next) => {
+  if (err && err.type === "entity.parse.failed" && req.path === "/mcp") {
+    return res.status(400).json({ jsonrpc: "2.0", id: null, error: { code: -32700, message: "Invalid JSON" } });
+  }
+  next(err);
+});
+
 // Composition root: all stateful services, instantiated once (see services.js)
 const { services } = require("./services");
+// Shared product-loop implementation (HTTP routes + MCP tools)
+const coreLoop = require("./core-loop");
 
 // ---------- Middleware: bearer token auth ----------
 const crypto = require("crypto");
@@ -215,151 +226,39 @@ app.get("/metrics", async (req, res) => {
 // POST /analyze — decide if Nemons should intercept the prompt
 // v4.0.0: INTEGRATED /analyze — builds DYNAMIC Context Pack
 // with persona + skills + subagents + experiences + harness
+// Logic lives in core-loop.js so the MCP tools stay in lockstep.
 app.post("/analyze", async (req, res) => {
-  const { prompt, project_root, adapter } = req.body;
-
-  // Step 1: Smart filter (existing)
-  const filters = require("../utils/filters");
-  const filterResult = filters.shouldIntercept(prompt);
-  if (!filterResult.should_intercept) {
-    return res.json({ should_intercept: false, reason: filterResult.reason });
-  }
-
-  // Step 2: BUILD DYNAMIC CONTEXT PACK (v4.0.0 INTEGRATION!)
-  try {
-    const dynamicPack = await pipeline.buildContextPack(prompt, adapter);
-    counters.intercepts++;
-    return res.json({
-      should_intercept: true,
-      reason: filterResult.reason,
-      pattern: filterResult.pattern,
-      suggested_pack_id: dynamicPack.suggested_pack_id,
-      context_pack: dynamicPack.context_pack,
-      pipeline: "integrated",
-      components_used: dynamicPack.components_used,
-      message: "Dynamic Context Pack built with persona + skills + experiences + harness + subagents",
-    });
-  } catch (e) {
-    // Fallback to static pack if pipeline fails
-    return res.json({
-      should_intercept: true,
-      reason: filterResult.reason,
-      suggested_pack_id: "default",
-      pipeline: "fallback",
-      error: e.message,
-    });
-  }
-
+  res.json(await coreLoop.analyzePrompt(req.body, { pipeline, counters }));
 });
 
-// GET /context-pack/:id — return a context pack
+// GET /context-pack/:id — return a context pack (logic in core-loop.js)
 app.get("/context-pack/:id", async (req, res) => {
-  // The id becomes a filename component — reject anything that could
-  // escape NEMONS_HOME (traversal payloads, absolute paths, nulls).
-  if (!isSafeId(req.params.id)) {
-    return res.status(400).json({
-      error: "invalid_id",
-      detail: "id must match ^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
-    });
-  }
-  const packPath = resolveWithin(NEMONS_HOME, "context-packs", `${req.params.id}.yml`);
-  if (!packPath) {
-    return res.status(400).json({ error: "invalid_id", detail: "path escapes NEMONS_HOME" });
-  }
-  try {
-    const raw = await fs.readFile(packPath, "utf8");
-    const pack = yaml.load(raw);
-    res.json(pack);
-  } catch {
-    // Return a default pack if specific one not found
-    res.json({
-      id: req.params.id,
-      persona: {
-        role: "Senior Engineer",
-        constraints: ["Follow project conventions", "Write tests for new code"],
-      },
-      skills: [],
-      knowledge: ["Project uses best practices"],
-      success_criteria: ["Code passes tests", "No new lint warnings"],
-    });
-  }
+  const { status, body } = await coreLoop.getContextPack(req.params.id, { NEMONS_HOME });
+  res.status(status).json(body);
 });
 
-// POST /evidence — collect evidence for a run
+// POST /evidence — collect evidence for a run (logic in core-loop.js)
 app.post("/evidence", async (req, res) => {
-  const { run_id, evidence } = req.body;
-  if (!run_id) {
-    return res.status(400).json({ error: "run_id is required" });
-  }
-  if (!isSafeId(run_id)) {
-    return res.status(400).json({
-      error: "invalid_run_id",
-      detail: "run_id must match ^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
-    });
-  }
-  const evidencePath = resolveWithin(NEMONS_HOME, "evidence", `${run_id}.json`);
-  if (!evidencePath) {
-    return res.status(400).json({ error: "invalid_run_id", detail: "path escapes NEMONS_HOME" });
-  }
-
-  // Apply redaction
-  const redacted = redactSecrets(evidence || {});
-
-  // Store
-  // Store (atomic — a crash mid-write must not corrupt the record)
-  await require("../store/storage").writeAtomic(evidencePath, JSON.stringify(redacted, null, 2));
-  counters.evidence_stored++;
-
-  res.json({ stored: true, run_id, redacted: true });
+  const { status, body } = await coreLoop.collectEvidence(req.body, {
+    NEMONS_HOME, counters, redactSecrets,
+  });
+  res.status(status).json(body);
 });
 
 // POST /evaluate — run verification
 // v4.0.0: INTEGRATED /evaluate — auto-compiles to skills + notifies webhooks
+// (logic in core-loop.js so the MCP tools stay in lockstep)
 app.post("/evaluate", async (req, res) => {
   try {
-    const { run_id, evidence, prompt, adapter } = req.body;
-    const result = await verifier.verify({
-      prompt: prompt || "",
-      response: evidence?.response || "",
-      context: evidence?.context || "",
-      evidence: evidence || {},
-    });
-    counters.evaluations_total++;
-    if (result.pass) counters.evaluations_passed++;
-
-    // v4.0.0: If passed → auto-compile experience to skill!
-    if (result.pass) {
-      try {
-        const postRun = await pipeline.postRunProcessing({
-          prompt: prompt || "",
-          evidence: evidence || {},
-          verification: result,
-          adapter: adapter || "unknown",
-        });
-        result.post_run = postRun;
-        result.message = "Verification passed. Experience stored + skill compiled as candidate + webhook notified.";
-      } catch (e) {
-        result.post_run_error = e.message;
-      }
-    }
-
-    res.json(result);
+    res.json(await coreLoop.evaluateRun(req.body, { services, counters, verifier, pipeline }));
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-// POST /experiences — store a new experience manually
+// POST /experiences — store a new experience manually (logic in core-loop.js)
 app.post("/experiences", async (req, res) => {
-  const expId = `exp-${uuidv4().slice(0, 8)}`;
-  const expPath = path.join(NEMONS_HOME, "experiences", `${expId}.json`);
-  const data = {
-    id: expId,
-    timestamp: new Date().toISOString(),
-    ...req.body,
-  };
-  await require("../store/storage").writeAtomic(expPath, JSON.stringify(data, null, 2));
-  res.json({ stored: true, id: expId });
+  res.json(await coreLoop.storeExperience(req.body, { NEMONS_HOME }));
 });
 
 // GET /experiences — list experiences
@@ -501,6 +400,7 @@ const routeCtx = {
   getCoreLoaded: () => coreLoaded,
   getCoreLoadError: () => coreLoadError,
   NEMONS_HOME, config,
+  coreLoop, redactSecrets,
 };
 require("./routes/research-v21")(app, routeCtx);
 require("./routes/research-v23")(app, routeCtx);
@@ -508,6 +408,7 @@ require("./routes/research-v24")(app, routeCtx);
 require("./routes/production-v25")(app, routeCtx);
 require("./routes/platform-v40")(app, routeCtx);
 require("./routes/core-bridge")(app, routeCtx);
+require("./routes/mcp")(app, routeCtx);
 
 // ---------- Start server ----------
 const port = resolvePort();

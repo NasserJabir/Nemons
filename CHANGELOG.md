@@ -5,6 +5,46 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.5.0] - 2026-10-27
+
+### Added — MCP server (Model Context Protocol) at `/mcp`
+
+- The daemon now speaks MCP natively: **Streamable HTTP, stateless mode**,
+  JSON-RPC 2.0, **zero new dependencies** (a deliberate spec subset —
+  initialize / ping / tools/list / tools/call — hand-rolled to keep the
+  daemon dependency-light). Protocol-version negotiation supports
+  **2025-11-25** and **2025-06-18**; batching (removed from the spec) is
+  rejected with `-32600`; parse failures return the spec-correct
+  `-32700`/HTTP 400.
+- **Seven tools**, matching the manifest declared in claude-code's plugin:
+  analyze_prompt, get_context_pack, collect_evidence, evaluate_run,
+  store_experience, retrieve_similar_experiences, health_check — each with
+  a JSON-Schema `inputSchema` validated at the boundary (types, patterns,
+  required).
+- Spec-correct error taxonomy: tool-level failures (invalid ids, traversal
+  payloads) surface as `isError` RESULTS; protocol-level problems surface
+  as JSON-RPC errors (-32601/-32602/-32603). Auth and rate limiting apply
+  to `/mcp` automatically (shared middleware).
+- This closes the Task 24 audit finding for real: the MCP surface declared
+  by the claude-code plugin now exists, and the manifest flips to
+  `status: "live"` (type http / streamable-http, no more remote+stdio
+  contradiction).
+
+### Changed — one core loop, two transports
+
+- `src/daemon/core-loop.js` (new): the product loop (analyze → evidence →
+  evaluate → experiences → context-pack) exists ONCE. The HTTP routes are
+  thin wrappers over it and the MCP tools call the same functions —
+  the two transports can never drift (same filters, guards, counters,
+  response shapes).
+
+### Added — MCP conformance suite
+
+- `tests/mcp-tests.js` (26 tests): handshake + version-negotiation matrix,
+  notification → 202, tools shape, round-trips for every tool,
+  isError-vs-protocol-error taxonomy, transport 405s, auth coverage, and
+  rate-limit tripping on `/mcp`.
+
 ## [4.4.0] - 2026-10-26
 
 ### Added — professional dashboard redesign

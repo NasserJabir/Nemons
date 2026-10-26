@@ -1925,3 +1925,52 @@ P3 — honest surface:
 - Raising this score is now measurable work: `npx stryker run` in
   nemos-core; fix survivors one assertion at a time. Next candidates:
   paired-evaluator survivors, then fs-json-store.
+
+---
+
+Task ID: 25
+Agent: main (Z.ai)
+Task: Implement the MCP server (Phase A of the MCP study) — spec-correct /mcp endpoint, shared core-loop extraction, conformance suite, honest manifest — release v4.5.0
+
+=== Study first (user asked: benefits? and can it replace the adapter?) ===
+- Grounded in the repo (AGENT_ADAPTER.md / CODING_AGENT.md / adapter surfaces)
+  and the current protocol state (spec revisions 2025-06-18 -> 2025-11-25;
+  Streamable HTTP is the standard remote transport, stateless mode accepted).
+- Conclusion delivered: MCP replaces the per-agent integration CODE
+  (7 plugin scripts, 637 lines, duplicated shouldIntercept/callDaemon),
+  NOT the adapter CONTRACT (capability matrix + security boundaries are
+  MCP-out-of-scope by design). Biggest unlock: MCP sampling later gives a
+  real LLM judge without API keys, matching the "never call LLM directly"
+  invariant.
+
+=== Implementation ===
+- src/daemon/core-loop.js (new): the ONE implementation of
+  analyze -> evidence -> evaluate -> experiences -> context-pack, extracted
+  from server.js. HTTP routes AND MCP tools call the same functions — drift
+  is structurally impossible. HTTP handlers refactored to thin wrappers
+  (contract unchanged; all suites green after).
+- src/daemon/routes/mcp.js (new, zero dependencies): JSON-RPC 2.0 dispatch
+  over Streamable HTTP in stateless mode. initialize with protocol-version
+  negotiation (echoes supported client version, falls back to 2025-11-25),
+  notifications/initialized -> 202, ping, tools/list (7 tools with JSON
+  Schema input validation — types/patterns/required), tools/call mapped to
+  core-loop; spec-correct error taxonomy: parse -32700 (HTTP 400), batching
+  rejected -32600 (removed from spec), unknown method -32601, invalid
+  params/unknown tool -32602, tool-level failures as isError RESULTS (not
+  protocol errors); GET/DELETE /mcp -> 405; express.json parse failures on
+  /mcp return the spec parse error instead of the generic 500.
+- Auth + rate limiting apply automatically (/mcp is not middleware-exempt).
+- tests/mcp-tests.js (new, 26 tests): handshake + negotiation matrix,
+  notification 202, tools shape, round-trips for all tools through the
+  shared loop, isError-vs-protocol-error taxonomy, transport 405s, auth
+  coverage, rate-limit tripping on /mcp.
+- plugins/claude-code/plugin.json: MCP surface now status "live"
+  (type http / streamable-http, auto_invoke true) — the audit finding from
+  Task 24 is closed for real.
+
+=== Live verification ===
+- Real daemon on :3456: initialize negotiates 2025-11-25, serverInfo
+  nemons, tools/list = 7, collect_evidence stores, evaluate_run returns
+  pass:true + verdict pass_with_inconclusive_layers.
+- Full suites green on final content: 35+33+22+21+11 daemon + 26 MCP
+  (148 total daemon-side checks) + 1221 TS core.

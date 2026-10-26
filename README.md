@@ -69,13 +69,11 @@ The supported product path is intentionally narrower than the daemon's full endp
 
 ## Project status
 
-**Reported project version: v4.4.0 — Hardened release, professional dashboard.**
+**Reported project version: v4.5.0 — MCP-native release.**
 
-The project status supplied for 2026-10-26 reports the v4.3.0 P0–P3 quality cycle (closure of path traversal, timing-leaky authentication, and rate-limiting wiring; a daemon composition root and domain route modules; durable governed review decisions in `@nemons/core`; a consumable npm package surface; readable source modules), followed by v4.4.0 additions: a redesigned zero-dependency dashboard with live KPI cards and a verification-loop tester, the first empirical audit of all 7 coding-agent plugins, and a StrykerJS mutation-testing baseline (63.12% on `paired-evaluator.ts`).
+The project status supplied for 2026-10-27 reports the v4.3.0 P0–P3 quality cycle (closure of path traversal, timing-leaky authentication, and rate-limiting wiring; a daemon composition root and domain route modules; durable governed review decisions in `@nemons/core`; a consumable npm package surface; readable source modules), the v4.4.0 additions (a redesigned zero-dependency dashboard with live KPI cards and a verification-loop tester, the first empirical audit of all 7 coding-agent plugins, and a StrykerJS mutation-testing baseline at 63.12% on `paired-evaluator.ts`), and the v4.5.0 addition: a **spec-correct MCP server at `/mcp`** (Streamable HTTP, stateless; seven schema-validated tools sharing one core-loop implementation with the HTTP API; zero new dependencies) with a 26-test conformance suite — closing the claude-code plugin's declared-but-missing MCP surface.
 
-The project status supplied for 2026-10-24 reports the closure of the P0–P3 quality cycle, including fixes for path traversal, timing-leaky authentication, and rate-limiting wiring; a daemon composition root and domain route modules; durable governed review decisions in `@nemons/core`; a consumable npm package surface; and readable source modules.
-
-The same report records **1,343 passing checks** across daemon, integration, security, end-to-end, and TypeScript core suites. Treat the live CI workflow and tagged release artifacts as the authoritative source for current status; counts in documentation are snapshots and can become stale.
+The same reports record **1,369 passing checks** across daemon, MCP conformance, integration, security, end-to-end, and TypeScript core suites. Treat the live CI workflow and tagged release artifacts as the authoritative source for current status; counts in documentation are snapshots and can become stale.
 
 ### Implementation
 

@@ -1,6 +1,6 @@
 {
   "name": "@nemons/cli",
-  "version": "4.4.0",
+  "version": "4.5.0",
   "description": "Nemons \u2014 transparent orchestration layer for coding agents. Auto-triggers Context Pack, Evidence Collection, and Verification Loop on every prompt.",
   "main": "src/index.js",
   "bin": {
@@ -13,10 +13,11 @@
     "test:unit": "node tests/unit-tests.js",
     "test:v421": "node tests/v421-persona-tests.js && node tests/v421-bridge-tests.js",
     "test:security": "node tests/security-tests.js",
+    "test:mcp": "node tests/mcp-tests.js",
     "verify": "node bin/nemons.js verify",
     "lint": "node scripts/lint.js",
     "build": "echo 'No build step required (plain Node.js)'",
-    "test:all": "node tests/unit-tests.js && npm run test:v421 && npm run test:security"
+    "test:all": "node tests/unit-tests.js && npm run test:v421 && npm run test:security && node tests/mcp-tests.js"
   },
   "engines": {
     "node": ">=18"

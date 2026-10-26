@@ -13,12 +13,12 @@
   "mcp_servers": [
     {
       "name": "nemons-daemon",
-      "type": "remote",
+      "type": "http",
       "url": "http://127.0.0.1:3456/mcp",
-      "transport": "stdio",
-      "auto_invoke": false,
-      "status": "planned",
-      "note": "The daemon does NOT implement an /mcp endpoint yet (GET /mcp returns 404 — plugin audit, WORKLOG Task 24). The declared transport is also contradictory (remote + stdio). Until a spec-correct MCP endpoint ships, use the HTTP API and hooks below, which are live.",
+      "transport": "streamable-http",
+      "auto_invoke": true,
+      "status": "live",
+      "note": "Spec-correct MCP server implemented in v4.5.0 (Streamable HTTP, stateless mode; initialize/tools list/call; protocol versions 2025-11-25 + 2025-06-18). The 7 tools map to the same core-loop implementation as the HTTP API. Auth: set NEMONS_AUTH_TOKEN on the daemon and send it as a Bearer header.",
       "tools": [
         "nemons.analyze_prompt",
         "nemons.get_context_pack",

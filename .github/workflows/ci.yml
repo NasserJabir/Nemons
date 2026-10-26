@@ -93,6 +93,13 @@ jobs:
         # timing-leaky token compare, unwired rate limiter). A failure
         # here means a vulnerability is back.
 
+      - name: Run MCP conformance tests (26 tests)
+        working-directory: ./nemos
+        run: node tests/mcp-tests.js
+        # Gates the /mcp endpoint against the MCP spec: handshake +
+        # version negotiation, tools/list shape, tools/call round-trips,
+        # error taxonomy, transport 405s, auth + rate-limit coverage.
+
       - name: Run e2e suite (run-all — spawns a real daemon)
         working-directory: ./nemos
         run: npm test
@@ -193,6 +200,10 @@ jobs:
       - name: Run security tests
         working-directory: ./nemos
         run: node tests/security-tests.js
+
+      - name: Run MCP conformance tests
+        working-directory: ./nemos
+        run: node tests/mcp-tests.js
 
   test-core:
     name: TS Core Tests (TypeScript @nemons/core)
