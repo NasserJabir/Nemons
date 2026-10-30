@@ -8,6 +8,8 @@
 const fs = require("fs").promises;
 const path = require("path");
 const os = require("os");
+const { writeAtomic } = require("../store/storage");
+const { isSafeId } = require("./path-guard");
 
 const NEMONS_HOME = require("./runtime-config").nemonsHome();
 const PERSONA_DIR = path.join(NEMONS_HOME, "personas-evolved");
@@ -63,6 +65,73 @@ class PersonaEvolver {
       message: `Dynamic persona created: ${persona.role}. Status: candidate. Must be approved before use.`,
       requirements,
     };
+  }
+
+  // ============================================================
+  // ADOPTION (Invariant #4: Use != Adopt)
+  //
+  // A dynamically created persona is a `candidate` and is NOT used by the
+  // pipeline. Adoption is the only path that makes one usable, and it is the
+  // only thing the context-pack builder will select.
+  // ============================================================
+  async adopt(asset = {}, { adoptedBy = "system", candidateId = null } = {}) {
+    await this.init();
+    const id = asset.id || (candidateId ? `persona-${candidateId}` : `persona-${Date.now().toString(36)}`);
+    if (!isSafeId(id)) throw new Error(`invalid persona id: ${JSON.stringify(String(id).slice(0, 32))}`);
+
+    const record = {
+      id,
+      role: asset.role || asset.name || "Adopted persona",
+      experience: asset.experience || "5+ years",
+      constraints: asset.constraints || [],
+      focus_areas: asset.focus_areas || asset.focusAreas || [],
+      rules: asset.rules || [],
+      domain: asset.domain || "general",
+      triggers: asset.triggers || asset.keywords || [],
+      source: "adopted-candidate",
+      candidate_id: candidateId,
+      status: "adopted",
+      adopted_by: adoptedBy,
+      adopted_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+    };
+
+    await writeAtomic(path.join(this.dir, `${id}.json`), JSON.stringify(record, null, 2));
+    return record;
+  }
+
+  async listAdopted() {
+    return (await this.listAll()).filter((p) => p.status === "adopted");
+  }
+
+  /**
+   * Best adopted persona for a prompt/domain, or null. Deterministic keyword
+   * overlap — no adoption means no match means the caller falls back to a
+   * template persona.
+   */
+  async selectAdopted(prompt, domain) {
+    const adopted = await this.listAdopted();
+    if (adopted.length === 0) return null;
+    const words = new Set(String(prompt || "").toLowerCase().split(/\W+/).filter((w) => w.length > 3));
+
+    let best = null;
+    let bestScore = 0;
+    for (const persona of adopted) {
+      const terms = [...(persona.triggers || []), persona.domain, persona.role]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .split(/\W+/)
+        .filter((w) => w.length > 3);
+      let score = 0;
+      for (const term of terms) if (words.has(term)) score += 1;
+      if (domain && persona.domain === domain) score += 1;
+      if (score > bestScore) {
+        bestScore = score;
+        best = persona;
+      }
+    }
+    return bestScore > 0 ? best : null;
   }
 
   // Analyze task to determine what persona is needed

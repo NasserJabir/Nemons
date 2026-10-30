@@ -191,6 +191,96 @@ nemons verify
 ### Open the dashboard
 Open http://localhost:3456 in your browser.
 
+### Install the host adapter
+Two adapters have been installed against real hosts. **Codex CLI** is verified end to
+end; **Qoder IDE** is registered and read back, but the host did not connect during
+validation (§ Qoder below).
+
+```bash
+nemons plugin install --agent codex
+```
+
+This registers the daemon with the host itself (`codex mcp add`), writes the
+orchestrator skill to `$CODEX_HOME/skills/`, and then **reads the host's own view
+back** before claiming anything. Expected output ends with lines like:
+
+```
+  ✓ Registered [mcp_servers.nemons] → http://127.0.0.1:3456/mcp
+    transport=streamable_http auth=unsupported (confirmed via cli)
+  ✓ Skill written and re-read: ~/.codex/skills/nemons-orchestrator/SKILL.md (6 endpoint reference(s) pointed at 127.0.0.1:3456)
+  · codex doctor mcp.config: ok — MCP configuration is locally consistent (1 configured, 1 streamable_http)
+```
+
+`auth=unsupported` means the daemon answered the host's probe and asked for no token
+(`NEMONS_AUTH_TOKEN` unset). If it is set, install wires `NEMONS_AUTH_TOKEN` as a
+bearer var instead and the line reads `auth=bearer_token`. Use `--no-doctor` to skip
+the host diagnostic (it also probes for updates), `--port <n>` for a non-default
+daemon port, and `--home <dir>` to point at another `CODEX_HOME`.
+
+Verify independently, at any time:
+
+```bash
+codex mcp list --json          # the host's own registry
+codex doctor                   # mcp.config: "MCP configuration is locally consistent"
+nemons plugin list --agent codex
+nemons plugin remove --agent codex   # confirmed absent by read-back
+```
+
+For any other MCP-capable host, point its MCP client at `http://127.0.0.1:3456/mcp`.
+
+### Qoder IDE — registered against the real host, host-side discovery not observed
+
+Qoder IDE (1.37.0 here) has **no MCP CLI**: no `mcp add`, no `mcp list --json`, no
+`doctor`, no reload command. Its user surface is one file, `~/.qoder/mcp.json`, and the
+IDE proves it reads that file by storing its MD5 in
+`%APPDATA%\Qoder\SharedClientCache\extension\local\mcp.json`. The installer therefore
+merged the entry itself and reported two states separately — "saved" (proved from disk)
+and "discovered by the host" (read from the IDE's own tool cache, which Nemons never
+writes).
+
+```powershell
+$env:NEMONS_HOME = "<workspace>\.qoder-validation\nemons-home"   # isolated state
+nemons daemon start
+nemons plugin install --agent qoder --no-doctor
+nemons plugin list --agent qoder
+nemons plugin remove --agent qoder
+```
+
+Captured output on the validation machine (exit 0):
+
+```
+  QODER_HOME: C:\Users\Nasser Jabir\.qoder
+  Host app:   Qoder IDE 1.37.0
+  MCP url:    http://127.0.0.1:3456/mcp
+  Auth:       daemon is open (NEMONS_AUTH_TOKEN unset) — no credential registered; re-run install if you enable auth
+    · read-existing: ok
+    · merge: ok
+    · config-readback: ok
+  ✓ Registered mcpServers.nemons → http://127.0.0.1:3456/mcp
+    transport=streamable-http auth=none (read back from mcp.json)
+    untouched alongside it: TestSprite
+  ✓ Skill written and re-read: C:\Users\Nasser Jabir\.qoder\skills\nemons-orchestrator\SKILL.md (6 endpoint reference(s) pointed at 127.0.0.1:3456)
+  · IDE tool cache does NOT list "nemons" yet (cache read, no entry) — that is expected: a written config is state 1, not a connection.
+  ✓ Host-confirmed registrations: 1 / ~ Files staged, host not asked: 0 / ✗ Failed: 0
+```
+
+What that does **not** entitle you to claim: the IDE never sent a single request to
+`/mcp` during validation (the daemon's `logs/mcp-access.log` records every message it
+receives), so no Nemons tool reached a model and none was invoked. Closing that gap needs
+an action inside the IDE — reload the window, or **Qoder IDE Settings → MCP** and confirm the
+entry — and Qoder documents no headless equivalent.
+
+Two limits are host facts, not implementation choices:
+
+- **No token path.** Qoder documents no `headers`/env-var substitution for a remote entry, so
+  when the daemon requires `NEMONS_AUTH_TOKEN` the install **refuses** instead of writing a
+  plaintext secret into a file the IDE reads. Re-run install after enabling auth only if you
+  have a documented way to carry the credential.
+- **Streamable HTTP is supported**: "configure the endpoint the same way as SSE and Qoder IDE
+  will automatically detect and use it" (official MCP page, accessed 2026-10-30).
+
+Full capability report, evidence and reproducible poll: `docs/07-evaluation/experiments/QODER-01-host-capability-report.md`.
+
 ### Test with your coding agent
 ```bash
 # OpenCode
@@ -201,12 +291,24 @@ opencode
 claude
 > fix the bug in auth flow
 
-# Or Codex CLI
+# Or Codex CLI (after `nemons plugin install --agent codex`)
 codex
 > refactor the API routes
+
+# Or Qoder IDE (after `nemons plugin install --agent qoder`, and after the IDE has
+# re-read ~/.qoder/mcp.json): use an Agent-mode chat — Ask mode does not call MCP tools.
+> call the MCP tool nemons.health_check and show the raw result
 ```
 
-Nemons will auto-trigger on every prompt. 🎉
+The daemon does **not** intercept anything by itself: your agent (or a host hook) has
+to call it. For Codex, registering the MCP server makes the seven `nemons.*` tools
+visible to the host after a restart — the model still decides whether to call them, and
+nothing patches the agent process. For Qoder IDE the same is true and the reload is the
+IDE's, not ours: the entry lands in `~/.qoder/mcp.json` and the orchestrator skill in
+`~/.qoder/skills/`, but a running session started before that write does not see the
+tools until the IDE re-reads the file. For the other adapters in `plugins/` there is nothing
+to run: they are reference shims that were staged, never accepted by a host; see
+"Integration status" in the [README](README.md).
 
 ## 🗑️ Uninstallation
 

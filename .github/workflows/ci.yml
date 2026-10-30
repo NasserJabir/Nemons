@@ -100,6 +100,31 @@ jobs:
         # version negotiation, tools/list shape, tools/call round-trips,
         # error taxonomy, transport 405s, auth + rate-limit coverage.
 
+      - name: Run defect regression tests (38 tests)
+        working-directory: ./nemos
+        run: node tests/defect-regression-tests.js
+        # One test per shipped defect: rate-limit buckets keyed by route
+        # pattern, context-pack relevance floor, governed propose/approve
+        # surviving across requests, adoption promotion into retrieval,
+        # candidate kinds with no adoption destination, simulated subagent
+        # outcomes, fabricated evolution scores, `{}` from async stats
+        # endpoints, synthetic pack labelling, `daemon start` on a busy port,
+        # and the CLI dispatch bugs (command modules that read flags off the
+        # wrong argument, a leading `--flag` eaten as the subcommand, and
+        # `intercept` claiming it notified a daemon it cannot notify).
+
+      - name: Run host integration tests (13 checks here, 22 with codex-cli)
+        working-directory: ./nemos
+        run: node tests/host-integration-tests.js
+        # Gates what the Codex adapter promises: config.toml merging, that the
+        # URL we register really serves MCP end-to-end, and that bearer wiring
+        # follows the daemon's own /health auth_enabled. The nine host checks
+        # that shell out to a real `codex` binary self-skip when the CLI is not
+        # on PATH — GitHub runners have no codex, so a green run here means 13
+        # passed and 2 reported skipped, not 22. Not added to the Windows job:
+        # that job deliberately excludes suites which spawn/stop the daemon
+        # (this one does), though it ran clean on a Windows dev machine.
+
       - name: Run e2e suite (run-all — spawns a real daemon)
         working-directory: ./nemos
         run: npm test
@@ -121,7 +146,25 @@ jobs:
           echo "--- /health ---"
           curl -sf http://127.0.0.1:${NEMONS_PORT}/health | jq -e '.status == "healthy" and .core_loaded == true'
           echo "--- /core/status ---"
-          curl -sf http://127.0.0.1:${NEMONS_PORT}/core/status | jq -e '.bridge_loaded == true and (.available_apis | length) >= 17'
+          # The length check alone was worthless: available_apis is a declared
+          # list, so it stayed at 18 even while three of the names resolved to
+          # wrappers that dereferenced core symbols that do not exist. The gate
+          # now asserts the bridge's own audit came back clean.
+          curl -sf http://127.0.0.1:${NEMONS_PORT}/core/status | jq -e '
+            .bridge_loaded == true
+            and (.available_apis | length) >= 17
+            and (.unavailable_apis | length) == 0
+            and .bridge_integrity.loaded == true
+            and .bridge_integrity.checked > 30
+            and (.bridge_integrity.missing | length) == 0'
+          echo "--- /core/validate/candidate (must accept a real record) ---"
+          PROPOSE='{"asset_kind":"skill","asset_id":"skill-ci-validator",
+            "proposed_version":"1.0.0","change_kind":"create",
+            "content":{"prompt":"x"},"proposed_by":"ci","rationale":"ci smoke"}'
+          CAND=$(curl -sf -X POST http://127.0.0.1:${NEMONS_PORT}/core/governed/propose \
+            -H 'Content-Type: application/json' -d "$PROPOSE" | jq .candidate)
+          curl -sf -X POST http://127.0.0.1:${NEMONS_PORT}/core/validate/candidate \
+            -H 'Content-Type: application/json' -d "$CAND" | jq -e '.valid == true'
           echo "--- /core/sha256 ---"
           HASH=$(curl -sf "http://127.0.0.1:${NEMONS_PORT}/core/sha256?s=hello" | jq -r .hash)
           [ "$HASH" = "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824" ]
@@ -164,7 +207,8 @@ jobs:
     runs-on: windows-latest
     # The installers claim Windows 10/11 support, but nothing in CI
     # ran on Windows — the old bash lint loop failed there. This job
-    # covers lint + the four in-process suites. The daemon
+    # covers lint + the six in-process suites (unit, persona, bridge,
+    # security, MCP, defect regression). The daemon
     # spawn/stop e2e suites (run-all, smoke) stay on the unix matrix
     # until their SIGTERM-based process lifecycle is hardened for
     # Windows semantics.
@@ -205,6 +249,10 @@ jobs:
         working-directory: ./nemos
         run: node tests/mcp-tests.js
 
+      - name: Run defect regression tests
+        working-directory: ./nemos
+        run: node tests/defect-regression-tests.js
+
   test-core:
     name: TS Core Tests (TypeScript @nemons/core)
     runs-on: ubuntu-latest
@@ -229,7 +277,7 @@ jobs:
         working-directory: ./nemos-core
         run: npm run build
 
-      - name: Run vitest suite (1215 tests, no exceptions)
+      - name: Run vitest suite (1221 tests, no exceptions)
         working-directory: ./nemos-core
         run: npm test
 

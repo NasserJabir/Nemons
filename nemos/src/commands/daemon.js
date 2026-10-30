@@ -94,6 +94,25 @@ async function clearPid() {
   } catch {}
 }
 
+// Last N bytes of a log file — enough to show the bind error that killed
+// a child during startup.
+async function readLogTail(file, maxBytes = 800) {
+  try {
+    const fh = await fs.open(file, "r");
+    try {
+      const { size } = await fh.stat();
+      const start = Math.max(0, size - maxBytes);
+      const buf = Buffer.alloc(size - start);
+      await fh.read(buf, 0, buf.length, start);
+      return buf.toString("utf8").trim();
+    } finally {
+      await fh.close();
+    }
+  } catch {
+    return "";
+  }
+}
+
 module.exports = async function (action, opts) {
   await ensureDirs();
 
@@ -105,6 +124,20 @@ module.exports = async function (action, opts) {
       if (existing && (await isRunning(existing))) {
         console.log(`✓ Daemon already running (PID ${existing})`);
         return;
+      }
+      // A dead child leaves its PID file behind; never let a stale pid
+      // stand in for a running daemon.
+      if (existing) await clearPid();
+
+      const port = resolvePort({ explicit: opts.port, configPath });
+      // The port has to be ours to take. Before this check, a foreign
+      // listener on the port satisfied the health poll while this child
+      // died of EADDRINUSE — `daemon start` printed success for a daemon
+      // that had already exited, and left its PID file behind.
+      if (!(await portIsFree(port))) {
+        console.error(`✗ Port ${port} is already in use by another process.`);
+        console.error(`  Stop it first, or start with --port <free-port>.`);
+        process.exit(1);
       }
 
       console.log("[nemons] Starting daemon...");
@@ -127,10 +160,17 @@ module.exports = async function (action, opts) {
       await writePid(child.pid);
       child.unref();
 
-      // Wait for health
-      const port = resolvePort({ explicit: opts.port, configPath });
+      // Wait for health, but verify the child is still alive each round:
+      // a reached health endpoint means nothing if this PID is gone.
       for (let i = 0; i < 30; i++) {
         await new Promise((r) => setTimeout(r, 200));
+        if (!(await isRunning(child.pid))) {
+          await clearPid();
+          const tail = await readLogTail(path.join(NEMONS_HOME, "logs", "daemon-error.log"));
+          console.error(`✗ Daemon (PID ${child.pid}) exited during startup.`);
+          if (tail) console.error(tail);
+          process.exit(1);
+        }
         try {
           const res = await fetch(`http://127.0.0.1:${port}/health`);
           if (res.ok) {
@@ -140,7 +180,8 @@ module.exports = async function (action, opts) {
           }
         } catch {}
       }
-      console.log(`⚠ Daemon started (PID ${child.pid}) but health check pending`);
+      console.log(`⚠ Daemon (PID ${child.pid}) is alive but /health did not answer within 6s`);
+      console.log(`  Check ${path.join(NEMONS_HOME, "logs", "daemon-error.log")}`);
       break;
     }
 

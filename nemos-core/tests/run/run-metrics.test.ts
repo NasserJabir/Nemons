@@ -18,8 +18,6 @@ import { describe, it, expect } from "vitest";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as os from "node:os";
-import { exec as execCb } from "node:child_process";
-import { promisify } from "node:util";
 import { MockAdapter } from "../../src/adapter/mock-adapter.js";
 import { LocalExecutionAdapter } from "../../src/stage-c/local-execution-adapter.js";
 import { validateRun } from "../../src/schemas/run.js";
@@ -28,8 +26,7 @@ import {
   asContextPackId,
 } from "../../src/core/identifiers.js";
 import type { RunInputs } from "../../src/schemas/run.js";
-
-const execAsync = promisify(execCb);
+import { createFixture } from "../stage-c/fixture.js";
 
 function makeRunInputs(taskDescription: string): RunInputs {
   return {
@@ -142,9 +139,8 @@ describe("Run Metrics (ADR-0011 — What Does a Harness Buy?)", () => {
   describe("RM4 + RM5 + RM6 + RM7 + RM8: LocalExecutionAdapter returns REAL metrics", () => {
     it("returns real latencyMs, toolCallCount, stepCount, harnessVersion", async () => {
       await withTempDir(async (dir) => {
-        // Setup the fixture
-        const scriptPath = path.join(process.cwd(), "scripts", "stage-c", "setup-fixture.sh");
-        await execAsync(`bash ${scriptPath} ${dir}`);
+        // Setup the fixture (real git repo, no shell — see tests/stage-c/fixture.ts)
+        await createFixture(dir);
 
         const adapter = new LocalExecutionAdapter({ workDir: dir });
         const result = await adapter.invoke({

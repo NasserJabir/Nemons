@@ -1,6 +1,10 @@
 // ============================================================
-// Nemons Plugin for OpenCode — transparent auto-trigger
+// Nemons Plugin for OpenCode
 // File: .opencode/plugins/nemons.ts
+//
+// REFERENCE SHIM — not installed or exercised against a current OpenCode
+// release; the plugin hooks below follow the documented shape but are
+// unverified. See README "Integration status".
 // ============================================================
 
 import type { Plugin } from "@opencode-ai/plugin";
@@ -14,10 +18,16 @@ interface NemonsAnalysis {
   similar_experiences?: Array<{ id: string; relevance: number }>;
 }
 
+interface KnowledgeItem {
+  id: string;
+  title?: string;
+  content?: string;
+}
+
 interface ContextPack {
-  persona: { role: string; constraints: string[] };
-  skills: Array<{ id: string; reference: string }>;
-  knowledge: string[];
+  persona: { role: string; adopted_role?: string; constraints?: string[] };
+  skills: Array<{ id: string; reference?: string }>;
+  knowledge: KnowledgeItem[];
   success_criteria: string[];
 }
 
@@ -77,16 +87,20 @@ function shouldIntercept(prompt: string): boolean {
 function renderContextPack(pack: ContextPack): string {
   const lines: string[] = [];
   lines.push("--- NEMONS CONTEXT PACK ---");
-  lines.push(`Persona: ${pack.persona.role}`);
-  if (pack.persona.constraints.length > 0) {
-    lines.push(`Constraints: ${pack.persona.constraints.join("; ")}`);
+  // `adopted_role` is only present when an approved persona was applied.
+  lines.push(`Persona: ${pack.persona.adopted_role || pack.persona.role}`);
+  const constraints = pack.persona.constraints || [];
+  if (constraints.length > 0) {
+    lines.push(`Constraints: ${constraints.join("; ")}`);
   }
-  if (pack.skills.length > 0) {
-    lines.push(`Skills: ${pack.skills.map((s) => s.id).join(", ")}`);
+  const skills = pack.skills || [];
+  if (skills.length > 0) {
+    lines.push(`Skills: ${skills.map((s) => s.id).join(", ")}`);
   }
-  if (pack.knowledge.length > 0) {
+  const knowledge = pack.knowledge || [];
+  if (knowledge.length > 0) {
     lines.push("Knowledge:");
-    pack.knowledge.forEach((k) => lines.push(`  - ${k}`));
+    knowledge.forEach((k) => lines.push(`  - ${k.title || k.id}`));
   }
   if (pack.success_criteria.length > 0) {
     lines.push("Success Criteria:");

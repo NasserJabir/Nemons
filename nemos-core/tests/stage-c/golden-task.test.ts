@@ -22,8 +22,6 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as os from "node:os";
-import { exec as execCb } from "node:child_process";
-import { promisify } from "node:util";
 import { LocalExecutionAdapter } from "../../src/stage-c/local-execution-adapter.js";
 import { buildRuntime } from "../../src/runtime.js";
 import {
@@ -38,8 +36,7 @@ import {
   asRunId,
 } from "../../src/core/identifiers.js";
 import type { RunInputs } from "../../src/schemas/run.js";
-
-const execAsync = promisify(execCb);
+import { createFixture } from "./fixture.js";
 
 const allowAllRule: PolicyRule = {
   ruleId: "test.stage-c.allow-all",
@@ -59,10 +56,8 @@ let adapter: LocalExecutionAdapter;
 
 beforeAll(async () => {
   fixtureDir = await fs.mkdtemp(path.join(os.tmpdir(), "nem-stage-c-gt-"));
-  const scriptPath = path.join(process.cwd(), "scripts", "stage-c", "setup-fixture.sh");
-  const { stdout } = await execAsync(`bash ${scriptPath} ${fixtureDir}`);
-  const lines = stdout.trim().split("\n");
-  fixtureSha = lines[lines.length - 1]!;
+  // No shell: a bash one-liner mangled the path on Windows. See ./fixture.ts
+  fixtureSha = await createFixture(fixtureDir);
   adapter = new LocalExecutionAdapter({ workDir: fixtureDir });
 });
 

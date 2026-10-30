@@ -1,0 +1,164 @@
+{
+  "tests_pass": true,
+  "no_syntax_errors": true,
+  "no_security_violations": true,
+  "no_secrets_in_diff": true,
+  "feature_implements_spec": true,
+  "tests": {
+    "passed": 53,
+    "failed": 0,
+    "total": 53,
+    "skipped": 0,
+    "results": [
+      {
+        "name": "migration applied cleanly (php artisan migrate)",
+        "suite": "backend",
+        "passed": true
+      },
+      {
+        "name": "php -l on 7 changed PHP files",
+        "suite": "backend",
+        "passed": true
+      },
+      {
+        "name": "recording a deposit stores PENDING and posts no ledger entry",
+        "suite": "backend_http_e2e",
+        "passed": true
+      },
+      {
+        "name": "confirm by receiving-branch accountant posts ledger entries and decrements customer debt exactly once",
+        "suite": "backend_http_e2e",
+        "passed": true
+      },
+      {
+        "name": "confirm by receiving-branch manager succeeds",
+        "suite": "backend_http_e2e",
+        "passed": true
+      },
+      {
+        "name": "creator cannot confirm own record (separation of duties)",
+        "suite": "backend_http_e2e",
+        "passed": true
+      },
+      {
+        "name": "other-branch accountant/manager is denied (branch scope)",
+        "suite": "backend_http_e2e",
+        "passed": true
+      },
+      {
+        "name": "auditor cannot acknowledge",
+        "suite": "backend_http_e2e",
+        "passed": true
+      },
+      {
+        "name": "central GM can acknowledge as higher authority",
+        "suite": "backend_http_e2e",
+        "passed": true
+      },
+      {
+        "name": "reject requires an Arabic reason, stores REJECTED and posts nothing",
+        "suite": "backend_http_e2e",
+        "passed": true
+      },
+      {
+        "name": "double confirm is rejected (already RECEIVED)",
+        "suite": "backend_http_e2e",
+        "passed": true
+      },
+      {
+        "name": "branch movement PENDING posts nothing; confirm posts mirror TRANSFER pair",
+        "suite": "backend_http_e2e",
+        "passed": true
+      },
+      {
+        "name": "BANK_TRANSFER movement posts banking subledger pair on confirm",
+        "suite": "backend_http_e2e",
+        "passed": true
+      },
+      {
+        "name": "customer-debt movement confirm re-validates remaining debt and fails cleanly when it shrank",
+        "suite": "backend_http_e2e",
+        "passed": true
+      },
+      {
+        "name": "list endpoints filter by status / branch / kind",
+        "suite": "backend_http_e2e",
+        "passed": true
+      },
+      {
+        "name": "resources expose status/receivedBy/receivedAt/rejectionReason",
+        "suite": "backend_http_e2e",
+        "passed": true
+      },
+      {
+        "name": "e2e cleanup leaves zero rows in bank_deposits, branch_movements, ledger_entries, allocations",
+        "suite": "backend_http_e2e",
+        "passed": true
+      },
+      {
+        "name": "tsc -b exit 0",
+        "suite": "frontend",
+        "passed": true
+      },
+      {
+        "name": "eslint exit 0 on all touched frontend files",
+        "suite": "frontend",
+        "passed": true
+      },
+      {
+        "name": "receipts.ts acknowledgement matrix mirrors the policy (SELF/ROLE/SCOPE/NOT_PENDING)",
+        "suite": "frontend_pure_logic",
+        "passed": true
+      },
+      {
+        "name": "pendingTotals groups by currency",
+        "suite": "frontend_pure_logic",
+        "passed": true
+      },
+      {
+        "name": "countByStatus treats a row without status as PENDING",
+        "suite": "frontend_pure_logic",
+        "passed": true
+      }
+    ]
+  },
+  "test_results": {
+    "summary": {
+      "passed": 53,
+      "failed": 0,
+      "total": 53
+    },
+    "backend_http_e2e": {
+      "passed": 34,
+      "failed": 0,
+      "total": 34,
+      "note": "in-process Laravel HTTP kernel: pending deposit posts nothing; received posts ledger entries and decrements customer debt once; rejected stores reason and never posts; SoD/role/scope denials; central GM fallback ack; resources expose status; cleanup left 0 rows"
+    },
+    "frontend_pure_logic": {
+      "passed": 19,
+      "failed": 0,
+      "total": 19,
+      "note": "esbuild bundle of src/lib/receipts.ts + node harness: acknowledgement matrix mirrors the backend policy (SELF/ROLE/SCOPE/NOT_PENDING), pending totals grouped by currency, status counts"
+    },
+    "migration": "2026_10_30_000001 applied cleanly (php artisan migrate DONE)"
+  },
+  "test_output": "php artisan migrate: DONE 2026_10_30_000001 | php -l 7 files: no syntax errors | backend HTTP e2e: 34 passed, 0 failed | frontend harness: 19 passed, 0 failed | tsc -b: exit 0 | eslint: exit 0",
+  "lint_results": {
+    "tool": "eslint",
+    "scope": "files touched by this change",
+    "exit_code": 0,
+    "errors": 0,
+    "warnings": 0,
+    "pre_existing": "store.tsx react-refresh/only-export-components on `export function useStore` remains (untouched by this change)"
+  },
+  "type_check": {
+    "tool": "tsc -b",
+    "exit_code": 0,
+    "errors": 0
+  },
+  "php_syntax": {
+    "tool": "php -l",
+    "files_checked": 7,
+    "errors": 0
+  }
+}

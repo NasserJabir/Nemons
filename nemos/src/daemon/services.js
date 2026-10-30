@@ -49,6 +49,7 @@ const { MetricsCollector } = require("../utils/metrics");
 const { WebhookManager, SUPPORTED_EVENTS } = require("../utils/webhook-manager");
 const { OpenAPISpec } = require("../utils/openapi-spec");
 const { PersonaEvolver } = require("../utils/persona-evolver");
+const { KnowledgeStore } = require("../utils/knowledge-store");
 const { SubagentOrchestrator } = require("../utils/subagent-orchestrator");
 const { SkillEvolver } = require("../utils/skill-evolver");
 const { CandidateLifecycle } = require("../utils/candidate-lifecycle");
@@ -123,6 +124,9 @@ const services = {
   openapi: new OpenAPISpec(),
   rateLimiter: new RateLimiter(),
   personaEvolver: new PersonaEvolver(),
+  // Adoption destination for `knowledge` candidates — the pack builder reads
+  // it, and nothing else writes to it except approval promotion.
+  knowledgeStore: new KnowledgeStore(),
   subagentOrchestrator: new SubagentOrchestrator(subagents),
   skillEvolver: new SkillEvolver(new UnifiedSkillSystem(), new CandidateLifecycle()),
 };

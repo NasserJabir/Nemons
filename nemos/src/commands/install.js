@@ -1,18 +1,26 @@
 // ============================================================
 // nemons install — wrapper for the bash install.sh
 // Supports both local (current dir) and npm install
+// Same dispatch note as health.js: `install` has no subcommand, so the flags
+// arrive in the second argument (`opts.npm` on the old signature threw).
 // ============================================================
 const { execSync, spawnSync } = require("child_process");
 const path = require("path");
 const os = require("os");
 const fs = require("fs");
 
-module.exports = async function (opts) {
+module.exports = async function (subcommand, opts = {}) {
   const platform = os.platform();
   const isWindows = platform === "win32";
 
   if (isWindows) {
-    console.error("✗ Please run install.ps1 on Windows");
+    // There is no install.ps1 in this project — pointing users at it
+    // guaranteed a dead end. Point at what actually exists.
+    const bat = path.join(__dirname, "..", "..", "..", "install.bat");
+    console.error("✗ Native install is not implemented on Windows.");
+    if (fs.existsSync(bat)) console.error(`  Run: ${bat}`);
+    else console.error("  From the project root run: install.bat");
+    console.error("  Or install the CLI directly: npm install -g @nemons/cli");
     process.exit(1);
   }
 

@@ -1,6 +1,26 @@
 # ============================================================
 # Nemons Daemon Configuration — best practices applied
 # ============================================================
+#
+# What this process actually reads (verified against the source):
+#   daemon.port / daemon.host            -> server.js (NEMONS_PORT/HOST win)
+#   interception.filters                 -> core-loop.js (skip/intercept
+#                                           patterns, min_prompt_length,
+#                                           require_code_intent)
+#   verification.evaluation_criteria     -> core-loop.js (must_pass selects the
+#                                           verifier's deterministic checks;
+#                                           should_pass/nice_to_have are added to
+#                                           context-pack success criteria)
+#   security.redaction.patterns/_with    -> redactSecrets (evidence, experiences)
+#   experiences.retention.max_age_days   -> pruned once at boot
+#   security.audit.retention_days        -> pruned once at boot
+#
+# Everything else below (evidence.conditional_collect, context_packs.selection,
+# security.sandbox/permissions/network_whitelist, governance.approval_rules,
+# monitoring.*) describes adapter-side or operator policy. The daemon does NOT
+# enforce those keys — editing them changes nothing in this process. They are
+# kept as the contract the coding agents are expected to follow.
+# ============================================================
 
 daemon:
   port: 3456

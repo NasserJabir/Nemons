@@ -7,6 +7,8 @@
 const fs = require("fs").promises;
 const path = require("path");
 const os = require("os");
+const { writeAtomic } = require("../store/storage");
+const { timeId } = require("./ids");
 
 const NEMONS_HOME = process.env.NEMONS_HOME || path.join(os.homedir(), ".nemons");
 const SKILLS_DIR = path.join(NEMONS_HOME, "skills-unified");
@@ -21,7 +23,7 @@ class UnifiedSkillSystem {
   // ===== REGISTER (from skill-library) =====
   async register(skill) {
     await this.init();
-    const id = skill.id || `skill-${Date.now().toString(36)}`;
+    const id = skill.id || timeId("skill");
     const dir = path.join(this.dir, id);
     await fs.mkdir(dir, { recursive: true });
     await fs.mkdir(path.join(dir, "scripts"), { recursive: true });
@@ -38,6 +40,12 @@ class UnifiedSkillSystem {
     const metadata = {
       id, name: skill.name || id, version: skill.version || "1.0.0",
       domain: skill.domain || "general", area: skill.area || "general",
+      // Invariant #4 (Use != Adopt): retrieval only serves `adopted`.
+      // Explicit registrations (human/route) default to adopted; the
+      // auto-compile path passes `candidate` so a machine-written skill
+      // can never be used before review.
+      status: skill.status || "adopted",
+      candidate_id: skill.candidate_id || null,
       triggers: skill.triggers || [],
       description: skill.description || "",
       description_tokens: Math.ceil((skill.description || "").length / 4),
@@ -48,8 +56,8 @@ class UnifiedSkillSystem {
       // Wiki-style versioning
       revisions: [],
     };
-    await fs.writeFile(path.join(dir, "metadata.json"), JSON.stringify(metadata, null, 2));
-    
+    await writeAtomic(path.join(dir, "metadata.json"), JSON.stringify(metadata, null, 2));
+
     // Optional scripts
     if (skill.scripts) {
       for (const [name, content] of Object.entries(skill.scripts)) {
@@ -104,7 +112,9 @@ class UnifiedSkillSystem {
   async retrieve(query, limit, full) {
     limit = limit || 5;
     await this.init();
-    const all = await this.listAll();
+    // Lifecycle gate: a candidate (or rejected/deprecated) skill is never
+    // served. Skills written before `status` existed are treated as adopted.
+    const all = (await this.listAll()).filter((s) => (s.status ? s.status === "adopted" : true));
     const q = (query || "").toLowerCase();
     
     const scored = all.map(skill => {
@@ -142,7 +152,20 @@ class UnifiedSkillSystem {
       triggers: this.extractTriggers(run.prompt),
       steps: this.extractSteps(run),
       source: "auto-compiled",
+      // machine-written: usable only after a human approves the candidate
+      status: "candidate",
       confidence: 0.85,
+    });
+  }
+
+  // ===== ADOPT (the only sanctioned route from candidate to retrieval) =====
+  async adopt(skill, adoptedBy) {
+    return await this.register({
+      ...skill,
+      status: "adopted",
+      source: skill.source || "adopted-candidate",
+      adopted_by: adoptedBy || "system",
+      adopted_at: new Date().toISOString(),
     });
   }
   
@@ -167,7 +190,7 @@ class UnifiedSkillSystem {
     if (success) meta.successful_uses += 1;
     meta.success_rate = meta.successful_uses / meta.total_uses;
     meta.last_used = new Date().toISOString();
-    await fs.writeFile(path.join(this.dir, skillId, "metadata.json"), JSON.stringify(meta, null, 2));
+    await writeAtomic(path.join(this.dir, skillId, "metadata.json"), JSON.stringify(meta, null, 2));
     return meta;
   }
   
@@ -178,7 +201,7 @@ class UnifiedSkillSystem {
     meta.revisions.push({ version: meta.version, author: author || "system", timestamp: new Date().toISOString(), changes: Object.keys(changes) });
     meta.version += 1;
     if (changes.description) meta.description = changes.description;
-    await fs.writeFile(path.join(this.dir, skillId, "metadata.json"), JSON.stringify(meta, null, 2));
+    await writeAtomic(path.join(this.dir, skillId, "metadata.json"), JSON.stringify(meta, null, 2));
     return meta;
   }
   

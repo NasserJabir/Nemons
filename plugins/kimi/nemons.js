@@ -1,6 +1,9 @@
 // ============================================================
 // Nemons Plugin for Kimi Code CLI
 // Kimi supports plugins via ~/.kimi/plugins/
+//
+// REFERENCE SHIM — not installed or exercised against a current Kimi
+// release. See README "Integration status".
 // ============================================================
 
 const NEMONS_DAEMON = "http://127.0.0.1:3456";

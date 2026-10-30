@@ -2,31 +2,25 @@ const fs = require("fs").promises,
   path = require("path"),
   os = require("os");
 const { nemonsHome } = require("./runtime-config");
+const { writeAtomic } = require("../store/storage");
+const { timeId } = require("./ids");
+const { isPromotable, UnsupportedCandidateKindError } = require("./asset-kinds");
 const NEMONS_HOME = nemonsHome();
-const TYPES = [
-  "skill",
-  "persona",
-  "knowledge",
-  "experience",
-  "context_pack",
-  "rule",
-  "tool",
-  "adapter",
-];
 class CandidateLifecycle {
   async init() {
     await fs.mkdir(path.join(NEMONS_HOME, "candidates"), { recursive: true });
   }
   async registerCandidate(a) {
     await this.init();
-    const id = a.id || "cand-" + Date.now().toString(36);
+    const id = a.id || timeId("cand");
     const type = a.type || "skill";
-    const gate =
-      type === "rule" || type === "adapter"
-        ? "governance"
-        : type === "skill" || type === "persona"
-          ? "review"
-          : "auto";
+    // A candidate whose kind has no adoption destination is a silent trap:
+    // approving it would set `status: "adopted"` and nothing would consume it.
+    // Refuse it here, where the caller can still change course.
+    if (!isPromotable(type)) throw new UnsupportedCandidateKindError(type);
+    // Every promotable kind passes the review gate — approval is the only
+    // path to adoption.
+    const gate = "review";
     const c = {
       id,
       type,
@@ -43,7 +37,7 @@ class CandidateLifecycle {
       adopted_at: null,
       rejected_at: null,
     };
-    await fs.writeFile(path.join(NEMONS_HOME, "candidates", id + ".json"), JSON.stringify(c, null, 2));
+    await writeAtomic(path.join(NEMONS_HOME, "candidates", id + ".json"), JSON.stringify(c, null, 2));
     return {
       candidate: c,
       message: "Registered as CANDIDATE. Gate: " + gate + ". Must be approved before use.",
@@ -56,7 +50,7 @@ class CandidateLifecycle {
       c.status = "adopted";
       c.adopted_at = new Date().toISOString();
       c.adopted_by = approver;
-      await fs.writeFile(path.join(NEMONS_HOME, "candidates", id + ".json"), JSON.stringify(c, null, 2));
+      await writeAtomic(path.join(NEMONS_HOME, "candidates", id + ".json"), JSON.stringify(c, null, 2));
       return { candidate: c, promoted: true, message: "ADOPTED" };
     } catch {
       return { error: "not found" };
@@ -68,7 +62,7 @@ class CandidateLifecycle {
       c.status = "rejected";
       c.rejected_at = new Date().toISOString();
       c.rejection_reason = reason;
-      await fs.writeFile(path.join(NEMONS_HOME, "candidates", id + ".json"), JSON.stringify(c, null, 2));
+      await writeAtomic(path.join(NEMONS_HOME, "candidates", id + ".json"), JSON.stringify(c, null, 2));
       return { candidate: c, message: "REJECTED" };
     } catch {
       return { error: "not found" };

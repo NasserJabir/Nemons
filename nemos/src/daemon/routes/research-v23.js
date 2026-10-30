@@ -18,7 +18,9 @@ app.get("/xmemory/stats", async (req,res) => { try { const m=services.xmemory; r
 
 // ---------- Evolution Engine (EvoAgentX) ----------
 app.post("/evolution/run", async (req,res) => { try { const e=services.evolution; res.json(await e.evolve(req.body.prompt||"",req.body.options)) } catch(e) { res.status(500).json({error:e.message}) } });
-app.get("/evolution/stats", (req,res) => { res.json(services.evolution.stats()) });
+// stats() is async; awaiting it is what stops Express from serialising a
+// Promise into `{}` (the endpoint answered an empty object for its whole life).
+app.get("/evolution/stats", async (req,res) => { try { res.json(await services.evolution.stats()) } catch(e) { res.status(500).json({error:e.message}) } });
 
 // ---------- Kanban Board ----------
 app.post("/kanban/create", async (req,res) => { try { const b=services.kanban; res.json(await b.createWorker(req.body)) } catch(e) { res.status(500).json({error:e.message}) } });
@@ -35,25 +37,25 @@ app.get("/a2a/stats", async (req,res) => { try { const a=services.a2a; res.json(
 
 // ---------- Agentic RAG ----------
 app.post("/rag/run", async (req,res) => { try { const r=services.rag; res.json(await r.run(req.body.query||"",req.body.options)) } catch(e) { res.status(500).json({error:e.message}) } });
-app.get("/rag/stats", (req,res) => { res.json(services.rag.stats()) });
+app.get("/rag/stats", async (req,res) => { try { res.json(await services.rag.stats()) } catch(e) { res.status(500).json({error:e.message}) } });
 
 // ---------- ADMITBench ----------
 app.post("/admit/evaluate", (req,res) => { try { const b=services.admit; res.json(b.evaluate(req.body.action||{},req.body.evidence||{},req.body.profile||{})) } catch(e) { res.status(500).json({error:e.message}) } });
-app.get("/admit/stats", (req,res) => { res.json(services.admit.stats()) });
+app.get("/admit/stats", async (req,res) => { try { res.json(await services.admit.stats()) } catch(e) { res.status(500).json({error:e.message}) } });
 
 // ---------- Ensemble Code Generation ----------
 app.post("/ensemble/run", async (req,res) => { try { const g=services.ensemble; res.json(await g.run(req.body.prompt||"",req.body.options)) } catch(e) { res.status(500).json({error:e.message}) } });
-app.get("/ensemble/stats", (req,res) => { res.json(services.ensemble.stats()) });
+app.get("/ensemble/stats", async (req,res) => { try { res.json(await services.ensemble.stats()) } catch(e) { res.status(500).json({error:e.message}) } });
 
 // ---------- Hierarchical CoT ----------
 app.post("/hcot/reason", (req,res) => { try { const h=services.hcot; res.json(h.reason(req.body.problem||"",req.body.depth||3)) } catch(e) { res.status(500).json({error:e.message}) } });
-app.get("/hcot/stats", (req,res) => { res.json(services.hcot.stats()) });
+app.get("/hcot/stats", async (req,res) => { try { res.json(await services.hcot.stats()) } catch(e) { res.status(500).json({error:e.message}) } });
 
 // ---------- Novelty ToT ----------
 app.post("/ntot/search", (req,res) => { try { const t=services.ntot; res.json(t.search(req.body.problem||"",req.body.maxNodes||20)) } catch(e) { res.status(500).json({error:e.message}) } });
-app.get("/ntot/stats", (req,res) => { res.json(services.ntot.stats()) });
+app.get("/ntot/stats", async (req,res) => { try { res.json(await services.ntot.stats()) } catch(e) { res.status(500).json({error:e.message}) } });
 
 // ---------- CodeVisionary ----------
 app.post("/codevision/evaluate", (req,res) => { try { const v=services.codevision; res.json(v.evaluate(req.body.code||"",req.body.criteria)) } catch(e) { res.status(500).json({error:e.message}) } });
-app.get("/codevision/stats", (req,res) => { res.json(services.codevision.stats()) });
+app.get("/codevision/stats", async (req,res) => { try { res.json(await services.codevision.stats()) } catch(e) { res.status(500).json({error:e.message}) } });
 };

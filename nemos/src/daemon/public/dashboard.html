@@ -170,6 +170,8 @@
   }
   .verdict.pass { color: var(--ok); background: rgba(52, 211, 153, 0.1); }
   .verdict.fail { color: var(--bad); background: rgba(248, 113, 113, 0.1); }
+  /* A skipped prompt is the filter working, not a failure — it must not render red. */
+  .verdict.skip { color: var(--muted); background: rgba(112, 122, 140, 0.12); }
 
   /* ---------- Experiences feed ---------- */
   .feed { display: flex; flex-direction: column; }
@@ -239,9 +241,9 @@
       <div class="sub">files collected</div>
     </div>
     <div class="card kpi">
-      <div class="label">Intercepts</div>
+      <div class="label">Packs served</div>
       <div class="value" id="kpi-intercepts">—</div>
-      <div class="sub">prompts captured</div>
+      <div class="sub">/analyze matches, not intercepted traffic</div>
     </div>
     <div class="card kpi">
       <div class="label">Memory</div>
@@ -257,7 +259,7 @@
 
   <section class="grid">
     <div class="panel">
-      <div class="head">Verification loop</div>
+      <div class="head">Context pack trial — POST /analyze</div>
       <div class="body">
         <textarea id="test-prompt" placeholder="implement a hello world function in src/utils.ts" spellcheck="false"></textarea>
         <button class="btn" id="analyze-btn">Run /analyze <kbd>Enter</kbd></button>
@@ -349,14 +351,29 @@ function renderMetrics(m) {
 }
 
 function renderCore(c) {
-  const n = (c.available_apis || []).length;
-  setNum('kpi-core', n);
+  // "P2.*" is a group marker in the published list, not a callable — counting
+  // it inflated the KPI by one. The bridge now self-reports anything it
+  // advertises but cannot resolve, and the panel shows that instead of a
+  // bare "loaded".
+  const apis = (c.available_apis || []).filter((a) => !a.endsWith('.*'));
+  const integrity = c.bridge_integrity || {};
+  const broken = (c.unavailable_apis || []).length + (integrity.missing || []).length;
+  setNum('kpi-core', apis.length);
   const sub = $('kpi-core-sub');
-  sub.textContent = c.bridge_loaded ? 'bridge loaded' : 'not loaded';
-  sub.className = 'sub ' + (c.bridge_loaded ? 'ok' : 'warn');
+  if (!c.bridge_loaded) {
+    sub.textContent = 'bridge not loaded';
+    sub.className = 'sub warn';
+  } else if (broken > 0) {
+    sub.textContent = broken + ' advertised API(s) unresolvable';
+    sub.className = 'sub warn';
+  } else {
+    sub.textContent = 'loaded · ' + (integrity.checked || 0) + ' core symbol(s) verified';
+    sub.className = 'sub ok';
+  }
   const flag = $('sys-core');
-  flag.textContent = c.bridge_loaded ? 'loaded' : 'offline';
-  flag.className = 'flag ' + (c.bridge_loaded ? 'on' : 'off');
+  const healthy = c.bridge_loaded && broken === 0;
+  flag.textContent = healthy ? 'loaded' : (c.bridge_loaded ? 'degraded' : 'offline');
+  flag.className = 'flag ' + (healthy ? 'on' : 'off');
   $('sys-core-path').textContent = c.core_path || '';
 }
 
@@ -449,11 +466,14 @@ async function analyzePrompt() {
     // textContent-only rendering — the payload may echo arbitrary strings
     jsonEl.textContent = JSON.stringify(data, null, 2);
     if (data.should_intercept) {
-      verdictEl.textContent = '■ intercepted — ' + (data.reason || '');
+      // "intercept" is the API's field name, not a claim about the runtime:
+      // this prompt was sent to /analyze by the caller, and the filter decided
+      // whether to build a pack for it.
+      verdictEl.textContent = '■ pack returned — ' + (data.reason || '');
       verdictEl.className = 'verdict pass';
     } else {
-      verdictEl.textContent = '□ skipped — ' + (data.reason || 'no trigger pattern');
-      verdictEl.className = 'verdict fail';
+      verdictEl.textContent = '□ no pack — ' + (data.reason || 'no trigger pattern');
+      verdictEl.className = 'verdict skip';
     }
     await renderExperiences();
   } catch (err) {

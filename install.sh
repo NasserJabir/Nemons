@@ -34,8 +34,14 @@ step "Step 4/8: Installing dependencies..."
 (cd "$SCRIPT_DIR/nemos" && npm install --omit=dev)
 ok "Dependencies installed"
 
-step "Step 5/8: Setting up Nemos home..."
-NEMONS_HOME="$HOME/.nemos"
+step "Step 5/8: Setting up Nemons home..."
+# Canonical home is ~/.nemons (runtime-config.js). This script used to
+# write to ~/.nemos, so an install here was invisible to the daemon.
+NEMONS_HOME="${NEMONS_HOME:-$HOME/.nemons}"
+if [ -d "$HOME/.nemos" ] && [ ! -d "$HOME/.nemons" ]; then
+  mv "$HOME/.nemos" "$HOME/.nemons"
+  warn "Migrated legacy ~/.nemos → ~/.nemons"
+fi
 mkdir -p "$NEMONS_HOME"/{config,logs,experiences,evidence,run,audit,context-packs,plugins}
 [ -f "$SCRIPT_DIR/config/daemon.yml" ] && cp "$SCRIPT_DIR/config/daemon.yml" "$NEMONS_HOME/config/"
 [ -f "$SCRIPT_DIR/governance/governance-rules.yml" ] && cp "$SCRIPT_DIR/governance/governance-rules.yml" "$NEMONS_HOME/config/"

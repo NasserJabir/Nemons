@@ -1,6 +1,9 @@
 // ============================================================
 // Nemons Plugin for Cline (VS Code extension)
 // Cline supports custom tools via @cline/sdk
+//
+// REFERENCE SHIM — not installed or exercised against a current Cline
+// release. See README "Integration status".
 // ============================================================
 
 const { execSync } = require("child_process");
@@ -52,7 +55,11 @@ class NemonsClinePlugin {
     if (analysis.suggested_pack_id) {
       const pack = await callDaemon(`/context-pack/${analysis.suggested_pack_id}`);
       if (pack) {
-        args.system_context = `Persona: ${pack.persona?.role}\nKnowledge: ${pack.knowledge?.join("; ")}`;
+        // `knowledge` is an array of records (id/title), not bare strings;
+        // `adopted_role` is present only when an approved persona was used.
+        const persona = pack.persona?.adopted_role || pack.persona?.role || "unspecified";
+        const knowledge = (pack.knowledge || []).map((k) => k.title || k).join("; ") || "none";
+        args.system_context = `Persona: ${persona}\nKnowledge: ${knowledge}`;
       }
     }
     

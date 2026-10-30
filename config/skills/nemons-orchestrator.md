@@ -1,9 +1,13 @@
 ---
 name: nemons-orchestrator
 description: |
-  Nemons transparent orchestrator — activate automatically on every code-related
-  prompt to inject Context Pack, collect Evidence, run Verification Loop, and
-  derive Experiences. Skip for trivial questions, definitions, or non-code prompts.
+  Nemons orchestrator. Use on code-related work to inject a Context Pack, collect
+  Evidence, run the Verification Loop, and derive Experiences. Skip for trivial
+  questions, definitions, or non-code prompts.
+
+  This is a skill description, not an interceptor: hosts that auto-select skills
+  may load it on matching prompts, and some hosts require explicit invocation.
+  Nothing runs unless the model calls the daemon at http://127.0.0.1:3456.
   
   TRIGGERS when prompt contains: build, implement, add, create, make, fix, bug,
   refactor, clean, improve, optimize, test, deploy, ship, debug, trace, investigate.
@@ -16,8 +20,23 @@ user-invocable: true
 
 # Nemons Orchestrator Skill
 
-This skill runs transparently in the background. When a code-related task is
-detected, it orchestrates the full Nemons pipeline automatically.
+This skill tells the model to orchestrate the Nemons pipeline when a code-related
+task is detected. It is instructions to the model, not a background process: if
+the host does not load this skill, or the model never calls the daemon, nothing
+happens.
+
+## Two ways to reach the daemon
+
+Both drive the same core loop, so neither can drift from the other:
+
+1. **MCP tools** (preferred when the host has the `nemons` MCP server registered,
+   e.g. Codex via `codex mcp add`): `nemons.analyze_prompt`,
+   `nemons.get_context_pack`, `nemons.collect_evidence`, `nemons.evaluate_run`,
+   `nemons.store_experience`, `nemons.retrieve_similar_experiences`,
+   `nemons.health_check`.
+2. **HTTP** — the forms written out below. The host and port shown are the
+   defaults; `nemons plugin install` rewrites them for the daemon it found, and
+   `nemons health` prints the live address.
 
 ## Auto-Trigger Rules
 
@@ -36,7 +55,7 @@ detected, it orchestrates the full Nemons pipeline automatically.
 
 ### Step 1: Pre-flight Analysis
 ```
-GET http://localhost:3456/analyze
+POST http://localhost:3456/analyze
 body: { prompt, project_root, adapter }
 ```
 Returns: `{ should_intercept: bool, suggested_pack_id: string, similar_experiences: [...] }`

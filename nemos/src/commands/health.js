@@ -1,9 +1,18 @@
 // ============================================================
-// nemons health
+// nemons health [--detailed] [--url <base>]
+// The CLI dispatches as cmd(subcommand, flags) and `health` has no
+// subcommand, so the options arrive in the SECOND argument. With the old
+// single-parameter signature `opts` was the subcommand — `undefined` for
+// `nemons health` — and reading opts.url died. That broke the documented
+// command and the root `npm run health`.
 // ============================================================
-module.exports = async function (opts) {
-  const url = opts.url || "http://127.0.0.1:3456";
-  const endpoint = opts.detailed ? "/health" : "/health";
+const { resolvePort } = require("../utils/runtime-config");
+
+module.exports = async function (subcommand, opts = {}) {
+  // Resolved, not hardcoded: NEMONS_PORT and config/daemon.yml move the daemon,
+  // and a check pinned to :3456 reports an unreachable daemon on any other port.
+  const url = String(opts.url || `http://127.0.0.1:${resolvePort()}`).replace(/\/+$/, "");
+  const endpoint = "/health";
 
   try {
     const controller = new AbortController();

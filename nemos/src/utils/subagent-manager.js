@@ -2,6 +2,8 @@
 // 3 memory modes: inherit-full, inherit-partial, agent-agnostic
 // 2 lifespan modes: one-time, persistent
 const fs=require("fs").promises,path=require("path"),os=require("os");
+const { writeAtomic } = require("../store/storage");
+const { timeId } = require("./ids");
 const N=require("./runtime-config").nemonsHome();
 const D=path.join(N,"subagents");
 
@@ -11,7 +13,7 @@ class SubagentManager {
   // Spawn a new subagent with specified modes
   async spawn(config){
     await this.init();
-    const id=config.id||`sub-${Date.now().toString(36)}`;
+    const id=config.id||timeId("sub");
     const subagent={
       id,
       parent_id:config.parent_id||"main",
@@ -27,7 +29,7 @@ class SubagentManager {
       // Memory projection (based on mode)
       inherited_memory:this.projectMemory(config.memory_mode,config.parent_memory||{}),
     };
-    await fs.writeFile(path.join(D,id+".json"),JSON.stringify(subagent,null,2));
+    await writeAtomic(path.join(D,id+".json"),JSON.stringify(subagent,null,2));
     return subagent;
   }
   
@@ -87,7 +89,7 @@ class SubagentManager {
       sub.state="completed";
       sub.result=result;
       sub.completed_at=new Date().toISOString();
-      await fs.writeFile(path.join(D,id+".json"),JSON.stringify(sub,null,2));
+      await writeAtomic(path.join(D,id+".json"),JSON.stringify(sub,null,2));
       return sub;
     }catch{return{error:"not found"}}
   }

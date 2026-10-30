@@ -10,15 +10,35 @@ const fs = require("fs").promises;
 
 const BIN_PATH = path.join(__dirname, "..", "bin", "nemons.js");
 const TEST_HOME = path.join(os.tmpdir(), `nemons-test-${Date.now()}`);
-const NEMONS_URL = "http://127.0.0.1:3456";
-
 let PASS = 0, FAIL = 0, SKIP = 0;
+
+// Set by setup(): never hardcode the port. The suite used to target 3456
+// unconditionally, so a stray daemon on that port made these tests run
+// against someone else's server (and fail with "fetch failed" when the
+// spawned daemon died of EADDRINUSE).
+let NEMONS_URL = "";
+
+async function pickFreePort() {
+  const net = require("net");
+  return new Promise((resolve, reject) => {
+    const srv = net.createServer();
+    srv.unref();
+    srv.once("error", reject);
+    srv.listen(0, "127.0.0.1", () => {
+      const { port } = srv.address();
+      srv.close(() => resolve(port));
+    });
+  });
+}
 
 const ok = (msg) => { console.log(`  ✓ ${msg}`); PASS++; };
 const bad = (msg) => { console.log(`  ✗ ${msg}`); FAIL++; };
 const skip = (msg) => { console.log(`  ⚠ ${msg}`); SKIP++; };
 
 async function setup() {
+  const port = await pickFreePort();
+  NEMONS_URL = `http://127.0.0.1:${port}`;
+  process.env.NEMONS_PORT = String(port);
   await fs.mkdir(TEST_HOME, { recursive: true });
   await fs.mkdir(path.join(TEST_HOME, "config"), { recursive: true });
   // Copy daemon.yml
@@ -39,7 +59,7 @@ async function teardown() {
 
 async function startDaemon() {
   return new Promise((resolve, reject) => {
-    const env = { ...process.env, NEMONS_HOME: TEST_HOME };
+    const env = { ...process.env, NEMONS_HOME: TEST_HOME, NEMONS_PORT: String(new URL(NEMONS_URL).port) };
     const child = spawn(process.execPath, [BIN_PATH, "daemon", "start"], {
       env,
       stdio: "pipe",
@@ -55,7 +75,7 @@ async function startDaemon() {
           if (res.ok) resolve();
           else reject(new Error("Daemon not healthy"));
         } catch (err) {
-          reject(err);
+          reject(new Error(`Daemon not healthy at ${NEMONS_URL}: ${err.message}\n${output}`));
         }
       }, 2000);
     });
@@ -65,7 +85,7 @@ async function startDaemon() {
 async function stopDaemon() {
   return new Promise((resolve) => {
     const child = spawn(process.execPath, [BIN_PATH, "daemon", "stop"], {
-      env: { ...process.env, NEMONS_HOME: TEST_HOME },
+      env: { ...process.env, NEMONS_HOME: TEST_HOME, NEMONS_PORT: String(new URL(NEMONS_URL || "http://127.0.0.1:3456").port) },
       stdio: "pipe",
     });
     child.on("close", () => resolve());
@@ -215,12 +235,9 @@ async function runTests() {
   if (exp.ok && exp.data.total !== undefined) ok(`total: ${exp.data.total}`);
   else skip("experiences endpoint issue");
 
-  // Stop daemon
-  console.log("\nTeardown: stopping daemon...");
-  await stopDaemon();
-  await teardown();
-
-  // Summary
+  // Summary. The daemon is stopped in main()'s finally — the previous
+  // version only tore down on the happy path, so any thrown test left an
+  // orphaned daemon holding the port.
   console.log("\n============================================================");
   console.log("  Test Summary");
   console.log("============================================================");
@@ -230,10 +247,21 @@ async function runTests() {
   console.log(`  Total: ${PASS + FAIL + SKIP}`);
   console.log("");
 
-  process.exit(FAIL > 0 ? 1 : 0);
+  return FAIL > 0 ? 1 : 0;
 }
 
-runTests().catch((err) => {
-  console.error("Test runner crashed:", err);
-  process.exit(1);
-});
+async function main() {
+  let code = 1;
+  try {
+    code = await runTests();
+  } catch (err) {
+    console.error("Test runner crashed:", err);
+  } finally {
+    console.log("\nTeardown: stopping daemon...");
+    await stopDaemon().catch(() => {});
+    await teardown().catch(() => {});
+  }
+  process.exit(code);
+}
+
+main();

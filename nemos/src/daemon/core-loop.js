@@ -20,15 +20,99 @@ function uuidv4() {
   });
 }
 
+// ---- config/daemon.yml → verifier wiring ---------------------
+// `verification.evaluation_criteria` used to be pure documentation:
+// must_pass never reached the verifier, and should_pass/nice_to_have
+// never reached a context pack.
+const CONSTRAINT_FLAGS = {
+  tests_pass: "check_tests",
+  no_syntax_errors: "check_schema",
+  no_security_violations: "check_policy",
+  no_secrets_in_diff: "check_secrets",
+  coverage_delta: "check_coverage",
+  diff_size: "check_diff_size",
+};
+
+function criterionName(entry) {
+  if (typeof entry === "string") return entry.split(":")[0].trim();
+  if (entry && typeof entry === "object") return Object.keys(entry)[0];
+  return null;
+}
+
+function listCriteria(config, group) {
+  const entries = config?.verification?.evaluation_criteria?.[group];
+  return Array.isArray(entries) ? entries.map(criterionName).filter(Boolean) : [];
+}
+
+// `must_pass` is additive on purpose: a listed check is enforced, everything
+// else keeps its default so config can never silently switch off a safety
+// check by omission. `- tests_pass: false` is the explicit opt-out. Names the
+// daemon cannot map are returned so callers can report them instead of
+// pretending the config was honoured.
+function constraintsFromConfig(config) {
+  const entries = config?.verification?.evaluation_criteria?.must_pass;
+  if (!Array.isArray(entries) || entries.length === 0) {
+    return { constraints: undefined, applied: [], disabled: [], ignored: [] };
+  }
+  const constraints = {};
+  const applied = [];
+  const disabled = [];
+  const ignored = [];
+  for (const entry of entries) {
+    const name = criterionName(entry);
+    const value = typeof entry === "object" && entry !== null ? entry[name] : true;
+    const flag = name ? CONSTRAINT_FLAGS[name] : undefined;
+    if (!flag) {
+      if (name) ignored.push(name);
+      continue;
+    }
+    if (value === false) {
+      constraints[flag] = false;
+      disabled.push(name);
+    } else {
+      constraints[flag] = true;
+      applied.push(name);
+    }
+  }
+  if (applied.length === 0 && disabled.length === 0) {
+    return { constraints: undefined, applied, disabled, ignored };
+  }
+  return { constraints, applied, disabled, ignored };
+}
+
+function criteriaFromConfig(config) {
+  return [...new Set([...listCriteria(config, "should_pass"), ...listCriteria(config, "nice_to_have")])];
+}
+
 // POST /analyze · nemons.analyze_prompt
-async function analyzePrompt({ prompt, adapter } = {}, ctx) {
+async function analyzePrompt({ prompt, adapter } = {}, ctx = {}) {
   const filters = require("../utils/filters");
-  const filterResult = filters.shouldIntercept(prompt);
+  // config/interception/filters is honoured now. Previously the daemon
+  // always used filters.js DEFAULT_CONFIG and the 40-line YAML block was
+  // decorative, so changing it in config/daemon.yml did nothing.
+  const configured = ctx.config?.interception?.filters;
+  const activeFilters = configured
+    ? {
+        ...filters.DEFAULT_CONFIG,
+        ...configured,
+        // not policy: the code-intent vocabulary is part of the detector
+        code_keywords: filters.DEFAULT_CONFIG.code_keywords,
+      }
+    : filters.DEFAULT_CONFIG;
+  const filterResult = filters.shouldIntercept(prompt, activeFilters);
   if (!filterResult.should_intercept) {
     return { should_intercept: false, reason: filterResult.reason };
   }
   try {
     const dynamicPack = await ctx.pipeline.buildContextPack(prompt, adapter);
+    // Surface the configured criteria next to the persona/harness ones so
+    // the adapter actually sees what the run will be judged against.
+    const configuredCriteria = criteriaFromConfig(ctx.config);
+    if (configuredCriteria.length > 0 && dynamicPack.context_pack && typeof dynamicPack.context_pack === "object") {
+      const existing = Array.isArray(dynamicPack.context_pack.success_criteria) ? dynamicPack.context_pack.success_criteria : [];
+      dynamicPack.context_pack.success_criteria = [...new Set([...existing, ...configuredCriteria])];
+      dynamicPack.context_pack.success_criteria_source = "config:verification.evaluation_criteria";
+    }
     ctx.counters.intercepts++;
     return {
       should_intercept: true,
@@ -81,12 +165,19 @@ async function collectEvidence({ run_id, evidence } = {}, ctx) {
 
 // POST /evaluate · nemons.evaluate_run
 async function evaluateRun({ run_id, evidence, prompt, adapter } = {}, ctx) {
+  const { constraints, applied, disabled, ignored } = constraintsFromConfig(ctx.config);
   const result = await ctx.verifier.verify({
     prompt: prompt || "",
     response: evidence?.response || "",
     context: evidence?.context || "",
     evidence: evidence || {},
+    constraints,
   });
+  // Empty `applied` means the default (all deterministic checks on), which
+  // is what a missing/empty must_pass list has always meant.
+  result.constraints_applied = applied;
+  if (disabled.length > 0) result.constraints_disabled = disabled;
+  if (ignored.length > 0) result.constraints_ignored = ignored;
   ctx.counters.evaluations_total++;
   if (result.pass) ctx.counters.evaluations_passed++;
 
@@ -143,21 +234,38 @@ async function getContextPack(id, ctx) {
     const raw = await fs.readFile(packPath, "utf8");
     return { status: 200, body: yaml.load(raw) };
   } catch {
-    // Default pack when the specific one does not exist (unchanged HTTP contract)
+    // Unchanged HTTP contract: an unknown id still returns 200 with a pack.
+    // But it must not masquerade as curated context — callers get an
+    // explicit marker saying this content was synthesized, not retrieved.
     return {
       status: 200,
       body: {
         id,
+        is_synthetic: true,
+        source: "synthetic_fallback",
+        note: `No context pack '${id}' exists under NEMONS_HOME/context-packs. This is a synthetic default, not project context.`,
         persona: {
           role: "Senior Engineer",
           constraints: ["Follow project conventions", "Write tests for new code"],
         },
         skills: [],
-        knowledge: ["Project uses best practices"],
+        // Object shape matches a real pack's knowledge section — a bare
+        // string list here would break every consumer that reads `.title`.
+        knowledge: [
+          { id: "synthetic-knowledge", title: "Project uses best practices", source: "synthetic_fallback" },
+        ],
         success_criteria: ["Code passes tests", "No new lint warnings"],
       },
     };
   }
 }
 
-module.exports = { analyzePrompt, collectEvidence, evaluateRun, storeExperience, getContextPack };
+module.exports = {
+  analyzePrompt,
+  collectEvidence,
+  evaluateRun,
+  storeExperience,
+  getContextPack,
+  constraintsFromConfig,
+  criteriaFromConfig,
+};

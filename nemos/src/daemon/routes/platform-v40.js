@@ -4,6 +4,9 @@
 // context (composition root services + engine state). Do not
 // instantiate services here; they live in services.js.
 // ============================================================
+const { promoteApproved } = require("../approval-promotion");
+const { refusalFor } = require("../../utils/asset-kinds");
+
 module.exports = function register(app, ctx) {
   const { services, pipeline, rateLimiter, enforcer } = ctx;
 
@@ -34,11 +37,37 @@ app.get("/identity/stats", async (req, res) => {
 // ---------- Candidate Lifecycle (Invariant #7) ----------
 app.post("/candidate/register", async (req, res) => {
   try { const cl = services.candidateLifecycle; res.json(await cl.registerCandidate(req.body)); }
-  catch (e) { res.status(500).json({ error: e.message }); }
+  catch (e) {
+    // A kind with no adoption destination is a caller mistake, not a server
+    // fault: answer 400 with the kinds that can actually be adopted.
+    if (e.code === "unsupported_candidate_kind") {
+      const refusal = refusalFor(e.kind);
+      return res.status(400).json({
+        error: e.code,
+        kind: e.kind,
+        reason: refusal?.reason || "unknown_candidate_kind",
+        detail: refusal?.detail || null,
+        supported_kinds: e.supported_kinds,
+      });
+    }
+    res.status(500).json({ error: e.message });
+  }
 });
 app.post("/candidate/:id/approve", async (req, res) => {
-  try { const cl = services.candidateLifecycle; res.json(await cl.approve(req.params.id, req.body.approver, req.body.comment)); }
-  catch (e) { res.status(500).json({ error: e.message }); }
+  try {
+    const cl = services.candidateLifecycle;
+    const result = await cl.approve(req.params.id, req.body.approver, req.body.comment);
+    if (result.error) return res.status(404).json(result);
+    // Invariant #4 (Use != Adopt): flipping the candidate's status is only
+    // half the loop. An asset nobody can retrieve was never adopted, so
+    // promotion into the store that serves it (status "adopted") is part of
+    // approval — for every kind that has a destination, not just skills.
+    result.adoption = await promoteApproved(services, result.candidate, {
+      adoptedBy: req.body.approver || "anonymous",
+    });
+    if (result.adoption.promoted) result.adopted_into = result.adoption.adopted_into;
+    res.json(result);
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 app.get("/candidate/:id/can-use", async (req, res) => {
   try { const cl = services.candidateLifecycle; res.json(await cl.canUse(req.params.id)); }

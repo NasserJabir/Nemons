@@ -73,6 +73,13 @@ function shouldIntercept(prompt, config = DEFAULT_CONFIG) {
     } catch {}
   }
 
+  // `require_code_intent: false` in config/daemon.yml means "intercept every
+  // prompt that survived the skip list" — the key is honoured instead of being
+  // documentation. Default config omits it, so the code-keyword gate stands.
+  if (config.require_code_intent === false) {
+    return { should_intercept: true, reason: "code_intent_not_required" };
+  }
+
   // Default: intercept if it has code-related keywords
   const codeRegex = new RegExp(
     `\\b(${(config.code_keywords || []).join("|")})\\b`,

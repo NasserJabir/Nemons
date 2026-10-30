@@ -5,6 +5,448 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added — QODER-03: architecture remediation plan (planning only, nothing implemented)
+
+A dependency-aware plan that translates the QODER-02 audit into a sequenced remediation:
+`docs/07-evaluation/experiments/QODER-03-architecture-remediation-plan.md`. No source file was changed,
+no store was written, no asset was adopted, and no migration was run.
+
+- **Twelve findings** (`F-01`–`F-12`), each recorded with root cause and line references, affected
+  modules and contracts, existing behaviour, intended behaviour, inter-finding dependencies, the tests
+  that exist today, and the regression tests that do not. `components_used` has no test at all — a
+  grep over `nemos/tests/` returns zero references, which is why it was never falsified.
+- **The structural axis.** `nemos-core` already specifies the whole object graph the audit found
+  missing (Project, Run, Evidence, Evaluation, Experience, `RepositoryIdentity`, resolver, pack
+  builder, hash-verified stores, 70 vitest files). The daemon consumes exactly one of those
+  capabilities on the serving path. The findings are consequences of that, not independent defects,
+  so the plan is organised around one decision (`D-01`) and Phase A is written to be valid either way.
+- **New evidence.** `skills/tdd.json` is a conformant core `Skill` and a *non*-conformant input to
+  the daemon's `unified-skills.register()`. The repository asset is not malformed; the daemon
+  invented a second asset format. This is what makes lossless ingestion possible — and what would
+  make any "make it fit" transformation a silent change of meaning.
+- **Nine decisions** (`D-01`–`D-09`) requiring approval before implementation, each with a
+  recommendation, an alternative, the trade-off, and the cost of postponing. One of them (`D-05`)
+  exists because `defect-regression-tests.js` L135-141 currently pins 200-plus-`is_synthetic` for an
+  unknown pack id: the HTTP contract is preserved and the honesty is moved to the tool boundary.
+- **Deliverables.** Remediation plan, updated dependency map (§10), proposed TypeScript contracts
+  (§11), migration strategy (§12, additive and reversible by directory copy), test and acceptance
+  matrix (§13, `T-R1`–`T-R30`), decision register (§9), and the MVP sequence (§14).
+
+Not claimed: no phase is implemented, tested or measured. The 8 stored Experiences cannot be
+repaired — their retrieval key was never recorded, and deriving one now would be an invention.
+
+### Added — QODER-02: context assembly forensic audit (findings only, no fixes)
+
+The real Dynamic Context Pack delivered to Qoder (`dynamic-mvuwbms2`, pipeline_version 4.5.0) carried
+`skills: []`, `knowledge: []`, `experiences: []` while listing `unified_skills`, `knowledge_store` and
+`cbr_experiences` among `components_used`. A read-only audit now records why:
+`docs/07-evaluation/experiments/QODER-02-context-assembly-forensics.md`.
+
+- **`components_used` is a hard-coded literal** (`pipeline-integrator.js` L368-379, identical to
+  `stats()` L616-634). It reports nothing measured, so it cannot contradict an empty channel — the
+  label and the result were never connected. Any component-usage claim in an analyze response is
+  unfalsifiable as shipped.
+- **Four states collapse into one `[]`**: three `catch` blocks (L166-168 / L188-190 / L204-206) plus
+  `listAll`/`list` returning `[]` on a failed `readdir` erase the distinction between store empty,
+  store missing, unreadable, and assets present but scoring zero.
+- **No project or repository identity exists anywhere.** Not in the knowledge record schema
+  (`knowledge-store.js` L38-50), not in `cbr` records (`cbr.js` L51-58, no `run_id`/`task_type`/
+  `domain`), not in `buildContextPack`'s inputs. `NEMONS_HOME`, resolved at module load, is the only
+  isolation — so project-aware retrieval is impossible by construction, not merely absent.
+- **Experience retrieval is dead as currently stored.** All 8 experiences in the installed home have
+  `prompt: ""`; `sim()` returns 0 for an empty side and the 0.15 floor drops every candidate. Enabled
+  by `nemons.store_experience` requiring nothing (`routes/mcp.js` L112, `additionalProperties:true`)
+  and `evaluate_run` defaulting `prompt` to `""`. `harness.cbr_retrieval_strategy` (`filter_by`,
+  weights) is declared and never consulted.
+- **`run_id` is required and then dropped.** `evaluateRun` destructures it and never uses it; evidence
+  is addressed by filename only and its body carries no id (11/11 records), and no experience carries
+  a run. Experience ↔ Evidence ↔ Run cannot be joined in either direction.
+- **`detectDomain` misroutes by substring.** Keywords are matched with `prompt.includes(kw)` and the
+  first key wins (`persona-evolver.js` L175-193): `"ai"` inside `constrAInts` classified a documentation
+  prompt as `machine-learning` and generated an "ML Pipeline Engineer" candidate. Reproduced verbatim
+  in the report. The Use ≠ Adopt gate held, so it was recorded and not applied.
+- **No documentation task category.** Six specialized harnesses plus base, first `\b` regex wins
+  (`harness-router.js` L113-119), so a docs prompt routes to `FeatureHarness` on the word
+  "implement". `documentation_added` stays in `should_pass` because `must_pass` maps to deterministic
+  verifier checks (`CONSTRAINT_FLAGS`) and it has none; `augmented:false` and
+  `router_persona_applied:false` are correct for domain `general`.
+- **The dynamic pack id is not retrievable.** Minted at L337-338 from `Date.now()` base36 with no
+  collision suffix (unlike `cbr.retain` L46-49, which added one for exactly this reason), never
+  persisted; `getContextPack` reads only `<home>/context-packs/<id>.yml` and answers an unknown id
+  with **HTTP 200 and a synthetic pack**. A host following `analyze_prompt` → `get_context_pack(
+  suggested_pack_id)` is silently downgraded.
+- **The curated asset tree never reaches runtime.** Installers copy only `daemon.yml` and
+  `governance-rules.yml` (`install.sh` L45-47 and the per-OS scripts), so `skills/` (23),
+  `personas/` (18), `knowledge/` (2) and `config/context-packs/` (1) have no install or seed path —
+  and `skills/tdd.json` has no `status`/`domain`/`triggers`, the fields `register()` requires. On this
+  machine `~/.nemons/config/daemon.yml` does not exist, so interception filters, evaluation criteria
+  and redaction patterns are inert (`loadDaemonConfig` → `{}`). 16 skill candidates and 10 personas sit
+  unadopted behind a promotion path (`approval-promotion.js`) that has never been exercised here.
+
+Twelve findings are ranked in the report with exact loci. **Nothing was repaired in this task**: no
+asset was adopted or installed, no store was written, and the audit is a diagnosis that leaves the
+repair as a separate decision.
+
+### Added — Qoder IDE as the real-host validation target
+
+The integration-validation target moved from Codex CLI to **Qoder IDE 1.37.0**, the host
+the developer actually uses. Codex's adapter and its 22 checks were left untouched.
+
+- **`nemos/src/utils/qoder-host.js` — the Qoder registration driver.** Qoder exposes no MCP
+  CLI at all (no `mcp add`, no `mcp list --json`, no `doctor`, no reload command), unlike
+  Codex, so the driver reports two evidence levels and keeps them apart: `configReadback`
+  ("saved", read back from disk) and `runtimeDiscovery` (read-only inspection of the
+  IDE-written `SharedClientCache/**/mcps/<name>/` tool cache, which Nemons never writes).
+  Merging into `~/.qoder/mcp.json` preserves every foreign server and unrelated field,
+  keeps the detected indent, writes through a temp file + rename, and refuses outright —
+  leaving bytes alone — when the file is present-but-unparsable or unreadable.
+- **`nemos/src/commands/plugin.js` — host drivers and profiles.** `HOST_DRIVERS` /
+  `HOST_PROFILES` replace the Codex-shaped assumptions baked into the install path:
+  each host now states its own home label, entry label, evidence note and reload note,
+  so `plugin list` says "read back from the file the IDE reads — not a live connection"
+  for Qoder while Codex keeps "confirmed via codex mcp list --json". The old detection
+  guessed a `qodercli` binary that does not exist; it now reads `product.json`
+  (`Qoder IDE 1.37.0`, VS Code base 1.106.3, build 2026-10-26). `SOURCE_FILES.qoder`
+  switched from the file-staging shim to `integration: "mcp", driver: "qoder"`.
+- **Authentication was not weakened to make integration succeed.** Qoder documents no
+  credential field for a remote MCP entry, so when the daemon demands a token the install
+  **refuses** with an explanation instead of writing a plaintext secret into a file the IDE
+  reads; a test asserts the token never reaches stdout, stderr or disk.
+- **Fixed: `nemons plugin install` exited 0 while reporting `✗ Failed: 1`.** The CLI
+  dispatch ignores module return values, so a fully failed install still looked green to
+  CI. Install now sets `process.exitCode = 1` when nothing registered and something failed.
+- **MCP provenance: `<NEMONS_HOME>/logs/mcp-access.log`.** One JSONL line per JSON-RPC
+  message (`ts`, `duration_ms`, `source_ip`, `user_agent`, `method`, `request_id`, `tool`,
+  `outcome`, `rpc_error_code`), never the request body, rotated at 1 MiB, warning once if
+  unwritable. Without it, "the host invoked the tool" and "our test script invoked the
+  tool" are indistinguishable after the fact.
+- **Suite: `nemos/tests/host-integration-tests.js` 22 → 45 checks** (0 failed on a machine
+  with both hosts; measured 35 passed / 3 skipped / exit 0 in a host-less environment, so CI
+  reports skips instead of unearned passes). New Qoder gates: merge onto a foreign server
+  without disturbing its secret, byte-for-byte refusal of a malformed config, refusal to
+  replace an unreadable one, the discovery cache is never written by us, isolated-home CLI
+  install that must not claim a connection, `plugin list` honesty, idempotent re-install and
+  scoped remove, the auth refusal, the Qoder version gate (now skipping when no
+  `product.json` is readable instead of failing a host it cannot see — a real defect found by
+  running the suite host-less), and the two provenance gates for the access log.
+  Daemon totals re-derived: **210 checks always-run, 220 with Codex CLI and Qoder IDE
+  installed** (175 across the six in-process suites + 35 unconditional host checks + 10
+  host-gated).
+- **`docs/07-evaluation/experiments/QODER-01-host-capability-report.md`** — the host
+capability report: verified host identity, the `userConfigMD5` proof that
+`~/.qoder/mcp.json` is the file the runtime reads, the documented transport/timeout/
+confirmation behaviour with sources, a Codex-vs-Qoder capability matrix, what was proven
+live, and what was not.
+- **`INSTALL.md`, `README.md`, `nemos/README.md`, `nemos/docs/architecture.md`** now describe
+  the Qoder path, its captured install output, and the two host limits (no credential field,
+  no reload command).
+
+**Not claimed:** host-side tool discovery and model-driven invocation. The registration was
+written into the developer's real `~/.qoder/mcp.json` with explicit approval and read back
+byte-for-byte (`TestSprite` and its credential untouched, 328 → 426 bytes, indent preserved),
+but the running IDE never sent a single `POST /mcp` — the derived registry still hashed the
+pre-write file, no `nemons` entry appeared in the host tool cache, and the access log records
+only our own probe. A reported UI state ("link icon, tools expandable") conflicted with that
+record and is documented as unresolved rather than adopted. The strongest signal is the runtime
+tool manifest of the conversation the registration was validated in:
+`%APPDATA%\Qoder\SharedClientCache\projects\c--c-Nemons\mcps\` lists `browser-use`, `genui`,
+`TestSprite` and no `nemons`, which is the directory the agent harness reads to expose the
+MCP tools a conversation may call. Objectives 5–8 (real model-driven
+invocation, Context Pack consumption, two-Run continuity through the host, Evidence-to-Run
+association through host calls) therefore remain open, and no simulated substitute was built.
+
+### Fixed — daemon defect pass (P0–P3)
+
+- **Rate limiting could be bypassed by varying the id.** Buckets were keyed on
+  `req.path` (the concrete URL), so `/candidate/<new-id>/can-use` opened a new
+  bucket on every request: 70/70 passed while a repeated id stopped at 60. Buckets
+  are now keyed on the route pattern + client id, and the map is swept.
+- **Context packs were polluted by irrelevant history.** CBR retrieval had no
+  relevance floor and the field named `similarity` reported a blended score, so a
+  zero-overlap experience was injected into every pack at "similarity 0.3".
+  Retrieval floors at 0.15 raw text similarity, `similarity` is the honest
+  overlap, and the blended ranking value is `score`.
+- **Every `/core/governed/*` route returned 500.** The routes passed an object to
+  a positional core API and built a fresh `InMemoryCandidateStore` per request,
+  so `propose` could never be followed by `approve`. They now share one engine,
+  honour the documented contract, and map domain errors to 404/400, not 500.
+- **Candidate state did not survive a restart.** The governed engine uses a
+  file-backed store under `NEMONS_HOME/governed-candidates` (atomic writes; core's
+  `InMemoryCandidateStore` remains the authority for validation and transitions),
+  so proposals, decisions, and the review trail persist across processes.
+- **Approving a skill never made it usable.** `/candidate/:id/approve` now
+  promotes skill candidates into the unified skill store as `adopted`, and
+  retrieval serves only `adopted` assets — machine-compiled skills enter as
+  candidates and stay out of context packs until someone approves them.
+- **`daemon start` reported success on a busy port.** A foreign listener could
+  answer the health poll while the child had already died of `EADDRINUSE`, leaving
+  a stale PID file. Start now pre-checks the port and polls child liveness,
+  prints the error-log tail, and exits non-zero.
+- **The end-to-end suite only passed by luck.** It used a fixed port and skipped
+  teardown on failure; it now picks a free port and always stops the daemon and
+  cleans up.
+- **Writes were not atomic and ids could collide** in experiences, compiled
+  skills, candidates, and subagents. All go through temp-file + rename now.
+- **Post-run stages swallowed every error.** `post_run` reports `errors[]` per
+  stage instead of silently dropping failed experience/skill/webhook steps.
+- **Installers pointed at files that do not exist** (`install.ps1`, a wrong CLI
+  path in `scripts/install.sh`); `NEMONS_HOME` also defaulted inconsistently
+  between installer and runtime.
+- **Config was partly decorative.** `verification.evaluation_criteria.must_pass`
+  now selects the verifier's deterministic checks (`- tests_pass: false` opts out;
+  unmappable names are reported in `constraints_ignored`), `should_pass` /
+  `nice_to_have` reach context packs, and `interception.filters`,
+  `experiences.retention.max_age_days`, `security.audit.retention_days` are read.
+
+### Fixed — claims vs. code (honesty pass)
+
+- **"Transparent interception" was not delivered, and the docs said it was.**
+  Nothing here sits between an agent and the model: the daemon answers HTTP/MCP
+  calls, and a host hook has to make them. README, INSTALL, the orchestrator
+  skill, four docs pages, and every plugin manifest now say that, and the
+  adapters under `plugins/` are marked `reference-shim` — they are not installed
+  or exercised against any current host version. (Superseded for Codex by
+  "Verified — real host integration" below; the six others still stand.)
+- **Two plugin manifests pointed at files that did not exist.**
+  `plugins/qoder/manifest.json` (`main`) and `plugins/trae/manifest.json`
+  (`entry`) referenced a missing `nemons.js`, and `plugins/claude-code/plugin.json`
+  referenced a missing `skills/nemons-orchestrator.md`. The two shims and the
+  plugin-local skill copy now exist.
+- **Approving a persona or a knowledge asset changed a status and nothing else.**
+  Neither kind had an adoption destination, and real context packs had no
+  `knowledge` section at all (the field existed only in the synthetic fallback).
+  Both have stores now (`personas-evolved`, `knowledge-adopted`), approval
+  promotes into them through one helper, and the pack builder reads adopted
+  records only.
+- **`/candidate/register` accepted any string as a type.** Six of the nine
+  accepted kinds (`memory`, `experience`, `rule`, `tool`, `adapter`,
+  `context_pack`) have no adoption destination, so approving one set
+  `status: "adopted"` and nothing consumed it — the invariant held only where a
+  store happened to exist. One table (`nemos/src/utils/asset-kinds.js`) now
+  declares each kind's destination, registration refuses the kinds that can
+  never be adopted (400 `unsupported_candidate_kind` with the reason and the
+  supported list), `/core/governed/propose` reports `adoption.available`
+  instead of refusing core's contract, and `/core/status` publishes the table.
+- **The pack builder applied a persona it had just created as a candidate.**
+  STEP 1 consumed a `status: "candidate"` dynamic persona on the same request
+  that generated it — generation and adoption collapsed into one step. It now
+  selects adopted personas, records new ones as `persona_candidate` with
+  `used: false` for review, and falls back to the template persona otherwise.
+
+### Fixed — fabricated outcomes (simulated runs)
+
+- **Subagent outcomes were a coin flip.** `executeParallel` ran
+  `const success = Math.random() > 0.2` and reported `completed` / `failed`
+  accordingly, so `POST /subagent/orchestrate` returned invented successes with
+  `result: "Completed: <task>"`, and `/subagent/orchestrator/stats` counted them.
+  This daemon has no executor — running a subagent means calling the coding
+  agent — so a spawn now yields a dispatch record (`status: "dispatched"`,
+  `executed: false`, `result: null`), `execution: "delegated_to_host"`, and
+  `merge_strategy: "not_executed"`. An `executor` can be injected
+  (`new SubagentOrchestrator(mgr, { executor })`) to produce real, counted
+  outcomes; nothing fabricates one any more.
+- **Context packs carried no record of who was asked to run the subagents.**
+  `results.orchestration` was computed and then dropped at pack assembly, so a
+  caller could not tell that execution had been delegated to it. Packs now carry
+  `orchestration` (`execution`, `spawned`, `dispatched`, `executed`, `succeeded`,
+  `failed`, `retries`) and each subagent carries `status` / `executed`.
+- **`mipro` and `aflow` scored variants with `0.5 + Math.random() * 0.5`.**
+  `/evolution/run` returned that number as `expected_score` and picked a "best"
+  variant from it. A label (`score_source: "random_unmeasured"`) is not enough:
+  any consumer reading the number got a fabrication. Without an evaluator the
+  variants are now returned unscored (`expected_score` absent, `scored: false`,
+  `best_variant: null`) and an injected evaluator is the only way to get a score
+  (`score_source: "external_evaluator"`).
+- **Nine `/…/stats` endpoints answered `{}`.** `res.json(service.stats())` on
+  an async method serialises a Promise, so `/evolution/stats`, `/rag/stats`,
+  `/admit/stats`, `/ensemble/stats`, `/hcot/stats`, `/ntot/stats`,
+  `/codevision/stats`, `/delegation/stats`, and `/scaffolding/stats` reported
+  nothing while looking healthy. All await the call and map failures to 500.
+
+### Fixed — bridge surface (TypeScript-core verification pass)
+
+- **`POST /core/validate/candidate` rejected every body, valid records included.**
+  The bridge called `requireCore().validateCandidate`; the core exports
+  `validateCandidateRecord`. The `TypeError` was swallowed by the route's
+  `catch`, which answers `400 {valid: false, error: "…is not a function"}` — a
+  missing symbol reported as bad input. Two more wrappers had the same shape:
+  `createPairedEvaluator` and `createOfflineSkillEvaluator` referenced the
+  type-only interfaces `PairedEvaluator` / `OfflineSkillEvaluator`, which `tsc`
+  erases, instead of the exported `Default*` classes. They had no callers, so no
+  test could have caught them.
+- **`/core/status` published an unverified API list, and CI checked only its
+  length.** `available_apis` is a declared list, so it still read 18 while three
+  entries were unreachable. It now also returns `unavailable_apis` (advertised
+  names the bridge cannot resolve) and `bridge_integrity` (core symbols the
+  bridge source dereferences but the loaded namespace does not export — derived
+  by reading `nemos-bridge.js` itself, not a second hand-written list). The CI
+  smoke test asserts both are empty, that the audit checked more than 30 symbols,
+  and that a candidate the core itself proposed passes its own validator.
+- **The dashboard advertised interception it does not perform.** The
+  `intercepts_total` KPI is labelled "Intercepts — prompts captured" while the
+  counter increments inside `/analyze`, i.e. only for prompts the caller
+  volunteered. Renamed to "Packs served" with an explicit sub-line, the
+  "Verification loop" panel is now "Context pack trial — POST /analyze" (it does
+  not verify anything), and a prompt the filter skipped rendered red as a
+  failure — it is the filter working and now has its own neutral state.
+- **`Core APIs` counted a wildcard.** The KPI included `P2.*`, a group marker and
+  not a callable, and reported "bridge loaded" regardless of whether the
+  advertised surface resolved.
+- **`/metrics` documented a shape it no longer returns.** The reference still
+  showed `verification_pass_rate: 1.0` and omitted four of the seven fields; it
+  now shows the real payload, and `evaluations_total` / `evaluations_passed` are
+  published next to the historical `runs_total` alias so the key name no longer
+  implies agent runs.
+
+### Verified — TypeScript core and CI numbers
+
+Measured in this pass rather than copied from documentation:
+
+- `npx tsc --noEmit` → exit 0. `npm run build` → exit 0, and the committed
+  `dist/` is byte-identical to a clean rebuild (`git diff --quiet -- nemos-core/dist`
+  succeeded; the seven files that looked modified differed only in line endings,
+  now pinned by `.gitattributes`).
+- `npx vitest run` → **70 test files, 1221 tests, 0 failed, exit 0 on Windows**.
+  The Stage C suite had been failing there because it shelled out to
+  `scripts/stage-c/setup-fixture.sh` and the path arrived mangled; the fixture is
+  now built in-process (`tests/stage-c/fixture.ts`) with `execFile` argv, so no
+  shell parses a path.
+- Per-directory test counts were re-derived with `--reporter=json` and replace a
+  stage-based breakdown in `nemos-core/README.md` that summed to 1215, not 1221.
+- Corrected claims that had no file behind them: `docs/reports/` does not exist
+  (the 8 stage reports live in `docs/`, Stage B–I), `docs/adr/` holds 16 ADRs in
+  17 files, `src/schemas/` has 11 schema modules and 10 validators rather than
+  "9 domain schemas", and the arXiv citations are in daemon module headers — they
+  are not re-verified here, so "10 verified arXiv papers" is gone.
+- Daemon suites: unit 35, persona 33, bridge 22, security 21, MCP 26, regression
+  34 → **171 checks**, plus the 11-step end-to-end run (as measured then: the CLI dispatch
+  section below adds four regression tests, so those six suites are 175 today).
+
+### Verified — real host integration (Codex CLI 0.149.1)
+
+The honesty pass marked every adapter a reference shim. That was true then; it is no
+longer true for Codex, which is now installed against a real host and confirmed by the
+host itself. Measured against `codex-cli 0.149.1` on Windows, not inferred:
+
+- **`plugins/codex/` was never a Codex feature.** The old installer copied files to
+  `~/.codex/plugins/nemons/`, printed `✓ Plugin installed for Codex CLI`, and
+  `plugin list` confirmed it with `✓ installed (at …)`. `~/.codex` has no `plugins`
+  directory — 0.149.1 reads `[mcp_servers]` from `config.toml`,
+  `skills/<name>/SKILL.md`, and `AGENTS.md`. The install had no effect on the host.
+- **`nemons plugin install --agent codex` now registers through the host and reads the
+  host back.** `codex mcp add` → `codex mcp list --json` → `codex doctor`'s own
+  `mcp.config` check, which answers `ok / "MCP configuration is locally consistent"`.
+  No exit code is treated as proof: a zero-status `add` whose read-back does not match
+  the expected URL is reported as a failure. `plugin remove` is confirmed the same way,
+  and `plugin list` distinguishes `✓ registered` / `⚠ registered elsewhere` (stale
+  URL) / `✗ not registered`. Without the CLI, a `config.toml` merge is the fallback —
+  and that fallback was checked by hand-writing a block and watching the real host load
+  it.
+- **The bearer var is wired only when the daemon demands one.** Registering a
+  `bearer_token_env_var` the environment does not resolve makes `codex doctor` report
+  `warning / "MCP configuration has optional issues"` forever — with the misleading
+  remediation "Set the missing MCP env vars". Install now asks the running daemon
+  (`/health.auth_enabled`) and omits the var when auth is off. The suite asserts both
+  directions, including a token-protected daemon producing `auth_status:
+  "bearer_token"`.
+- **Two host behaviours that only measurement revealed.** `codex mcp add` aborts with
+  "CODEX_HOME points to …, but that path does not exist" when the home is missing (so
+  the driver creates it first), and `auth_status` is computed by probing the endpoint —
+  which means a `spawnSync` caller cannot host the daemon in the same process, because
+  the blocked event loop makes the host report `unknown`. The suite runs the daemon in
+  its own process for exactly that reason.
+- **A documentation defect that would have shipped into a host:** the orchestrator
+  skill told the model `GET /analyze`; the route is `POST` (verified against
+  `server.js`). Fixed in `config/skills/nemons-orchestrator.md`, and the installed copy
+  — never the repo file — has its daemon URL re-pointed at the resolved port, with the
+  rewrite count printed.
+- **The other six adapters are now labelled what they are.** `plugins/*/` installs
+  report `~ Files staged … the host was not asked to confirm them` with a counter
+  separate from host-confirmed registrations, instead of `✓ Plugin installed`.
+- Deliberately **not** claimed: that Codex loads the installed skill (write and re-read
+  only — discovery is the host's decision), and that a model turn ran with Nemons' tools
+  in it (needs provider credentials; `codex doctor` reports `auth.credentials: fail`
+  here). README, `nemos/README.md`, `nemos/docs/architecture.md`,
+  `nemos/docs/plugin-development.md` and `INSTALL.md` now state the split.
+- Suite: `nemos/tests/host-integration-tests.js` — **22 checks, exit 0** on a machine
+  with the CLI. **13 run everywhere** (TOML merge, MCP-over-the-registered-URL, auth
+  detection, token-protected daemon); 9 are gated on a real `codex` binary and
+  self-skip without it. Wired into CI (`test-daemon`) and `npm run test:host`, so the
+  daemon total is 171 → **188 always-run checks, 197 with Codex installed** (38 in the
+  regression suite — see the CLI dispatch section below).
+
+### Fixed — CLI dispatch (found by running the documented commands)
+
+Installing against the real host meant typing the commands the docs tell you to type.
+Four of them did not work.
+
+- **`nemons health` and `nemons install` threw before doing anything.** The CLI
+  dispatches `cmd(subcommand, flags)`; both modules declared a single parameter, so
+  `opts` was the subcommand — `undefined` for a flag-less call — and `opts.url` died on
+  "Cannot read properties of undefined". The root `npm run health` was broken the same
+  way. Both now take `(subcommand, opts)`.
+- **A leading flag was parsed as the subcommand.** `nemons health --detailed` handed the
+  command module the string `"--detailed"` and never put it in `flags`, so the detailed
+  branch was unreachable from the CLI. `bin/nemons.js` now treats an `args[1]` that
+  starts with `-` as an option and parses from there. Verified live: `health --detailed`
+  prints `Home:`/`Timestamp:` and `health` against a dead port exits 1 naming the right
+  URL.
+- **`nemons intercept enable|disable` claimed it notified the daemon.** It fetched
+  `/health` on a hardcoded `:3456` and printed "✓ Daemon notified (config will reload on
+  next request)". There is no reload channel — `server.js` calls `loadDaemonConfig()`
+  once at startup — so nothing had been notified and the change was not live. It now
+  reports the resolved port, says a `nemons daemon restart` is required (or that the
+  file applies at next start), and drops "Subsequent prompts will go directly to the
+  agent", which implied a path through Nemons that does not exist. The wording also
+  calls it what it is: prompt-screening config.
+- **Two CLI entry points had diverged.** `bin/nemos.js` (called by the root
+  start/stop/health/verify scripts and the platform launchers) kept its own copy of the
+  argument parser and missed the "a bare flag followed by another flag is boolean"
+  fix, so `--no-doctor --port 3456` silently dropped `--port` there. It now delegates to
+  `bin/nemons.js`, the file `package.json` publishes as `nemons`; the behaviour is
+  identical for every documented call (`--version`, `--help`, `daemon start/stop`,
+  `health` re-verified through the legacy path).
+- **The installer's "Next steps" printed `tail -f ~/.nemons/logs/daemon.log`** while
+  `NEMONS_HOME` relocates the whole store; it now prints the resolved log path.
+- Four regression tests in `tests/defect-regression-tests.js` ("CLI dispatch (arity and
+  flag parsing)") pin all of the above, including an assertion that the fabricated
+  reload notice stays dead: regression 34 → **38**, daemon totals **175** in the six
+  original suites and **188 / 197** with the host suite.
+
+### Added
+
+- `nemos/src/utils/codex-host.js` — the Codex host driver: `detectCodex`,
+  `codexHome`, `registerMcpServer` (CLI first, `config.toml` merge fallback, read-back
+  gate), `verifyRegistration`, `listMcpServers`, `removeMcpServer`, `installSkill` /
+  `skillInstalled` / `removeSkill`, `hostDiagnosis` (`codex doctor --json`),
+  `daemonAuthEnabled`. Every success claim comes from the host's own view.
+- `nemos/tests/host-integration-tests.js` — 22 checks (13 unconditional, 9 gated on a
+  real `codex` CLI), `npm run test:host`, and a CI step in `test-daemon`.
+- `nemons plugin install|list|remove --agent codex` accepts `--home <CODEX_HOME>`,
+  `--port <daemon port>` and `--no-doctor`.
+- `nemos/src/daemon/approval-promotion.js` — the single place that knows which
+  store consumes an approved candidate of each kind (`skill`, `persona`,
+  `knowledge`); used by both `/candidate/:id/approve` and
+  `/core/governed/approve`. Non-promotable kinds report `kind_has_no_adoption_store`
+  instead of a bare "approved".
+- `nemos/src/utils/knowledge-store.js` — adopted-knowledge store (`adopt`, `list`,
+  `retrieve`, `stats`); retrieval returns nothing without keyword overlap, so
+  existing knowledge is never injected "because it exists".
+- `nemos/src/utils/asset-kinds.js` — candidate kind → adoption destination table
+  (`live` / `no_destination` / `not_promotable`, each with a reason), used by
+  registration, approval promotion, the invariant enforcer, and `/core/status`.
+- `nemos/src/utils/governed-candidate-store.js` — file-backed `CandidateStore`
+  that extends core's in-memory store (no duplicated state machine).
+- `nemos/src/daemon/rate-limit.js` — route-pattern limiter installer.
+- `nemos/src/utils/ids.js` — collision-free id helper (`timeId`).
+- `nemos/tests/defect-regression-tests.js` — 32 regression tests, one per shipped
+  defect, wired into `test:all`, root `test:daemon`, and both CI jobs.
+- `GET /core/status` reports `governed_store`; `GET /health` reports
+  `auth_enabled` (auth is still opt-in via `NEMONS_AUTH_TOKEN`);
+  context packs synthesized for an unknown id are labelled `is_synthetic`.
+
 ## [4.5.0] - 2026-10-27
 
 ### Added — MCP server (Model Context Protocol) at `/mcp`

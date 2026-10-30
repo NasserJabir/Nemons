@@ -11,17 +11,21 @@ be used directly as an NPM package.
 implemented.**
 
 - **72 source files** in `src/`
-- **68 test files** in `tests/` (1215 tests, all passing)
-- **16 ADRs** in `docs/adr/`
-- **9 stage reports** in `docs/reports/` (Stage 0 through Stage I)
-- **Research-driven improvements** backed by 10 verified arXiv papers
+- **70 test files** in `tests/` — **1221 tests**, all passing. Re-measured on
+  Windows (`npx vitest run`, exit 0) and on Linux in CI (`test-core` job).
+- **16 ADRs** in `docs/adr/` (the directory has 17 files; the extra one is its
+  own README)
+- **8 stage reports** in `docs/` (`stage-b-report.md` … `stage-i-report.md`) —
+  there is no `docs/reports/` directory and no Stage 0/A report
+- **Research-inspired modules** whose headers cite arXiv ids; the citations are
+  not re-checked here (see `docs/research/`)
 
 ## Architecture
 
 ```
 src/
 ├── core/                # Foundation: identifiers, provenance, lifecycle, errors
-├── schemas/             # 9 domain schemas with validators
+├── schemas/             # 11 schema modules, 10 contract validators
 ├── policy/              # Governance: hard-deny + 5 built-in rules
 ├── adapter/             # Adapter contract + mock adapter + action interception
 ├── context/             # Context resolver + pack builder
@@ -53,7 +57,7 @@ To rebuild from source:
 cd nemos-core/
 npm install
 npm run build      # → tsc -p tsconfig.json → dist/
-npm test           # → vitest run → 1215 tests
+npm test           # → vitest run → 1221 tests
 ```
 
 ## Using the core directly
@@ -86,25 +90,32 @@ See `../nemos/src/utils/nemos-bridge.js` for the full bridge surface.
 ```bash
 cd nemos-core/
 npm test
-# → 68 test files, 1215 tests, all passing
+# → 70 test files, 1221 tests, all passing
 ```
 
-Test categories:
-- **Stage 0** — Core foundation (277 tests)
-- **Stage B** — Contract integrity (304 tests)
-- **Stage D** — Evidence→Experience lifecycle (92 tests)
-- **Stage E** — Persistent storage (38 tests)
-- **Stage F** — Governed evolution (86 tests)
-- **Extensions** — Persistent candidate store + candidate generator (44 tests)
-- **Research improvements** — 10 ADRs from arXiv papers (176 tests)
-- **Assessment gaps + P2/P3 features** — 198 tests
+Test counts by directory, measured with `npx vitest run --reporter=json` (they
+sum to 1221, so this list can be re-derived rather than trusted):
+
+| Directory (`tests/`) | Tests | | Directory | Tests |
+|---|---|---|---|---|
+| `stage-b` | 293 | | `context` | 22 |
+| `schemas` | 175 | | `p2-features.test.ts` | 24 |
+| `governed-evolution` | 126 | | `stage-c` | 29 |
+| `persistence` | 112 | | `conformance` | 11 |
+| `experience` | 84 | | `stage-d` / `stage-e` / `stage-f` | 8 / 7 / 8 |
+| `evaluation` | 72 | | `stage-g` / `stage-h` | 3 / 2 |
+| `core` | 61 | | `integration` (dir) | 2 |
+| `run` | 57 | | `integration.test.ts` | 3 |
+| `adapter` | 41 | | | |
+| `candidate-generation` | 28 | | | |
+| `policy` / `evidence` | 27 / 26 | | | |
 
 ## Documentation
 
 - `docs/adr/` — 16 Architecture Decision Records
-- `docs/stage-*-report.md` — 9 stage reports (one per implementation stage)
+- `docs/stage-*-report.md` — 8 stage reports (Stage B through Stage I)
 - `docs/assessment/feature-assessment.md` — 64-feature architectural assessment
-- `docs/research/` — Research notes from arXiv paper review
+- `docs/research/` — research notes behind the citation-bearing modules
 
 ## Architectural Invariants (Non-Negotiable)
 

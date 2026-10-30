@@ -1,9 +1,35 @@
 // ============================================================
-// Example Plugin: Nemons plugin for Codex CLI
-// Codex CLI supports plugins via .codex/plugins/ directory
+// Example Plugin: Nemons adapter shape for Codex CLI
+//
+// NOT WHAT GETS INSTALLED. Codex has no plugin directory and never reads
+// `~/.codex/plugins/`; the file is kept as a sketch of the `onPrompt` /
+// `onResponse` contract, not as a supported integration.
+//
+// What `nemons plugin install --agent codex` really does, verified against
+// codex-cli 0.149.1:
+//   1. registers the daemon as a streamable-HTTP MCP server:
+//        codex mcp add nemons --url http://127.0.0.1:<port>/mcp
+//      then reads it back from `codex mcp list --json` and from
+//      `codex doctor`'s own mcp.config check (see src/utils/codex-host.js);
+//   2. writes $CODEX_HOME/skills/nemons-orchestrator/SKILL.md — the only
+//      prompt-level channel Codex offers. Writing it is verified; the host
+//      deciding to load it is not ours to claim.
+//
+// So the hook body below is illustrative. The equivalent of onPrompt is the
+// model calling nemons.analyze_prompt; the equivalent of onResponse is it
+// calling nemons.collect_evidence and nemons.evaluate_run.
 // ============================================================
 
-const NEMONS_DAEMON = "http://127.0.0.1:3456";
+// Resolved rather than hardcoded: NEMONS_PORT / NEMONS_HOST move the daemon,
+// and a shim pinned to 3456 would silently point the model at a port nobody
+// listens on. The daemon's full precedence also reads config/daemon.yml, which
+// a standalone adapter cannot parse without pulling in daemon internals — so
+// `nemons plugin install` rewrites the address in the skill file it installs
+// for Codex, and this env-var fallback covers the hand-copied case.
+// `nemons health` prints the live address.
+const DAEMON_HOST = process.env.NEMONS_HOST || "127.0.0.1";
+const DAEMON_PORT = process.env.NEMONS_PORT || 3456;
+const NEMONS_DAEMON = `http://${DAEMON_HOST}:${DAEMON_PORT}`;
 const DAEMON_TIMEOUT = 5000;
 
 async function callDaemon(path, init) {
@@ -61,9 +87,11 @@ module.exports = {
       const pack = await callDaemon(`/context-pack/${analysis.suggested_pack_id}`);
       if (pack) {
         systemContext = [
-          `Persona: ${pack.persona?.role}`,
+          // `adopted_role` appears only when an approved persona was applied.
+          `Persona: ${pack.persona?.adopted_role || pack.persona?.role || "unspecified"}`,
           `Skills: ${(pack.skills || []).map((s) => s.id).join(", ")}`,
-          `Knowledge: ${(pack.knowledge || []).join("; ")}`,
+          // `knowledge` holds records (id/title), not bare strings.
+          `Knowledge: ${(pack.knowledge || []).map((k) => k.title || k).join("; ")}`,
           `Success Criteria: ${(pack.success_criteria || []).join("; ")}`,
         ].join("\n");
       }

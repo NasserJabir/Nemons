@@ -1,0 +1,13 @@
+{
+  "id": "sub-mvuuq33p-af68f4",
+  "parent_id": "main",
+  "role": "executor",
+  "capabilities": [],
+  "memory_mode": "agent-agnostic",
+  "lifespan": "one-time",
+  "task": "test",
+  "state": "created",
+  "created_at": "2026-10-30T10:50:53.365Z",
+  "resource_access": [],
+  "inherited_memory": {}
+}

@@ -10,6 +10,11 @@
 //   strict  — reserved for expensive/sensitive endpoints
 //             (a sixth of the default budget).
 // ============================================================
+// Buckets are keyed by route pattern, but client ids still vary; sweep
+// expired buckets once the map grows so it cannot grow without bound.
+const SWEEP_THRESHOLD = 256;
+const SWEEP_EVERY = 64;
+
 class RateLimiter {
   constructor(options = {}) {
     const envInt = (name, fallback) => {
@@ -23,6 +28,7 @@ class RateLimiter {
       strict: { windowMs, max: Math.max(1, Math.floor(max / 6)) },
     };
     this.requests = new Map(); // key: clientId:endpoint -> [timestamps]
+    this.checks = 0;
   }
 
   check(endpoint, clientId) {
@@ -36,10 +42,32 @@ class RateLimiter {
       timestamps.shift();
     }
     if (timestamps.length >= config.max) {
-      return { allowed: false, limit: config.max, remaining: 0 };
+      return {
+        allowed: false,
+        limit: config.max,
+        remaining: 0,
+        resetAt: timestamps[0] + config.windowMs,
+      };
     }
     timestamps.push(now);
-    return { allowed: true, remaining: config.max - timestamps.length, limit: config.max };
+    this.sweep(now);
+    return {
+      allowed: true,
+      remaining: config.max - timestamps.length,
+      limit: config.max,
+      resetAt: now + config.windowMs,
+    };
+  }
+
+  // Drop buckets with no request inside the current window. Amortized:
+  // only scans once the map is large, and only every SWEEP_EVERY checks.
+  sweep(now) {
+    if (this.requests.size <= SWEEP_THRESHOLD) return;
+    if (++this.checks % SWEEP_EVERY !== 0) return;
+    const cutoff = now - this.limits.default.windowMs;
+    for (const [key, ts] of this.requests) {
+      if (ts.length === 0 || ts[ts.length - 1] < cutoff) this.requests.delete(key);
+    }
   }
 
   stats() {

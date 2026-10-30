@@ -1,7 +1,8 @@
 {
   "name": "nemons-trae",
   "version": "1.0.0",
-  "description": "Nemons transparent orchestrator for Trae IDE (ByteDance)",
+  "description": "Nemons orchestrator for Trae IDE — reference shim. Declares trigger patterns and the daemon URL; not verified against Trae's plugin API.",
+  "status": "reference-shim",
   "type": "trae-plugin",
   "entry": "nemons.js",
   "triggers": {

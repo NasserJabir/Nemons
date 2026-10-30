@@ -7,6 +7,82 @@ const path = require("path");
 const os = require("os");
 const fs = require("fs").promises;
 const fsSync = require("fs");
+const { resolvePort, resolveHost, nemonsHome } = require("../utils/runtime-config");
+
+// Hosts that expose a real registration surface get a DRIVER: one module per
+// host that knows where that host stores its config and how to read the host's
+// own view back. Adding Qoder must not touch Codex, so the dispatch is a
+// lookup instead of a second copy of the install flow.
+const HOST_DRIVERS = {
+  codex: () => require("../utils/codex-host"),
+  qoder: () => require("../utils/qoder-host"),
+};
+
+function driverFor(conf) {
+  const name = conf.driver || (conf.integration === "mcp" ? "codex" : null);
+  if (!name || !HOST_DRIVERS[name]) return null;
+  return HOST_DRIVERS[name]();
+}
+
+// Per-host wording + entry points, so one install flow serves both hosts
+// without pretending they are the same shape.
+const HOST_PROFILES = {
+  codex: {
+    name: "codex",
+    homeLabel: "CODEX_HOME",
+    entryLabel: (n) => `[mcp_servers.${n}]`,
+    // Codex resolves the config itself and `codex mcp list` re-probes it, so
+    // a read-back here is the host's own view.
+    stateNote: "confirmed via codex mcp list --json",
+    reloadNote: "MCP tools appear in Codex after a restart; verify with `codex mcp get nemons`.",
+    adapt(mod) {
+      return {
+        ...mod,
+        home: mod.codexHome,
+        configPath: mod.codexConfigPath,
+        detect: mod.detectCodex,
+        hostDiagnosis: mod.hostDiagnosis,
+      };
+    },
+  },
+  qoder: {
+    name: "qoder",
+    homeLabel: "QODER_HOME",
+    entryLabel: (n) => `mcpServers.${n}`,
+    // There is no Qoder CLI: this can only ever mean "present in the file the
+    // IDE reads". Saying "confirmed" here would be the exact claim the
+    // honesty pass removed for the other six adapters.
+    stateNote: "read back from the file the IDE reads — not a live connection",
+    reloadNote: "Qoder IDE watches ~/.qoder/mcp.json but a write here does not prove it reloaded; in a session started before this write the tools are absent until the IDE reloads or the MCP server is reconnected in Settings.",
+    adapt(mod) {
+      return {
+        ...mod,
+        home: mod.qoderHome,
+        configPath: mod.qoderConfigPath,
+        detect: mod.detectQoder,
+        readRuntimeDiscovery: mod.readRuntimeDiscovery,
+      };
+    },
+  },
+};
+
+function hostProfileFor(conf) {
+  const driver = driverFor(conf);
+  if (!driver) return null;
+  const profile = HOST_PROFILES[conf.driver || "codex"];
+  return Object.assign({
+    SERVER_NAME: driver.SERVER_NAME,
+    TOKEN_ENV_VAR: driver.TOKEN_ENV_VAR,
+    mcpUrl: driver.mcpUrl,
+    daemonAuthEnabled: driver.daemonAuthEnabled,
+    registerMcpServer: driver.registerMcpServer,
+    removeMcpServer: driver.removeMcpServer,
+    verifyRegistration: driver.verifyRegistration,
+    installSkill: driver.installSkill,
+    removeSkill: driver.removeSkill,
+    skillInstalled: driver.skillInstalled,
+  }, profile, profile.adapt(driver));
+}
 
 // ---------- Find project root (SYNCHRONOUS, no await) ----------
 function findProjectRoot() {
@@ -95,17 +171,15 @@ const SOURCE_FILES = {
     ],
   },
   
+  // Codex does not use the file-copy path below. Measured against codex-cli
+  // 0.149.1: ~/.codex/plugins/ is never read. Its channels are mcp_servers in
+  // $CODEX_HOME/config.toml and $CODEX_HOME/skills/<name>/SKILL.md, and both
+  // can be read back — so install reports what the host confirmed.
   codex: {
     name: "Codex CLI",
-    pluginDir: path.join(os.homedir(), ".codex", "plugins", "nemons"),
-    candidates: ["plugins/codex/nemons.js"],
-    destName: "nemons.js",
-    additionalFiles: [
-      {
-        candidates: ["config/skills/nemons-orchestrator.md", "skills/nemons-orchestrator.md"],
-        destName: "skills/nemons-orchestrator.md",
-      }
-    ],
+    integration: "mcp",
+    pluginDir: path.join(os.homedir(), ".codex"),  // host-home marker for detection
+    skillCandidates: ["config/skills/nemons-orchestrator.md", "skills/nemons-orchestrator.md"],
   },
   
   kimi: {
@@ -128,11 +202,21 @@ const SOURCE_FILES = {
     destName: "nemons.js",
   },
   
+  // Measured against Qoder IDE 1.37.0: it has NO plugin directory the IDE
+  // reads, and the `qoder` binary on PATH is the IDE launcher, not a config
+  // CLI. Its supported channel is the user-level mcpServers file at
+  // ~/.qoder/mcp.json (+ ~/.qoder/skills/<name>/SKILL.md), so the driver
+  // writes there and reads the file back — see src/utils/qoder-host.js.
   qoder: {
     name: "Qoder",
-    pluginDir: path.join(os.homedir(), ".qoder", "plugins", "nemons"),
-    candidates: ["plugins/qoder/manifest.json"],
-    destName: "manifest.json",
+    integration: "mcp",
+    driver: "qoder",
+    pluginDir: path.join(os.homedir(), ".qoder"),  // host-home marker for detection
+    skillCandidates: ["config/skills/nemons-orchestrator.md", "skills/nemons-orchestrator.md"],
+    // We state the transport instead of leaving it to the IDE's auto-
+    // detection, because our /mcp serves Streamable HTTP only (POST answers
+    // JSON, GET is 405) and a wrong guess fails silently.
+    mcpType: "streamable-http",
   },
   
   trae: {
@@ -155,7 +239,10 @@ function detectInstalledAgentsSync() {
   const { execSync } = require("child_process");
   
   for (const [key, conf] of Object.entries(SOURCE_FILES)) {
-    const cmd = key === "claude-code" ? "claude" : key === "kimi" ? "kimi" : key === "qoder" ? "qodercli" : key;
+    // Every name here is the host's own launcher/binary name, resolved on
+    // PATH. `qodercli` was guessed: it is not installed and is not how the
+    // Qoder IDE is invoked (the IDE ships `qoder` in its bin dir).
+    const cmd = key === "claude-code" ? "claude" : key === "kimi" ? "kimi" : key;
     let isFound = false;
     
     try {
@@ -165,7 +252,9 @@ function detectInstalledAgentsSync() {
     
     if (!isFound) {
       try {
-        if (fsSync.existsSync(path.dirname(conf.pluginDir))) {
+        // mcp-integrated hosts have no plugin directory; their home marks them
+        const probeDir = conf.integration === "mcp" ? conf.pluginDir : path.dirname(conf.pluginDir);
+        if (fsSync.existsSync(probeDir)) {
           isFound = true;
         }
       } catch {}
@@ -209,6 +298,144 @@ async function updateAgentConfig(configPath, pluginEntry) {
   }
 }
 
+// ---------- Host-registered integrations (Codex, Qoder) ----------
+// Everything below reports the HOST's own read-back. A zero exit code from
+// `codex mcp add`, or a successful write to `~/.qoder/mcp.json`, is never
+// treated as proof that the server is usable.
+async function installViaHostRegistration(conf, projectRoot, opts, host) {
+  const home = opts.home || host.home();
+  const port = resolvePort({ explicit: opts.port });
+  const listenHost = resolveHost();
+  const url = host.mcpUrl(listenHost, port);
+  const cli = host.detect();
+
+  console.log(`  ${host.homeLabel}: ${home}`);
+  console.log(`  Host app:   ${cli.available ? (cli.version ? `${cli.label || host.name} ${cli.version}` : cli.label || "detected") : "not detected"}`);
+  console.log(`  MCP url:    ${url}`);
+
+  // Ask the daemon whether it actually demands a token — never guess it.
+  // Measured on Codex: registering a bearer var that is not set makes
+  // `codex doctor` flag the MCP config on every run. On Qoder there is no
+  // documented way to reference an environment variable from mcp.json, so a
+  // token would have to be written as a literal secret; we refuse to do that
+  // silently and say what the options are instead.
+  const authEnabled = await host.daemonAuthEnabled({
+    host: listenHost === "0.0.0.0" || listenHost === "::" ? "127.0.0.1" : listenHost,
+    port,
+  });
+  let bearerTokenEnvVar;
+  let headers;
+  if (authEnabled === true && host.name === "codex") bearerTokenEnvVar = host.TOKEN_ENV_VAR;
+  if (authEnabled === true && host.name === "qoder") {
+    console.error("  ✗ The daemon demands a token, and Qoder's mcp.json has no documented way to");
+    console.error("    reference an environment variable — the only alternative would be writing");
+    console.error("    the secret in plaintext into a file the IDE reads.");
+    console.error("    Either run the daemon open on loopback (unset NEMONS_AUTH_TOKEN) or add the");
+    console.error("    header yourself in Qoder IDE Settings -> MCP after this run.");
+    return false;
+  }
+  console.log(`  Auth:       ${authEnabled === true
+    ? `daemon requires a token — wiring ${host.TOKEN_ENV_VAR} (set it wherever ${host.name} runs)`
+    : authEnabled === false
+      ? "daemon is open (NEMONS_AUTH_TOKEN unset) — no credential registered; re-run install if you enable auth"
+      : "daemon not reachable at install time — registering without a credential"}`);
+
+  const reg = await host.registerMcpServer({ home, url, bearerTokenEnvVar, headers, type: conf.mcpType });
+  for (const attempt of reg.attempts) {
+    console.log(`    · ${attempt.method}: ${attempt.ok ? "ok" : `✗ ${attempt.detail}`}`);
+  }
+  if (!reg.ok) {
+    console.error(`  ✗ Registration NOT confirmed by read-back.`);
+    console.error(`    Expected ${host.entryLabel(host.SERVER_NAME)} → ${url}`);
+    console.error(`    Check: ${reg.configPath || host.configPath(home)}`);
+    return false;
+  }
+  const back = reg.readback;
+  console.log(`  ✓ Registered ${host.entryLabel(host.SERVER_NAME)} → ${back.url}`);
+  console.log(`    transport=${back.transport} auth=${back.auth_status} (read back from ${back.via})`);
+  if (back.otherServers && back.otherServers.length) {
+    console.log(`    untouched alongside it: ${back.otherServers.join(", ")}`);
+  }
+  if (back.url_matches === false) {
+    console.error(`  ✗ the url read back is not the one we wrote — aborting the claim, not the file`);
+  }
+
+  // Second channel: neither host offers a prompt hook, only skills it may
+  // choose to load.
+  const skillSrc = await findSourceFile(conf.skillCandidates, projectRoot);
+  if (!skillSrc) {
+    console.log(`  ⚠ Skill source not found — tried: ${conf.skillCandidates.join(", ")}`);
+  } else {
+    const sk = host.installSkill({ home, sourceFile: skillSrc, daemonHost: "127.0.0.1", daemonPort: port });
+    console.log(sk.ok
+      ? `  ✓ Skill written and re-read: ${sk.path}` +
+        `${sk.rewrites ? ` (${sk.rewrites} endpoint reference(s) pointed at 127.0.0.1:${port})` : ""}`
+      : `  ⚠ Skill NOT installed: ${sk.detail}`);
+  }
+
+  // Codex exposes a diagnostic that reads its own MCP config back; Qoder
+  // exposes nothing to a CLI, so the closest equivalent is the tool cache
+  // the IDE publishes for itself — which we only ever READ.
+  if (host.name === "codex" && cli.available && !opts["no-doctor"]) {
+    const dx = host.hostDiagnosis({ home });
+    console.log(dx.available
+      ? `  · codex doctor mcp.config: ${dx.status} — ${dx.summary}` +
+        `${dx.configured ? ` (${dx.configured} configured${dx.transports.length ? ", " + dx.transports.join(", ") : ""})` : ""}`
+      : `  ⚠ codex doctor unavailable: ${dx.detail}`);
+    if (dx.available && dx.status !== "ok") {
+      console.log(`    remediation: ${dx.remediation || "see \`codex doctor\`"}`);
+    }
+  }
+  if (host.name === "qoder") {
+    const rt = reg.runtime || host.readRuntimeDiscovery({});
+    console.log(rt.discovered
+      ? `  · IDE tool cache already lists "${host.SERVER_NAME}": ${rt.toolCount ?? rt.tools.length} tool(s), published ${rt.publishedAt}`
+      : `  · IDE tool cache does NOT list "${host.SERVER_NAME}" yet (${rt.available ? "cache read, no entry" : rt.detail}) — that is expected: a written config is state 1, not a connection.`);
+    console.log(`  ℹ Qoder has no CLI that reads its MCP config back. To see the host's own view:`);
+    console.log(`    open Qoder IDE Settings → MCP 服务 and check the link icon / tool list for ${host.SERVER_NAME}.`);
+  }
+
+  console.log(`  ℹ ${host.reloadNote}`);
+  if (host.name === "qoder") {
+    console.log(`  ℹ Which state this run proved: "saved". "connected", "authenticated" and`);
+    console.log(`    "tools available in this chat" are separate states the IDE does not report`);
+    console.log(`    to a CLI — see the capability report before claiming any of them.`);
+  }
+  console.log(`  ℹ Skill discovery is decided by ${host.name} and was not verified here.`);
+  return true;
+}
+
+async function describeHostRegistration(home, port, host) {
+  const target = home || host.home();
+  const url = host.mcpUrl(resolveHost(), resolvePort({ explicit: port }));
+  const view = host.verifyRegistration({ home: target, expectedUrl: url });
+  const skill = host.skillInstalled({ home: target });
+  const notes = [`skill: ${skill.installed ? "present" : "absent"}`];
+
+  if (!view.registered) {
+    return { status: "✗ not registered", detail: `(no ${host.entryLabel(host.SERVER_NAME)} in ${view.source}${view.listError ? `; ${view.listError}` : ""})`, notes };
+  }
+  if (view.url_matches === false) {
+    notes.unshift(`host has ${view.url}`);
+    return { status: "⚠ registered elsewhere", detail: `(stale url ${view.url} — daemon is ${url}; re-run install)`, notes };
+  }
+  if (!view.enabled) {
+    return { status: "⚠ registered (disabled)", detail: `(the host config marks it turned off)`, notes };
+  }
+  // Qoder: say explicitly which state we are attesting to. "registered" here
+  // means "present in the file the IDE reads", nothing more.
+  if (view.runtimeDiscovery) {
+    notes.push(view.runtimeDiscovery.discovered
+      ? `IDE cache: ${view.runtimeDiscovery.toolCount ?? view.runtimeDiscovery.tools.length} tool(s)`
+      : "IDE cache: not loaded yet");
+  }
+  return {
+    status: "✓ registered",
+    detail: `(${view.url} · ${view.transport} · ${host.stateNote})`,
+    notes,
+  };
+}
+
 // ---------- Main command handler (NO top-level await) ----------
 module.exports = async function (action, opts) {
   // Support both signatures
@@ -237,6 +464,7 @@ module.exports = async function (action, opts) {
       }
       
       let installed = 0;
+      let staged = 0;
       let failed = 0;
       
       for (const agent of targets) {
@@ -250,6 +478,20 @@ module.exports = async function (action, opts) {
         
         console.log(`[nemons] Installing plugin for ${conf.name}...`);
         console.log(`  Project root: ${PROJECT_ROOT}`);
+        
+        // Hosts with a real registration surface go through the host, not a
+        // file copy — a copied file proves nothing about the running agent.
+        if (conf.integration === "mcp") {
+          const host = hostProfileFor(conf);
+          if (!host) {
+            console.error(`  ✗ No host driver for "${agent}" (driver: ${conf.driver})`);
+            failed++;
+            continue;
+          }
+          if (await installViaHostRegistration(conf, PROJECT_ROOT, opts, host)) installed++;
+          else failed++;
+          continue;
+        }
         
         // Find source file (async, but inside function)
         const sourcePath = await findSourceFile(conf.candidates, PROJECT_ROOT);
@@ -299,25 +541,40 @@ module.exports = async function (action, opts) {
           await updateAgentConfig(conf.configFile, conf.configEntry);
         }
         
-        console.log(`  ✓ Plugin installed for ${conf.name}`);
-        installed++;
+        // Reference shims: the files are in place, but no host was asked to
+        // accept them. Reporting that as "installed" is the claim this removes.
+        console.log(`  ~ Files staged for ${conf.name} — the host was not asked to confirm them`);
+        staged++;
       }
       
       console.log("");
       console.log("============================================================");
       console.log(`  Installation Summary`);
       console.log("============================================================");
-      console.log(`  ✓ Installed: ${installed}`);
-      console.log(`  ✗ Failed:    ${failed}`);
+      console.log(`  ✓ Host-confirmed registrations: ${installed}`);
+      console.log(`  ~ Files staged, host not asked: ${staged}`);
+      console.log(`  ✗ Failed:                   ${failed}`);
       console.log("");
       
       if (installed > 0) {
         console.log("  Next steps:");
-        console.log("    1. Restart your coding agent (if open)");
-        console.log("    2. Run a test prompt: 'implement a hello world function'");
-        console.log("    3. Check dashboard: http://localhost:3456");
-        console.log("    4. Monitor logs: tail -f ~/.nemons/logs/daemon.log");
+        console.log("    1. Restart the host, then verify with: nemons plugin list");
+        // Resolved, not hardcoded: NEMONS_PORT or config/daemon.yml can move
+        // the daemon, and this line used to send people to the wrong port.
+        console.log(`    2. Check dashboard: http://localhost:${resolvePort()}`);
+        // Same reason for the log: NEMONS_HOME relocates the whole store, and
+        // `tail -f` is not how you read it on Windows.
+        console.log(`    3. Daemon log: ${path.join(nemonsHome(), "logs", "daemon.log")}`);
       }
+      if (staged > 0) {
+        console.log("  Note: staged adapters are unverified reference shims — see the");
+        console.log("        README \"Integration status\" table before relying on one.");
+      }
+      // A command that registered nothing must not exit 0: the CLI dispatch
+      // ignores the module's return value, so this is the only place the
+      // status can be set. `nemons plugin install --agent qoder` used to
+      // report "✗ Failed: 1" and leave the shell with exit code 0.
+      if (installed === 0 && failed > 0) process.exitCode = 1;
       break;
     }
     
@@ -327,23 +584,42 @@ module.exports = async function (action, opts) {
       const found = detectInstalledAgentsSync();
       
       for (const [agent, conf] of Object.entries(SOURCE_FILES)) {
-        const isInstalled = await isAgentInstalled(conf);
         const isDetected = found.includes(agent);
-        
         let status;
         let detail = "";
-        if (isInstalled) {
-          status = "✓ installed";
-          detail = `(at ${conf.pluginDir})`;
-        } else if (isDetected) {
-          status = "⚠ detected";
-          detail = "(not installed — run: nemons plugin install)";
+
+        if (conf.integration === "mcp") {
+          // Ask the host, do not infer from our own files.
+          const host = hostProfileFor(conf);
+          if (!host) {
+            status = "✗ no driver";
+            detail = `(driver "${conf.driver}" is not implemented)`;
+            console.log(`  ${conf.name.padEnd(15)} ${status} ${detail}`);
+            continue;
+          }
+          const view = await describeHostRegistration(opts.home, opts.port, host);
+          status = isDetected ? view.status : "  not detected";
+          detail = isDetected ? `${view.detail} ${view.notes.join(" · ")}`.trim() : `(home ${opts.home || host.home()})`;
         } else {
-          status = "  not detected";
+          const isInstalled = await isAgentInstalled(conf);
+          if (isInstalled) {
+            // Files staged by us, NOT confirmed by the host — these adapters
+            // are reference shims (see README "Integration status").
+            status = "~ files staged";
+            detail = `(at ${conf.pluginDir}; not host-verified)`;
+          } else if (isDetected) {
+            status = "⚠ detected";
+            detail = "(not installed — run: nemons plugin install)";
+          } else {
+            status = "  not detected";
+          }
         }
-        
+
         console.log(`  ${conf.name.padEnd(15)} ${status} ${detail}`);
       }
+      console.log("");
+      console.log("  Legend: ✓ registered = host read-back confirms it · " +
+        "~ files staged = copied, host never asked · ⚠ = needs attention");
       break;
     }
     
@@ -360,9 +636,32 @@ module.exports = async function (action, opts) {
         process.exit(1);
       }
       
+      if (conf.integration === "mcp") {
+        const host = hostProfileFor(conf);
+        if (!host) {
+          console.error(`✗ No host driver for "${targetAgent}" (driver: ${conf.driver})`);
+          process.exit(1);
+        }
+        const home = opts.home || host.home();
+        const gone = await host.removeMcpServer({ home });
+        for (const note of gone.notes) console.log(`  · ${note}`);
+        host.removeSkill({ home });
+        if (!gone.ok) {
+          console.error(`✗ ${conf.name} still lists the server (read-back said registered=${gone.stillRegistered})`);
+          console.error(`  Inspect: ${host.configPath(home)}`);
+          process.exit(1);
+        }
+        console.log(`✓ Nemons no longer registered for ${conf.name} (confirmed by re-reading ${host.configPath(home)})`);
+        if (host.name === "qoder") {
+          console.log("  Note: the IDE may keep the tools loaded in an already-running session;");
+          console.log("        Qoder IDE Settings → MCP is the host's own view of what is live.");
+        }
+        break;
+      }
+
       try {
         await fs.rm(conf.pluginDir, { recursive: true, force: true });
-        console.log(`✓ Plugin removed from ${conf.name}`);
+        console.log(`✓ Plugin files removed from ${conf.name}`);
         console.log(`  Removed: ${conf.pluginDir}`);
       } catch (err) {
         console.error(`✗ Failed: ${err.message}`);

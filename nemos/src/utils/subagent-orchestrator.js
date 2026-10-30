@@ -62,9 +62,19 @@ const DOMAIN_ROLE_OVERRIDE = {
 };
 
 class SubagentOrchestrator {
-  constructor(subagentManager) {
+  // `executor` is optional and injected: an async function that actually runs a
+  // subagent and resolves to its result. This daemon ships WITHOUT one, because
+  // executing a subagent means calling a coding agent, which only the caller
+  // can do. When no executor is supplied the honest outcome of a spawn is
+  // "dispatched", not "succeeded" — see executeParallel.
+  constructor(subagentManager, { executor = null } = {}) {
     this.subagentManager = subagentManager;
+    this.executor = typeof executor === "function" ? executor : null;
     this.orchestrationHistory = [];
+  }
+
+  get executionMode() {
+    return this.executor ? "executed_locally" : "delegated_to_host";
   }
 
   // ============================================================
@@ -119,7 +129,7 @@ class SubagentOrchestrator {
       }
     }
     
-    // Step 4: Execute in parallel (simulated — in production: actual execution)
+    // Step 4: Dispatch (and execute, if an executor was injected)
     const results = await this.executeParallel(spawned);
     
     // Step 5: Merge results
@@ -144,7 +154,14 @@ class SubagentOrchestrator {
       persona_domain: personaDomain,
       persona_driven: personaDriven,
       dag_nodes: dagPlan.nodes?.length || 0,
+      // `execution` says who ran the work. "delegated_to_host" means this
+      // daemon spawned the subagent records and did NOT run them, so
+      // succeeded/failed count only real outcomes (spawn errors, or an
+      // injected executor's results) — never a simulated coin flip.
+      execution: this.executionMode,
       subagents_spawned: spawned.length,
+      subagents_dispatched: results.filter(r => r.status === "dispatched").length,
+      subagents_executed: results.filter(r => r.executed === true).length,
       subagents_succeeded: results.filter(r => r.status === "completed").length,
       subagents_failed: failedSubagents.length,
       retries: retried.length,
@@ -165,7 +182,10 @@ class SubagentOrchestrator {
       persona_role: personaRole || null,
       persona_domain: personaDomain,
       persona_driven: personaDriven,
-      message: `Orchestrated ${spawned.length} subagents (${results.filter(r => r.status === "completed").length} succeeded, ${failedSubagents.length} failed, ${retried.length} retried).`,
+      message: this.executor
+        ? `Orchestrated ${spawned.length} subagents (${results.filter(r => r.status === "completed").length} succeeded, ${failedSubagents.length} failed, ${retried.length} retried).`
+        : `Spawned ${spawned.length} subagents and dispatched them to the calling agent ` +
+          `(${failedSubagents.length} failed to spawn, ${retried.length} retried). No subagent was executed by this daemon.`,
     };
   }
 
@@ -283,47 +303,62 @@ class SubagentOrchestrator {
     return caps.length > 0 ? caps : ["execute"];
   }
 
-  // Execute subagents in parallel
+  // Execute subagents — but only an injected executor can actually run one.
+  //
+  // This used to be `const success = Math.random() > 0.2;` and report
+  // "completed" / "failed" accordingly, so `POST /subagent/orchestrate`
+  // returned invented successes and failures for work that never ran. Without
+  // an executor the result is a dispatch record: the subagent exists, the
+  // calling agent is responsible for running it, and nothing here claims an
+  // outcome.
   async executeParallel(subagents) {
-    // In production: actual parallel execution via worker threads or processes
-    // Here: simulated parallel execution
-    const results = await Promise.all(
+    return Promise.all(
       subagents.map(async (sub) => {
-        if (sub.error) {
-          return { ...sub, status: "failed", error: sub.error };
-        }
-        
-        // Simulate execution (in production: call actual coding agent)
-        const success = Math.random() > 0.2; // 80% success rate
-        return {
+        const base = {
           subagent_id: sub.id,
           task: sub.task,
           role: sub.role,
           memory_mode: sub.memory_mode,
-          status: success ? "completed" : "failed",
-          result: success ? `Completed: ${sub.task}` : null,
-          error: success ? null : "execution_failed",
-          completed_at: new Date().toISOString(),
         };
+
+        if (sub.error) {
+          // spawn() threw: a real failure, reported as one
+          return { ...base, status: "failed", executed: false, execution: "none", result: null, error: sub.error, completed_at: null };
+        }
+
+        if (!this.executor) {
+          return { ...base, status: "dispatched", executed: false, execution: "delegated_to_host", result: null, error: null, completed_at: null };
+        }
+
+        try {
+          const result = await this.executor(sub);
+          return { ...base, status: "completed", executed: true, execution: "executed_locally", result: result === undefined ? null : result, error: null, completed_at: new Date().toISOString() };
+        } catch (e) {
+          return { ...base, status: "failed", executed: true, execution: "executed_locally", result: null, error: e.message || "execution_failed", completed_at: new Date().toISOString() };
+        }
       })
     );
-    
-    return results;
   }
 
   // Merge results from multiple subagents
   mergeResults(results) {
     const successful = results.filter(r => r.status === "completed");
     const failed = results.filter(r => r.status === "failed");
+    const dispatched = results.filter(r => r.status === "dispatched");
     
     return {
       total: results.length,
       succeeded: successful.length,
       failed: failed.length,
+      // Dispatched but not run here — neither success nor failure.
+      not_executed: dispatched.length,
       tasks_completed: successful.map(r => ({ task: r.task, result: r.result })),
       tasks_failed: failed.map(r => ({ task: r.task, error: r.error })),
-      all_succeeded: failed.length === 0,
-      merge_strategy: failed.length === 0 ? "complete" : "partial",
+      tasks_dispatched: dispatched.map(r => ({ task: r.task, role: r.role })),
+      all_succeeded: results.length > 0 && successful.length === results.length,
+      // "not_executed" instead of "complete": a pack with dispatch-only
+      // subagents must not look like finished work.
+      merge_strategy: dispatched.length > 0 ? "not_executed" : (failed.length === 0 ? "complete" : "partial"),
     };
   }
 
@@ -379,7 +414,12 @@ class SubagentOrchestrator {
   async stats() {
     return {
       total_orchestrations: this.orchestrationHistory.length,
+      execution_mode: this.executionMode,
       total_subagents_spawned: this.orchestrationHistory.reduce((s, o) => s + o.subagents_spawned, 0),
+      total_dispatched: this.orchestrationHistory.reduce((s, o) => s + (o.subagents_dispatched || 0), 0),
+      total_executed: this.orchestrationHistory.reduce((s, o) => s + (o.subagents_executed || 0), 0),
+      // 0 here means "nothing was executed by this daemon", not "everything
+      // failed" — read execution_mode before interpreting these.
       total_succeeded: this.orchestrationHistory.reduce((s, o) => s + o.subagents_succeeded, 0),
       total_failed: this.orchestrationHistory.reduce((s, o) => s + o.subagents_failed, 0),
       total_retries: this.orchestrationHistory.reduce((s, o) => s + o.retries, 0),
@@ -389,7 +429,7 @@ class SubagentOrchestrator {
         if (o.persona_domain) m[o.persona_domain] = (m[o.persona_domain] || 0) + 1;
         return m;
       }, {}),
-      reference: "Subagent Orchestrator — auto-spawn + parallel + merge (v4.2.1 persona-aware)",
+      reference: "Subagent Orchestrator — spawn + dispatch (execution delegated to the calling agent unless an executor is injected)",
     };
   }
 }

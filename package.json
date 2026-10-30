@@ -1,14 +1,14 @@
 {
   "name": "nemos-project",
   "version": "4.5.0",
-  "description": "Nemos - transparent orchestration layer for coding agents (v4.5.0 release)",
+  "description": "Nemos - governed context, evidence, and verification service for coding agents, called over HTTP or MCP (v4.5.0 release)",
   "private": true,
   "scripts": {
     "start": "node nemos/bin/nemos.js daemon start",
     "stop": "node nemos/bin/nemos.js daemon stop",
     "health": "node nemos/bin/nemos.js health",
     "verify": "node nemos/bin/nemos.js verify",
-    "test:daemon": "cd nemos && node tests/unit-tests.js && node tests/v421-persona-tests.js && node tests/v421-bridge-tests.js",
+    "test:daemon": "cd nemos && node tests/unit-tests.js && node tests/v421-persona-tests.js && node tests/v421-bridge-tests.js && node tests/security-tests.js && node tests/mcp-tests.js && node tests/defect-regression-tests.js && node tests/host-integration-tests.js",
     "test:core": "cd nemos-core && npm test",
     "test:all": "npm run test:daemon && npm run test:core",
     "typecheck:core": "cd nemos-core && npx tsc --noEmit",

@@ -35,13 +35,25 @@ class InvariantEnforcer {
   }
   async checkNoSilentMutation(asset, cl) {
     if (!cl) return { violated: false, action: "warn" };
-    const c = await cl.registerCandidate({ type: asset.type || "skill", content: asset });
-    return {
-      violated: false,
-      action: "route_to_candidate",
-      candidate_id: c.candidate?.id,
-      invariant: "#7",
-    };
+    try {
+      const c = await cl.registerCandidate({ type: asset.type || "skill", content: asset });
+      return {
+        violated: false,
+        action: "route_to_candidate",
+        candidate_id: c.candidate?.id,
+        invariant: "#7",
+      };
+    } catch (e) {
+      // This kind has no adoption destination, so there is nothing to route it
+      // to. Say that, instead of implying the asset was safely quarantined.
+      return {
+        violated: false,
+        action: "not_routable",
+        code: e.code || null,
+        reason: e.message,
+        invariant: "#7",
+      };
+    }
   }
   async checkHardDeny(action, trust, env) {
     const destructive = ["delete", "drop", "truncate", "rm"];

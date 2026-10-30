@@ -2,9 +2,9 @@
 
 ## Core Principle: Nemos is a LAYER, not an LLM
 
-Nemos is a transparent orchestration layer that sits BETWEEN the user and the coding agent. It:
+Nemos is an orchestration service that a coding agent calls over HTTP/MCP; it is NOT in the model's inference path and does not intercept anything by itself. Given a call, it:
 
-- ✅ Intercepts prompts
+- ✅ Receives prompts from a host adapter or skill (not from a process hook it installs)
 - ✅ Injects Context Packs
 - ✅ Collects Evidence
 - ✅ Runs Verification (heuristic — no LLM)
@@ -16,6 +16,7 @@ It does NOT:
 - ❌ Generate code
 - ❌ Write responses
 - ❌ Require API keys for LLMs
+- ❌ Execute subagents (it spawns and dispatches them; the calling agent runs them, unless an executor is injected)
 
 ## How Verification Works (v2.5.1+)
 
@@ -44,4 +45,4 @@ This ensures:
 - Nemons has ZERO LLM API dependencies
 - No API keys needed in Nemons config
 - The coding agent uses whatever LLM it already has
-- Nemons remains a stateless, transparent layer
+- Nemons remains a stateless, side-channel service (no agent process is modified)

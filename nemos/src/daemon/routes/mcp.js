@@ -14,7 +14,17 @@
 //
 // Auth + rate limiting apply (this router sits behind the shared
 // middleware — /mcp is NOT exempt).
+//
+// Provenance: every JSON-RPC message is appended to
+// <NEMONS_HOME>/logs/mcp-access.log (metadata only — never the body,
+// which carries prompts and diffs). Without it there is no way to tell
+// a call made by a host's MCP client from a call made by our own test
+// scripts after the fact, and "the host invoked the tool" would be an
+// unfalsifiable claim.
 // ============================================================
+
+const fs = require("fs");
+const path = require("path");
 
 const VERSION = require("../../../package.json").version;
 
@@ -57,7 +67,7 @@ const TOOLS = [
   {
     name: "nemons.get_context_pack",
     title: "Get context pack",
-    description: "Return a stored context pack by id (falls back to the default pack when not found).",
+    description: "Return a stored context pack by id. If no pack exists for that id the response carries a synthetic placeholder marked is_synthetic: true — it is not project context.",
     inputSchema: {
       type: "object",
       properties: {
@@ -150,6 +160,38 @@ function validateAgainstSchema(args, schema) {
   return null;
 }
 
+const ACCESS_LOG_MAX_BYTES = 1024 * 1024;
+let accessLogWarned = false;
+
+// Metadata only. Bodies are never written: prompts, diffs and evidence can
+// carry secrets, and redactSecrets() is not applied here on purpose.
+function accessLine({ NEMONS_HOME }, req, msg, reply, startedAt) {
+  const line = {
+    ts: new Date().toISOString(),
+    duration_ms: Date.now() - startedAt,
+    source_ip: req.ip,
+    user_agent: req.get("user-agent") || null,
+    method: typeof msg?.method === "string" ? msg.method : null,
+    request_id: msg && msg.id !== undefined && msg.id !== null ? String(msg.id) : null,
+    tool: msg?.method === "tools/call" ? (msg.params?.name ?? null) : null,
+    outcome: reply?.error ? "rpc_error" : reply ? "ok" : "accepted",
+  };
+  if (reply?.error) line.rpc_error_code = reply.error.code;
+  const file = path.join(NEMONS_HOME, "logs", "mcp-access.log");
+  return fs.promises.stat(file)
+    .then((st) => (st.size > ACCESS_LOG_MAX_BYTES ? fs.promises.rename(file, `${file}.1`) : null))
+    .catch(() => null)
+    .then(() => fs.promises.appendFile(file, `${JSON.stringify(line)}\n`))
+    .catch((e) => {
+      // The protocol answer must not depend on the audit trail, but the
+      // gap must not be silent either.
+      if (!accessLogWarned) {
+        accessLogWarned = true;
+        console.warn("[nemons] mcp access log unavailable:", e.message);
+      }
+    });
+}
+
 module.exports = function register(app, ctx) {
   const { coreLoop, services, counters, NEMONS_HOME, redactSecrets, verifier } = ctx;
 
@@ -157,7 +199,7 @@ module.exports = function register(app, ctx) {
   async function callTool(name, args) {
     switch (name) {
       case "nemons.analyze_prompt":
-        return coreLoop.analyzePrompt(args, { pipeline: services.pipeline, counters });
+        return coreLoop.analyzePrompt(args, { pipeline: services.pipeline, counters, config: ctx.config });
       case "nemons.get_context_pack": {
         const { status, body } = await coreLoop.getContextPack(args.id, { NEMONS_HOME });
         if (status !== 200) throw { expected: true, message: body.detail || body.error };
@@ -279,14 +321,17 @@ module.exports = function register(app, ctx) {
       return res.status(400).json(rpcError(null, INVALID_REQUEST, "Not a JSON-RPC 2.0 message"));
     }
 
+    const startedAt = Date.now();
     try {
       const reply = await handleMessage(msg);
+      accessLine(ctx, req, msg, reply === null ? null : reply, startedAt);
       if (reply === null) {
         // notification — no body per the transport spec
         return res.status(202).end();
       }
       res.json(reply);
     } catch (e) {
+      accessLine(ctx, req, msg, { error: { code: -32603 } }, startedAt);
       res.status(500).json(rpcError(msg.id ?? null, INTERNAL_ERROR, e.message));
     }
   });

@@ -87,26 +87,16 @@ app.use((req, res, next) => {
   next();
 });
 
-// ---------- Middleware: per-endpoint rate limiting ----------
+// ---------- Middleware: per-route rate limiting ----------
 // One shared instance — a per-request instance would reset its own
-// counters and never limit anything. /health, /metrics and the
-// dashboard pages stay exempt so monitoring and browsers keep working.
+// counters and never limit anything. Buckets are keyed by the
+// registered route *pattern* (see rate-limit.js), so varying a path
+// parameter cannot slip into a fresh bucket. /health, /metrics and
+// the dashboard pages stay exempt so monitoring and browsers keep
+// working.
 const rateLimiter = services.rateLimiter;
 const RATE_LIMIT_EXEMPT = new Set(["/health", "/metrics", "/", "/dashboard", "/ui"]);
-app.use((req, res, next) => {
-  if (RATE_LIMIT_EXEMPT.has(req.path)) return next();
-  const clientId = req.socket.remoteAddress || "unknown";
-  const verdict = rateLimiter.check(req.path, clientId);
-  if (!verdict.allowed) {
-    res.set("Retry-After", "60");
-    return res.status(429).json({
-      error: "rate_limited",
-      limit: verdict.limit,
-      window_seconds: 60,
-    });
-  }
-  next();
-});
+require("./rate-limit").installRouteRateLimiter(app, rateLimiter, RATE_LIMIT_EXEMPT);
 
 // ---------- Dashboard (static file; client renders via textContent — stored-XSS fix) ----------
 const DASHBOARD_PATH = path.join(__dirname, "public", "dashboard.html");
@@ -183,6 +173,8 @@ app.get("/health", (req, res) => {
     timestamp: new Date().toISOString(),
     config_loaded: !!config,
     home: NEMONS_HOME,
+    // Surfaced so callers can see that the API is open on this host
+    auth_enabled: !!process.env.NEMONS_AUTH_TOKEN,
     // v4.2.1: surface @nemons/core bridge status
     core_loaded: coreLoaded,
     core_path: nemosBridge.corePath(),
@@ -210,7 +202,12 @@ app.get("/metrics", async (req, res) => {
   } catch {}
 
   res.json({
+    // `runs_total` is the historical key the dashboard reads; it has always
+    // meant verification rounds, not agent runs. Publish the unambiguous name
+    // alongside it so a consumer does not have to guess from the key.
     runs_total: counters.evaluations_total,
+    evaluations_total: counters.evaluations_total,
+    evaluations_passed: counters.evaluations_passed,
     experiences_total: experienceCount,
     // null (not a fake 1.0) until at least one evaluation has run
     verification_pass_rate: counters.evaluations_total > 0
@@ -228,7 +225,7 @@ app.get("/metrics", async (req, res) => {
 // with persona + skills + subagents + experiences + harness
 // Logic lives in core-loop.js so the MCP tools stay in lockstep.
 app.post("/analyze", async (req, res) => {
-  res.json(await coreLoop.analyzePrompt(req.body, { pipeline, counters }));
+  res.json(await coreLoop.analyzePrompt(req.body, { pipeline, counters, config }));
 });
 
 // GET /context-pack/:id — return a context pack (logic in core-loop.js)
@@ -431,12 +428,51 @@ app.use((err, req, res, _next) => {
   res.status(500).json({ error: "internal_error", detail: err.message });
 });
 
+// Retention from config/daemon.yml used to be advisory only — nothing ever
+// pruned anything, so experiences/evidence/audit logs grew without bound.
+// Runs once at boot; a missing or zero value means "keep everything".
+async function applyRetention(cfg) {
+  const storage = require("../store/storage");
+  const dayMs = 24 * 60 * 60 * 1000;
+  const sweeps = [
+    ["experiences", Number(cfg?.experiences?.retention?.max_age_days)],
+    ["audit", Number(cfg?.security?.audit?.retention_days)],
+  ];
+  const removed = {};
+  for (const [dir, days] of sweeps) {
+    if (!Number.isFinite(days) || days <= 0) continue;
+    try {
+      removed[dir] = await storage.cleanOlder(dir, days * dayMs);
+    } catch (err) {
+      removed[dir] = `error: ${err.message}`;
+    }
+  }
+  return removed;
+}
+
 if (require.main === module) {
   const server = app.listen(port, host, () => {
     console.log(`[nemons] Daemon listening on http://${host}:${port}`);
     console.log(`[nemons] Home: ${NEMONS_HOME}`);
     console.log(`[nemons] Config: ${CONFIG_PATH}`);
     console.log(`[nemons] Dashboard: http://${host}:${port}`);
+    if (!process.env.NEMONS_AUTH_TOKEN) {
+      console.warn("[nemons] WARNING: NEMONS_AUTH_TOKEN is unset — every API call is unauthenticated.");
+    }
+    applyRetention(config).then((removed) => {
+      const pruned = Object.values(removed).filter((n) => typeof n === "number").reduce((a, b) => a + b, 0);
+      if (pruned > 0 || Object.keys(removed).length > 0) {
+        console.log(`[nemons] retention: pruned ${pruned} file(s) ${JSON.stringify(removed)}`);
+      }
+    });
+  });
+
+  // Without this, a bind failure (EADDRINUSE) leaves the parent's
+  // health poll to succeed against a foreign listener while this
+  // child is already dead. Exit loudly instead.
+  server.on("error", (err) => {
+    console.error(`[nemons] Failed to bind ${host}:${port}: ${err.message}`);
+    process.exit(1);
   });
 
   // Graceful shutdown

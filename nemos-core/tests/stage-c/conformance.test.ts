@@ -14,12 +14,9 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as os from "node:os";
-import { exec as execCb } from "node:child_process";
-import { promisify } from "node:util";
 import { LocalExecutionAdapter } from "../../src/stage-c/local-execution-adapter.js";
 import { describeAdapter } from "../conformance/adapter-conformance.test.js";
-
-const execAsync = promisify(execCb);
+import { createFixture } from "./fixture.js";
 
 let fixtureDir: string;
 let fixtureSha: string;
@@ -29,12 +26,8 @@ beforeAll(async () => {
   // Create a unique temp directory for the fixture
   fixtureDir = await fs.mkdtemp(path.join(os.tmpdir(), "nem-stage-c-conf-"));
 
-  // Run the fixture setup script
-  const scriptPath = path.join(process.cwd(), "scripts", "stage-c", "setup-fixture.sh");
-  const { stdout } = await execAsync(`bash ${scriptPath} ${fixtureDir}`);
-  // The script prints the FIXTURE_SHA as the last line of stdout
-  const lines = stdout.trim().split("\n");
-  fixtureSha = lines[lines.length - 1]!;
+  // Build the fixture (git repo + known bug). No shell: see tests/stage-c/fixture.ts
+  fixtureSha = await createFixture(fixtureDir);
 
   adapter = new LocalExecutionAdapter({ workDir: fixtureDir });
 });

@@ -1,7 +1,8 @@
 {
   "name": "nemons",
   "version": "1.0.0",
-  "description": "Nemons transparent orchestrator — auto-triggers on every prompt",
+  "description": "Nemons orchestrator adapter — reference shim. Exposes the daemon's 7 MCP tools plus a skill that asks the model to call them; not verified against Claude Code's current plugin format.",
+  "status": "reference-shim",
   "skills": [
     {
       "name": "nemons-orchestrator",

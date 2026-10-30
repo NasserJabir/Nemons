@@ -21,8 +21,15 @@ done
 
 # Resolve script's own directory (so it works from anywhere)
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-PKG_DIR="$(dirname "$SCRIPT_DIR")"        # nemons-setup/ root
-CLI_DIR="$PKG_DIR/nemons-cli"            # nemons-setup/nemons-cli/
+PKG_DIR="$(dirname "$SCRIPT_DIR")"        # repo / archive root
+# The CLI directory is `nemos/` in the source tree and `nemons-cli/` in the
+# packaged archive. This script used to hardcode the packaged name, so
+# installing from a checkout always failed with "CLI directory not found".
+if [ -d "$PKG_DIR/nemos" ]; then
+  CLI_DIR="$PKG_DIR/nemos"
+else
+  CLI_DIR="$PKG_DIR/nemons-cli"
+fi
 
 echo "============================================================"
 echo "  Nemons Installer"
@@ -67,7 +74,7 @@ else
   # Install from local package directory
   if [ ! -d "$CLI_DIR" ]; then
     echo "  ✗ CLI directory not found: $CLI_DIR"
-    echo "    Make sure nemons-cli/ is in the same package"
+    echo "    Make sure the nemos/ (or nemons-cli/) directory is in the same package"
     exit 1
   fi
   

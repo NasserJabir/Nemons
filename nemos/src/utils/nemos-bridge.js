@@ -26,7 +26,9 @@
 //   - GovernedEvolutionEngine — Stage F propose/review/approve/supersede/rollback
 //   - CandidateStore + PersistentCandidateStore
 //   - DefaultCandidateGenerator — Experience → Candidate
-//   - EvaluationEngine + PairedEvaluator + OfflineSkillEvaluator
+//   - EvaluationEngine + DefaultPairedEvaluator + DefaultOfflineSkillEvaluator
+//     (the core exports the Default* classes; the bare interface names are
+//     types only and are erased at runtime — see the note on `bridgeApis`)
 //   - DefaultActionInterceptor + isActionAllowed + isActionDenied
 //   - InMemoryProjectStore + checkRunBudget + detectRegression +
 //     checkPermission + buildLineage + reconstructRun + runAblation
@@ -138,6 +140,44 @@ function requireCore() {
 }
 
 // ============================================================
+// Bridge self-audit
+//
+// A wrapper that dereferences a core symbol which does not exist is invisible
+// until someone calls it — and if the caller wraps it in try/catch (as every
+// /core/validate/* route does) the crash is reported as invalid input. Three
+// wrappers were exactly in that state: two pointed at type-only interfaces
+// (`PairedEvaluator`, `OfflineSkillEvaluator`) and one at a name the core
+// exports as `validateCandidateRecord`.
+//
+// Rather than keep a second hand-written list to drift, the audit reads this
+// file's own source and checks every symbol it dereferences off the namespace.
+// ============================================================
+const CORE_SYMBOL_PATTERN = /(?:requireCore\(\)|\bcore)\.([A-Za-z][A-Za-z0-9_]*)/g;
+
+function referencedCoreSymbols() {
+  const source = fs
+    .readFileSync(__filename, "utf8")
+    .split("\n")
+    // Drop comment lines: they describe the API but are not calls.
+    .filter((line) => !/^\s*(\/\/|\*|\/\*)/.test(line))
+    .join("\n");
+  const found = new Set();
+  for (const match of source.matchAll(CORE_SYMBOL_PATTERN)) found.add(match[1]);
+  return [...found].sort();
+}
+
+/**
+ * Core symbols this file calls but the loaded namespace does not export.
+ * Empty means every wrapper can actually resolve what it reaches for.
+ */
+function missingCoreSymbols() {
+  if (!coreNS) return { loaded: false, checked: 0, missing: [] };
+  const symbols = referencedCoreSymbols();
+  const missing = symbols.filter((name) => coreNS[name] === undefined);
+  return { loaded: true, checked: symbols.length, missing };
+}
+
+// ============================================================
 // Bridge API — thin synchronous wrappers over requireCore().
 // Each function pulls exactly one symbol from the core namespace
 // and exposes it in a JS-friendly way. The wrappers are intentionally
@@ -152,6 +192,7 @@ const bridge = {
   loadCore,
   isLoaded: () => coreNS !== null,
   corePath: () => CORE_DIST_PATH,
+  missingCoreSymbols,
 
   // === Runtime Bootstrap (Stage E) ===
   /**
@@ -183,9 +224,15 @@ const bridge = {
   createCandidateGenerator: (options) => new (requireCore().DefaultCandidateGenerator)(options || {}),
 
   // === Evaluation (Stage B research improvements) ===
+  // These three used to reach for `PairedEvaluator`, `OfflineSkillEvaluator`,
+  // and `validateCandidate`. None of them exist at runtime: the first two are
+  // TypeScript interfaces (type-only, erased by tsc) and the candidate
+  // validator is exported as `validateCandidateRecord`. Calling them threw
+  // "is not a function", which `/core/validate/candidate` swallowed as a 400
+  // validation failure — a missing symbol wearing the costume of bad input.
   createEvaluationEngine: (options) => new (requireCore().DefaultEvaluationEngine)(options || {}),
-  createPairedEvaluator: (options) => new (requireCore().PairedEvaluator)(options || {}),
-  createOfflineSkillEvaluator: (options) => new (requireCore().OfflineSkillEvaluator)(options || {}),
+  createPairedEvaluator: () => new (requireCore().DefaultPairedEvaluator)(),
+  createOfflineSkillEvaluator: () => new (requireCore().DefaultOfflineSkillEvaluator)(),
 
   // === Action Interception (ADR-0016) ===
   createActionInterceptor: (options) => new (requireCore().DefaultActionInterceptor)(options || {}),
@@ -198,7 +245,7 @@ const bridge = {
   validateRun: (r) => requireCore().validateRun(r),
   validateEvidence: (e) => requireCore().validateEvidence(e),
   validateExperience: (x) => requireCore().validateExperience(x),
-  validateCandidate: (c) => requireCore().validateCandidate(c),
+  validateCandidate: (c) => requireCore().validateCandidateRecord(c),
   validateContextPack: (cp) => requireCore().validateContextPack(cp),
 
   // === P2 Features (F-001, F-015, F-051, F-045, F-050, F-062, F-056, F-030, F-037, F-063) ===

@@ -4,13 +4,21 @@ This guide shows you how to build a Nemons plugin for any coding agent.
 
 ## Plugin Contract
 
-Every Nemons plugin must implement these capabilities:
+An adapter is only as capable as its host lets it be. The contract below is what
+a plugin does **when the host exposes prompt hooks** — several hosts do not, and
+for those the same steps happen only if the model calls the MCP tools or follows
+an installed skill.
 
-1. **Prompt interception** — detect incoming prompts
-2. **HTTP client** — talk to the daemon on `http://127.0.0.1:3456`
-3. **Context injection** — add Context Pack before the prompt reaches the agent
+1. **Prompt screening** — look at an incoming prompt
+2. **Daemon client** — talk to the daemon over HTTP (`/analyze`, `/evidence`,
+   `/evaluate`) or the `nemons.*` MCP tools
+3. **Context injection** — add a Context Pack before the prompt reaches the
+   agent, where the host allows it
 4. **Evidence collection** — gather diff, tests, lint after the agent responds
-5. **Result reporting** — call `/evaluate` and handle pass/fail
+5. **Result reporting** — evaluate and handle pass/fail
+
+None of this intercepts the model call. If the host never runs the adapter and
+the model never calls the daemon, no step happens.
 
 ## Minimal Plugin Template (TypeScript)
 
@@ -50,10 +58,14 @@ export const NemonsPlugin: Plugin = async ({ directory }) => {
       if (!analysis?.should_intercept) return output;
       
       // Step 2: Load Context Pack
+      // Note: /analyze already returned the built pack in `context_pack`.
+      // Only fetch again if you need the on-disk version by id.
       if (analysis.suggested_pack_id) {
-        const pack = await call<{ persona: any; skills: any[]; knowledge: string[] }>(
-          `/context-pack/${analysis.suggested_pack_id}`
-        );
+        const pack = await call<{
+          persona: any;
+          skills: any[];
+          knowledge: Array<{ id: string; title: string; score?: number }>;
+        }>(`/context-pack/${analysis.suggested_pack_id}`);
         if (pack) {
           // Inject pack as system context
           output.args = output.args || {};
@@ -100,7 +112,7 @@ async function collectEvidence() {
 {
   "name": "nemons",
   "version": "1.0.0",
-  "description": "Nemons transparent orchestrator",
+  "description": "Nemons orchestrator adapter (reference shim)",
   "skills": [
     {
       "name": "nemons-orchestrator",
@@ -112,15 +124,20 @@ async function collectEvidence() {
 }
 ```
 
-## SKILL.md (for auto-triggering)
+## SKILL.md (drives skill selection in hosts that support it)
+
+A skill description is how a host decides whether to load the skill; it is not an
+interceptor. Use it to tell the model *when* to call the daemon, and say explicitly
+in the body that nothing happens unless the daemon is reachable.
 
 ```markdown
 ---
 name: nemons-orchestrator
 description: |
-  Auto-triggers on code-related prompts (build, fix, refactor, etc.)
-  Skips trivial prompts (hello, what is, define)
-  Runs the full Nemons pipeline transparently.
+  Use for code-related prompts (build, fix, refactor, etc.) to call the Nemons
+  daemon for a Context Pack, Evidence, and verification.
+  Skips trivial prompts (hello, what is, define).
+  Requires the daemon at http://127.0.0.1:3456 — nothing runs without it.
 triggers:
   - "build|implement|add|create"
   - "fix|bug|issue|broken"
@@ -135,6 +152,54 @@ When user requests a code change:
 5. POST /evaluate, handle pass/fail
 6. If passed, POST /experiences
 ```
+
+## Host integration status
+
+`nemons plugin install --agent <name>` behaves per host, and the output says
+which kind of run happened.
+
+### Codex CLI — registered as an MCP server, verified against 0.149.1
+
+Codex has no plugin directory; `~/.codex/plugins/` is never read. It reads
+`mcp_servers` in `$CODEX_HOME/config.toml` and skills under `$CODEX_HOME/skills/`,
+so install does exactly that (`nemos/src/utils/codex-host.js`):
+
+```bash
+# written by the host itself
+codex mcp add nemons --url http://127.0.0.1:3456/mcp
+
+# read back — a successful add is never taken on its exit code alone
+codex mcp list --json   # transport streamable_http, enabled true, url ours
+codex doctor            # mcp.config: "MCP configuration is locally consistent"
+```
+
+plus `$CODEX_HOME/skills/nemons-orchestrator/SKILL.md`, with the daemon address
+rewritten to the port the installer resolved (the rewrite count is printed).
+Writing the skill is verified by read-back; Codex choosing to load it is not
+ours to claim.
+
+Two behaviours that are not documented anywhere useful:
+
+- `codex mcp add` aborts with "failed to load configuration" if `$CODEX_HOME`
+  does not exist yet, so a fresh isolated home has to be created first.
+- `auth_status` in `mcp list` is computed by **probing** the endpoint.
+  `unsupported` means it answered and needs no auth; `unknown` means the host
+  could not reach it — almost always because the daemon is not running. In that
+  case `codex doctor` warns "Set the missing MCP env vars", which is misleading.
+  For the same reason the installer wires `--bearer-token-env-var NEMONS_AUTH_TOKEN`
+  only when the daemon's `/health` reports `auth_enabled: true`: naming a variable
+  that is not set produces that warning on every doctor run.
+
+`plugin remove` is confirmed the same way: after `codex mcp remove nemons`, the
+server must be absent from the read-back.
+
+### Every other host — files staged, not host-verified
+
+`opencode`, `claude-code`, `kimi`, `cline`, `qoder`, `trae`: install copies files
+into a plausible directory and reports `~ files staged`, and `plugin list` will
+not call that "installed". Read the host's own plugin documentation before
+trusting one. Of these, only OpenCode has a config entry we can write
+(`plugin: ["./plugins/nemons"]` in `~/.config/opencode/opencode.json`).
 
 ## Testing Your Plugin
 

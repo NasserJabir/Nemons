@@ -23,6 +23,7 @@ async function initialize() {
     "context-packs",
     "experiences",
     "evidence",
+    "governed-candidates",
     "logs",
     "plugins",
     "run",

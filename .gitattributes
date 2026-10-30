@@ -1,0 +1,46 @@
+# ============================================================
+# Line endings
+#
+# Why this file exists (found while verifying the build, not invented):
+#
+# 1. `npm run build` in nemos-core rewrites dist/ with LF. With a bare
+#    `core.autocrlf=true` checkout on Windows, every tracked dist file was
+#    CRLF in the working tree, so a clean rebuild marked 7 tracked files as
+#    modified. nemos-core/dist/ is intentionally committed (the daemon bridge
+#    must work without a build step) and CI has a guard that fails on dist
+#    drift — that guard cannot tell "stale build" from "line endings" unless
+#    dist is pinned to LF.
+#
+# 2. The installer scripts are bash. autocrlf handed Windows users CRLF
+#    `install.sh` / `dashboard.sh` / `scripts/*.sh`, which Git Bash and WSL
+#    refuse to run (`$'\r': command not found`).
+#
+# Committed blobs are already all LF; this pins the working tree so they stay
+# that way. Files already checked out keep their current endings until they are
+# re-checked-out (`git checkout -- <path>`) or the index is renormalized
+# (`git add --renormalize .`) — neither is done automatically here.
+# ============================================================
+
+* text=auto
+
+# Shell must be LF everywhere, including on Windows.
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Windows batch files must keep CRLF to be runnable.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Generated core output: pinned to LF so a rebuild is a no-op for git.
+nemos-core/dist/** text eol=lf
+
+# Never let git touch binary payloads or release archives.
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.tar.gz binary
+*.zip binary
+
+# Vendored dependency trees are not edited here; skip them entirely.
+node_modules/** -text

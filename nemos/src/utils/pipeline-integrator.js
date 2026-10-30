@@ -21,6 +21,7 @@ const { WebhookManager } = require("./webhook-manager");
 const { enforcer } = require("./invariant-enforcer");
 const { PersonaEvolver } = require("./persona-evolver");
 const { SkillEvolver } = require("./skill-evolver");
+const { KnowledgeStore } = require("./knowledge-store");
 
 class PipelineIntegrator {
   constructor() {
@@ -38,6 +39,9 @@ class PipelineIntegrator {
     this.webhookManager = new WebhookManager();
     this.personaEvolver = new PersonaEvolver();
     this.skillEvolver = new SkillEvolver(this.skillSystem, this.candidateLifecycle);
+    // Adopted knowledge is the only knowledge the pipeline may read (see
+    // STEP 4b). It used to be absent from real packs entirely.
+    this.knowledgeStore = new KnowledgeStore();
   }
 
   // ============================================================
@@ -46,8 +50,11 @@ class PipelineIntegrator {
   async buildContextPack(prompt, adapter) {
     const results = {
       persona: null,
+      persona_source: "template",
+      persona_candidate: null,
       perspectives: [],
       skills: [],
+      knowledge: [],
       experiences: [],
       harness: null,
       subagents: [],
@@ -58,36 +65,57 @@ class PipelineIntegrator {
     // STEP 1: SELECT PERSONA (the driver)
     // ========================================
     const personaRole = this.selectPersonaRole(prompt);
+    const templateDomain = this.getDomainForRole(personaRole);
     let persona;
-    let personaSource = "template";
 
-    // Try dynamic persona creation if template is too generic
-    if (personaRole === "senior_engineer") {
+    // Invariant #4 (Use != Adopt): only an ADOPTED persona is ever applied to
+    // a pack. This used to consume a `status: "candidate"` persona on the
+    // same request that created it — generation and adoption collapsed into
+    // one step, which is exactly what the invariant forbids.
+    let adoptedPersona = null;
+    try {
+      adoptedPersona = await this.personaEvolver.selectAdopted(prompt, templateDomain);
+    } catch (e) {
+      adoptedPersona = null;
+    }
+
+    if (adoptedPersona) {
+      persona = {
+        id: adoptedPersona.id,
+        // `role` stays the routing key the harness router and the subagent
+        // orchestrator understand; the adopted persona's own title is kept
+        // beside it so nothing is lost by adopting.
+        role: personaRole,
+        adopted_role: adoptedPersona.role,
+        prompt: this.personaBuilder.build(personaRole),
+        domain: adoptedPersona.domain || templateDomain,
+        constraints: adoptedPersona.constraints || [],
+        focus_areas: adoptedPersona.focus_areas || [],
+        adopted: true,
+      };
+      results.persona_source = "adopted";
+    } else {
+      persona = { role: personaRole, prompt: this.personaBuilder.build(personaRole), domain: templateDomain };
+    }
+
+    // Nothing adopted: ask the evolver what this task would need. The result
+    // stays a candidate for review and is deliberately NOT used.
+    if (!adoptedPersona && personaRole === "senior_engineer") {
       try {
         const dynamicResult = await this.personaEvolver.createDynamic({ prompt, dagNodeCount: 1 });
         if (dynamicResult.persona && dynamicResult.requirements.domain !== "general") {
-          persona = {
+          results.persona_candidate = {
+            id: dynamicResult.persona.id,
             role: dynamicResult.persona.role,
-            prompt: this.personaBuilder.build("senior_engineer"),
-            dynamic: true,
             domain: dynamicResult.requirements.domain,
-            constraints: dynamicResult.persona.constraints,
-            focus_areas: dynamicResult.persona.focus_areas,
+            status: dynamicResult.persona.status,
+            used: false,
+            note: "Candidate persona recorded for review — approve it to make it selectable.",
           };
-          personaSource = "dynamic";
-          results.persona_evolved = dynamicResult;
-        } else {
-          persona = { role: personaRole, prompt: this.personaBuilder.build(personaRole), domain: "general" };
         }
       } catch (e) {
-        persona = { role: personaRole, prompt: this.personaBuilder.build(personaRole), domain: "general" };
+        results.persona_candidate = { error: e.message, used: false };
       }
-    } else {
-      persona = {
-        role: personaRole,
-        prompt: this.personaBuilder.build(personaRole),
-        domain: this.getDomainForRole(personaRole),
-      };
     }
 
     // Recast persona based on complexity
@@ -128,7 +156,10 @@ class PipelineIntegrator {
       results.skills = skills.map(s => ({
         id: s.id,
         name: s.name,
-        can_use: s.source !== "auto-compiled" || true,
+        // Lifecycle, not vibes: a skill that is still a candidate (or was
+        // rejected/deprecated) must never be presented as usable.
+        can_use: s.status ? s.status === "adopted" : true,
+        status: s.status || "adopted",
         triggers: s.triggers,
         matched_by: persona.domain !== "general" ? "persona_domain" : "prompt",
       }));
@@ -149,11 +180,29 @@ class PipelineIntegrator {
         id: e.id,
         prompt: (e.prompt || "").slice(0, 100),
         success_rate: e.success_rate || 0,
-        similarity: e._score || 0,
+        // raw text similarity — `score` is the blended ranking value
+        similarity: e.similarity || 0,
+        score: e._score || 0,
         matched_by: persona.domain !== "general" ? "persona_domain" : "prompt",
       }));
     } catch (e) {
       results.experiences = [];
+    }
+
+    // ========================================
+    // STEP 4b: KNOWLEDGE — ADOPTED KNOWLEDGE ONLY
+    // ========================================
+    // Real packs had no knowledge section at all: the field only existed in
+    // the synthetic fallback. Candidates of type `knowledge` were approved
+    // into nothing. The store returns records only when they overlap the
+    // query, so "it exists" is never a reason to include it.
+    try {
+      const knowledgeQuery = persona.domain !== "general"
+        ? `${persona.domain} ${prompt}`
+        : prompt;
+      results.knowledge = await this.knowledgeStore.retrieve(knowledgeQuery, 3);
+    } catch (e) {
+      results.knowledge = [];
     }
 
     // ========================================
@@ -217,7 +266,13 @@ class PipelineIntegrator {
           // net (idempotent — orchestrator's spawn-time override
           // produces roles that augmentSubagentRole doesn't recognise,
           // so it returns them unchanged).
-          results.subagents = (orchResult.subagents || []).map(s => ({
+          //
+          // `results` is parallel to `subagents` (executeParallel maps
+          // over the same array), so each entry's outcome — dispatched
+          // vs actually executed — is carried through instead of being
+          // dropped here.
+          const outcomes = orchResult.results || [];
+          results.subagents = (orchResult.subagents || []).map((s, i) => ({
             id: s.id,
             task: s.task,
             memory_mode: s.memory_mode,
@@ -226,10 +281,17 @@ class PipelineIntegrator {
             // v4.2.1: provenance — was this role set by the orchestrator at spawn time?
             orchestrator_overridden: s.assignment?.persona_overridden === true,
             base_role: s.assignment?.base_role || null,
+            // "dispatched" means the host agent must run it; this daemon
+            // has no executor of its own.
+            status: outcomes[i]?.status || "dispatched",
+            executed: outcomes[i]?.executed === true,
           }));
 
           results.orchestration = {
+            execution: orchResult.orchestration?.execution || "delegated_to_host",
             spawned: orchResult.orchestration?.subagents_spawned,
+            dispatched: orchResult.orchestration?.subagents_dispatched,
+            executed: orchResult.orchestration?.subagents_executed,
             succeeded: orchResult.orchestration?.subagents_succeeded,
             failed: orchResult.orchestration?.subagents_failed,
             retries: orchResult.orchestration?.retries,
@@ -237,6 +299,7 @@ class PipelineIntegrator {
             persona_role: orchResult.persona_role || persona.role,
             persona_domain: orchResult.persona_domain || persona.domain,
             persona_driven: orchResult.persona_driven === true || persona.domain !== "general",
+            note: "Subagents are dispatched, not executed: this daemon has no executor. The calling agent runs them.",
           };
         } else {
           // Fallback: suggest subagents with persona-augmented roles
@@ -248,6 +311,8 @@ class PipelineIntegrator {
               lifespan: "one-time",
               role: this.augmentSubagentRole("executor", persona),
               persona_assigned: persona.domain !== "general",
+              status: "suggested",
+              executed: false,
             });
           }
         }
@@ -259,6 +324,8 @@ class PipelineIntegrator {
             memory_mode: "inherit-partial",
             lifespan: "one-time",
             role: this.augmentSubagentRole("executor", persona),
+            status: "suggested",
+            executed: false,
           });
         }
       }
@@ -270,11 +337,18 @@ class PipelineIntegrator {
     const contextPack = {
       id: "dynamic-" + Date.now().toString(36),
       persona: results.persona,
+      persona_source: results.persona_source,
+      // A candidate is surfaced for review, never applied — see STEP 1.
+      persona_candidate: results.persona_candidate,
       perspectives: results.perspectives,
       skills: results.skills,
+      knowledge: results.knowledge,
       experiences: results.experiences,
       harness: results.harness,
       subagents: results.subagents,
+      // Who was asked to run the subagents, and what actually ran. Absent when
+      // the DAG was small enough that no subagents were needed.
+      orchestration: results.orchestration,
       dag_plan: results.dag_plan,
       success_criteria: results.harness.verification_criteria?.must_pass || [
         "tests_pass",
@@ -293,10 +367,11 @@ class PipelineIntegrator {
       pipeline: "persona-driven (v4.2.1 — spawn-time persona)",
       components_used: [
         "persona_builder",
-        "persona_evolver",
+        "persona_evolver (adopted personas only)",
         "multi_persona",
         "persona_recaster",
         "unified_skills (persona-domain-driven)",
+        "knowledge_store (adopted only)",
         "cbr_experiences (persona-domain-driven)",
         "harness_router (v4.2.1: persona-aware route)",
         "dag_planner",
@@ -465,10 +540,21 @@ class PipelineIntegrator {
       skill_compiled: false,
       candidate_registered: false,
       webhook_notified: false,
+      // Each stage used to sit in its own `catch (e) {}`, so a caller saw a
+      // `false` flag with no way to learn why it was false. Failures are
+      // collected here instead of disappearing.
+      errors: [],
+    };
+    const stage = async (name, fn) => {
+      try {
+        await fn();
+      } catch (e) {
+        results.errors.push({ stage: name, error: e.message });
+      }
     };
 
     // 1. Store experience in CBR
-    try {
+    await stage("experience", async () => {
       const exp = await this.cbr.retain(runData.evidence || {}, {
         prompt: runData.prompt,
         success: true,
@@ -476,16 +562,16 @@ class PipelineIntegrator {
       });
       results.experience_stored = true;
       results.experience_id = exp.id;
-    } catch (e) {}
+    });
 
     // 2. v4.1.0: Proactive skill creation
-    try {
-      const proactiveResult = await this.skillEvolver.createProactive({ prompt: runData.prompt });
-      results.proactive_skill = proactiveResult;
-    } catch (e) {}
+    await stage("proactive_skill", async () => {
+      results.proactive_skill = await this.skillEvolver.createProactive({ prompt: runData.prompt });
+    });
 
     // 3. Auto-compile experience to skill (via wiki-skill)
-    try {
+    // 4. Register skill as CANDIDATE (Invariant #7: No silent mutation)
+    await stage("compile_and_register", async () => {
       const skill = await this.wikiSkill.compileFromRun({
         success: true,
         id: results.experience_id,
@@ -496,7 +582,6 @@ class PipelineIntegrator {
       results.skill_compiled = true;
       results.skill_id = skill?.id;
 
-      // 4. Register skill as CANDIDATE (Invariant #7: No silent mutation)
       if (skill && skill.id) {
         const candidate = await this.candidateLifecycle.registerCandidate({
           type: "skill",
@@ -507,23 +592,22 @@ class PipelineIntegrator {
         results.candidate_registered = true;
         results.candidate_id = candidate?.candidate?.id || candidate?.id;
       }
-    } catch (e) {}
+    });
 
     // 5. v4.1.0: Skill gap detection
-    try {
-      const gaps = await this.skillEvolver.detectGaps([{ prompt: runData.prompt }]);
-      results.skill_gaps = gaps;
-    } catch (e) {}
+    await stage("skill_gaps", async () => {
+      results.skill_gaps = await this.skillEvolver.detectGaps([{ prompt: runData.prompt }]);
+    });
 
     // 6. Notify via webhooks
-    try {
+    await stage("webhook", async () => {
       await this.webhookManager.emit("experience.stored", {
         prompt: runData.prompt,
         experience_id: results.experience_id,
         skill_id: results.skill_id,
       });
       results.webhook_notified = true;
-    } catch (e) {}
+    });
 
     return results;
   }
@@ -535,10 +619,11 @@ class PipelineIntegrator {
       persona_driven: true,
       components: [
         "persona_builder",
-        "persona_evolver",
+        "persona_evolver (adopted personas only)",
         "multi_persona",
         "persona_recaster",
         "unified_skills (persona-domain-driven)",
+        "knowledge_store (adopted only)",
         "cbr_experiences (persona-domain-driven)",
         "harness_router (v4.2.1: persona-aware route)",
         "dag_planner",

@@ -27,7 +27,7 @@ app.get("/subagent/stats", async (req,res) => { try { const sm=services.subagent
 app.post("/delegation/create", (req,res) => { try { const ds=services.delegation; res.json(ds.createChain(req.body.agent_id||"agent",req.body.scope)) } catch(e) { res.status(500).json({error:e.message}) } });
 app.post("/delegation/authorize", (req,res) => { try { const ds=services.delegation; res.json(ds.authorize(req.body.agent_id||"agent",req.body.request||{})) } catch(e) { res.status(500).json({error:e.message}) } });
 app.post("/delegation/delegate", (req,res) => { try { const ds=services.delegation; res.json(ds.delegate(req.body.parent_id,req.body.child_id,req.body.scope||{})) } catch(e) { res.status(500).json({error:e.message}) } });
-app.get("/delegation/stats", (req,res) => { res.json(services.delegation.stats()) });
+app.get("/delegation/stats", async (req,res) => { try { res.json(await services.delegation.stats()) } catch(e) { res.status(500).json({error:e.message}) } });
 
 // ---------- Skill Compiler (arXiv:2606.09316) ----------
 app.post("/skillbank/compile", async (req,res) => { try { const sc=services.skillCompiler; res.json(await sc.compile(req.body)) } catch(e) { res.status(500).json({error:e.message}) } });
@@ -57,5 +57,5 @@ app.get("/skilldir/budget", async (req,res) => { try { const sd=services.skillDi
 
 // ---------- Scaffolding Optimizer (arXiv:2607.13104) ----------
 app.post("/scaffolding/optimize", async (req,res) => { try { const so=services.scaffolding; res.json(await so.optimize(req.body.scaffolding||{},req.body.performance||{})) } catch(e) { res.status(500).json({error:e.message}) } });
-app.get("/scaffolding/stats", (req,res) => { res.json(services.scaffolding.stats()) });
+app.get("/scaffolding/stats", async (req,res) => { try { res.json(await services.scaffolding.stats()) } catch(e) { res.status(500).json({error:e.message}) } });
 };

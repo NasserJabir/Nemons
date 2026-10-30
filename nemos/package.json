@@ -1,7 +1,7 @@
 {
   "name": "@nemons/cli",
   "version": "4.5.0",
-  "description": "Nemons \u2014 transparent orchestration layer for coding agents. Auto-triggers Context Pack, Evidence Collection, and Verification Loop on every prompt.",
+  "description": "Nemons — governed context, evidence, and verification service for coding agents, called over HTTP or MCP. It builds context packs from adopted personas, skills, and knowledge, collects evidence, runs heuristic verification, and stores experiences; it does not sit in the model's inference path and intercepts nothing by itself.",
   "main": "src/index.js",
   "bin": {
     "nemons": "bin/nemons.js"
@@ -14,10 +14,12 @@
     "test:v421": "node tests/v421-persona-tests.js && node tests/v421-bridge-tests.js",
     "test:security": "node tests/security-tests.js",
     "test:mcp": "node tests/mcp-tests.js",
+    "test:host": "node tests/host-integration-tests.js",
+    "test:regression": "node tests/defect-regression-tests.js",
     "verify": "node bin/nemons.js verify",
     "lint": "node scripts/lint.js",
     "build": "echo 'No build step required (plain Node.js)'",
-    "test:all": "node tests/unit-tests.js && npm run test:v421 && npm run test:security && node tests/mcp-tests.js"
+    "test:all": "node tests/unit-tests.js && npm run test:v421 && npm run test:security && node tests/mcp-tests.js && node tests/defect-regression-tests.js && node tests/host-integration-tests.js"
   },
   "engines": {
     "node": ">=18"

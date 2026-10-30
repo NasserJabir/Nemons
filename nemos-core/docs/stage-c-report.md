@@ -19,7 +19,7 @@ Documents the owner's explicit authorization for Stage C execution. Defines:
 - **Authorized**: local real-harness execution (git, npm test), real git fixture, real Evidence collection, Golden Task execution, adapter conformance.
 - **NOT Authorized (deferred)**: external Coding Agent integration (OpenHands, Cezar), LLM-driven code changes, production deployment, network access.
 
-### C2. Real Git Fixture (`scripts/stage-c/setup-fixture.sh`)
+### C2. Real Git Fixture (`tests/stage-c/fixture.ts`)
 
 A real git repository with:
 - `git init` + `git commit` (real git operations)

@@ -1974,3 +1974,210 @@ Task: Implement the MCP server (Phase A of the MCP study) — spec-correct /mcp 
   pass:true + verdict pass_with_inconclusive_layers.
 - Full suites green on final content: 35+33+22+21+11 daemon + 26 MCP
   (148 total daemon-side checks) + 1221 TS core.
+
+---
+
+Task ID: 26
+
+=== Qoder IDE real-host integration (validation target moved off Codex) ===
+
+Host identity, read from disk rather than assumed
+- Qoder IDE at %LOCALAPPDATA%\Programs\Qoder IDE: product.json = nameShort "Qoder",
+  VS Code base 1.106.3, productVersion 1.37.0, commit b371586d, build 2026-10-26.
+  Release notes put 1.37.0 at 2026-10-27 with the built-in qoder-ide-helper Skill —
+  the same feature set observed here. A second product (standalone Qoder app, 0.4.2)
+  shares the .qoder folder name, so every path used below is absolute and was read.
+- where.exe qodercli: nothing. `qoder`/`qoder.cmd` is the IDE launcher. Qoder has NO
+  MCP CLI at all — no `mcp add`, no `mcp list --json`, no `doctor`, no reload command.
+  That single fact is the whole difference from the Codex validation.
+
+Which file the runtime actually reads (proved, not inferred)
+- %APPDATA%\Qoder\SharedClientCache\extension\local\mcp.json stores
+  "userConfigMD5": "cac47f791ee55a02ac0d4ea8b5e62cef", and md5(~/.qoder/mcp.json)
+  equalled exactly that value before the write. After the write the live file hashes
+  to dbcede2c8af8f7d9837d4d8862a5750f while the derived registry still shows cac47f —
+  i.e. the running IDE had not re-read the config.
+- ~/.qoder/settings.json contains a DIFFERENT mcpServers block (codebase-memory-mcp)
+  plus hooks; it is not the user MCP file and was left alone.
+- Host-written discovery artifact: SharedClientCache/**/mcps/<name>/SERVER_METADATA.json
+  ({name, source, toolCount}) + tools/<tool>.json per published schema. Before any
+  Nemons action: browser-use, genui, TestSprite only (TestSprite source=user, toolCount=8,
+  matching 8 schema files). Read-only for us; the suite asserts we never write it.
+- Caveat recorded after the fact: those cache dirs were last written 2026-10-16 even
+  though this window session started 2026-10-30, so a missing entry corroborates but does
+  not prove non-discovery. The daemon-side request record is the decisive signal.
+
+Adapter change (Codex integration untouched)
+- New driver nemos/src/utils/qoder-host.js: merge into mcpServers (preserve foreign
+  servers/fields/indent, temp file + rename), refuse malformed or unreadable configs with
+  NOTHING WRITTEN, read back from disk, and report configReadback ("saved") separately from
+  runtimeDiscovery ("discovered"). plugin.js gained HOST_DRIVERS / HOST_PROFILES so each
+  host states its own evidence and reload notes; SOURCE_FILES.qoder moved from file staging
+  to integration "mcp"; the guessed `qodercli` detection was deleted.
+- Auth was not weakened: Qoder documents no credential field for a remote entry, so a
+  token-protected daemon makes the Qoder install refuse instead of writing a plaintext
+  secret. Test asserts the token never appears in output or on disk.
+
+Live registration (explicit developer approval)
+- Backup of the prior file: .qoder-validation/mcp.json.before (328 B).
+- `nemons plugin install --agent qoder --no-doctor` against the REAL config, exit 0:
+  328 → 426 bytes, 2-space indent preserved, servers ["TestSprite"] →
+  ["TestSprite","nemons"], TestSprite structurally identical (API_KEY still 139 chars),
+  nemons entry exactly {url: "http://127.0.0.1:3456/mcp", type: "streamable-http"};
+  skill written and re-read at ~/.qoder/skills/nemons-orchestrator/SKILL.md (6 endpoints
+  rewritten to 127.0.0.1:3456). Validation daemon ran with an isolated NEMONS_HOME inside
+  the workspace (port 3456, auth off, core_loaded true).
+- Provenance added for this: the daemon now writes logs/mcp-access.log (metadata only, one
+  JSONL line per JSON-RPC message). Its first line is my own tools/list probe with UA
+  "nemons-side-probe" at 10:46:55Z — and that is the ONLY /mcp request the daemon received.
+
+Objectives 4–8 did not complete, and were not faked
+- No host-side discovery: zero IDE requests at /mcp, derived md5 stale, no cache entry.
+  Re-polled at the end of the task: still `re-read: false`, `discovered=false`, and the access
+  log still holds exactly one line — the 10:46:55Z probe. Fourth signal found last: the runtime
+  tool manifest this very conversation reads
+  (%APPDATA%\Qoder\SharedClientCache\projects\c--c-Nemons\mcps\) lists browser-use, genui,
+  TestSprite and no nemons, so `CallMcpTool` cannot reach a Nemons tool from inside the session.
+- No model-driven invocation, therefore no Context Pack consumption, no two-Run continuity
+  through the host, no Evidence-to-Run association from host calls. The conflicting developer
+  report ("nemons listed, link icon, tools expandable") is recorded in the capability report
+  as unresolved; the two candidate explanations are a cached UI tool list from the pre-restart
+  daemon (which had no access log, so that traffic is unrecoverable) or a misread entry.
+- Decisive next test, documented: a NEW Agent-mode chat asked to call nemons.health_check —
+  a host invocation must appear in mcp-access.log with the IDE's own User-Agent, which this
+  agent cannot produce. Ask mode never calls MCP tools.
+
+Defects found by doing this
+1. `nemons plugin install` exited 0 while printing `✗ Failed: 1` (CLI dispatch ignores the
+   module return). Now sets process.exitCode = 1 — a fully failed install can no longer look
+   green to CI.
+2. The Qoder version gate FAILED on a machine without the app instead of skipping: with
+   ~/.qoder present but no product.json, detectQoder() returns available:true/version:null.
+   Found by running the suite with LOCALAPPDATA pointed at an empty dir and PATH stripped of
+   codex. Gate now asserts the host-independent half and skips when product.json is unreadable.
+   Host-less run is now 35 passed / 0 failed / 3 skipped / exit 0; both-hosts run 45 / 0 / 0.
+3. One check in the regression suite reported a failure in the first combined run right after
+   the daemon restart. The check name was not captured (output was filtered) and it did not
+   reproduce in the following four runs (1 combined + 3 standalone). Recorded, not dismissed;
+   if it recurs, keep the unfiltered log so the failing check is identified.
+
+Counts re-derived, measured both ways
+- Six in-process suites: 35 + 33 + 22 + 21 + 26 + 38 = 175.
+- Host suite: 22 → 45 checks (Codex portion 22 unchanged; Qoder + shared-surface gates added).
+- Always-run (no hosts): 175 + 35 = **210**. With Codex CLI and Qoder IDE both installed:
+  175 + 45 = **220**. README/nemos README/INSTALL/CHANGELOG updated from the old 188/197.
+
+Update after the task was reported (same day, 11:18Z+): the developer restarted the IDE and the
+four signals flipped together — derived md5 re-read TRUE, host tool cache discovered=true/7,
+`SharedClientCache\projects\c--c-Nemons\mcps\nemons\` written by the host with 7 schemas, and
+mcp-access.log recorded a real IDE handshake (`initialize` → `notifications/initialized` →
+`tools/list` → `ping` every 20s, ua=Go-http-client/1.1) plus `tools/call nemons.health_check`.
+Objective 4 and 5 are therefore CLOSED with host-side evidence, and the conflict recorded above
+resolved in favour of the UI report: the entry really was listed, it just had not been loaded.
+Objectives 6-8 were then attempted through the host and are the subject of Task 27.
+
+---
+
+Task ID: 27
+
+=== QODER-02: why the delivered Dynamic Context Pack had three empty channels ===
+
+Read-only forensic audit of the real pack (`dynamic-mvuwbms2`, pipeline_version 4.5.0) delivered
+to Qoder at 11:35:38Z. Report: docs/07-evaluation/experiments/QODER-02-context-assembly-forensics.md
+No file was modified, no asset installed, no store written.
+
+What was actually established
+- The pack question is answered twice: ASSEMBLY is real (persona/recaster/multi-persona/router/
+  DAG/subagents all ran, duration_ms=6), PROJECT-AWARE RETRIEVAL is not — no repository, workspace
+  or project identity exists anywhere in the store schemas, the retrieval signatures, or
+  buildContextPack's inputs. NEMONS_HOME is the only isolation, resolved at module load.
+- `components_used` (pipeline-integrator.js L368-379) is a hard-coded 10-item literal, identical
+  to stats() L616-634. It reports nothing measured, so "claimed knowledge_store while knowledge
+  was empty" is not a contradiction — the label was never connected to the result.
+- Three catch blocks (L166-168, L188-190, L204-206) plus listAll/list read failures collapse
+  empty / missing / unreadable / scored-zero into one indistinguishable []. postRunProcessing
+  already learned this lesson (errors:[{stage,error}], L543-554); the read side never did.
+- Cause per channel, measured on disk: skills and knowledge stores are empty in BOTH homes
+  (~/.nemons: skills-unified 0, knowledge-adopted 0, context-packs 0, candidates 16 all
+  status=candidate type=skill, personas-evolved 10 all status=candidate). Experiences has 8
+  records and retrieval is dead for a different reason — every one has prompt:"", sim() returns
+  0 for an empty side, and the 0.15 floor drops it. Declared integration, no proven retrieval.
+- Defects found (12 ranked in the report, 4 High). The two that matter most:
+  1. run_id is REQUIRED by nemons.evaluate_run (routes/mcp.js L105) and then never used —
+     core-loop.js L167 destructures it and drops it; postRunProcessing receives no run; evidence
+     bodies carry no id (filename only, all 11 records). So Experience↔Evidence↔Run cannot be
+     joined in either direction: objective 8 is unreachable as designed, not merely untested.
+  2. detectDomain (persona-evolver.js L175-193) matches keywords with prompt.includes(kw) and
+     returns the FIRST key. "machine-learning" is first and contains "ai", which is a substring of
+     constrAInts. Reproduced verbatim: FIRST MATCH DOMAIN = machine-learning | ["ai"]. That noise
+     generated "ML Pipeline Engineer" with model-input/validation/seed constraints for a docs task.
+     The Use!=Adopt gate held (used:false), so nothing downstream was poisoned today.
+- No documentation task category exists: 6 harnesses + base, first \b regex wins
+  (harness-router.js L113-119), docs prompts route to FeatureHarness via "implement".
+  documentation_added stays in should_pass — must_pass maps to deterministic verifier checks
+  (CONSTRAINT_FLAGS, core-loop.js L27-34) and documentation_added has none. Recorded, not "fixed".
+  augmented:false and router_persona_applied:false are correct for domain=general.
+- suggested_pack_id is minted at L337-338 (Date.now base36, no collision suffix unlike cbr.retain
+  L46-49) and never persisted; getContextPack reads only <home>/context-packs/<id>.yml and returns
+  a 200 synthetic fallback for unknown ids. A host that follows analyze → get_context_pack is
+  silently downgraded. Verified: the directory still has 0 files after the call.
+- The curated asset tree (skills/ 23, personas/ 18, knowledge/ 2, config/context-packs/ 1) has no
+  install or seed path: installers copy only daemon.yml and governance-rules.yml (install.sh
+  L45-47, scripts/*/install*). skills/tdd.json carries no status/domain/triggers, the fields
+  register() and retrieve() depend on — the repo format cannot even be ingested. And
+  ~/.nemons/config/daemon.yml does not exist on this machine, so interception filters,
+  evaluation_criteria and redaction config are all inert (loadDaemonConfig catch → {}).
+
+Not done, deliberately: no fixes, no adoption of the 16 candidates, no writes to either home.
+The audit is a diagnosis; the repair is a separate decision.
+
+---
+
+Task ID: 28
+
+=== QODER-03: architecture remediation plan for the QODER-02 findings ===
+
+Planning task, not an implementation task. The only file written is
+docs/07-evaluation/experiments/QODER-03-architecture-remediation-plan.md (~1,530 lines).
+No source file changed, no store opened for write, no asset adopted, no migration run.
+
+The axis the investigation produced
+- nemos-core already specifies the entire object graph the audit found missing: Project
+  (p2-features.ts), Run/Evidence/Evaluation/Experience schemas, RepositoryIdentity and
+  RepositoryInstanceId under "Identity is not instance", DefaultContextResolver,
+  DefaultContextPackBuilder, hash-verified PersistentStore, and 70 vitest files over them.
+- The daemon -- the only thing an MCP host can reach -- runs a parallel, unspecified pipeline and
+  consumes exactly one core capability on that path (validateContextPack via the bridge).
+- So F-02..F-09 are not eight independent bugs. They are consequences of one unmade decision.
+  That decision is D-01 and the plan is written so Phase A is identical either way.
+
+Twelve findings, each with root cause / affected / existing / intended / dependencies / tests
+- F-01 components_used literal (no test references it at all -- grep over nemos/tests: 0 hits)
+- F-02 eleven retrieval states collapse into []
+- F-03 stored Experiences are mathematically unretrievable (sim()=0 on empty prompt, 0.15 floor)
+- F-04 run_id is required by two tools and never used as a record
+- F-05 no project identity anywhere in nemos/src
+- F-06 suggested_pack_id is minted at L338 and never persisted; getContextPack reads YAML only
+- F-07 synthetic fallback is labelled but reaches hosts as a 200 success
+- F-08 installers seed nothing; repo ships 18 personas, 24 skills, 2 knowledge docs unread
+- F-09 promotion is unreachable from the seven-tool MCP surface
+- F-10 "ai" inside "constrAInts" -> machine-learning; docs task graded as a feature
+- F-11 loadDaemonConfig catch -> {}, so "configured" is not a reportable state
+- F-12 one flat global namespace for every store
+
+Sharpest new evidence (not in QODER-02)
+- skills/tdd.json is a CONFORMANT core Skill (id, version, provenance.kind "approved",
+  applicability.taskKinds, requiredCapabilities, failureConditions) and a NON-conformant input to
+  unified-skills.register(), which wants status/domain/triggers. The repo asset is not malformed:
+  the daemon invented a second asset format and then could not read the first. Recorded in 4.1 --
+  it is the cleanest argument for D-01 and the cleanest reading of "does not silently change meaning".
+- defect-regression-tests.js L135-141 asserts 200 + is_synthetic for an unknown pack id, so D-05
+  cannot simply switch to 404. Resolved by keeping HTTP unchanged and making the MCP tool return
+  an error unless the caller opts in.
+
+Nine decisions, none approved yet: D-01 core-as-contract, D-02 binding anchor, D-03 unbound scope,
+D-04 persist dynamic packs, D-05 unknown-id semantics, D-06 documentation task kind, D-07 fallback
+harness, D-08 retention needs an Evaluation, D-09 layout.
+
+Deliberately not done: no fixes, no adoption, no migration, no claim that any phase is complete.
+Implementation waits on review of the plan and D-01..D-09.

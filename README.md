@@ -16,6 +16,30 @@ Nemons is an **Agent Runtime independent of any Coding Agent**. It coordinates o
 
 Nemons is a **meta-harness above Coding Agent harnesses**, not a replacement for them. The underlying harness remains responsible for its agent loop, model interaction, tool invocation, permissions, and execution environment. Nemons focuses on continuity, evidence, asset lifecycle, and controlled reuse.
 
+### Integration status (read before relying on it)
+
+The daemon's HTTP and MCP surfaces are implemented and covered by tests. The **client
+side is not a product yet**. Two adapters have been pointed at real hosts; the rest
+are still reference shims.
+
+| Host | Status | What was actually checked |
+| --- | --- | --- |
+| Codex CLI | **verified against codex-cli 0.149.1** | `nemons plugin install --agent codex` registers the daemon as a streamable-HTTP MCP server through `codex mcp add`; the registration is read back from `codex mcp list --json` and from `codex doctor`'s own `mcp.config` check, and `plugin remove` is confirmed the same way. Covered by `nemos/tests/host-integration-tests.js`. |
+| Qoder IDE | **registered against the real host (1.37.0); host-side discovery not observed** | `nemons plugin install --agent qoder` merges `mcpServers.nemons` into `~/.qoder/mcp.json` and reads it back. That file is the one the runtime uses — the IDE's derived registry carries its MD5 — but Qoder exposes no CLI read-back and no reload command, so the driver reports two separate states: "saved" (proved) and "discovered by the host" (not proved: the daemon received no `POST /mcp` from the IDE and no `nemons` entry appeared in `SharedClientCache/**/mcps`). No model turn invoked a Nemons tool. Full evidence and capability limits: `docs/07-evaluation/experiments/QODER-01-host-capability-report.md`. |
+| OpenCode, Claude Code, Kimi, Cline, Trae | reference shims — **not host-verified** | Files are copied to a plausible directory and reported as `~ files staged`. No host was asked to accept them, so `plugins/*/` documents an intended hook contract (`onPrompt` / `onResponse` → `/analyze`, `/evidence`, `/evaluate`) rather than a supported integration. |
+
+Two things are deliberately *not* claimed about Codex either. The skill written to
+`$CODEX_HOME/skills/nemons-orchestrator/SKILL.md` is only confirmed to be readable after
+write — whether Codex loads it is the host's decision. And no model turn was run with
+Nemons' tools in it, because that needs provider credentials a test run does not have.
+`plugins/codex/nemons.js` is a shim of the hook shape, not what gets installed: Codex
+never reads a plugin directory, which is exactly what the old installer assumed.
+
+Nothing here sits between your agent and the model. A host (or the model itself) has to
+call Nemons. "Transparent" in this project means "the agent calls the daemon without you
+prompting it", not "Nemons patches the agent process". If no adapter is loaded, the
+daemon simply serves requests nobody makes.
+
 ## Why Nemons?
 
 Coding Agents can complete tasks, but useful context and lessons are often scattered across sessions, tools, prompts, and repositories. Reusing generated assets without provenance or review can also turn one mistake into a repeated failure.
@@ -35,7 +59,7 @@ Coding Agent / Harness
         │
         ▼
 Nemons daemon (`nemos/`)
-  intercept · context · evidence · evaluation
+  context · evidence · evaluation · asset gates
         │
         ▼
 Nemons Core (`nemos-core/`)
@@ -71,9 +95,9 @@ The supported product path is intentionally narrower than the daemon's full endp
 
 **Reported project version: v4.5.0 — MCP-native release.**
 
-The project status supplied for 2026-10-27 reports the v4.3.0 P0–P3 quality cycle (closure of path traversal, timing-leaky authentication, and rate-limiting wiring; a daemon composition root and domain route modules; durable governed review decisions in `@nemons/core`; a consumable npm package surface; readable source modules), the v4.4.0 additions (a redesigned zero-dependency dashboard with live KPI cards and a verification-loop tester, the first empirical audit of all 7 coding-agent plugins, and a StrykerJS mutation-testing baseline at 63.12% on `paired-evaluator.ts`), and the v4.5.0 addition: a **spec-correct MCP server at `/mcp`** (Streamable HTTP, stateless; seven schema-validated tools sharing one core-loop implementation with the HTTP API; zero new dependencies) with a 26-test conformance suite — closing the claude-code plugin's declared-but-missing MCP surface.
+The project status supplied for 2026-10-27 reports the v4.3.0 P0–P3 quality cycle (closure of path traversal, timing-leaky authentication, and rate-limiting wiring; a daemon composition root and domain route modules; durable governed review decisions in `@nemons/core`; a consumable npm package surface; readable source modules), the v4.4.0 additions (a redesigned zero-dependency dashboard with live KPI cards and a `/analyze` tester, the first empirical audit of all 7 coding-agent plugins, and a StrykerJS mutation-testing baseline at 63.12% on `paired-evaluator.ts`), and the v4.5.0 addition: a **spec-correct MCP server at `/mcp`** (Streamable HTTP, stateless; seven schema-validated tools sharing one core-loop implementation with the HTTP API; zero new dependencies) with a 26-test conformance suite — closing the claude-code plugin's declared-but-missing MCP surface.
 
-The same reports record **1,369 passing checks** across daemon, MCP conformance, integration, security, end-to-end, and TypeScript core suites. Treat the live CI workflow and tagged release artifacts as the authoritative source for current status; counts in documentation are snapshots and can become stale.
+The JS daemon currently runs **210 checks across seven suites** (unit 35, persona 33, core-bridge 22, security 21, MCP conformance 26, defect regression 38, host integration 35) plus an 11-step end-to-end lifecycle run; the host suite adds 10 more checks when the real hosts are installed — 9 gated on a `codex` binary on PATH and 1 on a readable Qoder `product.json` — i.e. **220 with Codex CLI and Qoder IDE both present**. Both halves were measured on the validation machine (45 passed, 0 skipped) and in a host-less environment (35 passed, 0 failed, 3 skipped, exit 0), so a machine without the hosts reports skips instead of passing checks it did not run. The TypeScript core runs **1221 tests across 70 files**, re-measured green on Windows (`npx vitest run`, exit 0) and gated on Linux in CI. Treat the live CI workflow and tagged release artifacts as the authoritative source for current status; counts in documentation are snapshots and can become stale.
 
 ### Implementation
 

@@ -4,15 +4,14 @@
 // 4 algorithms: TextGrad, MIPRO, AFlow, EvoPrompt
 //
 // HONESTY NOTE (do not remove): this module GENERATES candidate
-// prompt/workflow variants, but it has NO evaluation backend — there
-// is nothing here that can measure whether a variant is actually
-// better. Where an engine like MIPRO would run a real evaluation,
-// this module fills the score with a random placeholder and says so
-// via `score_source: "random_unmeasured"`. Consumers (and humans)
-// MUST treat these numbers as "not measured", never as evidence of
-// improvement. Wiring a real evaluator (e.g. the paired evaluator in
-// @nemons/core, or an adapter round-trip) is the prerequisite for
-// removing the placeholder.
+// prompt/workflow variants. It has NO evaluator of its own, so it cannot
+// measure whether a variant is better. It used to fill the gap with
+// `0.5 + Math.random() * 0.5` and label it `score_source:
+// "random_unmeasured"` — a label is not enough, because any consumer reading
+// `expected_score` got a fabricated metric. Now an unmeasured variant has no
+// score at all (`expected_score: null`), no "best" is selected, and the result
+// says `scored: false`. Inject an evaluator (`new EvolutionEngine({ evaluator })`,
+// an async (prompt, meta) => number) to get real scores.
 // ============================================================
 const path = require("path");
 const { nemonsHome } = require("./runtime-config");
@@ -20,7 +19,8 @@ const { nemonsHome } = require("./runtime-config");
 const DATA_DIR = path.join(nemonsHome(), "evolution");
 
 class EvolutionEngine {
-  constructor() {
+  constructor({ evaluator = null } = {}) {
+    this.evaluator = typeof evaluator === "function" ? evaluator : null;
     this.algorithms = {
       textgrad: this.textGrad.bind(this),
       mipro: this.mipro.bind(this),
@@ -69,27 +69,44 @@ class EvolutionEngine {
     return prompt + "\n// Improved based on feedback: consider " + gradient.suggestions.join(", ");
   }
 
-  // MIPRO-inspired: generate variants (black-box selection is NOT
-  // implemented — see the honesty note at the top of this file).
+  // MIPRO-inspired: generate variants. Selection is only performed when an
+  // evaluator is injected; otherwise every variant is returned unscored and
+  // `best_variant` stays null, because "best" would be an invention.
   async mipro(prompt, examples, objective) {
     const variants = [];
     for (let i = 0; i < 3; i++) {
-      variants.push({
-        variant: i,
-        prompt: this.mutate(prompt, i),
-        // random placeholder — NOT a measured score
-        expected_score: 0.5 + Math.random() * 0.5,
-      });
+      variants.push({ variant: i, prompt: this.mutate(prompt, i) });
     }
-    const best = variants.sort((a, b) => b.expected_score - a.expected_score)[0];
+
+    if (!this.evaluator) {
+      return {
+        algorithm: "mipro",
+        original: prompt.slice(0, 100),
+        variants,
+        best_variant: null,
+        scored: false,
+        score_source: "unmeasured",
+        note: "Variants generated but not evaluated: no evaluator is configured, so none is scored and none is selected.",
+      };
+    }
+
+    const scored = [];
+    for (const v of variants) {
+      const score = await this.evaluator(v.prompt, { algorithm: "mipro", variant: v.variant, examples, objective });
+      if (typeof score !== "number" || !Number.isFinite(score)) {
+        throw new Error("evaluator returned a non-numeric score");
+      }
+      scored.push({ ...v, expected_score: score });
+    }
+    const best = scored.slice().sort((a, b) => b.expected_score - a.expected_score)[0];
     return {
       algorithm: "mipro",
       original: prompt.slice(0, 100),
+      variants: scored,
       best_variant: best.variant,
-      // no `improvement` claim: the score above is unmeasured
-      variants: variants.length,
-      score_source: "random_unmeasured",
-      note: "Variants generated but not evaluated — no evaluation backend wired. The expected_score values are random placeholders.",
+      best_prompt: best.prompt,
+      scored: true,
+      score_source: "external_evaluator",
     };
   }
 
@@ -98,28 +115,47 @@ class EvolutionEngine {
     return (variations[idx % variations.length] || "") + prompt;
   }
 
-  // AFlow-inspired: MCTS-shaped workflow exploration. Simulation
-  // values are random placeholders (see the honesty note above).
+  // AFlow-inspired: MCTS-shaped workflow exploration. Child values come only
+  // from an injected evaluator; without one the tree is generated but nothing
+  // is scored and no child is chosen (previously random placeholders were used).
   async aflow(workflow, rewards) {
-    const tree = { node: workflow, visits: 1, value: rewards?.[0] || 0.5, children: [] };
+    const tree = { node: workflow, visits: 1, value: rewards?.[0] ?? null, children: [] };
     // Expand: try different execution orders
     const steps = workflow.steps || [];
     for (let i = 0; i < Math.min(steps.length, 3); i++) {
-      tree.children.push({ node: { ...workflow, steps: this.reorder(steps, i) }, visits: 0, value: 0, children: [] });
+      tree.children.push({ node: { ...workflow, steps: this.reorder(steps, i) }, visits: 0, value: null, children: [] });
     }
-    // "Simulate and backpropagate" — placeholder values, no simulator
+
+    if (!this.evaluator) {
+      return {
+        algorithm: "aflow",
+        original_value: tree.value,
+        children_explored: tree.children.length,
+        best_child: null,
+        best_value: null,
+        scored: false,
+        score_source: "unmeasured",
+        note: "Child workflows generated but not simulated or scored: no evaluator is configured, so no child is selected.",
+      };
+    }
+
     for (const child of tree.children) {
+      const value = await this.evaluator(child.node, { algorithm: "aflow" });
+      if (typeof value !== "number" || !Number.isFinite(value)) {
+        throw new Error("evaluator returned a non-numeric value");
+      }
       child.visits = 1;
-      child.value = 0.5 + Math.random() * 0.5;
+      child.value = value;
     }
-    const best = tree.children.sort((a, b) => b.value - a.value)[0];
+    const best = tree.children.slice().sort((a, b) => b.value - a.value)[0];
     return {
       algorithm: "aflow",
       original_value: tree.value,
-      best_value: best?.value || tree.value,
       children_explored: tree.children.length,
-      score_source: "random_unmeasured",
-      note: "Child values are random placeholders — no workflow simulator is wired.",
+      best_child: best ? best.node : null,
+      best_value: best ? best.value : null,
+      scored: true,
+      score_source: "external_evaluator",
     };
   }
 
@@ -162,14 +198,29 @@ class EvolutionEngine {
     if (opts.examples) results.mipro = await this.mipro(prompt, opts.examples, opts.objective);
     if (opts.workflow) results.aflow = await this.aflow(opts.workflow, opts.rewards);
     if (opts.feedback_history) results.evoprompt = await this.evoPrompt(prompt, opts.feedback_history);
-    return { original: prompt.slice(0, 100), algorithms_run: Object.keys(results), results };
+    return {
+      original: prompt.slice(0, 100),
+      algorithms_run: Object.keys(results),
+      // No evaluator ⇒ no score anywhere in `results`; read this before
+      // treating any number here as a measurement.
+      scored: Boolean(this.evaluator),
+      evaluation_backend: this.evaluator ? "external evaluator (injected)" : "none",
+      results,
+    };
   }
 
   async stats() {
     return {
       algorithms: ["textgrad", "mipro", "aflow", "evoprompt"],
       reference: "EvoAgentX (GitHub)",
-      evaluation_backend: "none — scores from mipro/aflow are random_unmeasured placeholders",
+      evaluation_backend: this.evaluator ? "external evaluator (injected)" : "none",
+      capabilities: {
+        generates_variants: true,
+        // mipro/aflow selection needs an evaluator; textgrad/evoprompt are
+        // deterministic string edits with no quality claim.
+        scores_variants: Boolean(this.evaluator),
+        selects_best_variant: Boolean(this.evaluator),
+      },
       data_dir: DATA_DIR,
     };
   }
