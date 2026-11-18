@@ -729,6 +729,8 @@ func (h *Handler) Handle(req Request) Response {
 		return h.handleSearchTranscripts(req.Params)
 	case "get_knowledge_stats":
 		return h.handleGetKnowledgeStats(req.Params)
+	case "build_context_pack":
+		return h.handleBuildContextPack(req.Params)
 	case "search":
 		params := req.Params
 		h.injectExcludeSession(params)
