@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/carsteneu/yesmem/internal/capfile"
 	"github.com/carsteneu/yesmem/internal/models"
@@ -278,6 +279,14 @@ func TestCapsDirWatcher_DetectsModifiedFile(t *testing.T) {
 
 	body2 := []byte("---\nname: my_cap\ndescription: v2\n---\n\n## Purpose\n\nV2.\n\n## Scripts\n\n### my_cap\nkind: tool\nschema: {\"type\":\"object\"}\n\n```bash\necho v2\n```\n")
 	if err := os.WriteFile(capPath, body2, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	// The two writes can land inside one coarse mtime tick — the watcher then
+	// sees no change (a measured 161/200 collision on a coarse runner, because
+	// the whole test assumed nanosecond stamps). The write above resets the
+	// stamp to now, so the strictly newer stamp is forced after it.
+	future := time.Now().Add(2 * time.Second)
+	if err := os.Chtimes(capPath, future, future); err != nil {
 		t.Fatal(err)
 	}
 
