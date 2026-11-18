@@ -38,6 +38,14 @@ func (h *Handler) gateRequest(req Request) *Response {
 		method, surface = "job."+req.Method, "job"
 		params = withoutInternalMarks(params)
 	}
+	// The daemon's own upgrade paths (the bash autocorrect, the proposal
+	// accept) dispatch save_cap internally. They are not external callers —
+	// they are the system acting on its own audited decisions — so they carry
+	// the in-process mark and the gate folds open for them, exactly as the
+	// job surface's mark works in the other direction.
+	if _, ok := params["_internal_call"].(internalCallMark); ok {
+		return nil
+	}
 	caller, _ := params["_source_agent"].(string)
 	d := h.store.EvaluateGovernance(method, caller, surface, params)
 	switch d.Action {
@@ -56,6 +64,33 @@ func (h *Handler) gateRequest(req Request) *Response {
 			d.Key, method))
 		return &r
 	}
+}
+
+// internalCallMark is the in-process proof that a request is the daemon
+// acting on its own audited decision. Like the surface marks it is a private
+// empty struct: no JSON payload decodes into it, so an external caller cannot
+// borrow the system's pass.
+type internalCallMark struct{}
+
+// handleGovernanceDecide is the operator's surface over the approval
+// lifecycle: it closes the open ask a key names with allow or deny, through
+// the audited store interface. The gate judged the packet itself (the op is
+// governed), so a decision call already stands on its own approval.
+func (h *Handler) handleGovernanceDecide(params map[string]any) Response {
+	key, _ := params["key"].(string)
+	decision, _ := params["decision"].(string)
+	decider, _ := params["decider"].(string)
+	if key == "" {
+		return errorResponse("governance_decide: key is required")
+	}
+	if err := h.store.DecideApproval(key, decision, decider); err != nil {
+		return errorResponse(fmt.Sprintf("governance_decide: %v", err))
+	}
+	a, err := h.store.ApprovalForKey(key)
+	if err != nil {
+		return errorResponse(fmt.Sprintf("governance_decide: %v", err))
+	}
+	return jsonResponse(map[string]any{"key": key, "status": a.Status, "decision": a.Decision})
 }
 
 // withoutInternalMarks copies params minus the in-process mark keys. The marks

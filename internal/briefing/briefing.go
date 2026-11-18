@@ -329,6 +329,18 @@ func (g *Generator) ProjectKey(projectDir string) string {
 
 // loadLearnings fetches project-specific and global learnings.
 func (g *Generator) loadLearnings(projectShort string) []models.Learning {
+	// The generator sees the project's memory through its agent's eyes: private
+	// rows of other agents do not exist for this read, shared and published
+	// rows pass unchanged. The system view (no agent set) is byte-identical to
+	// the previous behaviour.
+	learnings, err := g.store.ActiveLearningsForProjectViewer(projectShort, "", g.sourceAgent, 0)
+	if err != nil {
+		return nil
+	}
+	return learnings
+}
+
+func (g *Generator) loadLearningsLegacy(projectShort string) []models.Learning {
 	// ActiveLearningsForProject adds the rows written below the project path: a
 	// repository whose work happens in worktree checkouts has no row under its own
 	// path, and the canonical scope alone would leave the briefing without content.

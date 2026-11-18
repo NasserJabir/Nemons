@@ -250,5 +250,8 @@ func (h *Handler) acceptCapProposal(capName, project, scriptName, newBody string
 		saveParams["requires"] = strings.Join(activeMeta.Requires, ",")
 	}
 
+	// Same as the autocorrect path: the accepted proposal is the daemon's own
+	// audited upgrade, marked in-process so the gate folds open.
+	saveParams["_internal_call"] = internalCallMark{}
 	return h.Handle(Request{Method: "save_cap", Params: saveParams}), nil
 }

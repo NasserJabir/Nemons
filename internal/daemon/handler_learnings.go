@@ -68,8 +68,13 @@ func (h *Handler) handleRemember(params map[string]any) Response {
 		if supersedesID != float64(int64(supersedesID)) {
 			return errorResponse("supersedes must be an integer learning ID; nothing was saved")
 		}
-		target, targetErr = h.store.GetLearning(int64(supersedesID))
+		// The supersede target is read as this caller's agent sees it: another
+		// agent's private row reads as absent here, so its existence is not
+		// confirmed through a supersede either.
+		rawCaller, _ := params["_source_agent"].(string)
+		target, targetErr = h.store.GetLearningForViewer(int64(supersedesID), rawCaller)
 	}
+
 
 	// Explicit override of the trust gate. It is an override, not a convenience
 	// flag: without a target and a justification it would let any caller retire
@@ -89,6 +94,22 @@ func (h *Handler) handleRemember(params map[string]any) Response {
 	if runes := []rune(supersedeReason); len(runes) > 500 {
 		supersedeReason = string(runes[:500]) + "..."
 	}
+	// Missing versus hidden. A target the store holds but this caller's agent
+	// cannot see is refused with the same not-found shape — the write never
+	// lands on a row the caller cannot see, and existence stays unconfirmed.
+	// A target nothing holds at all keeps the upstream behaviour: the ordinary
+	// supersede proceeds against an absent id as it always did, and the forced
+	// supersede keeps its own load-failure refusal below.
+	if supersedesID > 0 && targetErr != nil {
+		_, sysErr := h.store.GetLearning(int64(supersedesID))
+		if sysErr == nil {
+			return errorResponse(fmt.Sprintf("supersedes: learning #%d could not be loaded: %v; nothing was saved", int64(supersedesID), targetErr))
+		}
+		if !forceSupersede {
+			target, targetErr = nil, nil
+		}
+	}
+
 	if forceSupersede {
 		if supersedesID <= 0 {
 			return errorResponse("force_supersede requires supersedes: name the learning to retire; nothing was saved")
@@ -109,10 +130,43 @@ func (h *Handler) handleRemember(params map[string]any) Response {
 		}
 	}
 
+	// The sharing scope is a server-side policy, not a caller courtesy. The RAW
+	// value is judged before any normalization turns an empty caller into
+	// claude: a private row without the caller it belongs to is refused on what
+	// the caller actually sent. Unknown values are refused fail-closed, and a
+	// public row needs the memory.public_write standing grant.
+	sharingScope := ""
+	switch rawScope, _ := params["scope"].(string); rawScope {
+	case "", "project":
+		sharingScope = ""
+	case "private":
+		if rawCaller, _ := params["_source_agent"].(string); rawCaller == "" {
+			return errorResponse("remember: a private row needs the caller it belongs to (_source_agent); nothing was saved")
+		}
+		sharingScope = "private"
+	case "public":
+		// The grant is a standing allow on its own key, read directly: the
+		// governed registry is about method calls, this is about a policy grant.
+		grantKey := storage.GateKey("memory.public_write", nil)
+		grant, err := h.store.ApprovalForKey(grantKey)
+		if err != nil || grant == nil || grant.Status != storage.ApprovalDecided || grant.Decision != storage.ApprovalAllow {
+			return errorResponse("remember: publishing needs the memory.public_write grant (open ask " + grantKey + " and have it allowed); nothing was saved")
+		}
+		sharingScope = "public"
+	default:
+		return errorResponse(fmt.Sprintf("remember: unknown sharing scope %q — project, private or public; nothing was saved", rawScope))
+	}
+	// A cap row is executable code shared by definition: it never takes a
+	// narrower or wider scope than the shared one.
+	if category == "cap" {
+		sharingScope = ""
+	}
+
 	l := &models.Learning{
 		Category: category, Content: text, Project: project,
 		Confidence: 1.0, CreatedAt: timeNow(), ModelUsed: h.rememberModel(params),
 		Source: source, OriginTool: origin, ProjectSource: projectSource,
+		SharingScope: sharingScope,
 		CanonicalProject: canonicalProjectFor(project),
 	}
 

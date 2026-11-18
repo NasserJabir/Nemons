@@ -72,6 +72,7 @@ type Learning struct {
 	Source             string     `json:"source,omitempty"`      // user_stated, claude_suggested, agreed_upon, llm_extracted
 	OriginTool         string     `json:"origin_tool,omitempty"` // user, bash_command_input, file_read, web_external, cap_<name>, llm_extracted_session
 	SourceAgent        string     `json:"source_agent,omitempty"`
+	SharingScope       string     `json:"sharing_scope,omitempty"` // "": shared in-project (upstream) | private | public
 	TargetAgent        string     `json:"target_agent,omitempty"`
 	CanonicalProject   string     `json:"canonical_project,omitempty"` // parent project basename for worktree→main promotion
 	ProjectSource      string     `json:"project_source,omitempty"`    // attribution basis: explicit|repo|session|content|ambiguous

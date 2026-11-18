@@ -397,6 +397,9 @@ func (h *Handler) autoCorrectBashCap(run storage.BashJobRun, job *ScheduledJob, 
 		h.broadcastBashError(project, fmt.Sprintf("[bash-job] %q AUTO-CORRECT not persisted: %v", run.JobName, pErr))
 		return
 	}
+	// The autocorrect save is the daemon acting on its own audited decision;
+	// it is not an external save_cap caller and does not owe the gate an ask.
+	params["_internal_call"] = internalCallMark{}
 	resp := h.Handle(Request{Method: "save_cap", Params: params})
 	if resp.Error != "" {
 		// save_cap refuses for real reasons (sandbox lock on a project-bound

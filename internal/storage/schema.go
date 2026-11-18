@@ -789,6 +789,11 @@ var migrations = []string{
 	`UPDATE learnings SET created_at = (SELECT s.started_at FROM sessions s WHERE s.id = learnings.session_id)
 		WHERE learnings.created_at = ''
 		  AND EXISTS (SELECT 1 FROM sessions s WHERE s.id = learnings.session_id AND COALESCE(s.started_at, '') <> '')`,
+	// v0.79: the memory sharing scope. A learning stays shared inside its
+	// project (upstream behaviour, the default), belongs to one agent
+	// (private), or is published to every agent (public). Every ALTER-only
+	// column also lives in its CREATE TABLE constant (YM-378).
+	`ALTER TABLE learnings ADD COLUMN scope TEXT NOT NULL DEFAULT ''`,
 }
 
 // messagesMigrations runs against messages.db (separate from yesmem.db migrations).
@@ -899,7 +904,8 @@ const tableLearnings = `CREATE TABLE IF NOT EXISTS learnings (
 	staleness_reason    TEXT DEFAULT '',                -- v0.64: LLM rationale
 	staleness_checked_at TEXT,                          -- v0.64: ISO timestamp of last check
 	staleness_type      TEXT DEFAULT '',                -- v0.64: code_contradicts|code_removed|code_renamed|code_changed_insight_holds
-	code_fingerprint    TEXT DEFAULT ''                 -- v0.64: SHA256 of code at learning creation
+	code_fingerprint    TEXT DEFAULT '',                -- v0.64: SHA256 of code at learning creation
+	scope               TEXT NOT NULL DEFAULT ''        -- v0.79: sharing scope ('' shared | private | public)
 )`
 
 const tableAssociations = `CREATE TABLE IF NOT EXISTS associations (

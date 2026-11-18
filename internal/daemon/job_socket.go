@@ -67,6 +67,10 @@ var jobSocketAllowed = map[string]bool{
 	// One-to-many announcement. send_to (direct delivery to a chosen agent) stays
 	// out: it would let a job steer an unsandboxed agent.
 	"broadcast": true,
+
+	// The governance ops are governed surfaces in their own right; a job's
+	// call to one is judged under job.<method> (the job surface work).
+	"governance_decide": true,
 }
 
 // handleJobSocket serves the restricted socket a sandboxed run mounts. It is the

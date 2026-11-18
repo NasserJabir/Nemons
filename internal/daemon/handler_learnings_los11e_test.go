@@ -87,12 +87,6 @@ func TestJobSocketRefusesForceSupersedeLos11e(t *testing.T) {
 	}
 
 	// The guard is narrow: an ordinary supersede of a non-cap row still works.
-	// The job surface is governed, so the ordinary path first takes its ask and
-	// a standing allow; the refusals above must hold even on an admitted surface.
-	admitJobCall(t, h, "remember", map[string]any{
-		"text": "job corrects its own note", "category": "gotcha", "project": "yesmem",
-		"supersedes": float64(noteID),
-	})
 	ordinary := h.handleJobSocket(Request{Method: "remember", Params: map[string]any{
 		"text": "job corrects its own note", "category": "gotcha", "project": "yesmem",
 		"supersedes": float64(noteID),

@@ -9,64 +9,60 @@ import (
 	"encoding/json"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/carsteneu/yesmem/internal/storage"
 )
 
-func jobRememberParams() map[string]any {
-	return map[string]any{"text": "job write", "project": "/w", "_source_agent": "codex"}
+func jobDecideParams() map[string]any {
+	return map[string]any{"key": "abcd1234", "decision": "allow", "decider": "operator", "project": "/w", "_source_agent": "codex"}
 }
 
-// admitJobCall opens and approves the ask a job packet owes, so a test can
-// drive the surface's ordinary path on top of a standing allow. The key is
-// parsed from the refusal itself rather than re-derived: the digest runs after
-// project resolution inside Handle, which the caller cannot repeat exactly.
+// admitJobCall opens and approves the ask a job packet owes. The key is parsed
+// from the refusal itself rather than re-derived: the digest runs after project
+// resolution inside Handle, which the caller cannot repeat exactly.
 func admitJobCall(t *testing.T, h *Handler, method string, params map[string]any) {
 	t.Helper()
 	ask := h.handleJobSocket(Request{Method: method, Params: params})
 	if ask.Error == "" || !strings.Contains(ask.Error, "governance ask") {
 		t.Fatalf("expected the governed ask first, got %q", ask.Error)
 	}
-	fields := strings.Fields(ask.Error)
-	if len(fields) < 4 {
-		t.Fatalf("ask refusal %q does not name the key", ask.Error)
-	}
-	if err := h.store.DecideApproval(fields[2], storage.ApprovalAllow, "operator"); err != nil {
+	key := strings.Fields(ask.Error)[2]
+	if err := h.store.DecideApproval(key, storage.ApprovalAllow, "operator"); err != nil {
 		t.Fatalf("admit the job call: %v", err)
 	}
 }
 
 func TestJobSocketJudgesUnderTheJobMethod(t *testing.T) {
 	h, s := mustHandler(t)
-	resp := h.handleJobSocket(Request{Method: "remember", Params: jobRememberParams()})
-	if resp.Error == "" || !strings.Contains(resp.Error, "job.remember") {
-		t.Fatalf("refusal = %q, want the job.remember ask", resp.Error)
+	resp := h.handleJobSocket(Request{Method: "governance_decide", Params: jobDecideParams()})
+	if resp.Error == "" || !strings.Contains(resp.Error, "job.governance_decide") {
+		t.Fatalf("refusal = %q, want the job.governance_decide ask", resp.Error)
 	}
 	key := strings.Fields(resp.Error)[2]
 	a, _ := s.ApprovalForKey(key)
 	if a == nil {
 		t.Fatalf("no approval for the job packet %s", key)
 	}
-	if a.Method != "job.remember" || a.Surface != "job" {
-		t.Errorf("row = %s on %s, want job.remember on the job surface", a.Method, a.Surface)
+	if a.Method != "job.governance_decide" || a.Surface != "job" {
+		t.Errorf("row = %s on %s, want job.governance_decide on the job surface", a.Method, a.Surface)
 	}
 }
 
 func TestAgentGrantDoesNotOpenTheJobSurface(t *testing.T) {
 	h, s := mustHandler(t)
-	params := map[string]any{"text": "shared packet", "project": "/w", "_source_agent": "codex"}
-	_ = h.Handle(Request{Method: "remember", Params: params}) // agent ask
-	agentKey := storage.GateKey("remember", params)
+	params := jobDecideParams()
+	agentAsk := h.Handle(Request{Method: "governance_decide", Params: params})
+	if agentAsk.Error == "" {
+		t.Fatal("the agent-surface call ran ungoverned")
+	}
+	agentKey := strings.Fields(agentAsk.Error)[2]
 	if err := s.DecideApproval(agentKey, storage.ApprovalAllow, "operator"); err != nil {
 		t.Fatalf("agent decide: %v", err)
 	}
-	resp := h.handleJobSocket(Request{Method: "remember", Params: params})
-	if resp.Error == "" || !strings.Contains(resp.Error, "job.remember") {
+	resp := h.handleJobSocket(Request{Method: "governance_decide", Params: params})
+	if resp.Error == "" || !strings.Contains(resp.Error, "job.governance_decide") {
 		t.Fatalf("job resend = %q, want its own ask: the agent grant is not a job grant", resp.Error)
-	}
-	jobKey := storage.GateKey("job.remember", params)
-	if agentKey == jobKey {
-		t.Fatal("both surfaces hashed to the same ask")
 	}
 }
 
@@ -75,26 +71,28 @@ func TestRawDecodableValueCannotPretendTheMark(t *testing.T) {
 	// The client sends JSON; whatever it puts under the mark key decodes into a
 	// plain value, never into the private struct. Round-trip the params the way
 	// a socket frame would arrive and keep the decoded map.
-	raw, _ := json.Marshal(jobRememberParams())
+	raw, _ := json.Marshal(jobDecideParams())
 	var decoded map[string]any
 	_ = json.Unmarshal(raw, &decoded)
 	decoded["_job_surface"] = map[string]any{}
-	resp := h.gateRequest(Request{Method: "remember", Params: decoded})
+	resp := h.gateRequest(Request{Method: "governance_decide", Params: decoded})
 	if resp == nil {
-		t.Fatal("a raw value moved the call off the agent surface: it must not")
+		t.Fatal("a raw value moved the call onto the job surface: it must not")
 	}
-	if !strings.Contains(resp.Error, "ask") || !strings.Contains(resp.Error, " for remember") {
-		t.Errorf("refusal = %q, want the agent-surface remember ask", resp.Error)
+	if strings.Contains(resp.Error, "job.governance_decide") {
+		t.Errorf("refusal = %q, want the agent-surface judging (no job. prefix)", resp.Error)
 	}
 }
 
 func TestJobAskKeyDiffersFromTheAgentAskKey(t *testing.T) {
 	h, _ := mustHandler(t)
-	params := jobRememberParams()
-	_ = h.handleJobSocket(Request{Method: "remember", Params: params})
-	_ = h.Handle(Request{Method: "remember", Params: params})
-	job := storage.GateKey("job.remember", params)
-	agent := storage.GateKey("remember", params)
+	jobAsk := h.handleJobSocket(Request{Method: "governance_decide", Params: jobDecideParams()})
+	agentAsk := h.Handle(Request{Method: "governance_decide", Params: jobDecideParams()})
+	if jobAsk.Error == "" || agentAsk.Error == "" {
+		t.Fatal("one of the surfaces ran ungoverned")
+	}
+	job := strings.Fields(jobAsk.Error)[2]
+	agent := strings.Fields(agentAsk.Error)[2]
 	if job == agent {
 		t.Fatal("the two surfaces shared one ask")
 	}
@@ -102,16 +100,16 @@ func TestJobAskKeyDiffersFromTheAgentAskKey(t *testing.T) {
 
 func TestJobDenyRefusesTheJobSurface(t *testing.T) {
 	h, s := mustHandler(t)
-	params := jobRememberParams()
-	ask := h.handleJobSocket(Request{Method: "remember", Params: params})
+	params := jobDecideParams()
+	ask := h.handleJobSocket(Request{Method: "governance_decide", Params: params})
 	if ask.Error == "" {
-		t.Fatal("the job write ran ungoverned")
+		t.Fatal("the job call ran ungoverned")
 	}
 	key := strings.Fields(ask.Error)[2]
 	if err := s.DecideApproval(key, storage.ApprovalDeny, "operator"); err != nil {
 		t.Fatalf("job decide: %v", err)
 	}
-	resp := h.handleJobSocket(Request{Method: "remember", Params: params})
+	resp := h.handleJobSocket(Request{Method: "governance_decide", Params: params})
 	if resp.Error == "" || !strings.Contains(resp.Error, "governance refused") {
 		t.Errorf("job resend = %q, want the governance refusal", resp.Error)
 	}
@@ -119,22 +117,18 @@ func TestJobDenyRefusesTheJobSurface(t *testing.T) {
 
 func TestJobAllowAdmitsTheJobCall(t *testing.T) {
 	h, s := mustHandler(t)
-	params := jobRememberParams()
-	ask := h.handleJobSocket(Request{Method: "remember", Params: params})
-	if ask.Error == "" {
-		t.Fatal("the job write ran ungoverned")
+	// The target ask waits open; the admitted job call is what closes it.
+	if _, err := s.RequestApproval("abcd1234", "remember", "claude", "agent", time.Minute); err != nil {
+		t.Fatalf("seed ask: %v", err)
 	}
-	key := strings.Fields(ask.Error)[2]
-	if err := s.DecideApproval(key, storage.ApprovalAllow, "operator"); err != nil {
-		t.Fatalf("job decide: %v", err)
-	}
-	resp := h.handleJobSocket(Request{Method: "remember", Params: params})
+	admitJobCall(t, h, "governance_decide", jobDecideParams())
+	resp := h.handleJobSocket(Request{Method: "governance_decide", Params: jobDecideParams()})
 	if resp.Error != "" {
 		t.Fatalf("approved job call refused: %v", resp.Error)
 	}
-	ls, err := s.GetActiveLearnings("explicit_teaching", "/w", "", "", 10)
-	if err != nil || len(ls) == 0 {
-		t.Errorf("learnings = %d (%v), want the approved job write stored", len(ls), err)
+	a, _ := s.ApprovalForKey("abcd1234")
+	if a.Decision != storage.ApprovalAllow {
+		t.Errorf("the job call's decision did not land: %+v", a)
 	}
 }
 
@@ -152,4 +146,23 @@ func TestJobMarkSurvivesOnlyInProcess(t *testing.T) {
 	if _, ok := decoded["_job_surface"].(jobSurfaceMark); ok {
 		t.Fatal("a decoded value presented itself as the job mark")
 	}
+}
+
+func TestInternalCallMarkFoldsTheGateOpen(t *testing.T) {
+	h, s := mustHandler(t)
+	// The daemon's own upgrade paths carry the internal mark; the gate folds
+	// open for them even though the method is governed.
+	params := map[string]any{"key": "abcd1234", "decision": "allow", "_internal_call": internalCallMark{}}
+	resp := h.gateRequest(Request{Method: "governance_decide", Params: params})
+	if resp != nil {
+		t.Fatalf("an internal call owed an ask: %v", resp.Error)
+	}
+	// The mark is a private type: a decoded value cannot present itself as it.
+	frame, _ := json.Marshal(map[string]any{"_internal_call": map[string]any{}})
+	var decoded map[string]any
+	_ = json.Unmarshal(frame, &decoded)
+	if resp := h.gateRequest(Request{Method: "governance_decide", Params: decoded}); resp == nil {
+		t.Fatal("a decoded value borrowed the system's pass")
+	}
+	_ = s
 }

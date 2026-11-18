@@ -202,8 +202,8 @@ func (s *Store) InsertLearningBatch(learnings []*models.Learning) ([]int64, erro
 	defer tx.Rollback()
 
 	stmt, err := tx.Prepare(`INSERT INTO learnings
-		(session_id, category, content, project, confidence, created_at, expires_at, valid_until, model_used, source, emotional_intensity, session_flavor, supersedes, importance, hit_count, fail_count, context, domain, trigger_rule, embedding_text, embedding_status, embedding_content_hash, embedded_at, source_file, source_hash, doc_chunk_ref, content_hash, task_type, turns_at_creation, source_msg_from, source_msg_to, origin_tool, source_agent, target_agent, canonical_project, attribution, project_source, agent_role, dialog_id)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+		(session_id, category, content, project, confidence, created_at, expires_at, valid_until, model_used, source, emotional_intensity, session_flavor, supersedes, importance, hit_count, fail_count, context, domain, trigger_rule, embedding_text, embedding_status, embedding_content_hash, embedded_at, source_file, source_hash, doc_chunk_ref, content_hash, task_type, turns_at_creation, source_msg_from, source_msg_to, origin_tool, source_agent, target_agent, canonical_project, attribution, project_source, agent_role, dialog_id, scope)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
 		return nil, fmt.Errorf("prepare: %w", err)
 	}
@@ -285,7 +285,7 @@ func (s *Store) InsertLearningBatch(learnings []*models.Learning) ([]int64, erro
 		result, err := stmt.Exec(
 			l.SessionID, l.Category, l.Content, l.Project, l.Confidence,
 			fmtTime(l.CreatedAt), expiresAt, validUntil, l.ModelUsed, source, l.EmotionalIntensity, l.SessionFlavor, l.Supersedes, importance, l.HitCount, l.FailCount,
-			l.Context, l.Domain, l.TriggerRule, l.EmbeddingText, embeddingStatus, embeddingContentHash, l.SourceFile, l.SourceHash, l.DocChunkRef, l.ContentHash, l.TaskType, turnCounts[turnKey], sourceMsgFrom, sourceMsgTo, l.OriginTool, srcAgent, tgtAgent, l.CanonicalProject, l.Attribution, l.ProjectSource, l.AgentRole, l.DialogID)
+			l.Context, l.Domain, l.TriggerRule, l.EmbeddingText, embeddingStatus, embeddingContentHash, l.SourceFile, l.SourceHash, l.DocChunkRef, l.ContentHash, l.TaskType, turnCounts[turnKey], sourceMsgFrom, sourceMsgTo, l.OriginTool, srcAgent, tgtAgent, l.CanonicalProject, l.Attribution, l.ProjectSource, l.AgentRole, l.DialogID, l.SharingScope)
 		if err != nil {
 			return ids, fmt.Errorf("insert learning: %w", err)
 		}
@@ -447,7 +447,7 @@ func (s *Store) GetLearningsByCategory(category, project string, limit int) ([]m
 		COALESCE(source_file, ''), COALESCE(source_hash, ''), COALESCE(doc_chunk_ref, 0), COALESCE(task_type, ''), COALESCE(turns_at_creation, 0), COALESCE(origin_tool, ''), COALESCE(source_msg_from, -1), COALESCE(source_msg_to, -1),
 		COALESCE(canonical_project, ''),
 		COALESCE(attribution, ''),
-		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, '')
+		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, ''), COALESCE(scope, '')
 		FROM learnings WHERE superseded_by IS NULL
 		AND category = ?
 		AND (canonical_project = ? OR canonical_project = '')
@@ -472,7 +472,7 @@ func (s *Store) GetLearningsSince(project string, since time.Time, limit int) ([
 		COALESCE(source_file, ''), COALESCE(source_hash, ''), COALESCE(doc_chunk_ref, 0), COALESCE(task_type, ''), COALESCE(turns_at_creation, 0), COALESCE(origin_tool, ''), COALESCE(source_msg_from, -1), COALESCE(source_msg_to, -1),
 		COALESCE(canonical_project, ''),
 		COALESCE(attribution, ''),
-		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, '')
+		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, ''), COALESCE(scope, '')
 		FROM learnings WHERE ` + models.RecallableLearningSQL + `
 		AND (expires_at IS NULL OR julianday(expires_at) > julianday(?))
 		AND julianday(created_at) > julianday(?)
@@ -600,7 +600,7 @@ func (s *Store) GetConsolidationLearnings(afterID, throughID int64) ([]models.Le
 		COALESCE(l.source_file, ''), COALESCE(l.source_hash, ''), COALESCE(l.doc_chunk_ref, 0), COALESCE(l.task_type, ''), COALESCE(l.turns_at_creation, 0), COALESCE(l.origin_tool, ''), COALESCE(l.source_msg_from, -1), COALESCE(l.source_msg_to, -1),
 		COALESCE(l.canonical_project, ''),
 		COALESCE(l.attribution, ''),
-		COALESCE(l.staleness_score, 0.0), COALESCE(l.staleness_reason, ''), l.staleness_checked_at, COALESCE(l.staleness_type, ''), COALESCE(l.code_fingerprint, ''), COALESCE(l.project_source, '')
+		COALESCE(l.staleness_score, 0.0), COALESCE(l.staleness_reason, ''), l.staleness_checked_at, COALESCE(l.staleness_type, ''), COALESCE(l.code_fingerprint, ''), COALESCE(l.project_source, ''), COALESCE(l.scope, '')
 	FROM learnings l
 	JOIN dirty d ON d.category = l.category
 		AND d.project = COALESCE(NULLIF(l.canonical_project, ''), COALESCE(l.project, ''))
@@ -627,6 +627,11 @@ type LearningsFilter struct {
 	// path-scoped read for a project whose work lives in checkouts below its own
 	// path.
 	ProjectSubtree string
+	// Viewer is the agent the read is served to (normalized source agent). An
+	// empty Viewer is a system read and sees every row exactly as before; an
+	// agent viewer additionally loses the private rows of other agents. The
+	// clause is server-side: nothing the caller sends can widen it.
+	Viewer string
 }
 
 // GetActiveLearnings returns all non-superseded, non-expired learnings.
@@ -654,7 +659,7 @@ func (s *Store) GetActiveLearningsFiltered(f LearningsFilter, limit int) ([]mode
 		COALESCE(source_file, ''), COALESCE(source_hash, ''), COALESCE(doc_chunk_ref, 0), COALESCE(task_type, ''), COALESCE(turns_at_creation, 0), COALESCE(origin_tool, ''), COALESCE(source_msg_from, -1), COALESCE(source_msg_to, -1),
 		COALESCE(canonical_project, ''),
 		COALESCE(attribution, ''),
-		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, '')
+		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, ''), COALESCE(scope, '')
 		FROM learnings WHERE ` + models.RecallableLearningSQL + `
 		AND (expires_at IS NULL OR julianday(expires_at) > julianday(?))`
 	args := []any{fmtTime(time.Now())}
@@ -662,6 +667,14 @@ func (s *Store) GetActiveLearningsFiltered(f LearningsFilter, limit int) ([]mode
 	if category != "" {
 		query += ` AND category = ?`
 		args = append(args, category)
+	}
+	// The sharing scope, judged at the query itself: shared rows (scope '' or
+	// 'project') and published rows ('public') pass for every agent viewer; a
+	// private row passes only for the agent that owns it. A system read (empty
+	// Viewer) gains no clause at all — its behaviour is unchanged to the byte.
+	if viewer := models.NormalizeSourceAgent(f.Viewer); viewer != "" {
+		query += ` AND (COALESCE(scope, '') IN ('', 'project', 'public') OR (scope = 'private' AND source_agent = ?))`
+		args = append(args, viewer)
 	}
 	if subtree != "" {
 		prefix := subtree + string(filepath.Separator)
@@ -754,7 +767,7 @@ func (s *Store) GetActiveLearningsBySessionIDs(sessionIDs []string) ([]models.Le
 			COALESCE(source_file, ''), COALESCE(source_hash, ''), COALESCE(doc_chunk_ref, 0), COALESCE(task_type, ''), COALESCE(turns_at_creation, 0), COALESCE(origin_tool, ''), COALESCE(source_msg_from, -1), COALESCE(source_msg_to, -1),
 			COALESCE(canonical_project, ''),
 			COALESCE(attribution, ''),
-			COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, '')
+			COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, ''), COALESCE(scope, '')
 			FROM learnings
 			WHERE superseded_by IS NULL
 			AND (expires_at IS NULL OR julianday(expires_at) > julianday(?))
@@ -811,7 +824,7 @@ func (s *Store) GetLearning(id int64) (*models.Learning, error) {
 		COALESCE(source_file, ''), COALESCE(source_hash, ''), COALESCE(doc_chunk_ref, 0), COALESCE(task_type, ''), COALESCE(turns_at_creation, 0), COALESCE(origin_tool, ''), COALESCE(source_msg_from, -1), COALESCE(source_msg_to, -1),
 		COALESCE(canonical_project, ''),
 		COALESCE(attribution, ''),
-		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), COALESCE(staleness_checked_at, ''), COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, '')
+		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), COALESCE(staleness_checked_at, ''), COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, ''), COALESCE(scope, '')
 		FROM learnings WHERE id = ?`, id)
 
 	l := &models.Learning{}
@@ -825,7 +838,7 @@ func (s *Store) GetLearning(id int64) (*models.Learning, error) {
 		&l.Context, &l.Domain, &l.TriggerRule, &l.EmbeddingText,
 		&l.SourceFile, &l.SourceHash, &l.DocChunkRef, &l.TaskType, &l.TurnsAtCreation, &l.OriginTool, &l.SourceMsgFrom, &l.SourceMsgTo,
 		&l.CanonicalProject, &l.Attribution,
-		&l.StalenessScore, &l.StalenessReason, &l.StalenessCheckedAt, &l.StalenessType, &l.CodeFingerprint, &projectSource)
+		&l.StalenessScore, &l.StalenessReason, &l.StalenessCheckedAt, &l.StalenessType, &l.CodeFingerprint, &projectSource, &l.SharingScope)
 	if err != nil {
 		return nil, fmt.Errorf("get learning %d: %w", id, err)
 	}
@@ -1122,7 +1135,7 @@ func (s *Store) GetTriggeredLearnings(project, triggerPrefix, minRule string) ([
 		COALESCE(source_file, ''), COALESCE(source_hash, ''), COALESCE(doc_chunk_ref, 0), COALESCE(task_type, ''), COALESCE(turns_at_creation, 0), COALESCE(origin_tool, ''), COALESCE(source_msg_from, -1), COALESCE(source_msg_to, -1),
 		COALESCE(canonical_project, ''),
 		COALESCE(attribution, ''),
-		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, '')
+		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, ''), COALESCE(scope, '')
 		FROM learnings
 		WHERE ` + models.RecallableLearningSQL + `
 		AND trigger_rule != '' AND trigger_rule IS NOT NULL
@@ -1208,7 +1221,7 @@ func (s *Store) GetStaleLearnings(project string, minScore float64) ([]models.Le
 		COALESCE(l.source_file, ''), COALESCE(l.source_hash, ''), COALESCE(l.doc_chunk_ref, 0), COALESCE(l.task_type, ''), COALESCE(l.turns_at_creation, 0), COALESCE(l.origin_tool, ''), COALESCE(l.source_msg_from, -1), COALESCE(l.source_msg_to, -1),
 		COALESCE(l.canonical_project, ''),
 		COALESCE(l.attribution, ''),
-		COALESCE(l.staleness_score, 0.0), COALESCE(l.staleness_reason, ''), l.staleness_checked_at, COALESCE(l.staleness_type, ''), COALESCE(l.code_fingerprint, ''), COALESCE(l.project_source, '')
+		COALESCE(l.staleness_score, 0.0), COALESCE(l.staleness_reason, ''), l.staleness_checked_at, COALESCE(l.staleness_type, ''), COALESCE(l.code_fingerprint, ''), COALESCE(l.project_source, ''), COALESCE(l.scope, '')
 		FROM learnings l
 		WHERE l.superseded_by IS NULL
 		AND l.staleness_score >= ?
@@ -1473,7 +1486,7 @@ func (s *Store) GetRecentNarratives(project string, limit int) ([]models.Learnin
 		COALESCE(l.source_file, ''), COALESCE(l.source_hash, ''), COALESCE(l.doc_chunk_ref, 0), COALESCE(l.task_type, ''), COALESCE(l.turns_at_creation, 0), COALESCE(l.origin_tool, ''), COALESCE(l.source_msg_from, -1), COALESCE(l.source_msg_to, -1),
 		COALESCE(l.canonical_project, ''),
 		COALESCE(l.attribution, ''),
-		COALESCE(l.staleness_score, 0.0), COALESCE(l.staleness_reason, ''), l.staleness_checked_at, COALESCE(l.staleness_type, ''), COALESCE(l.code_fingerprint, ''), COALESCE(l.project_source, '')
+		COALESCE(l.staleness_score, 0.0), COALESCE(l.staleness_reason, ''), l.staleness_checked_at, COALESCE(l.staleness_type, ''), COALESCE(l.code_fingerprint, ''), COALESCE(l.project_source, ''), COALESCE(l.scope, '')
 		FROM learnings l
 		LEFT JOIN sessions s ON l.session_id = s.id
 		WHERE l.category = 'narrative' AND l.canonical_project = ? AND ` + models.RecallableLearningSQLAlias + `
@@ -1506,7 +1519,7 @@ func scanLearnings(rows interface {
 			&l.Context, &l.Domain, &l.TriggerRule, &l.EmbeddingText,
 			&l.SourceFile, &l.SourceHash, &l.DocChunkRef, &l.TaskType, &l.TurnsAtCreation, &l.OriginTool, &l.SourceMsgFrom, &l.SourceMsgTo,
 			&l.CanonicalProject, &l.Attribution,
-			&l.StalenessScore, &l.StalenessReason, &stalenessCheckedAt, &l.StalenessType, &l.CodeFingerprint, &projectSource); err != nil {
+			&l.StalenessScore, &l.StalenessReason, &stalenessCheckedAt, &l.StalenessType, &l.CodeFingerprint, &projectSource, &l.SharingScope); err != nil {
 			return nil, err
 		}
 		l.ProjectSource = projectSource

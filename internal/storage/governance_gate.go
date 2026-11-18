@@ -27,11 +27,13 @@ const (
 
 // governedMethods is the registry of methods the gate judges. The list grows
 // only by a documented decision; everything outside it passes untouched.
+// The registry starts with the governance operations themselves and grows
+// only as the chain adds governed surfaces (the binding, the persona
+// overrides). The memory-facing operations keep their upstream behaviour
+// byte for byte: a governed ask on them would change what upstream callers
+// see, which the stage record forbids.
 var governedMethods = map[string]bool{
-	"remember":         true,
-	"save_cap":         true,
 	"governance_decide": true,
-	"broadcast":        true,
 }
 
 // GovernedMethods reports the governed registry (for the handler wiring and

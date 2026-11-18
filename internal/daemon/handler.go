@@ -701,6 +701,8 @@ func (h *Handler) Handle(req Request) Response {
 	}
 
 	switch req.Method {
+	case "governance_decide":
+		return h.handleGovernanceDecide(req.Params)
 	case "search":
 		params := req.Params
 		h.injectExcludeSession(params)
