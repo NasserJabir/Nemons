@@ -701,13 +701,10 @@ func TestDONEDeliveryAsksForThePayloadAgainAfterAWithheldSend(t *testing.T) {
 		t.Fatal("gateDoneVerify = false, want true")
 	}
 
-	writes := contentWrites(rec)
-	if len(writes) == 0 {
-		t.Fatal("the agent was written nothing: it never learns that the payload is missing")
-	}
-	// The recorder keeps the head of each write, and the missing delivery is the
-	// first thing the resend prompt says.
-	last := writes[len(writes)-1]
+	// The tick writes over the agent socket asynchronously: a single read of the
+	// recorder races it — the same 2-of-7 CI flake (2026-11-12) waitForWrite
+	// documents. Poll for the release instead of reading the recorder once.
+	last := waitForWrite(t, rec, "aber die Zustellung")
 	if !strings.Contains(last, "aber die Zustellung") {
 		t.Errorf("release message %q does not name the missing DONE delivery", last)
 	}
