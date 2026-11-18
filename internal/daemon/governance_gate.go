@@ -138,3 +138,51 @@ func (h *Handler) handleGovernanceBind(params map[string]any) Response {
 		"agent": b.Agent, "project": b.Project, "canonical_project": b.CanonicalProject,
 	})
 }
+
+// handleGovernancePersona is the operator's surface over the per-agent
+// persona spaces: set/clear a trait override or a directive override for one
+// agent, each write landing with its persona.agent_override audit line.
+func (h *Handler) handleGovernancePersona(params map[string]any) Response {
+	agent, _ := params["agent"].(string)
+	kind, _ := params["kind"].(string)
+	action, _ := params["action"].(string)
+	dimension, _ := params["dimension"].(string)
+	key, _ := params["key"].(string)
+	value, _ := params["value"].(string)
+	if agent == "" {
+		return errorResponse("governance_persona: agent is required")
+	}
+	switch {
+	case kind == "trait" && action == "set":
+		if err := h.store.SetAgentPersonaTrait(agent, dimension, key, value); err != nil {
+			return errorResponse(fmt.Sprintf("governance_persona: %v", err))
+		}
+	case kind == "trait" && action == "clear":
+		if err := h.store.ClearAgentPersonaTrait(agent, dimension, key); err != nil {
+			return errorResponse(fmt.Sprintf("governance_persona: %v", err))
+		}
+	case kind == "directive" && action == "set":
+		if err := h.store.SetAgentPersonaDirective(agent, value); err != nil {
+			return errorResponse(fmt.Sprintf("governance_persona: %v", err))
+		}
+	case kind == "directive" && action == "clear":
+		if err := h.store.ClearAgentPersonaDirective(agent); err != nil {
+			return errorResponse(fmt.Sprintf("governance_persona: %v", err))
+		}
+	case kind == "traits" && action == "get":
+		traits, err := h.store.GetResolvedPersonaTraits(agent, 0)
+		if err != nil {
+			return errorResponse(fmt.Sprintf("governance_persona: %v", err))
+		}
+		return jsonResponse(map[string]any{"agent": agent, "traits": traits})
+	case kind == "directive" && action == "get":
+		d, err := h.store.GetResolvedPersonaDirective(agent)
+		if err != nil {
+			return errorResponse(fmt.Sprintf("governance_persona: %v", err))
+		}
+		return jsonResponse(map[string]any{"agent": agent, "directive": d})
+	default:
+		return errorResponse("governance_persona: kind is trait|directive|traits and action is set|clear|get")
+	}
+	return jsonResponse(map[string]any{"agent": agent, "kind": kind, "action": action, "ok": true})
+}

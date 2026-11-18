@@ -717,6 +717,8 @@ func (h *Handler) Handle(req Request) Response {
 		return h.handleGovernanceDecide(req.Params)
 	case "governance_bind":
 		return h.handleGovernanceBind(req.Params)
+	case "governance_persona":
+		return h.handleGovernancePersona(req.Params)
 	case "search":
 		params := req.Params
 		h.injectExcludeSession(params)

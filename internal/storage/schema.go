@@ -87,6 +87,8 @@ func (s *Store) createSchema() error {
 		tableGovernanceApprovals,
 		tableGovernanceEvents,
 		tableAgentBindings,
+		tablePersonaTraitsAgent,
+		tablePersonaDirectivesAgent,
 	}
 	for _, ddl := range tables {
 		if _, err := s.db.Exec(ddl); err != nil {
