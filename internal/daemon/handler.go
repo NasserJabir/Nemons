@@ -693,6 +693,13 @@ func (h *Handler) Handle(req Request) Response {
 		}
 	}
 
+	// The governance gate: a governed method reads its packet's decision before
+	// the dispatch switch touches anything. The evaluator is a pure read; the
+	// wiring opens the ask itself, idempotently, through the audited interface.
+	if resp := h.gateRequest(req); resp != nil {
+		return *resp
+	}
+
 	switch req.Method {
 	case "search":
 		params := req.Params
