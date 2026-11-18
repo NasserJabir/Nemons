@@ -995,11 +995,16 @@ type restartSpawn struct {
 	pid     int
 	workDir string
 	args    []string
+	// cmdline records the command line the bind's identity gate must see; gen
+	// counts the recordings so a cleanup can drain an in-flight spawn.
+	cmdline string
+	gen     int
 }
 
 func (r *restartSpawn) set(pid int, workDir string) {
 	r.mu.Lock()
 	r.pid, r.workDir = pid, workDir
+	r.gen++
 	r.mu.Unlock()
 }
 
@@ -1007,7 +1012,44 @@ func (r *restartSpawn) set(pid int, workDir string) {
 func (r *restartSpawn) setArgs(args []string) {
 	r.mu.Lock()
 	r.args = append([]string(nil), args...)
+	r.gen++
 	r.mu.Unlock()
+}
+
+// setCmdline records the cmdline value the identity gate reads for the child.
+func (r *restartSpawn) setCmdline(cmdline string) {
+	r.mu.Lock()
+	r.cmdline = cmdline
+	r.gen++
+	r.mu.Unlock()
+}
+
+// Cmdline returns the recorded command line, empty until a spawn landed.
+func (r *restartSpawn) Cmdline() string {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.cmdline
+}
+
+// waitQuiescent returns once no new recording landed for one poll window (or
+// the deadline passed). It is a best-effort drain: the async restart spawns
+// concurrently with the test body, and the seam restore must not race a
+// recording that is still in flight.
+func (r *restartSpawn) waitQuiescent(d time.Duration) {
+	r.mu.Lock()
+	gen := r.gen
+	r.mu.Unlock()
+	deadline := time.Now().Add(d)
+	for time.Now().Before(deadline) {
+		time.Sleep(20 * time.Millisecond)
+		r.mu.Lock()
+		cur := r.gen
+		r.mu.Unlock()
+		if cur == gen {
+			return
+		}
+		gen = cur
+	}
 }
 
 func (r *restartSpawn) PID() int {
@@ -1064,10 +1106,20 @@ func stubRestartSpawnSync(t *testing.T, childLife string) *restartSpawn {
 	// passes without ever binding (cold review F4). Derived from the name the
 	// spawn passes, so it holds for every backend.
 	prevCmdline := procCmdline
-	t.Cleanup(func() { procCmdline = prevCmdline })
+	t.Cleanup(func() {
+		// Drain before the restore: an async restart may still be recording its
+		// spawn, and the seam must not be restored under it.
+		spawn.waitQuiescent(2 * time.Second)
+		procCmdline = prevCmdline
+	})
+	// Install the cmdline seam once. The closure reads the recorded spawn name
+	// under the recorder's mutex, so the fresh spawn and the async restart — two
+	// concurrent writers in the race detector's eyes — no longer write the
+	// package var itself; the detector flagged exactly that write.
+	procCmdline = func(int) string { return spawn.Cmdline() }
 	prevBridge, prevDisplay := newAgentBridge, agentDisplayCommand
 	newAgentBridge = func(name string, args []string, sock, workDir string, extraEnv ...string) (*orchestrator.AgentBridge, error) {
-		procCmdline = func(int) string { return name + "\x00" }
+		spawn.setCmdline(name + "\x00")
 		b, err := orchestrator.NewAgentBridge(sleepBin, []string{childLife}, sock, workDir)
 		if err == nil {
 			spawn.set(b.Cmd.Process.Pid, workDir)
