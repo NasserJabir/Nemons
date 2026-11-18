@@ -29,9 +29,17 @@ func (h *Handler) gateRequest(req Request) *Response {
 	if h.store == nil {
 		return nil
 	}
-	caller, _ := req.Params["_source_agent"].(string)
-	surface := "agent"
-	d := h.store.EvaluateGovernance(req.Method, caller, surface, req.Params)
+	// The surface rides on the in-process mark: a request the sandboxed job
+	// socket carries is judged under job.<method> on the job surface, and its
+	// grant lives separately from the agent surface's. The marks are stripped
+	// from the digested params — the packet's identity is its visible payload.
+	method, surface, params := req.Method, "agent", req.Params
+	if _, ok := params["_job_surface"].(jobSurfaceMark); ok {
+		method, surface = "job."+req.Method, "job"
+		params = withoutInternalMarks(params)
+	}
+	caller, _ := params["_source_agent"].(string)
+	d := h.store.EvaluateGovernance(method, caller, surface, params)
 	switch d.Action {
 	case storage.GateAllow:
 		return nil
@@ -39,13 +47,27 @@ func (h *Handler) gateRequest(req Request) *Response {
 		r := errorResponse("governance refused the call: " + d.Reason)
 		return &r
 	default: // ask
-		if _, err := h.store.RequestApproval(d.Key, req.Method, caller, surface, governanceAskTTL); err != nil {
+		if _, err := h.store.RequestApproval(d.Key, method, caller, surface, governanceAskTTL); err != nil {
 			r := errorResponse(fmt.Sprintf("governance ask failed for %s: %v", d.Key, err))
 			return &r
 		}
 		r := errorResponse(fmt.Sprintf(
 			"governance ask %s is open for %s: the operator decides it, then resend the call",
-			d.Key, req.Method))
+			d.Key, method))
 		return &r
 	}
+}
+
+// withoutInternalMarks copies params minus the in-process mark keys. The marks
+// are control flow, not payload; keying a job call on them would make its ask
+// depend on plumbing the caller never sees.
+func withoutInternalMarks(params map[string]any) map[string]any {
+	out := make(map[string]any, len(params))
+	for k, v := range params {
+		if k == "_job_surface" || k == "_job_caller" {
+			continue
+		}
+		out[k] = v
+	}
+	return out
 }

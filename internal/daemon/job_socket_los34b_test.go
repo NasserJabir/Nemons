@@ -222,7 +222,13 @@ func TestJobSocketRefusesCapRowsFromRemember(t *testing.T) {
 		t.Fatalf("error must name the category, got: %s", resp.Error)
 	}
 
-	// The guard is narrow: an ordinary memory write still works.
+	// The guard is narrow: an ordinary memory write still works. The governed
+	// surface takes its ask and allow first.
+	admitJobCall(t, h, "remember", map[string]any{
+		"text":     "a job may keep a note",
+		"category": "gotcha",
+		"project":  "los34b",
+	})
 	ok := h.handleJobSocket(Request{Method: "remember", Params: map[string]any{
 		"text":     "a job may keep a note",
 		"category": "gotcha",
@@ -267,6 +273,13 @@ func TestJobSocketAllowlistMatchesTheDispatch(t *testing.T) {
 func TestJobSocketLabelsTheAnnouncementSender(t *testing.T) {
 	h, _ := mustHandler(t)
 
+	// broadcast is governed on the job surface: take the ask and the allow, then
+	// verify the labelling of an admitted announcement.
+	admitJobCall(t, h, "broadcast", map[string]any{
+		"content": "report",
+		"sender":  "yesmem",
+		"project": "/srv/los34b",
+	})
 	resp := h.handleJobSocket(Request{Method: "broadcast", Params: map[string]any{
 		"content": "report",
 		"sender":  "yesmem",

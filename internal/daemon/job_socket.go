@@ -109,8 +109,22 @@ func (h *Handler) handleJobSocket(req Request) Response {
 		req.Params["sender"] = jobBroadcastSender
 		req.Params["_job_caller"] = jobCallerMark{}
 	}
+	// The job surface is its own governed surface: every request this socket
+	// carries is marked, and the gate judges it under job.<method> — a grant
+	// made on the agent surface is not a grant here, and only this function can
+	// produce the mark.
+	if req.Params == nil {
+		req.Params = map[string]any{}
+	}
+	req.Params["_job_surface"] = jobSurfaceMark{}
 	return h.Handle(req)
 }
+
+// jobSurfaceMark is the in-process proof that a request travels the sandboxed
+// job surface. Like jobCallerMark it is a private empty struct: no JSON payload
+// decodes into it, so a raw client value cannot move a call onto the job's
+// governed surface — or off it.
+type jobSurfaceMark struct{}
 
 // jobCallerMark is the in-process proof that a request came from the sandboxed
 // job socket. A private empty struct cannot be produced by json.Unmarshal, which

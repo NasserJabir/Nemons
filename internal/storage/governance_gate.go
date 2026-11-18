@@ -102,9 +102,15 @@ type GateDecision struct {
 // approval row: no row means the caller owes an ask, an open row means the ask
 // still waits, a deny decision refuses, and an allow decision is the standing
 // grant that admits the packet. Ungoverned methods pass with no read at all.
+// A surface-prefixed judged method (job.<method>) is registered by its bare
+// name — the registry lists methods, the judged name carries the surface.
 func (s *Store) EvaluateGovernance(method, caller, surface string, params map[string]any) GateDecision {
 	key := GateKey(method, params)
-	if !IsGovernedMethod(method) {
+	registered := method
+	if bare, ok := strings.CutPrefix(method, "job."); ok {
+		registered = bare
+	}
+	if !IsGovernedMethod(registered) {
 		return GateDecision{Action: GateAllow, Key: key, Reason: "method is not governed"}
 	}
 	row, err := s.ApprovalForKey(key)
