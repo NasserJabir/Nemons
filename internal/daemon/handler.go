@@ -725,6 +725,10 @@ func (h *Handler) Handle(req Request) Response {
 		return h.handleUnpinCap(req.Params)
 	case "rollback_cap":
 		return h.handleRollbackCap(req.Params)
+	case "search_transcripts":
+		return h.handleSearchTranscripts(req.Params)
+	case "get_knowledge_stats":
+		return h.handleGetKnowledgeStats(req.Params)
 	case "search":
 		params := req.Params
 		h.injectExcludeSession(params)
