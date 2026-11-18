@@ -57,6 +57,10 @@ type CapMeta struct {
 	// without one (the documented-upgrades work); the disk sync cites its
 	// manifest by construction, and v1 has no predecessor to cite.
 	Citation string `json:"cap_citation,omitempty"`
+	// Pinned freezes the name: the save path refuses to upgrade it until the
+	// pin is lifted. RollbackFrom names the row a rollback restored from.
+	Pinned      bool  `json:"cap_pinned,omitempty"`
+	RollbackFrom int64 `json:"cap_rollback_from,omitempty"`
 }
 
 // ParseCapMeta parses JSON from a Learning's Context field into CapMeta.

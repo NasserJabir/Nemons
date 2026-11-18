@@ -719,6 +719,12 @@ func (h *Handler) Handle(req Request) Response {
 		return h.handleGovernanceBind(req.Params)
 	case "governance_persona":
 		return h.handleGovernancePersona(req.Params)
+	case "pin_cap":
+		return h.handlePinCap(req.Params)
+	case "unpin_cap":
+		return h.handleUnpinCap(req.Params)
+	case "rollback_cap":
+		return h.handleRollbackCap(req.Params)
 	case "search":
 		params := req.Params
 		h.injectExcludeSession(params)

@@ -380,3 +380,22 @@ func (s *Store) RecordCapUpgrade(name string, fromVersion, toVersion int, citati
 		time.Now().UTC().Format(time.RFC3339))
 	return err
 }
+
+// RecordCapEvent writes one cap audit line of the given kind (cap.pin,
+// cap.unpin, cap.rollback). The cap lifecycle joins the governance trail so a
+// held or restored script is visible in the same record as the approvals.
+func (s *Store) RecordCapEvent(kind, name, detail string) error {
+	_, err := s.db.Exec(
+		`INSERT INTO governance_events (kind, key, detail, created_at)
+		 VALUES (?, ?, ?, ?)`,
+		kind, name, detail, time.Now().UTC().Format(time.RFC3339))
+	return err
+}
+
+// UpdateLearningContext rewrites one row's context JSON in place. The pin and
+// rollback lifecycle uses it to move the CapMeta flags without superseding the
+// row: a pin is metadata, not a new version.
+func (s *Store) UpdateLearningContext(id int64, context string) error {
+	_, err := s.db.Exec(`UPDATE learnings SET context = ? WHERE id = ?`, context, id)
+	return err
+}

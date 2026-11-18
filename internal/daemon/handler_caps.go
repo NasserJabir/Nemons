@@ -335,6 +335,17 @@ func (h *Handler) handleSaveCapFrom(params map[string]any, sourcePath string) Re
 	// they are the surfaces an unattributed change could come from. The disk
 	// sync cites its manifest by construction, the system/operator path audits
 	// through its own channels, and v1 has no predecessor to cite.
+	// A pinned name is frozen: no upgrade lands until the pin is lifted. The
+	// disk sync keeps its repair path (the manifest is the row's own provenance,
+	// not an edit), and the internal call mark keeps the daemon's audited paths
+	// working — the pin is a hold on agent-driven rewrites.
+	if _, internal := params["_internal_call"]; !internal {
+		if pinnedName := stringOr(params, "name", ""); pinnedName != "" {
+			if _, pmeta, perr := findActiveCapRow(h.store, pinnedName); perr == nil && pmeta != nil && pmeta.Pinned && sourcePath == "" {
+				return errorResponse(fmt.Sprintf("save_cap: %q is pinned: lift the pin (unpin_cap) before upgrading it", pinnedName))
+			}
+		}
+	}
 	citation := stringOr(params, "citation", "")
 	agentCaller, _ := params["_source_agent"].(string)
 	if predecessor != nil && sourcePath == "" && agentCaller != "" {
