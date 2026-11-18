@@ -21,6 +21,7 @@ func TestLos35cSaveCapWritesIntoTheConfiguredCapsDir(t *testing.T) {
 		"description":  "Test: export into the configured caps dir",
 		"handler_bash": "echo exported",
 		"scope":        "user",
+			"citation": "text:cap suite update",
 	})
 	if resp.Error != "" {
 		t.Fatalf("save_cap: %s", resp.Error)
@@ -47,6 +48,7 @@ func TestLos35cSaveCapFallsBackToTheDataDirCapsPath(t *testing.T) {
 		"description":  "Test: export fallback",
 		"handler_bash": "echo exported",
 		"scope":        "user",
+			"citation": "text:cap suite update",
 	})
 	if resp.Error != "" {
 		t.Fatalf("save_cap: %s", resp.Error)

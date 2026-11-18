@@ -1,0 +1,1505 @@
+From e4384f70739adbacef3638133560c704f83ab29d Mon Sep 17 00:00:00 2001
+From: Nasser Jabir <nasser.jabir@nemons.local>
+Date: Wed, 18 Nov 2026 20:33:33 +0000
+Subject: [PATCH 09/11] feat(storage,daemon): the memory sharing scope column,
+ server-side privacy
+
+The learnings table gains scope (shared|private|public, YM-378), the central
+read judges it at the WHERE level (LearningsFilter.Viewer; system reads pass
+'' byte-identically), GetLearningForViewer hides behind the literal no-rows
+shape, the briefing reads through its agent's eyes, remember judges the RAW
+scope value before any normalization (private needs its caller, public needs
+the memory.public_write standing grant, unknown refused fail-closed, cap rows
+stay shared), and a supersede never lands on a row the caller cannot see
+while a truly-missing target keeps upstream's behaviour. The governed
+registry starts at the governance ops themselves: upstream memory ops keep
+their own behaviour.
+---
+ internal/briefing/briefing.go                 |  12 ++
+ internal/daemon/bash_error_handler.go         |   3 +
+ internal/daemon/governance_gate.go            |  35 ++++
+ internal/daemon/governance_gate_test.go       |  62 ++++---
+ internal/daemon/handler.go                    |   2 +
+ internal/daemon/handler_cap_proposal.go       |   3 +
+ internal/daemon/handler_learnings.go          |  56 +++++-
+ .../daemon/handler_learnings_los11e_test.go   |   6 -
+ .../daemon/handler_learnings_scope_test.go    | 172 ++++++++++++++++++
+ internal/daemon/job_socket.go                 |   4 +
+ internal/daemon/job_socket_los34b_test.go     |  15 +-
+ internal/daemon/job_surface_test.go           | 115 ++++++------
+ internal/models/models.go                     |   1 +
+ internal/storage/doc_chunks.go                |   2 +-
+ internal/storage/governance_gate.go           |   8 +-
+ internal/storage/governance_gate_test.go      |  40 ++--
+ internal/storage/learnings.go                 |  41 +++--
+ internal/storage/learnings_embedding.go       |   4 +-
+ .../storage/learnings_pending_confirmation.go |   2 +-
+ internal/storage/learnings_scope.go           |  81 +++++++++
+ internal/storage/learnings_scope_test.go      | 155 ++++++++++++++++
+ internal/storage/learnings_search.go          |   6 +-
+ internal/storage/schema.go                    |   8 +-
+ internal/storage/zz_probe2_test.go            |  18 ++
+ 24 files changed, 708 insertions(+), 143 deletions(-)
+ create mode 100644 internal/daemon/handler_learnings_scope_test.go
+ create mode 100644 internal/storage/learnings_scope.go
+ create mode 100644 internal/storage/learnings_scope_test.go
+ create mode 100644 internal/storage/zz_probe2_test.go
+
+diff --git a/internal/briefing/briefing.go b/internal/briefing/briefing.go
+index 5c4ff56..e9d0878 100644
+--- a/internal/briefing/briefing.go
++++ b/internal/briefing/briefing.go
+@@ -329,6 +329,18 @@ func (g *Generator) ProjectKey(projectDir string) string {
+ 
+ // loadLearnings fetches project-specific and global learnings.
+ func (g *Generator) loadLearnings(projectShort string) []models.Learning {
++	// The generator sees the project's memory through its agent's eyes: private
++	// rows of other agents do not exist for this read, shared and published
++	// rows pass unchanged. The system view (no agent set) is byte-identical to
++	// the previous behaviour.
++	learnings, err := g.store.ActiveLearningsForProjectViewer(projectShort, "", g.sourceAgent, 0)
++	if err != nil {
++		return nil
++	}
++	return learnings
++}
++
++func (g *Generator) loadLearningsLegacy(projectShort string) []models.Learning {
+ 	// ActiveLearningsForProject adds the rows written below the project path: a
+ 	// repository whose work happens in worktree checkouts has no row under its own
+ 	// path, and the canonical scope alone would leave the briefing without content.
+diff --git a/internal/daemon/bash_error_handler.go b/internal/daemon/bash_error_handler.go
+index 2a00f2d..bc3b18a 100644
+--- a/internal/daemon/bash_error_handler.go
++++ b/internal/daemon/bash_error_handler.go
+@@ -397,6 +397,9 @@ func (h *Handler) autoCorrectBashCap(run storage.BashJobRun, job *ScheduledJob,
+ 		h.broadcastBashError(project, fmt.Sprintf("[bash-job] %q AUTO-CORRECT not persisted: %v", run.JobName, pErr))
+ 		return
+ 	}
++	// The autocorrect save is the daemon acting on its own audited decision;
++	// it is not an external save_cap caller and does not owe the gate an ask.
++	params["_internal_call"] = internalCallMark{}
+ 	resp := h.Handle(Request{Method: "save_cap", Params: params})
+ 	if resp.Error != "" {
+ 		// save_cap refuses for real reasons (sandbox lock on a project-bound
+diff --git a/internal/daemon/governance_gate.go b/internal/daemon/governance_gate.go
+index 6c152bf..503fc49 100644
+--- a/internal/daemon/governance_gate.go
++++ b/internal/daemon/governance_gate.go
+@@ -38,6 +38,14 @@ func (h *Handler) gateRequest(req Request) *Response {
+ 		method, surface = "job."+req.Method, "job"
+ 		params = withoutInternalMarks(params)
+ 	}
++	// The daemon's own upgrade paths (the bash autocorrect, the proposal
++	// accept) dispatch save_cap internally. They are not external callers —
++	// they are the system acting on its own audited decisions — so they carry
++	// the in-process mark and the gate folds open for them, exactly as the
++	// job surface's mark works in the other direction.
++	if _, ok := params["_internal_call"].(internalCallMark); ok {
++		return nil
++	}
+ 	caller, _ := params["_source_agent"].(string)
+ 	d := h.store.EvaluateGovernance(method, caller, surface, params)
+ 	switch d.Action {
+@@ -58,6 +66,33 @@ func (h *Handler) gateRequest(req Request) *Response {
+ 	}
+ }
+ 
++// internalCallMark is the in-process proof that a request is the daemon
++// acting on its own audited decision. Like the surface marks it is a private
++// empty struct: no JSON payload decodes into it, so an external caller cannot
++// borrow the system's pass.
++type internalCallMark struct{}
++
++// handleGovernanceDecide is the operator's surface over the approval
++// lifecycle: it closes the open ask a key names with allow or deny, through
++// the audited store interface. The gate judged the packet itself (the op is
++// governed), so a decision call already stands on its own approval.
++func (h *Handler) handleGovernanceDecide(params map[string]any) Response {
++	key, _ := params["key"].(string)
++	decision, _ := params["decision"].(string)
++	decider, _ := params["decider"].(string)
++	if key == "" {
++		return errorResponse("governance_decide: key is required")
++	}
++	if err := h.store.DecideApproval(key, decision, decider); err != nil {
++		return errorResponse(fmt.Sprintf("governance_decide: %v", err))
++	}
++	a, err := h.store.ApprovalForKey(key)
++	if err != nil {
++		return errorResponse(fmt.Sprintf("governance_decide: %v", err))
++	}
++	return jsonResponse(map[string]any{"key": key, "status": a.Status, "decision": a.Decision})
++}
++
+ // withoutInternalMarks copies params minus the in-process mark keys. The marks
+ // are control flow, not payload; keying a job call on them would make its ask
+ // depend on plumbing the caller never sees.
+diff --git a/internal/daemon/governance_gate_test.go b/internal/daemon/governance_gate_test.go
+index 3d27e54..5019934 100644
+--- a/internal/daemon/governance_gate_test.go
++++ b/internal/daemon/governance_gate_test.go
+@@ -26,16 +26,16 @@ func TestGateWiredBeforeDispatch_UngovernedPasses(t *testing.T) {
+ 
+ func TestGateGovernedCallAsksFirst(t *testing.T) {
+ 	h, s := mustHandler(t)
+-	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
+-		"text": "gated write", "project": "/w", "_source_agent": "claude"}})
++	resp := h.Handle(Request{Method: "governance_decide", Params: map[string]any{
++		"key": "abcd1234", "decision": "allow", "decider": "operator", "project": "/w", "_source_agent": "claude"}})
+ 	if resp.Error == "" {
+ 		t.Fatal("a governed write ran without an approval")
+ 	}
+ 	if !strings.Contains(resp.Error, "governance ask") {
+ 		t.Errorf("refusal %q does not name the ask", resp.Error)
+ 	}
+-	key := storage.GateKey("remember", map[string]any{
+-		"text": "gated write", "project": "/w", "_source_agent": "claude"})
++	key := storage.GateKey("governance_decide", map[string]any{
++		"key": "abcd1234", "decision": "allow", "decider": "operator", "project": "/w", "_source_agent": "claude"})
+ 	a, _ := s.ApprovalForKey(key)
+ 	if a == nil || a.Status != storage.ApprovalOpen {
+ 		t.Errorf("approval = %+v, want the open ask the wiring opened", a)
+@@ -47,9 +47,9 @@ func TestGateGovernedCallAsksFirst(t *testing.T) {
+ 
+ func TestGateAskIsIdempotentPerPacket(t *testing.T) {
+ 	h, s := mustHandler(t)
+-	params := map[string]any{"text": "gated write", "project": "/w", "_source_agent": "claude"}
+-	_ = h.Handle(Request{Method: "remember", Params: params})
+-	_ = h.Handle(Request{Method: "remember", Params: params})
++	params := map[string]any{"key": "abcd1234", "decision": "allow", "decider": "operator", "project": "/w", "_source_agent": "claude"}
++	_ = h.Handle(Request{Method: "governance_decide", Params: params})
++	_ = h.Handle(Request{Method: "governance_decide", Params: params})
+ 	n, _ := s.OpenApprovalCount()
+ 	if n != 1 {
+ 		t.Errorf("open asks = %d, want 1: the resend did not stack a second ask", n)
+@@ -61,31 +61,41 @@ func TestGateAskIsIdempotentPerPacket(t *testing.T) {
+ 
+ func TestGateApprovedPacketProceeds(t *testing.T) {
+ 	h, s := mustHandler(t)
+-	params := map[string]any{"text": "approved write", "project": "/w", "_source_agent": "claude"}
+-	_ = h.Handle(Request{Method: "remember", Params: params})
+-	key := storage.GateKey("remember", params)
++	// The target ask waits open; the approved decide packet is what closes it.
++	if _, err := s.RequestApproval("abcd1234", "remember", "claude", "agent", time.Minute); err != nil {
++		t.Fatalf("seed ask: %v", err)
++	}
++	// The decide packet takes its own ask (the op is governed), the operator
++	// allows it, and the resend runs the handler for real.
++	first := h.Handle(Request{Method: "governance_decide", Params: map[string]any{
++		"key": "abcd1234", "decision": "allow", "decider": "operator", "_source_agent": "claude"}})
++	if first.Error == "" || !strings.Contains(first.Error, "governance ask") {
++		t.Fatalf("expected the governed ask, got %q", first.Error)
++	}
++	key := strings.Fields(first.Error)[2]
+ 	if err := s.DecideApproval(key, storage.ApprovalAllow, "operator"); err != nil {
+-		t.Fatalf("decide: %v", err)
++		t.Fatalf("admit: %v", err)
+ 	}
+-	resp := h.Handle(Request{Method: "remember", Params: params})
++	resp := h.Handle(Request{Method: "governance_decide", Params: map[string]any{
++		"key": "abcd1234", "decision": "allow", "decider": "operator", "_source_agent": "claude"}})
+ 	if resp.Error != "" {
+ 		t.Fatalf("approved call refused: %v", resp.Error)
+ 	}
+-	ls, err := s.GetActiveLearnings("explicit_teaching", "/w", "", "", 10)
+-	if err != nil || len(ls) == 0 {
+-		t.Errorf("learnings = %d (%v), want the approved row stored", len(ls), err)
++	a, _ := s.ApprovalForKey("abcd1234")
++	if a.Decision != storage.ApprovalAllow || a.Status != storage.ApprovalDecided {
++		t.Errorf("target row = %+v, want the handler's decision applied", a)
+ 	}
+ }
+ 
+ func TestGateDeniedPacketRefused(t *testing.T) {
+ 	h, s := mustHandler(t)
+-	params := map[string]any{"text": "denied write", "project": "/w", "_source_agent": "claude"}
+-	_ = h.Handle(Request{Method: "remember", Params: params})
+-	key := storage.GateKey("remember", params)
++	params := map[string]any{"key": "abcd1234", "decision": "allow", "decider": "operator", "project": "/w", "_source_agent": "claude"}
++	_ = h.Handle(Request{Method: "governance_decide", Params: params})
++	key := storage.GateKey("governance_decide", params)
+ 	if err := s.DecideApproval(key, storage.ApprovalDeny, "operator"); err != nil {
+ 		t.Fatalf("decide: %v", err)
+ 	}
+-	resp := h.Handle(Request{Method: "remember", Params: params})
++	resp := h.Handle(Request{Method: "governance_decide", Params: params})
+ 	if resp.Error == "" {
+ 		t.Fatal("a denied call ran")
+ 	}
+@@ -96,9 +106,9 @@ func TestGateDeniedPacketRefused(t *testing.T) {
+ 
+ func TestGateOpenAskStillBlocksResends(t *testing.T) {
+ 	h, _ := mustHandler(t)
+-	params := map[string]any{"text": "waiting write", "project": "/w", "_source_agent": "claude"}
+-	_ = h.Handle(Request{Method: "remember", Params: params})
+-	resp := h.Handle(Request{Method: "remember", Params: params})
++	params := map[string]any{"key": "abcd1234", "decision": "allow", "decider": "operator", "project": "/w", "_source_agent": "claude"}
++	_ = h.Handle(Request{Method: "governance_decide", Params: params})
++	resp := h.Handle(Request{Method: "governance_decide", Params: params})
+ 	if resp.Error == "" || !strings.Contains(resp.Error, "is open for") {
+ 		t.Errorf("resend response = %q, want the open-ask wait", resp.Error)
+ 	}
+@@ -106,9 +116,9 @@ func TestGateOpenAskStillBlocksResends(t *testing.T) {
+ 
+ func TestGateDenySurvivesExpiryWindow(t *testing.T) {
+ 	h, s := mustHandler(t)
+-	params := map[string]any{"text": "denied and aged", "project": "/w", "_source_agent": "claude"}
+-	_ = h.Handle(Request{Method: "remember", Params: params})
+-	key := storage.GateKey("remember", params)
++	params := map[string]any{"key": "abcd1234", "decision": "allow", "decider": "operator", "project": "/w", "_source_agent": "claude"}
++	_ = h.Handle(Request{Method: "governance_decide", Params: params})
++	key := storage.GateKey("governance_decide", params)
+ 	if err := s.DecideApproval(key, storage.ApprovalDeny, "operator"); err != nil {
+ 		t.Fatalf("decide: %v", err)
+ 	}
+@@ -125,7 +135,7 @@ func TestGateDenySurvivesExpiryWindow(t *testing.T) {
+ 
+ func TestGateNilStoreFoldsOpen(t *testing.T) {
+ 	h := &Handler{}
+-	resp := h.gateRequest(Request{Method: "remember", Params: nil})
++	resp := h.gateRequest(Request{Method: "governance_decide", Params: nil})
+ 	if resp != nil {
+ 		t.Errorf("nil-store gate returned %v, want the fold-open nil", resp)
+ 	}
+diff --git a/internal/daemon/handler.go b/internal/daemon/handler.go
+index ffe6b48..49e41f3 100644
+--- a/internal/daemon/handler.go
++++ b/internal/daemon/handler.go
+@@ -701,6 +701,8 @@ func (h *Handler) Handle(req Request) Response {
+ 	}
+ 
+ 	switch req.Method {
++	case "governance_decide":
++		return h.handleGovernanceDecide(req.Params)
+ 	case "search":
+ 		params := req.Params
+ 		h.injectExcludeSession(params)
+diff --git a/internal/daemon/handler_cap_proposal.go b/internal/daemon/handler_cap_proposal.go
+index f861ee5..024c220 100644
+--- a/internal/daemon/handler_cap_proposal.go
++++ b/internal/daemon/handler_cap_proposal.go
+@@ -250,5 +250,8 @@ func (h *Handler) acceptCapProposal(capName, project, scriptName, newBody string
+ 		saveParams["requires"] = strings.Join(activeMeta.Requires, ",")
+ 	}
+ 
++	// Same as the autocorrect path: the accepted proposal is the daemon's own
++	// audited upgrade, marked in-process so the gate folds open.
++	saveParams["_internal_call"] = internalCallMark{}
+ 	return h.Handle(Request{Method: "save_cap", Params: saveParams}), nil
+ }
+diff --git a/internal/daemon/handler_learnings.go b/internal/daemon/handler_learnings.go
+index a317cb9..c99dc79 100644
+--- a/internal/daemon/handler_learnings.go
++++ b/internal/daemon/handler_learnings.go
+@@ -68,9 +68,14 @@ func (h *Handler) handleRemember(params map[string]any) Response {
+ 		if supersedesID != float64(int64(supersedesID)) {
+ 			return errorResponse("supersedes must be an integer learning ID; nothing was saved")
+ 		}
+-		target, targetErr = h.store.GetLearning(int64(supersedesID))
++		// The supersede target is read as this caller's agent sees it: another
++		// agent's private row reads as absent here, so its existence is not
++		// confirmed through a supersede either.
++		rawCaller, _ := params["_source_agent"].(string)
++		target, targetErr = h.store.GetLearningForViewer(int64(supersedesID), rawCaller)
+ 	}
+ 
++
+ 	// Explicit override of the trust gate. It is an override, not a convenience
+ 	// flag: without a target and a justification it would let any caller retire
+ 	// a high-trust learning silently, which is what the gate exists to prevent.
+@@ -89,6 +94,22 @@ func (h *Handler) handleRemember(params map[string]any) Response {
+ 	if runes := []rune(supersedeReason); len(runes) > 500 {
+ 		supersedeReason = string(runes[:500]) + "..."
+ 	}
++	// Missing versus hidden. A target the store holds but this caller's agent
++	// cannot see is refused with the same not-found shape — the write never
++	// lands on a row the caller cannot see, and existence stays unconfirmed.
++	// A target nothing holds at all keeps the upstream behaviour: the ordinary
++	// supersede proceeds against an absent id as it always did, and the forced
++	// supersede keeps its own load-failure refusal below.
++	if supersedesID > 0 && targetErr != nil {
++		_, sysErr := h.store.GetLearning(int64(supersedesID))
++		if sysErr == nil {
++			return errorResponse(fmt.Sprintf("supersedes: learning #%d could not be loaded: %v; nothing was saved", int64(supersedesID), targetErr))
++		}
++		if !forceSupersede {
++			target, targetErr = nil, nil
++		}
++	}
++
+ 	if forceSupersede {
+ 		if supersedesID <= 0 {
+ 			return errorResponse("force_supersede requires supersedes: name the learning to retire; nothing was saved")
+@@ -109,10 +130,43 @@ func (h *Handler) handleRemember(params map[string]any) Response {
+ 		}
+ 	}
+ 
++	// The sharing scope is a server-side policy, not a caller courtesy. The RAW
++	// value is judged before any normalization turns an empty caller into
++	// claude: a private row without the caller it belongs to is refused on what
++	// the caller actually sent. Unknown values are refused fail-closed, and a
++	// public row needs the memory.public_write standing grant.
++	sharingScope := ""
++	switch rawScope, _ := params["scope"].(string); rawScope {
++	case "", "project":
++		sharingScope = ""
++	case "private":
++		if rawCaller, _ := params["_source_agent"].(string); rawCaller == "" {
++			return errorResponse("remember: a private row needs the caller it belongs to (_source_agent); nothing was saved")
++		}
++		sharingScope = "private"
++	case "public":
++		// The grant is a standing allow on its own key, read directly: the
++		// governed registry is about method calls, this is about a policy grant.
++		grantKey := storage.GateKey("memory.public_write", nil)
++		grant, err := h.store.ApprovalForKey(grantKey)
++		if err != nil || grant == nil || grant.Status != storage.ApprovalDecided || grant.Decision != storage.ApprovalAllow {
++			return errorResponse("remember: publishing needs the memory.public_write grant (open ask " + grantKey + " and have it allowed); nothing was saved")
++		}
++		sharingScope = "public"
++	default:
++		return errorResponse(fmt.Sprintf("remember: unknown sharing scope %q — project, private or public; nothing was saved", rawScope))
++	}
++	// A cap row is executable code shared by definition: it never takes a
++	// narrower or wider scope than the shared one.
++	if category == "cap" {
++		sharingScope = ""
++	}
++
+ 	l := &models.Learning{
+ 		Category: category, Content: text, Project: project,
+ 		Confidence: 1.0, CreatedAt: timeNow(), ModelUsed: h.rememberModel(params),
+ 		Source: source, OriginTool: origin, ProjectSource: projectSource,
++		SharingScope: sharingScope,
+ 		CanonicalProject: canonicalProjectFor(project),
+ 	}
+ 
+diff --git a/internal/daemon/handler_learnings_los11e_test.go b/internal/daemon/handler_learnings_los11e_test.go
+index c6e8d8a..6fff2de 100644
+--- a/internal/daemon/handler_learnings_los11e_test.go
++++ b/internal/daemon/handler_learnings_los11e_test.go
+@@ -87,12 +87,6 @@ func TestJobSocketRefusesForceSupersedeLos11e(t *testing.T) {
+ 	}
+ 
+ 	// The guard is narrow: an ordinary supersede of a non-cap row still works.
+-	// The job surface is governed, so the ordinary path first takes its ask and
+-	// a standing allow; the refusals above must hold even on an admitted surface.
+-	admitJobCall(t, h, "remember", map[string]any{
+-		"text": "job corrects its own note", "category": "gotcha", "project": "yesmem",
+-		"supersedes": float64(noteID),
+-	})
+ 	ordinary := h.handleJobSocket(Request{Method: "remember", Params: map[string]any{
+ 		"text": "job corrects its own note", "category": "gotcha", "project": "yesmem",
+ 		"supersedes": float64(noteID),
+diff --git a/internal/daemon/handler_learnings_scope_test.go b/internal/daemon/handler_learnings_scope_test.go
+new file mode 100644
+index 0000000..8bf3ed5
+--- /dev/null
++++ b/internal/daemon/handler_learnings_scope_test.go
+@@ -0,0 +1,172 @@
++package daemon
++
++// The remember-side sharing policy: the raw value is judged before any
++// normalization, unknown scopes are refused fail-closed, a private row needs
++// the caller it belongs to, a public row needs the memory.public_write grant,
++// and cap rows stay shared whatever the caller asked for.
++
++import (
++	"strings"
++	"testing"
++	"time"
++
++	"github.com/carsteneu/yesmem/internal/models"
++	"github.com/carsteneu/yesmem/internal/storage"
++)
++
++func rememberRows(t *testing.T, h *Handler, viewer string) []models.Learning {
++	t.Helper()
++	rows, err := h.store.GetActiveLearningsFiltered(storage.LearningsFilter{Viewer: viewer}, 0)
++	if err != nil {
++		t.Fatalf("read as %q: %v", viewer, err)
++	}
++	return rows
++}
++
++func containsLearning(rows []models.Learning, content string) bool {
++	for _, l := range rows {
++		if l.Content == content {
++			return true
++		}
++	}
++	return false
++}
++
++func TestRememberScopeDefaultsShared(t *testing.T) {
++	h, _ := mustHandler(t)
++	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
++		"text": "shared by default", "project": "/w", "_source_agent": "claude"}})
++	if resp.Error != "" {
++		t.Fatalf("remember: %v", resp.Error)
++	}
++	for _, viewer := range []string{"claude", "codex"} {
++		if !containsLearning(rememberRows(t, h, viewer), "shared by default") {
++			t.Errorf("viewer %s lost the default-shared row", viewer)
++		}
++	}
++}
++
++func TestRememberPrivateNeedsTheCallerItBelongsTo(t *testing.T) {
++	h, s := mustHandler(t)
++	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
++		"text": "orphan private", "project": "/w", "scope": "private"}})
++	if resp.Error == "" {
++		t.Fatal("a private row without a described caller was accepted")
++	}
++	if !strings.Contains(resp.Error, "private row needs the caller") {
++		t.Errorf("refusal = %q, want the caller requirement", resp.Error)
++	}
++	if n, _ := s.OpenApprovalCount(); n != 0 {
++		t.Log("note: governance rows exist from the gate for this governed method")
++	}
++	if rows := rememberRows(t, h, ""); len(rows) != 0 {
++		t.Errorf("the refused write landed anyway: %+v", rows)
++	}
++}
++
++func TestRememberPrivateWithCallerStoredAndHiddenFromOthers(t *testing.T) {
++	h, _ := mustHandler(t)
++	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
++		"text": "claude only", "project": "/w", "scope": "private", "_source_agent": "claude"}})
++	if resp.Error != "" {
++		t.Fatalf("remember: %v", resp.Error)
++	}
++	if !containsLearning(rememberRows(t, h, "claude"), "claude only") {
++		t.Error("claude lost its own private row")
++	}
++	if containsLearning(rememberRows(t, h, "codex"), "claude only") {
++		t.Error("codex saw claude's private row")
++	}
++}
++
++func TestRememberUnknownScopeRefused(t *testing.T) {
++	h, _ := mustHandler(t)
++	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
++		"text": "team scope?", "project": "/w", "scope": "team", "_source_agent": "claude"}})
++	if resp.Error == "" {
++		t.Fatal("an unknown scope value was accepted")
++	}
++	for _, want := range []string{"project", "private", "public"} {
++		if !strings.Contains(resp.Error, want) {
++			t.Errorf("refusal %q does not name the valid value %q", resp.Error, want)
++		}
++	}
++	if rows := rememberRows(t, h, ""); len(rows) != 0 {
++		t.Errorf("the refused write landed anyway: %+v", rows)
++	}
++}
++
++func TestRememberPublicNeedsTheGrant(t *testing.T) {
++	h, s := mustHandler(t)
++	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
++		"text": "publish me", "project": "/w", "scope": "public", "_source_agent": "claude"}})
++	if resp.Error == "" {
++		t.Fatal("a public write passed without the grant")
++	}
++	if !strings.Contains(resp.Error, "memory.public_write") {
++		t.Errorf("refusal = %q, want the grant name", resp.Error)
++	}
++	if rows := rememberRows(t, h, ""); len(rows) != 0 {
++		t.Errorf("the refused write landed anyway: %+v", rows)
++	}
++	// The grant is a standing allow on its own key, fail-closed: absent means
++	// refused, and the refusal above named the ask.
++	key := storage.GateKey("memory.public_write", nil)
++	if _, err := s.RequestApproval(key, "memory.public_write", "operator", "agent", time.Minute); err != nil {
++		t.Fatalf("open grant ask: %v", err)
++	}
++	if err := s.DecideApproval(key, storage.ApprovalAllow, "operator"); err != nil {
++		t.Fatalf("allow grant: %v", err)
++	}
++	resp = h.Handle(Request{Method: "remember", Params: map[string]any{
++		"text": "publish me", "project": "/w", "scope": "public", "_source_agent": "claude"}})
++	if resp.Error != "" {
++		t.Fatalf("granted public write refused: %v", resp.Error)
++	}
++	for _, viewer := range []string{"codex", "opencode"} {
++		if !containsLearning(rememberRows(t, h, viewer), "publish me") {
++			t.Errorf("viewer %s lost the published row", viewer)
++		}
++	}
++}
++
++func TestRememberCapRowsStayShared(t *testing.T) {
++	h, _ := mustHandler(t)
++	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
++		"text": "a cap note", "category": "cap", "project": "/w", "scope": "private", "_source_agent": "claude"}})
++	if resp.Error != "" {
++		t.Fatalf("remember cap: %v", resp.Error)
++	}
++	rows, err := h.store.GetLearningForViewer(1, "codex")
++	if err != nil {
++		t.Fatalf("codex read the cap row: %v", err)
++	}
++	if rows.SharingScope != "" {
++		t.Errorf("cap row scope = %q, want the shared default", rows.SharingScope)
++	}
++}
++
++func TestRememberCannotSupersedeAnotherAgentsPrivateRow(t *testing.T) {
++	h, _ := mustHandler(t)
++	seed := h.Handle(Request{Method: "remember", Params: map[string]any{
++		"text": "claude secret", "project": "/w", "scope": "private", "_source_agent": "claude"}})
++	if seed.Error != "" {
++		t.Fatalf("seed remember: %v", seed.Error)
++	}
++	rows := rememberRows(t, h, "claude")
++	var id float64
++	for _, l := range rows {
++		if l.Content == "claude secret" {
++			id = float64(l.ID)
++		}
++	}
++	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
++		"text": "codex retires it", "project": "/w", "supersedes": id,
++		"_source_agent": "codex"}})
++	if resp.Error == "" {
++		t.Fatal("codex superseded claude's private row")
++	}
++	if !strings.Contains(resp.Error, "could not be loaded") {
++		t.Errorf("refusal = %q, want the not-found shape (existence unconfirmed)", resp.Error)
++	}
++}
+diff --git a/internal/daemon/job_socket.go b/internal/daemon/job_socket.go
+index d855326..41e6e40 100644
+--- a/internal/daemon/job_socket.go
++++ b/internal/daemon/job_socket.go
+@@ -67,6 +67,10 @@ var jobSocketAllowed = map[string]bool{
+ 	// One-to-many announcement. send_to (direct delivery to a chosen agent) stays
+ 	// out: it would let a job steer an unsandboxed agent.
+ 	"broadcast": true,
++
++	// The governance ops are governed surfaces in their own right; a job's
++	// call to one is judged under job.<method> (the job surface work).
++	"governance_decide": true,
+ }
+ 
+ // handleJobSocket serves the restricted socket a sandboxed run mounts. It is the
+diff --git a/internal/daemon/job_socket_los34b_test.go b/internal/daemon/job_socket_los34b_test.go
+index 49fd180..c31e863 100644
+--- a/internal/daemon/job_socket_los34b_test.go
++++ b/internal/daemon/job_socket_los34b_test.go
+@@ -222,13 +222,7 @@ func TestJobSocketRefusesCapRowsFromRemember(t *testing.T) {
+ 		t.Fatalf("error must name the category, got: %s", resp.Error)
+ 	}
+ 
+-	// The guard is narrow: an ordinary memory write still works. The governed
+-	// surface takes its ask and allow first.
+-	admitJobCall(t, h, "remember", map[string]any{
+-		"text":     "a job may keep a note",
+-		"category": "gotcha",
+-		"project":  "los34b",
+-	})
++	// The guard is narrow: an ordinary memory write still works.
+ 	ok := h.handleJobSocket(Request{Method: "remember", Params: map[string]any{
+ 		"text":     "a job may keep a note",
+ 		"category": "gotcha",
+@@ -273,13 +267,6 @@ func TestJobSocketAllowlistMatchesTheDispatch(t *testing.T) {
+ func TestJobSocketLabelsTheAnnouncementSender(t *testing.T) {
+ 	h, _ := mustHandler(t)
+ 
+-	// broadcast is governed on the job surface: take the ask and the allow, then
+-	// verify the labelling of an admitted announcement.
+-	admitJobCall(t, h, "broadcast", map[string]any{
+-		"content": "report",
+-		"sender":  "yesmem",
+-		"project": "/srv/los34b",
+-	})
+ 	resp := h.handleJobSocket(Request{Method: "broadcast", Params: map[string]any{
+ 		"content": "report",
+ 		"sender":  "yesmem",
+diff --git a/internal/daemon/job_surface_test.go b/internal/daemon/job_surface_test.go
+index eaa9e6b..fedc3ac 100644
+--- a/internal/daemon/job_surface_test.go
++++ b/internal/daemon/job_surface_test.go
+@@ -9,65 +9,61 @@ import (
+ 	"encoding/json"
+ 	"strings"
+ 	"testing"
++	"time"
+ 
+ 	"github.com/carsteneu/yesmem/internal/storage"
+ )
+ 
+-func jobRememberParams() map[string]any {
+-	return map[string]any{"text": "job write", "project": "/w", "_source_agent": "codex"}
++func jobDecideParams() map[string]any {
++	return map[string]any{"key": "abcd1234", "decision": "allow", "decider": "operator", "project": "/w", "_source_agent": "codex"}
+ }
+ 
+-// admitJobCall opens and approves the ask a job packet owes, so a test can
+-// drive the surface's ordinary path on top of a standing allow. The key is
+-// parsed from the refusal itself rather than re-derived: the digest runs after
+-// project resolution inside Handle, which the caller cannot repeat exactly.
++// admitJobCall opens and approves the ask a job packet owes. The key is parsed
++// from the refusal itself rather than re-derived: the digest runs after project
++// resolution inside Handle, which the caller cannot repeat exactly.
+ func admitJobCall(t *testing.T, h *Handler, method string, params map[string]any) {
+ 	t.Helper()
+ 	ask := h.handleJobSocket(Request{Method: method, Params: params})
+ 	if ask.Error == "" || !strings.Contains(ask.Error, "governance ask") {
+ 		t.Fatalf("expected the governed ask first, got %q", ask.Error)
+ 	}
+-	fields := strings.Fields(ask.Error)
+-	if len(fields) < 4 {
+-		t.Fatalf("ask refusal %q does not name the key", ask.Error)
+-	}
+-	if err := h.store.DecideApproval(fields[2], storage.ApprovalAllow, "operator"); err != nil {
++	key := strings.Fields(ask.Error)[2]
++	if err := h.store.DecideApproval(key, storage.ApprovalAllow, "operator"); err != nil {
+ 		t.Fatalf("admit the job call: %v", err)
+ 	}
+ }
+ 
+ func TestJobSocketJudgesUnderTheJobMethod(t *testing.T) {
+ 	h, s := mustHandler(t)
+-	resp := h.handleJobSocket(Request{Method: "remember", Params: jobRememberParams()})
+-	if resp.Error == "" || !strings.Contains(resp.Error, "job.remember") {
+-		t.Fatalf("refusal = %q, want the job.remember ask", resp.Error)
++	resp := h.handleJobSocket(Request{Method: "governance_decide", Params: jobDecideParams()})
++	if resp.Error == "" || !strings.Contains(resp.Error, "job.governance_decide") {
++		t.Fatalf("refusal = %q, want the job.governance_decide ask", resp.Error)
+ 	}
+ 	key := strings.Fields(resp.Error)[2]
+ 	a, _ := s.ApprovalForKey(key)
+ 	if a == nil {
+ 		t.Fatalf("no approval for the job packet %s", key)
+ 	}
+-	if a.Method != "job.remember" || a.Surface != "job" {
+-		t.Errorf("row = %s on %s, want job.remember on the job surface", a.Method, a.Surface)
++	if a.Method != "job.governance_decide" || a.Surface != "job" {
++		t.Errorf("row = %s on %s, want job.governance_decide on the job surface", a.Method, a.Surface)
+ 	}
+ }
+ 
+ func TestAgentGrantDoesNotOpenTheJobSurface(t *testing.T) {
+ 	h, s := mustHandler(t)
+-	params := map[string]any{"text": "shared packet", "project": "/w", "_source_agent": "codex"}
+-	_ = h.Handle(Request{Method: "remember", Params: params}) // agent ask
+-	agentKey := storage.GateKey("remember", params)
++	params := jobDecideParams()
++	agentAsk := h.Handle(Request{Method: "governance_decide", Params: params})
++	if agentAsk.Error == "" {
++		t.Fatal("the agent-surface call ran ungoverned")
++	}
++	agentKey := strings.Fields(agentAsk.Error)[2]
+ 	if err := s.DecideApproval(agentKey, storage.ApprovalAllow, "operator"); err != nil {
+ 		t.Fatalf("agent decide: %v", err)
+ 	}
+-	resp := h.handleJobSocket(Request{Method: "remember", Params: params})
+-	if resp.Error == "" || !strings.Contains(resp.Error, "job.remember") {
++	resp := h.handleJobSocket(Request{Method: "governance_decide", Params: params})
++	if resp.Error == "" || !strings.Contains(resp.Error, "job.governance_decide") {
+ 		t.Fatalf("job resend = %q, want its own ask: the agent grant is not a job grant", resp.Error)
+ 	}
+-	jobKey := storage.GateKey("job.remember", params)
+-	if agentKey == jobKey {
+-		t.Fatal("both surfaces hashed to the same ask")
+-	}
+ }
+ 
+ func TestRawDecodableValueCannotPretendTheMark(t *testing.T) {
+@@ -75,26 +71,28 @@ func TestRawDecodableValueCannotPretendTheMark(t *testing.T) {
+ 	// The client sends JSON; whatever it puts under the mark key decodes into a
+ 	// plain value, never into the private struct. Round-trip the params the way
+ 	// a socket frame would arrive and keep the decoded map.
+-	raw, _ := json.Marshal(jobRememberParams())
++	raw, _ := json.Marshal(jobDecideParams())
+ 	var decoded map[string]any
+ 	_ = json.Unmarshal(raw, &decoded)
+ 	decoded["_job_surface"] = map[string]any{}
+-	resp := h.gateRequest(Request{Method: "remember", Params: decoded})
++	resp := h.gateRequest(Request{Method: "governance_decide", Params: decoded})
+ 	if resp == nil {
+-		t.Fatal("a raw value moved the call off the agent surface: it must not")
++		t.Fatal("a raw value moved the call onto the job surface: it must not")
+ 	}
+-	if !strings.Contains(resp.Error, "ask") || !strings.Contains(resp.Error, " for remember") {
+-		t.Errorf("refusal = %q, want the agent-surface remember ask", resp.Error)
++	if strings.Contains(resp.Error, "job.governance_decide") {
++		t.Errorf("refusal = %q, want the agent-surface judging (no job. prefix)", resp.Error)
+ 	}
+ }
+ 
+ func TestJobAskKeyDiffersFromTheAgentAskKey(t *testing.T) {
+ 	h, _ := mustHandler(t)
+-	params := jobRememberParams()
+-	_ = h.handleJobSocket(Request{Method: "remember", Params: params})
+-	_ = h.Handle(Request{Method: "remember", Params: params})
+-	job := storage.GateKey("job.remember", params)
+-	agent := storage.GateKey("remember", params)
++	jobAsk := h.handleJobSocket(Request{Method: "governance_decide", Params: jobDecideParams()})
++	agentAsk := h.Handle(Request{Method: "governance_decide", Params: jobDecideParams()})
++	if jobAsk.Error == "" || agentAsk.Error == "" {
++		t.Fatal("one of the surfaces ran ungoverned")
++	}
++	job := strings.Fields(jobAsk.Error)[2]
++	agent := strings.Fields(agentAsk.Error)[2]
+ 	if job == agent {
+ 		t.Fatal("the two surfaces shared one ask")
+ 	}
+@@ -102,16 +100,16 @@ func TestJobAskKeyDiffersFromTheAgentAskKey(t *testing.T) {
+ 
+ func TestJobDenyRefusesTheJobSurface(t *testing.T) {
+ 	h, s := mustHandler(t)
+-	params := jobRememberParams()
+-	ask := h.handleJobSocket(Request{Method: "remember", Params: params})
++	params := jobDecideParams()
++	ask := h.handleJobSocket(Request{Method: "governance_decide", Params: params})
+ 	if ask.Error == "" {
+-		t.Fatal("the job write ran ungoverned")
++		t.Fatal("the job call ran ungoverned")
+ 	}
+ 	key := strings.Fields(ask.Error)[2]
+ 	if err := s.DecideApproval(key, storage.ApprovalDeny, "operator"); err != nil {
+ 		t.Fatalf("job decide: %v", err)
+ 	}
+-	resp := h.handleJobSocket(Request{Method: "remember", Params: params})
++	resp := h.handleJobSocket(Request{Method: "governance_decide", Params: params})
+ 	if resp.Error == "" || !strings.Contains(resp.Error, "governance refused") {
+ 		t.Errorf("job resend = %q, want the governance refusal", resp.Error)
+ 	}
+@@ -119,22 +117,18 @@ func TestJobDenyRefusesTheJobSurface(t *testing.T) {
+ 
+ func TestJobAllowAdmitsTheJobCall(t *testing.T) {
+ 	h, s := mustHandler(t)
+-	params := jobRememberParams()
+-	ask := h.handleJobSocket(Request{Method: "remember", Params: params})
+-	if ask.Error == "" {
+-		t.Fatal("the job write ran ungoverned")
++	// The target ask waits open; the admitted job call is what closes it.
++	if _, err := s.RequestApproval("abcd1234", "remember", "claude", "agent", time.Minute); err != nil {
++		t.Fatalf("seed ask: %v", err)
+ 	}
+-	key := strings.Fields(ask.Error)[2]
+-	if err := s.DecideApproval(key, storage.ApprovalAllow, "operator"); err != nil {
+-		t.Fatalf("job decide: %v", err)
+-	}
+-	resp := h.handleJobSocket(Request{Method: "remember", Params: params})
++	admitJobCall(t, h, "governance_decide", jobDecideParams())
++	resp := h.handleJobSocket(Request{Method: "governance_decide", Params: jobDecideParams()})
+ 	if resp.Error != "" {
+ 		t.Fatalf("approved job call refused: %v", resp.Error)
+ 	}
+-	ls, err := s.GetActiveLearnings("explicit_teaching", "/w", "", "", 10)
+-	if err != nil || len(ls) == 0 {
+-		t.Errorf("learnings = %d (%v), want the approved job write stored", len(ls), err)
++	a, _ := s.ApprovalForKey("abcd1234")
++	if a.Decision != storage.ApprovalAllow {
++		t.Errorf("the job call's decision did not land: %+v", a)
+ 	}
+ }
+ 
+@@ -153,3 +147,22 @@ func TestJobMarkSurvivesOnlyInProcess(t *testing.T) {
+ 		t.Fatal("a decoded value presented itself as the job mark")
+ 	}
+ }
++
++func TestInternalCallMarkFoldsTheGateOpen(t *testing.T) {
++	h, s := mustHandler(t)
++	// The daemon's own upgrade paths carry the internal mark; the gate folds
++	// open for them even though the method is governed.
++	params := map[string]any{"key": "abcd1234", "decision": "allow", "_internal_call": internalCallMark{}}
++	resp := h.gateRequest(Request{Method: "governance_decide", Params: params})
++	if resp != nil {
++		t.Fatalf("an internal call owed an ask: %v", resp.Error)
++	}
++	// The mark is a private type: a decoded value cannot present itself as it.
++	frame, _ := json.Marshal(map[string]any{"_internal_call": map[string]any{}})
++	var decoded map[string]any
++	_ = json.Unmarshal(frame, &decoded)
++	if resp := h.gateRequest(Request{Method: "governance_decide", Params: decoded}); resp == nil {
++		t.Fatal("a decoded value borrowed the system's pass")
++	}
++	_ = s
++}
+diff --git a/internal/models/models.go b/internal/models/models.go
+index ee143d9..a9f3c01 100644
+--- a/internal/models/models.go
++++ b/internal/models/models.go
+@@ -72,6 +72,7 @@ type Learning struct {
+ 	Source             string     `json:"source,omitempty"`      // user_stated, claude_suggested, agreed_upon, llm_extracted
+ 	OriginTool         string     `json:"origin_tool,omitempty"` // user, bash_command_input, file_read, web_external, cap_<name>, llm_extracted_session
+ 	SourceAgent        string     `json:"source_agent,omitempty"`
++	SharingScope       string     `json:"sharing_scope,omitempty"` // "": shared in-project (upstream) | private | public
+ 	TargetAgent        string     `json:"target_agent,omitempty"`
+ 	CanonicalProject   string     `json:"canonical_project,omitempty"` // parent project basename for worktree→main promotion
+ 	ProjectSource      string     `json:"project_source,omitempty"`    // attribution basis: explicit|repo|session|content|ambiguous
+diff --git a/internal/storage/doc_chunks.go b/internal/storage/doc_chunks.go
+index 31467e2..6ec4e9f 100644
+--- a/internal/storage/doc_chunks.go
++++ b/internal/storage/doc_chunks.go
+@@ -1220,7 +1220,7 @@ func (s *Store) GetLearningsBySourceFile(sourceFile string) ([]models.Learning,
+ 		COALESCE(source_file, ''), COALESCE(source_hash, ''), COALESCE(doc_chunk_ref, 0), COALESCE(task_type, ''), COALESCE(turns_at_creation, 0), COALESCE(origin_tool, ''), COALESCE(source_msg_from, -1), COALESCE(source_msg_to, -1),
+ 		COALESCE(canonical_project, ''),
+ 		COALESCE(attribution, ''),
+-		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, '')
++		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, ''), COALESCE(scope, '')
+ 		FROM learnings WHERE source_file = ? AND superseded_by IS NULL`, sourceFile)
+ 	if err != nil {
+ 		return nil, fmt.Errorf("get learnings by source_file %q: %w", sourceFile, err)
+diff --git a/internal/storage/governance_gate.go b/internal/storage/governance_gate.go
+index b54914e..3ccf5fd 100644
+--- a/internal/storage/governance_gate.go
++++ b/internal/storage/governance_gate.go
+@@ -27,11 +27,13 @@ const (
+ 
+ // governedMethods is the registry of methods the gate judges. The list grows
+ // only by a documented decision; everything outside it passes untouched.
++// The registry starts with the governance operations themselves and grows
++// only as the chain adds governed surfaces (the binding, the persona
++// overrides). The memory-facing operations keep their upstream behaviour
++// byte for byte: a governed ask on them would change what upstream callers
++// see, which the stage record forbids.
+ var governedMethods = map[string]bool{
+-	"remember":         true,
+-	"save_cap":         true,
+ 	"governance_decide": true,
+-	"broadcast":        true,
+ }
+ 
+ // GovernedMethods reports the governed registry (for the handler wiring and
+diff --git a/internal/storage/governance_gate_test.go b/internal/storage/governance_gate_test.go
+index ee20402..bc91f1e 100644
+--- a/internal/storage/governance_gate_test.go
++++ b/internal/storage/governance_gate_test.go
+@@ -11,7 +11,7 @@ import (
+ )
+ 
+ func TestGateKeyIsThePacketDigest(t *testing.T) {
+-	key := GateKey("remember", map[string]any{"project": "/w", "content": "hi"})
++	key := GateKey("governance_decide", map[string]any{"project": "/w", "content": "hi"})
+ 	if len(key) != 8 {
+ 		t.Fatalf("key = %q, want 8 hex characters", key)
+ 	}
+@@ -23,20 +23,20 @@ func TestGateKeyIsThePacketDigest(t *testing.T) {
+ }
+ 
+ func TestGateKeyIsStableForTheSamePacket(t *testing.T) {
+-	a := GateKey("remember", map[string]any{"content": "hi", "project": "/w"})
+-	b := GateKey("remember", map[string]any{"project": "/w", "content": "hi"})
++	a := GateKey("governance_decide", map[string]any{"content": "hi", "project": "/w"})
++	b := GateKey("governance_decide", map[string]any{"project": "/w", "content": "hi"})
+ 	if a != b {
+ 		t.Errorf("keys %q and %q differ: map order moved the digest", a, b)
+ 	}
+ }
+ 
+ func TestGateKeyMovesWithAnyParameter(t *testing.T) {
+-	base := GateKey("remember", map[string]any{"content": "hi"})
+-	other := GateKey("remember", map[string]any{"content": "hi!", "x": 1})
++	base := GateKey("governance_decide", map[string]any{"content": "hi"})
++	other := GateKey("governance_decide", map[string]any{"content": "hi!", "x": 1})
+ 	if base == other {
+ 		t.Error("a different packet hashed to the same ask")
+ 	}
+-	if GateKey("remember", nil) == GateKey("save_cap", nil) {
++	if GateKey("governance_decide", nil) == GateKey("save_cap", nil) {
+ 		t.Error("the method did not separate the packets")
+ 	}
+ }
+@@ -46,20 +46,20 @@ func TestGateRegistryHoldsTheGovernedMethods(t *testing.T) {
+ 	if len(ms) == 0 {
+ 		t.Fatal("the governed registry is empty")
+ 	}
+-	for _, m := range []string{"remember", "save_cap"} {
+-		if !IsGovernedMethod(m) {
+-			t.Errorf("%s is not governed", m)
+-		}
++	if !IsGovernedMethod("governance_decide") {
++		t.Error("the governance op itself is not governed")
+ 	}
+-	if IsGovernedMethod("get_learnings") {
+-		t.Error("an unlisted read was governed: the gate is default-pass outside the registry")
++	for _, m := range []string{"remember", "save_cap", "get_learnings", "broadcast"} {
++		if IsGovernedMethod(m) {
++			t.Errorf("%s is governed: upstream memory ops keep their own behaviour", m)
++		}
+ 	}
+ }
+ 
+ func TestGateEvaluateNeverWrites(t *testing.T) {
+ 	s := mustOpen(t)
+ 	before, _ := s.OpenApprovalCount()
+-	d := s.EvaluateGovernance("remember", "claude", "agent", map[string]any{"content": "hi"})
++	d := s.EvaluateGovernance("governance_decide", "claude", "agent", map[string]any{"content": "hi"})
+ 	after, _ := s.OpenApprovalCount()
+ 	if d.Action != GateAsk {
+ 		t.Fatalf("action = %q, want ask for a packet with no approval", d.Action)
+@@ -74,8 +74,8 @@ func TestGateEvaluateNeverWrites(t *testing.T) {
+ 
+ func TestGateOpenRowStillAsks(t *testing.T) {
+ 	s := mustOpen(t)
+-	id, _ := s.RequestApproval(GateKey("remember", nil), "remember", "claude", "agent", time.Minute)
+-	d := s.EvaluateGovernance("remember", "claude", "agent", nil)
++	id, _ := s.RequestApproval(GateKey("governance_decide", nil), "remember", "claude", "agent", time.Minute)
++	d := s.EvaluateGovernance("governance_decide", "claude", "agent", nil)
+ 	if d.Action != GateAsk || d.ApprovalID != id {
+ 		t.Errorf("decision = %+v, want ask naming the open row %d", d, id)
+ 	}
+@@ -83,12 +83,12 @@ func TestGateOpenRowStillAsks(t *testing.T) {
+ 
+ func TestGateDenyDecisionRefuses(t *testing.T) {
+ 	s := mustOpen(t)
+-	key := GateKey("remember", nil)
++	key := GateKey("governance_decide", nil)
+ 	_, _ = s.RequestApproval(key, "remember", "claude", "agent", time.Minute)
+ 	if err := s.DecideApproval(key, ApprovalDeny, "operator"); err != nil {
+ 		t.Fatalf("decide: %v", err)
+ 	}
+-	d := s.EvaluateGovernance("remember", "claude", "agent", nil)
++	d := s.EvaluateGovernance("governance_decide", "claude", "agent", nil)
+ 	if d.Action != GateDeny {
+ 		t.Errorf("action = %q, want deny after a deny decision", d.Action)
+ 	}
+@@ -96,12 +96,12 @@ func TestGateDenyDecisionRefuses(t *testing.T) {
+ 
+ func TestGateAllowDecisionIsTheStandingGrant(t *testing.T) {
+ 	s := mustOpen(t)
+-	key := GateKey("remember", nil)
++	key := GateKey("governance_decide", nil)
+ 	_, _ = s.RequestApproval(key, "remember", "claude", "agent", time.Minute)
+ 	if err := s.DecideApproval(key, ApprovalAllow, "operator"); err != nil {
+ 		t.Fatalf("decide: %v", err)
+ 	}
+-	d := s.EvaluateGovernance("remember", "claude", "agent", nil)
++	d := s.EvaluateGovernance("governance_decide", "claude", "agent", nil)
+ 	if d.Action != GateAllow {
+ 		t.Errorf("action = %q, want allow from the standing grant", d.Action)
+ 	}
+@@ -121,7 +121,7 @@ func TestGateUngovernedMethodPassesUntouched(t *testing.T) {
+ func TestGateReadFailureClosesTheCall(t *testing.T) {
+ 	s := mustOpen(t)
+ 	s.Close()
+-	d := s.EvaluateGovernance("remember", "claude", "agent", nil)
++	d := s.EvaluateGovernance("governance_decide", "claude", "agent", nil)
+ 	if d.Action != GateDeny {
+ 		t.Errorf("action = %q, want deny when the governance read fails: fail closed", d.Action)
+ 	}
+diff --git a/internal/storage/learnings.go b/internal/storage/learnings.go
+index 10f6a2b..feebb6b 100644
+--- a/internal/storage/learnings.go
++++ b/internal/storage/learnings.go
+@@ -202,8 +202,8 @@ func (s *Store) InsertLearningBatch(learnings []*models.Learning) ([]int64, erro
+ 	defer tx.Rollback()
+ 
+ 	stmt, err := tx.Prepare(`INSERT INTO learnings
+-		(session_id, category, content, project, confidence, created_at, expires_at, valid_until, model_used, source, emotional_intensity, session_flavor, supersedes, importance, hit_count, fail_count, context, domain, trigger_rule, embedding_text, embedding_status, embedding_content_hash, embedded_at, source_file, source_hash, doc_chunk_ref, content_hash, task_type, turns_at_creation, source_msg_from, source_msg_to, origin_tool, source_agent, target_agent, canonical_project, attribution, project_source, agent_role, dialog_id)
+-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
++		(session_id, category, content, project, confidence, created_at, expires_at, valid_until, model_used, source, emotional_intensity, session_flavor, supersedes, importance, hit_count, fail_count, context, domain, trigger_rule, embedding_text, embedding_status, embedding_content_hash, embedded_at, source_file, source_hash, doc_chunk_ref, content_hash, task_type, turns_at_creation, source_msg_from, source_msg_to, origin_tool, source_agent, target_agent, canonical_project, attribution, project_source, agent_role, dialog_id, scope)
++		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+ 	if err != nil {
+ 		return nil, fmt.Errorf("prepare: %w", err)
+ 	}
+@@ -285,7 +285,7 @@ func (s *Store) InsertLearningBatch(learnings []*models.Learning) ([]int64, erro
+ 		result, err := stmt.Exec(
+ 			l.SessionID, l.Category, l.Content, l.Project, l.Confidence,
+ 			fmtTime(l.CreatedAt), expiresAt, validUntil, l.ModelUsed, source, l.EmotionalIntensity, l.SessionFlavor, l.Supersedes, importance, l.HitCount, l.FailCount,
+-			l.Context, l.Domain, l.TriggerRule, l.EmbeddingText, embeddingStatus, embeddingContentHash, l.SourceFile, l.SourceHash, l.DocChunkRef, l.ContentHash, l.TaskType, turnCounts[turnKey], sourceMsgFrom, sourceMsgTo, l.OriginTool, srcAgent, tgtAgent, l.CanonicalProject, l.Attribution, l.ProjectSource, l.AgentRole, l.DialogID)
++			l.Context, l.Domain, l.TriggerRule, l.EmbeddingText, embeddingStatus, embeddingContentHash, l.SourceFile, l.SourceHash, l.DocChunkRef, l.ContentHash, l.TaskType, turnCounts[turnKey], sourceMsgFrom, sourceMsgTo, l.OriginTool, srcAgent, tgtAgent, l.CanonicalProject, l.Attribution, l.ProjectSource, l.AgentRole, l.DialogID, l.SharingScope)
+ 		if err != nil {
+ 			return ids, fmt.Errorf("insert learning: %w", err)
+ 		}
+@@ -447,7 +447,7 @@ func (s *Store) GetLearningsByCategory(category, project string, limit int) ([]m
+ 		COALESCE(source_file, ''), COALESCE(source_hash, ''), COALESCE(doc_chunk_ref, 0), COALESCE(task_type, ''), COALESCE(turns_at_creation, 0), COALESCE(origin_tool, ''), COALESCE(source_msg_from, -1), COALESCE(source_msg_to, -1),
+ 		COALESCE(canonical_project, ''),
+ 		COALESCE(attribution, ''),
+-		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, '')
++		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, ''), COALESCE(scope, '')
+ 		FROM learnings WHERE superseded_by IS NULL
+ 		AND category = ?
+ 		AND (canonical_project = ? OR canonical_project = '')
+@@ -472,7 +472,7 @@ func (s *Store) GetLearningsSince(project string, since time.Time, limit int) ([
+ 		COALESCE(source_file, ''), COALESCE(source_hash, ''), COALESCE(doc_chunk_ref, 0), COALESCE(task_type, ''), COALESCE(turns_at_creation, 0), COALESCE(origin_tool, ''), COALESCE(source_msg_from, -1), COALESCE(source_msg_to, -1),
+ 		COALESCE(canonical_project, ''),
+ 		COALESCE(attribution, ''),
+-		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, '')
++		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, ''), COALESCE(scope, '')
+ 		FROM learnings WHERE ` + models.RecallableLearningSQL + `
+ 		AND (expires_at IS NULL OR julianday(expires_at) > julianday(?))
+ 		AND julianday(created_at) > julianday(?)
+@@ -600,7 +600,7 @@ func (s *Store) GetConsolidationLearnings(afterID, throughID int64) ([]models.Le
+ 		COALESCE(l.source_file, ''), COALESCE(l.source_hash, ''), COALESCE(l.doc_chunk_ref, 0), COALESCE(l.task_type, ''), COALESCE(l.turns_at_creation, 0), COALESCE(l.origin_tool, ''), COALESCE(l.source_msg_from, -1), COALESCE(l.source_msg_to, -1),
+ 		COALESCE(l.canonical_project, ''),
+ 		COALESCE(l.attribution, ''),
+-		COALESCE(l.staleness_score, 0.0), COALESCE(l.staleness_reason, ''), l.staleness_checked_at, COALESCE(l.staleness_type, ''), COALESCE(l.code_fingerprint, ''), COALESCE(l.project_source, '')
++		COALESCE(l.staleness_score, 0.0), COALESCE(l.staleness_reason, ''), l.staleness_checked_at, COALESCE(l.staleness_type, ''), COALESCE(l.code_fingerprint, ''), COALESCE(l.project_source, ''), COALESCE(l.scope, '')
+ 	FROM learnings l
+ 	JOIN dirty d ON d.category = l.category
+ 		AND d.project = COALESCE(NULLIF(l.canonical_project, ''), COALESCE(l.project, ''))
+@@ -627,6 +627,11 @@ type LearningsFilter struct {
+ 	// path-scoped read for a project whose work lives in checkouts below its own
+ 	// path.
+ 	ProjectSubtree string
++	// Viewer is the agent the read is served to (normalized source agent). An
++	// empty Viewer is a system read and sees every row exactly as before; an
++	// agent viewer additionally loses the private rows of other agents. The
++	// clause is server-side: nothing the caller sends can widen it.
++	Viewer string
+ }
+ 
+ // GetActiveLearnings returns all non-superseded, non-expired learnings.
+@@ -654,7 +659,7 @@ func (s *Store) GetActiveLearningsFiltered(f LearningsFilter, limit int) ([]mode
+ 		COALESCE(source_file, ''), COALESCE(source_hash, ''), COALESCE(doc_chunk_ref, 0), COALESCE(task_type, ''), COALESCE(turns_at_creation, 0), COALESCE(origin_tool, ''), COALESCE(source_msg_from, -1), COALESCE(source_msg_to, -1),
+ 		COALESCE(canonical_project, ''),
+ 		COALESCE(attribution, ''),
+-		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, '')
++		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, ''), COALESCE(scope, '')
+ 		FROM learnings WHERE ` + models.RecallableLearningSQL + `
+ 		AND (expires_at IS NULL OR julianday(expires_at) > julianday(?))`
+ 	args := []any{fmtTime(time.Now())}
+@@ -663,6 +668,14 @@ func (s *Store) GetActiveLearningsFiltered(f LearningsFilter, limit int) ([]mode
+ 		query += ` AND category = ?`
+ 		args = append(args, category)
+ 	}
++	// The sharing scope, judged at the query itself: shared rows (scope '' or
++	// 'project') and published rows ('public') pass for every agent viewer; a
++	// private row passes only for the agent that owns it. A system read (empty
++	// Viewer) gains no clause at all — its behaviour is unchanged to the byte.
++	if viewer := models.NormalizeSourceAgent(f.Viewer); viewer != "" {
++		query += ` AND (COALESCE(scope, '') IN ('', 'project', 'public') OR (scope = 'private' AND source_agent = ?))`
++		args = append(args, viewer)
++	}
+ 	if subtree != "" {
+ 		prefix := subtree + string(filepath.Separator)
+ 		hi := prefix[:len(prefix)-1] + string(byte(filepath.Separator)+1)
+@@ -754,7 +767,7 @@ func (s *Store) GetActiveLearningsBySessionIDs(sessionIDs []string) ([]models.Le
+ 			COALESCE(source_file, ''), COALESCE(source_hash, ''), COALESCE(doc_chunk_ref, 0), COALESCE(task_type, ''), COALESCE(turns_at_creation, 0), COALESCE(origin_tool, ''), COALESCE(source_msg_from, -1), COALESCE(source_msg_to, -1),
+ 			COALESCE(canonical_project, ''),
+ 			COALESCE(attribution, ''),
+-			COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, '')
++			COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, ''), COALESCE(scope, '')
+ 			FROM learnings
+ 			WHERE superseded_by IS NULL
+ 			AND (expires_at IS NULL OR julianday(expires_at) > julianday(?))
+@@ -811,7 +824,7 @@ func (s *Store) GetLearning(id int64) (*models.Learning, error) {
+ 		COALESCE(source_file, ''), COALESCE(source_hash, ''), COALESCE(doc_chunk_ref, 0), COALESCE(task_type, ''), COALESCE(turns_at_creation, 0), COALESCE(origin_tool, ''), COALESCE(source_msg_from, -1), COALESCE(source_msg_to, -1),
+ 		COALESCE(canonical_project, ''),
+ 		COALESCE(attribution, ''),
+-		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), COALESCE(staleness_checked_at, ''), COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, '')
++		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), COALESCE(staleness_checked_at, ''), COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, ''), COALESCE(scope, '')
+ 		FROM learnings WHERE id = ?`, id)
+ 
+ 	l := &models.Learning{}
+@@ -825,7 +838,7 @@ func (s *Store) GetLearning(id int64) (*models.Learning, error) {
+ 		&l.Context, &l.Domain, &l.TriggerRule, &l.EmbeddingText,
+ 		&l.SourceFile, &l.SourceHash, &l.DocChunkRef, &l.TaskType, &l.TurnsAtCreation, &l.OriginTool, &l.SourceMsgFrom, &l.SourceMsgTo,
+ 		&l.CanonicalProject, &l.Attribution,
+-		&l.StalenessScore, &l.StalenessReason, &l.StalenessCheckedAt, &l.StalenessType, &l.CodeFingerprint, &projectSource)
++		&l.StalenessScore, &l.StalenessReason, &l.StalenessCheckedAt, &l.StalenessType, &l.CodeFingerprint, &projectSource, &l.SharingScope)
+ 	if err != nil {
+ 		return nil, fmt.Errorf("get learning %d: %w", id, err)
+ 	}
+@@ -1122,7 +1135,7 @@ func (s *Store) GetTriggeredLearnings(project, triggerPrefix, minRule string) ([
+ 		COALESCE(source_file, ''), COALESCE(source_hash, ''), COALESCE(doc_chunk_ref, 0), COALESCE(task_type, ''), COALESCE(turns_at_creation, 0), COALESCE(origin_tool, ''), COALESCE(source_msg_from, -1), COALESCE(source_msg_to, -1),
+ 		COALESCE(canonical_project, ''),
+ 		COALESCE(attribution, ''),
+-		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, '')
++		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, ''), COALESCE(scope, '')
+ 		FROM learnings
+ 		WHERE ` + models.RecallableLearningSQL + `
+ 		AND trigger_rule != '' AND trigger_rule IS NOT NULL
+@@ -1208,7 +1221,7 @@ func (s *Store) GetStaleLearnings(project string, minScore float64) ([]models.Le
+ 		COALESCE(l.source_file, ''), COALESCE(l.source_hash, ''), COALESCE(l.doc_chunk_ref, 0), COALESCE(l.task_type, ''), COALESCE(l.turns_at_creation, 0), COALESCE(l.origin_tool, ''), COALESCE(l.source_msg_from, -1), COALESCE(l.source_msg_to, -1),
+ 		COALESCE(l.canonical_project, ''),
+ 		COALESCE(l.attribution, ''),
+-		COALESCE(l.staleness_score, 0.0), COALESCE(l.staleness_reason, ''), l.staleness_checked_at, COALESCE(l.staleness_type, ''), COALESCE(l.code_fingerprint, ''), COALESCE(l.project_source, '')
++		COALESCE(l.staleness_score, 0.0), COALESCE(l.staleness_reason, ''), l.staleness_checked_at, COALESCE(l.staleness_type, ''), COALESCE(l.code_fingerprint, ''), COALESCE(l.project_source, ''), COALESCE(l.scope, '')
+ 		FROM learnings l
+ 		WHERE l.superseded_by IS NULL
+ 		AND l.staleness_score >= ?
+@@ -1473,7 +1486,7 @@ func (s *Store) GetRecentNarratives(project string, limit int) ([]models.Learnin
+ 		COALESCE(l.source_file, ''), COALESCE(l.source_hash, ''), COALESCE(l.doc_chunk_ref, 0), COALESCE(l.task_type, ''), COALESCE(l.turns_at_creation, 0), COALESCE(l.origin_tool, ''), COALESCE(l.source_msg_from, -1), COALESCE(l.source_msg_to, -1),
+ 		COALESCE(l.canonical_project, ''),
+ 		COALESCE(l.attribution, ''),
+-		COALESCE(l.staleness_score, 0.0), COALESCE(l.staleness_reason, ''), l.staleness_checked_at, COALESCE(l.staleness_type, ''), COALESCE(l.code_fingerprint, ''), COALESCE(l.project_source, '')
++		COALESCE(l.staleness_score, 0.0), COALESCE(l.staleness_reason, ''), l.staleness_checked_at, COALESCE(l.staleness_type, ''), COALESCE(l.code_fingerprint, ''), COALESCE(l.project_source, ''), COALESCE(l.scope, '')
+ 		FROM learnings l
+ 		LEFT JOIN sessions s ON l.session_id = s.id
+ 		WHERE l.category = 'narrative' AND l.canonical_project = ? AND ` + models.RecallableLearningSQLAlias + `
+@@ -1506,7 +1519,7 @@ func scanLearnings(rows interface {
+ 			&l.Context, &l.Domain, &l.TriggerRule, &l.EmbeddingText,
+ 			&l.SourceFile, &l.SourceHash, &l.DocChunkRef, &l.TaskType, &l.TurnsAtCreation, &l.OriginTool, &l.SourceMsgFrom, &l.SourceMsgTo,
+ 			&l.CanonicalProject, &l.Attribution,
+-			&l.StalenessScore, &l.StalenessReason, &stalenessCheckedAt, &l.StalenessType, &l.CodeFingerprint, &projectSource); err != nil {
++			&l.StalenessScore, &l.StalenessReason, &stalenessCheckedAt, &l.StalenessType, &l.CodeFingerprint, &projectSource, &l.SharingScope); err != nil {
+ 			return nil, err
+ 		}
+ 		l.ProjectSource = projectSource
+diff --git a/internal/storage/learnings_embedding.go b/internal/storage/learnings_embedding.go
+index d5895c7..bdf9996 100644
+--- a/internal/storage/learnings_embedding.go
++++ b/internal/storage/learnings_embedding.go
+@@ -40,7 +40,7 @@ func (s *Store) GetPendingLearningsForEmbedding(limit int) ([]models.Learning, e
+ 		COALESCE(source_file, ''), COALESCE(source_hash, ''), COALESCE(doc_chunk_ref, 0), COALESCE(task_type, ''), COALESCE(turns_at_creation, 0), COALESCE(origin_tool, ''), COALESCE(source_msg_from, -1), COALESCE(source_msg_to, -1),
+ 		COALESCE(canonical_project, ''),
+ 		COALESCE(attribution, ''),
+-		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, '')
++		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, ''), COALESCE(scope, '')
+ 		FROM learnings
+ 		WHERE (expires_at IS NULL OR julianday(expires_at) > julianday(?))
+ 		AND embedding_vector IS NULL
+@@ -164,7 +164,7 @@ func (s *Store) GetAllLearningsForEmbedding() ([]models.Learning, error) {
+ 		COALESCE(source_file, ''), COALESCE(source_hash, ''), COALESCE(doc_chunk_ref, 0), COALESCE(task_type, ''), COALESCE(turns_at_creation, 0), COALESCE(origin_tool, ''), COALESCE(source_msg_from, -1), COALESCE(source_msg_to, -1),
+ 		COALESCE(canonical_project, ''),
+ 		COALESCE(attribution, ''),
+-		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, '')
++		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, ''), COALESCE(scope, '')
+ 		FROM learnings
+ 		ORDER BY category, created_at DESC`
+ 
+diff --git a/internal/storage/learnings_pending_confirmation.go b/internal/storage/learnings_pending_confirmation.go
+index 1312413..07fe288 100644
+--- a/internal/storage/learnings_pending_confirmation.go
++++ b/internal/storage/learnings_pending_confirmation.go
+@@ -58,7 +58,7 @@ func (s *Store) scanPendingConfirmationRows() ([]models.Learning, error) {
+ 		COALESCE(source_file, ''), COALESCE(source_hash, ''), COALESCE(doc_chunk_ref, 0), COALESCE(task_type, ''), COALESCE(turns_at_creation, 0), COALESCE(origin_tool, ''), COALESCE(source_msg_from, -1), COALESCE(source_msg_to, -1),
+ 		COALESCE(canonical_project, ''),
+ 		COALESCE(attribution, ''),
+-		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, '')
++		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), staleness_checked_at, COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, ''), COALESCE(scope, '')
+ 		FROM learnings
+ 		WHERE supersede_status = 'pending_confirmation' AND superseded_by IS NULL
+ 		ORDER BY created_at DESC LIMIT ?`, pendingConfirmationScanCap)
+diff --git a/internal/storage/learnings_scope.go b/internal/storage/learnings_scope.go
+new file mode 100644
+index 0000000..dc08922
+--- /dev/null
++++ b/internal/storage/learnings_scope.go
+@@ -0,0 +1,81 @@
++package storage
++
++// The sharing-scope visibility helpers: the same rule the central read applies
++// at its WHERE level, exposed for the agent-facing paths that do not go
++// through LearningsFilter. A hidden row reads exactly like a missing one —
++// existence is never leaked through the memory surface.
++
++import (
++	"database/sql"
++	"fmt"
++	"path/filepath"
++
++	"github.com/carsteneu/yesmem/internal/models"
++)
++
++// GetLearningForViewer reads one learning as the viewer's agent would see it.
++// A row the viewer must not see (another agent's private row) returns the same
++// error a missing id does: the caller cannot tell a hidden row from an absent
++// one. An empty viewer is a system read and sees everything.
++func (s *Store) GetLearningForViewer(id int64, viewer string) (*models.Learning, error) {
++	l, err := s.GetLearning(id)
++	if err != nil {
++		return nil, err
++	}
++	viewer = models.NormalizeSourceAgent(viewer)
++	if viewer == "" {
++		return l, nil
++	}
++	switch l.SharingScope {
++	case "", "project", "public":
++		return l, nil
++	case "private":
++		if models.NormalizeSourceAgent(l.SourceAgent) == viewer {
++			return l, nil
++		}
++		// Hidden: the literal not-found, not a permission notice — the row's
++		// existence stays unconfirmed through the memory surface.
++		return nil, fmt.Errorf("get learning %d: %w", id, sql.ErrNoRows)
++	default:
++		// An unknown scope value cannot be written through the store's policy;
++		// if one is ever on disk, treat it as shared-nothing and hide it.
++		return nil, fmt.Errorf("get learning %d: %w", id, sql.ErrNoRows)
++	}
++}
++
++// ActiveLearningsForProjectViewer is ActiveLearningsForProject served to one
++// agent: the same project resolution (short names, marker roots, repository
++// roots and the subtree read below a repository root), with the sharing-scope
++// clause applied. The system read (empty viewer) is byte-identical to
++// ActiveLearningsForProject.
++func (s *Store) ActiveLearningsForProjectViewer(project, category, viewer string, limit int) ([]models.Learning, error) {
++	if models.NormalizeSourceAgent(viewer) == "" {
++		return s.ActiveLearningsForProject(project, category, limit)
++	}
++	if !filepath.IsAbs(project) {
++		return s.GetActiveLearningsFiltered(LearningsFilter{Category: category, Project: project, Viewer: viewer}, limit)
++	}
++	clean := filepath.Clean(project)
++	if markerRoot := projectReadRoot(clean); markerRoot != "" && markerRoot != clean {
++		return s.GetActiveLearningsFiltered(LearningsFilter{Category: category, Project: project, Viewer: viewer}, limit)
++	}
++	if !isRepositoryRoot(clean) {
++		return s.GetActiveLearningsFiltered(LearningsFilter{Category: category, Project: project, Viewer: viewer}, limit)
++	}
++	return s.GetActiveLearningsFiltered(LearningsFilter{Category: category, ProjectSubtree: clean, Viewer: viewer}, limit)
++}
++
++// VisibleLearningIDs returns the set of active learning ids the viewer's agent
++// may see in project — the same rows GetActiveLearningsFiltered with the same
++// Viewer would return, keyed by id for the paths that filter an existing list.
++func (s *Store) VisibleLearningIDs(viewer, project string) (map[int64]bool, error) {
++	rows, err := s.GetActiveLearningsFiltered(LearningsFilter{Project: project, Viewer: viewer}, 0)
++	if err != nil {
++		return nil, err
++	}
++	out := make(map[int64]bool, len(rows))
++	for _, l := range rows {
++		out[l.ID] = true
++	}
++	return out, nil
++}
+diff --git a/internal/storage/learnings_scope_test.go b/internal/storage/learnings_scope_test.go
+new file mode 100644
+index 0000000..4211b96
+--- /dev/null
++++ b/internal/storage/learnings_scope_test.go
+@@ -0,0 +1,155 @@
++package storage
++
++// The memory sharing scope: private rows belong to one agent, public rows are
++// readable by every agent, and everything else stays shared inside its project
++// exactly as upstream wrote it. A system read — the empty viewer — is
++// byte-identical to the pre-scope behaviour.
++
++import (
++	"database/sql"
++	"errors"
++	"testing"
++	"time"
++
++	"github.com/carsteneu/yesmem/internal/models"
++)
++
++func scopeSeed(t *testing.T, s *Store, content, agent, scope string) int64 {
++	t.Helper()
++	id, err := s.InsertLearning(&models.Learning{
++		Category: "explicit_teaching", Content: content, Project: "/w",
++		CreatedAt: time.Now(), ModelUsed: "test", SourceAgent: agent, SharingScope: scope,
++	})
++	if err != nil {
++		t.Fatalf("seed %q: %v", content, err)
++	}
++	return id
++}
++
++func scopeRead(t *testing.T, s *Store, viewer string) []string {
++	t.Helper()
++	rows, err := s.GetActiveLearningsFiltered(LearningsFilter{Project: "/w", Viewer: viewer}, 0)
++	if err != nil {
++		t.Fatalf("read as %q: %v", viewer, err)
++	}
++	out := make([]string, 0, len(rows))
++	for _, l := range rows {
++		out = append(out, l.Content)
++	}
++	return out
++}
++
++func containsRow(rows []string, content string) bool {
++	for _, r := range rows {
++		if r == content {
++			return true
++		}
++	}
++	return false
++}
++
++func TestScopeSharedRowsVisibleToEveryAgent(t *testing.T) {
++	s := mustOpen(t)
++	scopeSeed(t, s, "shared note", "claude", "")
++	for _, viewer := range []string{"claude", "codex", "opencode"} {
++		if !containsRow(scopeRead(t, s, viewer), "shared note") {
++			t.Errorf("viewer %s lost a shared row", viewer)
++		}
++	}
++}
++
++func TestScopePrivateRowHiddenFromOtherAgents(t *testing.T) {
++	s := mustOpen(t)
++	scopeSeed(t, s, "claude private", "claude", "private")
++	if containsRow(scopeRead(t, s, "codex"), "claude private") {
++		t.Error("codex saw claude's private row")
++	}
++	if !containsRow(scopeRead(t, s, "claude"), "claude private") {
++		t.Error("claude lost its own private row")
++	}
++}
++
++func TestScopePublicRowVisibleToAllAgents(t *testing.T) {
++	s := mustOpen(t)
++	scopeSeed(t, s, "published note", "claude", "public")
++	for _, viewer := range []string{"codex", "opencode"} {
++		if !containsRow(scopeRead(t, s, viewer), "published note") {
++			t.Errorf("viewer %s lost a public row", viewer)
++		}
++	}
++}
++
++func TestScopeSystemReadSeesEverything(t *testing.T) {
++	s := mustOpen(t)
++	scopeSeed(t, s, "shared note", "claude", "")
++	scopeSeed(t, s, "claude private", "claude", "private")
++	rows := scopeRead(t, s, "")
++	if !containsRow(rows, "shared note") || !containsRow(rows, "claude private") {
++		t.Errorf("system read = %v, want the untouched view", rows)
++	}
++}
++
++func TestScopeViewerIsNormalized(t *testing.T) {
++	s := mustOpen(t)
++	scopeSeed(t, s, "claude private", "claude", "private")
++	// The clause normalizes the viewer before comparing, so the canonical
++	// spelling sees the row.
++	if !containsRow(scopeRead(t, s, "claude"), "claude private") {
++		t.Error("the canonical viewer lost its own private row")
++	}
++	if containsRow(scopeRead(t, s, "codex"), "claude private") {
++		t.Error("codex saw the private row")
++	}
++}
++
++func TestScopeReadByIDDeniesLikeMissing(t *testing.T) {
++	s := mustOpen(t)
++	id := scopeSeed(t, s, "claude private", "claude", "private")
++	l, err := s.GetLearningForViewer(id, "codex")
++	if err == nil {
++		t.Fatalf("codex read claude's private row: %+v", l)
++	}
++	// The hidden row answers in exactly the shape a missing id answers — the
++	// same no-rows error, not a permission notice — so existence is never
++	// confirmed through the denial.
++	_, missingErr := s.GetLearning(99999)
++	if !errors.Is(err, sql.ErrNoRows) || !errors.Is(missingErr, sql.ErrNoRows) {
++		t.Errorf("hidden err = %v, want the same no-rows shape as %v", err, missingErr)
++	}
++	own, err := s.GetLearningForViewer(id, "claude")
++	if err != nil || own == nil {
++		t.Errorf("own read: %v, %v", own, err)
++	}
++}
++
++func TestScopeVisibleLearningIDsMatchesTheFilter(t *testing.T) {
++	s := mustOpen(t)
++	scopeSeed(t, s, "shared note", "claude", "")
++	privateID := scopeSeed(t, s, "claude private", "claude", "private")
++	ids, err := s.VisibleLearningIDs("codex", "/w")
++	if err != nil {
++		t.Fatalf("VisibleLearningIDs: %v", err)
++	}
++	if ids[privateID] {
++		t.Error("the private id is visible to codex")
++	}
++	own, _ := s.VisibleLearningIDs("claude", "/w")
++	if !own[privateID] {
++		t.Error("claude lost its own id in the visible set")
++	}
++}
++
++func TestScopeStoredAndRoundTrips(t *testing.T) {
++	s := mustOpen(t)
++	id := scopeSeed(t, s, "claude private", "claude", "private")
++	l, err := s.GetLearning(id)
++	if err != nil {
++		t.Fatalf("GetLearning: %v", err)
++	}
++	if l.SharingScope != "private" {
++		t.Errorf("scope = %q, want private on the round trip", l.SharingScope)
++	}
++	if l.ID != id {
++		t.Errorf("id = %d, want %d", l.ID, id)
++	}
++}
+diff --git a/internal/storage/learnings_search.go b/internal/storage/learnings_search.go
+index db2f5e2..8911e0f 100644
+--- a/internal/storage/learnings_search.go
++++ b/internal/storage/learnings_search.go
+@@ -82,7 +82,7 @@ func (s *Store) QueryFacts(opts QueryFactsOpts) ([]models.Learning, error) {
+ 		COALESCE(l.source_file, ''), COALESCE(l.source_hash, ''), COALESCE(l.doc_chunk_ref, 0), COALESCE(l.task_type, ''), COALESCE(l.turns_at_creation, 0), COALESCE(l.origin_tool, ''), COALESCE(l.source_msg_from, -1), COALESCE(l.source_msg_to, -1),
+ 		COALESCE(l.canonical_project, ''),
+ 		COALESCE(l.attribution, ''),
+-		COALESCE(l.staleness_score, 0.0), COALESCE(l.staleness_reason, ''), l.staleness_checked_at, COALESCE(l.staleness_type, ''), COALESCE(l.code_fingerprint, ''), COALESCE(l.project_source, '')`
++		COALESCE(l.staleness_score, 0.0), COALESCE(l.staleness_reason, ''), l.staleness_checked_at, COALESCE(l.staleness_type, ''), COALESCE(l.code_fingerprint, ''), COALESCE(l.project_source, ''), COALESCE(l.scope, '')`
+ 
+ 	query := `SELECT DISTINCT ` + selectCols + ` FROM learnings l`
+ 	var joins []string
+@@ -340,7 +340,7 @@ const unfinishedSelectColumns = `l.id, l.session_id, l.category, l.content, l.pr
+ 		COALESCE(l.source_file, ''), COALESCE(l.source_hash, ''), COALESCE(l.doc_chunk_ref, 0), COALESCE(l.task_type, ''), COALESCE(l.turns_at_creation, 0), COALESCE(l.origin_tool, ''), COALESCE(l.source_msg_from, -1), COALESCE(l.source_msg_to, -1),
+ 		COALESCE(l.canonical_project, ''),
+ 		COALESCE(l.attribution, ''),
+-		COALESCE(l.staleness_score, 0.0), COALESCE(l.staleness_reason, ''), l.staleness_checked_at, COALESCE(l.staleness_type, ''), COALESCE(l.code_fingerprint, ''), COALESCE(l.project_source, '')`
++		COALESCE(l.staleness_score, 0.0), COALESCE(l.staleness_reason, ''), l.staleness_checked_at, COALESCE(l.staleness_type, ''), COALESCE(l.code_fingerprint, ''), COALESCE(l.project_source, ''), COALESCE(l.scope, '')`
+ 
+ // searchUnfinishedTier runs one tier of the unfinished search. joiner is
+ // " AND " for a real tier and " OR " only for the display-only candidate
+@@ -614,7 +614,7 @@ func (s *Store) FindLearningsByEntityMatch(entities []string, project string) ([
+ 		COALESCE(l.source_file, ''), COALESCE(l.source_hash, ''), COALESCE(l.doc_chunk_ref, 0), COALESCE(l.task_type, ''), COALESCE(l.turns_at_creation, 0), COALESCE(l.origin_tool, ''), COALESCE(l.source_msg_from, -1), COALESCE(l.source_msg_to, -1),
+ 		COALESCE(l.canonical_project, ''),
+ 		COALESCE(l.attribution, ''),
+-		COALESCE(l.staleness_score, 0.0), COALESCE(l.staleness_reason, ''), l.staleness_checked_at, COALESCE(l.staleness_type, ''), COALESCE(l.code_fingerprint, ''), COALESCE(l.project_source, '')
++		COALESCE(l.staleness_score, 0.0), COALESCE(l.staleness_reason, ''), l.staleness_checked_at, COALESCE(l.staleness_type, ''), COALESCE(l.code_fingerprint, ''), COALESCE(l.project_source, ''), COALESCE(l.scope, '')
+ 		FROM learnings l
+ 		JOIN learning_entities le ON le.learning_id = l.id
+ 		WHERE le.value IN (` + strings.Join(placeholders, ",") + `)
+diff --git a/internal/storage/schema.go b/internal/storage/schema.go
+index 508ecb4..76fa5ea 100644
+--- a/internal/storage/schema.go
++++ b/internal/storage/schema.go
+@@ -789,6 +789,11 @@ var migrations = []string{
+ 	`UPDATE learnings SET created_at = (SELECT s.started_at FROM sessions s WHERE s.id = learnings.session_id)
+ 		WHERE learnings.created_at = ''
+ 		  AND EXISTS (SELECT 1 FROM sessions s WHERE s.id = learnings.session_id AND COALESCE(s.started_at, '') <> '')`,
++	// v0.79: the memory sharing scope. A learning stays shared inside its
++	// project (upstream behaviour, the default), belongs to one agent
++	// (private), or is published to every agent (public). Every ALTER-only
++	// column also lives in its CREATE TABLE constant (YM-378).
++	`ALTER TABLE learnings ADD COLUMN scope TEXT NOT NULL DEFAULT ''`,
+ }
+ 
+ // messagesMigrations runs against messages.db (separate from yesmem.db migrations).
+@@ -899,7 +904,8 @@ const tableLearnings = `CREATE TABLE IF NOT EXISTS learnings (
+ 	staleness_reason    TEXT DEFAULT '',                -- v0.64: LLM rationale
+ 	staleness_checked_at TEXT,                          -- v0.64: ISO timestamp of last check
+ 	staleness_type      TEXT DEFAULT '',                -- v0.64: code_contradicts|code_removed|code_renamed|code_changed_insight_holds
+-	code_fingerprint    TEXT DEFAULT ''                 -- v0.64: SHA256 of code at learning creation
++	code_fingerprint    TEXT DEFAULT '',                -- v0.64: SHA256 of code at learning creation
++	scope               TEXT NOT NULL DEFAULT ''        -- v0.79: sharing scope ('' shared | private | public)
+ )`
+ 
+ const tableAssociations = `CREATE TABLE IF NOT EXISTS associations (
+diff --git a/internal/storage/zz_probe2_test.go b/internal/storage/zz_probe2_test.go
+new file mode 100644
+index 0000000..afc7b0e
+--- /dev/null
++++ b/internal/storage/zz_probe2_test.go
+@@ -0,0 +1,18 @@
++package storage
++
++import (
++	"testing"
++	"time"
++
++	"github.com/carsteneu/yesmem/internal/models"
++)
++
++func TestProbe2SourceFile(t *testing.T) {
++	s := mustOpen(t)
++	id, err := s.InsertLearning(&models.Learning{Category: "gotcha", Content: "doc note", CreatedAt: time.Now(), ModelUsed: "opus", SourceFile: "docs/api.md"})
++	t.Logf("insert id=%d err=%v", id, err)
++	ls, err := s.GetLearningsBySourceFile("docs/api.md")
++	t.Logf("by-source-file: n=%d err=%v", len(ls), err)
++	one, err := s.GetLearning(id)
++	t.Logf("get: srcfile=%q scope=%q err=%v", one.SourceFile, one.SharingScope, err)
++}
+-- 
+2.47.3
+

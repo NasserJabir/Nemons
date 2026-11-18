@@ -65,11 +65,13 @@ func TestLos56fGlobalSaveDoesNotSupersedeAnotherProjectsCap(t *testing.T) {
 
 	if resp := h.handleSaveCap(map[string]any{
 		"name": "shared_tool", "description": "project beta cap", "project": "beta", "scripts": scripts,
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save beta cap: %s", resp.Error)
 	}
 	if resp := h.handleSaveCap(map[string]any{
 		"name": "shared_tool", "description": "global cap", "scripts": scripts,
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save global cap: %s", resp.Error)
 	}

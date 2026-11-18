@@ -12,6 +12,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -363,4 +364,19 @@ func (s *Store) ExpireStaleApprovals(now time.Time) (int64, error) {
 		return 0, err
 	}
 	return closed, nil
+}
+
+// RecordCapUpgrade writes the cap.upgrade audit line: a cap row's upgrade
+// names what it came from — the old version, the new one, and the citation
+// the change stood on.
+func (s *Store) RecordCapUpgrade(name string, fromVersion, toVersion int, citation string) error {
+	if citation == "" {
+		citation = "(disk sync: manifest provenance)"
+	}
+	_, err := s.db.Exec(
+		`INSERT INTO governance_events (kind, key, detail, created_at)
+		 VALUES ('cap.upgrade', ?, ?, ?)`,
+		name, fmt.Sprintf("v%d to v%d, citation %s", fromVersion, toVersion, citation),
+		time.Now().UTC().Format(time.RFC3339))
+	return err
 }

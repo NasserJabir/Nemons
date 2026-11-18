@@ -251,7 +251,9 @@ func (h *Handler) acceptCapProposal(capName, project, scriptName, newBody string
 	}
 
 	// Same as the autocorrect path: the accepted proposal is the daemon's own
-	// audited upgrade, marked in-process so the gate folds open.
+	// audited upgrade, marked in-process so the gate folds open — and its
+	// citation names the proposal row the change came from.
 	saveParams["_internal_call"] = internalCallMark{}
+	saveParams["citation"] = fmt.Sprintf("text:accepted cap proposal for %q (script %s)", capName, scriptName)
 	return h.Handle(Request{Method: "save_cap", Params: saveParams}), nil
 }

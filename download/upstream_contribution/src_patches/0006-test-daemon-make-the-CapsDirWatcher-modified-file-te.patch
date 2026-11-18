@@ -1,0 +1,40 @@
+From 9f5d84c33a768d296aa2c0f60d5e09a724148ca2 Mon Sep 17 00:00:00 2001
+From: Nasser Jabir <nasser.jabir@nemons.local>
+Date: Wed, 18 Nov 2026 19:45:15 +0000
+Subject: [PATCH 06/11] test(daemon): make the CapsDirWatcher modified-file
+ test repeatable
+
+---
+ internal/daemon/cap_sync_test.go | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/internal/daemon/cap_sync_test.go b/internal/daemon/cap_sync_test.go
+index 0844085..6590746 100644
+--- a/internal/daemon/cap_sync_test.go
++++ b/internal/daemon/cap_sync_test.go
+@@ -10,6 +10,7 @@ import (
+ 	"strings"
+ 	"sync"
+ 	"testing"
++	"time"
+ 
+ 	"github.com/carsteneu/yesmem/internal/capfile"
+ 	"github.com/carsteneu/yesmem/internal/models"
+@@ -280,6 +281,14 @@ func TestCapsDirWatcher_DetectsModifiedFile(t *testing.T) {
+ 	if err := os.WriteFile(capPath, body2, 0o644); err != nil {
+ 		t.Fatal(err)
+ 	}
++	// The two writes can land inside one coarse mtime tick — the watcher then
++	// sees no change (a measured 161/200 collision on a coarse runner, because
++	// the whole test assumed nanosecond stamps). The write above resets the
++	// stamp to now, so the strictly newer stamp is forced after it.
++	future := time.Now().Add(2 * time.Second)
++	if err := os.Chtimes(capPath, future, future); err != nil {
++		t.Fatal(err)
++	}
+ 
+ 	changed := w.ScanChanged(dir)
+ 	if len(changed) != 1 {
+-- 
+2.47.3
+

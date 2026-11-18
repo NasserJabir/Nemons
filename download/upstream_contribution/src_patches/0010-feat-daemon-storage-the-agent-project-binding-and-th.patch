@@ -1,0 +1,468 @@
+From e4d8aea4b2930a81a23cdcc12c532855282c4b33 Mon Sep 17 00:00:00 2001
+From: Nasser Jabir <nasser.jabir@nemons.local>
+Date: Wed, 18 Nov 2026 20:38:40 +0000
+Subject: [PATCH 10/11] feat(daemon,storage): the agent-project binding and the
+ E3b rejection
+
+---
+ internal/daemon/agent_bindings_test.go  |  97 ++++++++++++++++++
+ internal/daemon/governance_gate.go      |  32 ++++++
+ internal/daemon/handler.go              |  14 +++
+ internal/storage/agent_bindings.go      | 128 ++++++++++++++++++++++++
+ internal/storage/agent_bindings_test.go | 111 ++++++++++++++++++++
+ internal/storage/governance_gate.go     |   1 +
+ internal/storage/schema.go              |   1 +
+ 7 files changed, 384 insertions(+)
+ create mode 100644 internal/daemon/agent_bindings_test.go
+ create mode 100644 internal/storage/agent_bindings.go
+ create mode 100644 internal/storage/agent_bindings_test.go
+
+diff --git a/internal/daemon/agent_bindings_test.go b/internal/daemon/agent_bindings_test.go
+new file mode 100644
+index 0000000..95e939e
+--- /dev/null
++++ b/internal/daemon/agent_bindings_test.go
+@@ -0,0 +1,97 @@
++package daemon
++
++// The binding wired into Handle: a bound agent's foreign claim is refused
++// before the handler touches a row, on every path that takes a project
++// claim. The bind op itself is governed and lands with its audit event.
++
++import (
++	"strings"
++	"testing"
++	"time"
++
++	"github.com/carsteneu/yesmem/internal/models"
++)
++
++func bindViaOp(t *testing.T, h *Handler, agent, project string) {
++	t.Helper()
++	first := h.Handle(Request{Method: "governance_bind", Params: map[string]any{
++		"agent": agent, "project": project, "_source_agent": "operator"}})
++	if first.Error == "" || !strings.Contains(first.Error, "governance ask") {
++		t.Fatalf("expected the governed bind ask, got %q", first.Error)
++	}
++	key := strings.Fields(first.Error)[2]
++	if err := h.store.DecideApproval(key, "allow", "operator"); err != nil {
++		t.Fatalf("admit the bind: %v", err)
++	}
++	resp := h.Handle(Request{Method: "governance_bind", Params: map[string]any{
++		"agent": agent, "project": project, "_source_agent": "operator"}})
++	if resp.Error != "" {
++		t.Fatalf("governance_bind: %v", resp.Error)
++	}
++}
++
++func TestBindOpGatedThenLands(t *testing.T) {
++	h, s := mustHandler(t)
++	bindViaOp(t, h, "codex", "/srv/demo")
++	events, _ := s.GovernanceSnapshot()
++	found := false
++	for _, e := range events {
++		if e.Kind == "binding.upsert" {
++			found = true
++		}
++	}
++	if !found {
++		t.Error("no binding.upsert event in the trail")
++	}
++}
++
++func TestBoundAgentForeignClaimRefusedBeforeRows(t *testing.T) {
++	h, s := mustHandler(t)
++	bindViaOp(t, h, "codex", "/srv/demo")
++	// The store holds rows under the OTHER project; the bound agent cannot
++	// even read them.
++	if _, err := s.InsertLearning(&models.Learning{Category: "gotcha", Content: "claude's note", Project: "/srv/other", CreatedAt: time.Now(), ModelUsed: "test"}); err != nil {
++		t.Fatalf("seed: %v", err)
++	}
++	resp := h.Handle(Request{Method: "get_learnings", Params: map[string]any{
++		"project": "/srv/other", "_source_agent": "codex"}})
++	if resp.Error == "" {
++		t.Fatal("the bound agent read the foreign project")
++	}
++	if !strings.Contains(resp.Error, "is bound to") {
++		t.Errorf("refusal %q does not name the binding", resp.Error)
++	}
++	rows, _ := s.GetActiveLearnings("", "/srv/other", "", "", 10)
++	if len(rows) != 1 {
++		t.Errorf("foreign rows = %d, want 1: nothing was touched by the refusal", len(rows))
++	}
++}
++
++func TestBoundAgentSameClaimPasses(t *testing.T) {
++	h, _ := mustHandler(t)
++	bindViaOp(t, h, "codex", "/srv/demo")
++	resp := h.Handle(Request{Method: "get_learnings", Params: map[string]any{
++		"project": "/srv/demo", "_source_agent": "codex"}})
++	if resp.Error != "" {
++		t.Fatalf("same-project read refused: %v", resp.Error)
++	}
++}
++
++func TestUnboundCallerKeepsBaseBehaviour(t *testing.T) {
++	h, _ := mustHandler(t)
++	resp := h.Handle(Request{Method: "get_learnings", Params: map[string]any{
++		"project": "/srv/anywhere", "_source_agent": "claude"}})
++	if resp.Error != "" {
++		t.Fatalf("unbound caller refused: %v", resp.Error)
++	}
++}
++
++func TestBrokenBindingClosesTheCall(t *testing.T) {
++	h, _ := mustHandler(t)
++	h.store.Close()
++	resp := h.Handle(Request{Method: "get_learnings", Params: map[string]any{
++		"project": "/srv/demo", "_source_agent": "codex"}})
++	if resp.Error == "" {
++		t.Fatal("a broken binding lookup passed: fail closed")
++	}
++}
+diff --git a/internal/daemon/governance_gate.go b/internal/daemon/governance_gate.go
+index 503fc49..b453ed0 100644
+--- a/internal/daemon/governance_gate.go
++++ b/internal/daemon/governance_gate.go
+@@ -106,3 +106,35 @@ func withoutInternalMarks(params map[string]any) map[string]any {
+ 	}
+ 	return out
+ }
++
++// claimMethods are the memory paths that take a project claim from the caller.
++// A bound agent's claim on any of them is judged against the binding before
++// the handler runs (the E3b rejection is a server decision).
++var claimMethods = map[string]bool{
++	"get_learnings": true,
++	"remember":      true,
++	"hybrid_search": true,
++	"briefing":      true,
++}
++
++// claimMethod reports whether the method carries a project claim the binding
++// judges. The since variant resolves through get_learnings' own handler.
++func claimMethod(method string) bool { return claimMethods[method] }
++
++// handleGovernanceBind is the operator's surface for the agent↔project
++// bindings. The op is governed (the packet takes its ask first); the bind
++// lands with its own binding.upsert audit event in the same transaction.
++func (h *Handler) handleGovernanceBind(params map[string]any) Response {
++	agent, _ := params["agent"].(string)
++	project, _ := params["project"].(string)
++	if err := h.store.BindAgent(agent, project); err != nil {
++		return errorResponse(fmt.Sprintf("governance_bind: %v", err))
++	}
++	b, err := h.store.AgentBindingFor(agent)
++	if err != nil {
++		return errorResponse(fmt.Sprintf("governance_bind: %v", err))
++	}
++	return jsonResponse(map[string]any{
++		"agent": b.Agent, "project": b.Project, "canonical_project": b.CanonicalProject,
++	})
++}
+diff --git a/internal/daemon/handler.go b/internal/daemon/handler.go
+index 49e41f3..e1cbe6f 100644
+--- a/internal/daemon/handler.go
++++ b/internal/daemon/handler.go
+@@ -700,9 +700,23 @@ func (h *Handler) Handle(req Request) Response {
+ 		return *resp
+ 	}
+ 
++	// Agent↔project bindings: a bound agent's project claim is judged here,
++	// before any handler touches a row. A claim that names another project is
++	// refused with the binding named; an unbound caller passes; a lookup that
++	// fails closes the call (E3b is a server decision, not a caller courtesy).
++	if claimMethod(req.Method) {
++		agent, _ := req.Params["_source_agent"].(string)
++		claimed, _ := req.Params["project"].(string)
++		if err := h.store.CheckProjectClaim(agent, claimed); err != nil {
++			return errorResponse(err.Error())
++		}
++	}
++
+ 	switch req.Method {
+ 	case "governance_decide":
+ 		return h.handleGovernanceDecide(req.Params)
++	case "governance_bind":
++		return h.handleGovernanceBind(req.Params)
+ 	case "search":
+ 		params := req.Params
+ 		h.injectExcludeSession(params)
+diff --git a/internal/storage/agent_bindings.go b/internal/storage/agent_bindings.go
+new file mode 100644
+index 0000000..8d50d23
+--- /dev/null
++++ b/internal/storage/agent_bindings.go
+@@ -0,0 +1,128 @@
++package storage
++
++// Agent↔project bindings. A bound agent works inside its project: every
++// memory path that claims a project is checked against the binding BEFORE any
++// row is touched, and a claim that names another project — by name, by
++// canonical form, or by a path outside the root — is refused with the binding
++// named. Unbound callers keep the base behaviour; a binding lookup that fails
++// closes the call instead of passing it.
++
++import (
++	"context"
++	"database/sql"
++	"errors"
++	"fmt"
++	"path/filepath"
++	"time"
++)
++
++const tableAgentBindings = `CREATE TABLE IF NOT EXISTS agent_bindings (
++	agent             TEXT PRIMARY KEY,
++	project           TEXT NOT NULL,
++	canonical_project TEXT NOT NULL DEFAULT '',
++	updated_at        TEXT NOT NULL
++)`
++
++// AgentBinding is one bound agent's row.
++type AgentBinding struct {
++	Agent            string
++	Project          string
++	CanonicalProject string
++	UpdatedAt        string
++}
++
++// BindAgent upserts the binding row for agent and writes its binding.upsert
++// audit event in the same transaction. Rebinding to another project is a
++// deliberate operator action: it lands, and the trail says so.
++func (s *Store) BindAgent(agent, project string) error {
++	if agent == "" {
++		return errors.New("agent binding: agent must not be empty")
++	}
++	if project == "" {
++		return errors.New("agent binding: project must not be empty")
++	}
++	canonical := s.resolveCanonicalProject(project)
++	ctx := context.Background()
++	conn, err := s.db.Conn(ctx)
++	if err != nil {
++		return err
++	}
++	defer conn.Close()
++	if _, err := conn.ExecContext(ctx, "BEGIN IMMEDIATE"); err != nil {
++		return err
++	}
++	committed := false
++	defer func() {
++		if !committed {
++			_, _ = conn.ExecContext(ctx, "ROLLBACK")
++		}
++	}()
++	now := time.Now().UTC().Format(time.RFC3339)
++	if _, err := conn.ExecContext(ctx,
++		`INSERT INTO agent_bindings (agent, project, canonical_project, updated_at)
++		 VALUES (?, ?, ?, ?)
++		 ON CONFLICT(agent) DO UPDATE SET project = excluded.project,
++		   canonical_project = excluded.canonical_project, updated_at = excluded.updated_at`,
++		agent, project, canonical, now); err != nil {
++		return err
++	}
++	if _, err := conn.ExecContext(ctx,
++		`INSERT INTO governance_events (kind, key, detail, created_at)
++		 VALUES ('binding.upsert', ?, ?, ?)`,
++		agent, "bound to "+project, now); err != nil {
++		return err
++	}
++	committed = true
++	_, err = conn.ExecContext(ctx, "COMMIT")
++	return err
++}
++
++// AgentBindingFor reads the binding row, nil when the agent is unbound.
++func (s *Store) AgentBindingFor(agent string) (*AgentBinding, error) {
++	if agent == "" {
++		return nil, nil
++	}
++	row := s.db.QueryRow(
++		`SELECT agent, project, COALESCE(canonical_project, ''), updated_at
++		 FROM agent_bindings WHERE agent = ?`, agent)
++	var b AgentBinding
++	if err := row.Scan(&b.Agent, &b.Project, &b.CanonicalProject, &b.UpdatedAt); err != nil {
++		if errors.Is(err, sql.ErrNoRows) {
++			return nil, nil
++		}
++		return nil, err
++	}
++	return &b, nil
++}
++
++// CheckProjectClaim judges an agent's project claim against its binding.
++// nil means the claim may proceed (unbound agents always pass); an error
++// refuses it, naming the binding. A lookup failure closes the call: the
++// caller sees the refusal, not a silent pass.
++func (s *Store) CheckProjectClaim(agent, claimed string) error {
++	if agent == "" || claimed == "" {
++		return nil
++	}
++	b, err := s.AgentBindingFor(agent)
++	if err != nil {
++		return fmt.Errorf("binding lookup failed for %s: %w", agent, err)
++	}
++	if b == nil {
++		return nil
++	}
++	if claimed == b.Project {
++		return nil
++	}
++	// A path at or below the bound project is the same work.
++	if filepath.IsAbs(b.Project) && filepath.IsAbs(claimed) {
++		if rel, err := filepath.Rel(b.Project, filepath.Clean(claimed)); err == nil && rel != ".." && rel != "." && !filepath.IsAbs(rel) && rel[:2] != ".." {
++			return nil
++		}
++	}
++	// The canonical form of the claim decides the rest: worktree checkouts
++	// resolve to their parent repository, and that is the same project.
++	if claimedCanonical := s.resolveCanonicalProject(claimed); claimedCanonical != "" && claimedCanonical == b.CanonicalProject {
++		return nil
++	}
++	return fmt.Errorf("agent %s is bound to project %s; refusing the claim for %s", agent, b.Project, claimed)
++}
+diff --git a/internal/storage/agent_bindings_test.go b/internal/storage/agent_bindings_test.go
+new file mode 100644
+index 0000000..fa4ca9b
+--- /dev/null
++++ b/internal/storage/agent_bindings_test.go
+@@ -0,0 +1,111 @@
++package storage
++
++// The binding lifecycle and the E3b claim rejection: a bound agent works
++// inside its project, a claim for another project is refused with the binding
++// named before any row is touched, an unbound caller passes, and a lookup
++// that fails closes the call.
++
++import (
++	"strings"
++	"testing"
++)
++
++func bindSeed(t *testing.T, s *Store, agent, project string) {
++	t.Helper()
++	if err := s.BindAgent(agent, project); err != nil {
++		t.Fatalf("BindAgent(%s, %s): %v", agent, project, err)
++	}
++}
++
++func TestBindingRoundTrip(t *testing.T) {
++	s := mustOpen(t)
++	bindSeed(t, s, "codex", "/srv/demo")
++	b, err := s.AgentBindingFor("codex")
++	if err != nil || b == nil {
++		t.Fatalf("AgentBindingFor: %v, %v", b, err)
++	}
++	if b.Project != "/srv/demo" {
++		t.Errorf("project = %q, want /srv/demo", b.Project)
++	}
++}
++
++func TestBindingUpsertWritesItsOwnEvent(t *testing.T) {
++	s := mustOpen(t)
++	bindSeed(t, s, "codex", "/srv/demo")
++	bindSeed(t, s, "codex", "/srv/other")
++	events, _ := s.GovernanceSnapshot()
++	upserts := 0
++	for _, e := range events {
++		if e.Kind == "binding.upsert" {
++			upserts++
++		}
++	}
++	if upserts != 2 {
++		t.Errorf("binding.upsert events = %d, want one per upsert", upserts)
++	}
++	b, _ := s.AgentBindingFor("codex")
++	if b.Project != "/srv/other" {
++		t.Errorf("project = %q, want the rebind to /srv/other", b.Project)
++	}
++}
++
++func TestBindingSameClaimPasses(t *testing.T) {
++	s := mustOpen(t)
++	bindSeed(t, s, "codex", "/srv/demo")
++	if err := s.CheckProjectClaim("codex", "/srv/demo"); err != nil {
++		t.Errorf("same-project claim refused: %v", err)
++	}
++}
++
++func TestBindingForeignClaimRefused(t *testing.T) {
++	s := mustOpen(t)
++	bindSeed(t, s, "codex", "/srv/demo")
++	err := s.CheckProjectClaim("codex", "/srv/elsewhere")
++	if err == nil {
++		t.Fatal("a foreign claim passed")
++	}
++	for _, want := range []string{"codex", "/srv/demo", "/srv/elsewhere"} {
++		if !strings.Contains(err.Error(), want) {
++			t.Errorf("refusal %q does not name %q", err.Error(), want)
++		}
++	}
++}
++
++func TestBindingUnboundCallerPasses(t *testing.T) {
++	s := mustOpen(t)
++	if err := s.CheckProjectClaim("claude", "/srv/wherever"); err != nil {
++		t.Errorf("unbound caller refused: %v", err)
++	}
++	if err := s.CheckProjectClaim("", "/srv/wherever"); err != nil {
++		t.Errorf("system caller refused: %v", err)
++	}
++}
++
++func TestBindingEmptyClaimPasses(t *testing.T) {
++	s := mustOpen(t)
++	bindSeed(t, s, "codex", "/srv/demo")
++	// A call that claims no project at all has nothing for the binding to
++	// judge; the claim checks judge the project parameter, not the agent.
++	if err := s.CheckProjectClaim("codex", ""); err != nil {
++		t.Errorf("claim-less call refused: %v", err)
++	}
++}
++
++func TestBindingLookupFailureClosesTheCall(t *testing.T) {
++	s := mustOpen(t)
++	s.Close()
++	if err := s.CheckProjectClaim("codex", "/srv/demo"); err == nil {
++		t.Fatal("a broken binding lookup passed the claim: fail closed")
++	}
++}
++
++func TestBindingUnknownAgentReadsAsUnbound(t *testing.T) {
++	s := mustOpen(t)
++	b, err := s.AgentBindingFor("nobody")
++	if err != nil {
++		t.Fatalf("AgentBindingFor: %v", err)
++	}
++	if b != nil {
++		t.Errorf("row = %+v, want nil for an unbound agent", b)
++	}
++}
+diff --git a/internal/storage/governance_gate.go b/internal/storage/governance_gate.go
+index 3ccf5fd..366d900 100644
+--- a/internal/storage/governance_gate.go
++++ b/internal/storage/governance_gate.go
+@@ -34,6 +34,7 @@ const (
+ // see, which the stage record forbids.
+ var governedMethods = map[string]bool{
+ 	"governance_decide": true,
++	"governance_bind":   true,
+ }
+ 
+ // GovernedMethods reports the governed registry (for the handler wiring and
+diff --git a/internal/storage/schema.go b/internal/storage/schema.go
+index 76fa5ea..e540384 100644
+--- a/internal/storage/schema.go
++++ b/internal/storage/schema.go
+@@ -86,6 +86,7 @@ func (s *Store) createSchema() error {
+ 		tableBashJobRuns,
+ 		tableGovernanceApprovals,
+ 		tableGovernanceEvents,
++		tableAgentBindings,
+ 	}
+ 	for _, ddl := range tables {
+ 		if _, err := s.db.Exec(ddl); err != nil {
+-- 
+2.47.3
+

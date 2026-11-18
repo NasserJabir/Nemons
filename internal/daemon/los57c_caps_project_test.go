@@ -28,6 +28,7 @@ func TestLos57cProjectSaveDoesNotRetireGlobalCap(t *testing.T) {
 	// Current global row: save_cap writes canonical_project "." for it.
 	if resp := h.handleSaveCap(map[string]any{
 		"name": "los57c_saved_global", "description": "global", "scripts": los57cReplScript,
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save global cap: %s", resp.Error)
 	}
@@ -35,7 +36,8 @@ func TestLos57cProjectSaveDoesNotRetireGlobalCap(t *testing.T) {
 	for _, name := range []string{"los57c_legacy_global", "los57c_saved_global"} {
 		if resp := h.handleSaveCap(map[string]any{
 			"name": name, "description": "project copy", "project": proj, "scripts": los57cReplScript,
-		}); resp.Error != "" {
+				"citation": "text:cap suite update",
+	}); resp.Error != "" {
 			t.Fatalf("save project cap %s: %s", name, resp.Error)
 		}
 	}
@@ -78,11 +80,13 @@ func TestLos57cGetCapsFindsGlobalCapsForAProjectCaller(t *testing.T) {
 
 	if resp := h.handleSaveCap(map[string]any{
 		"name": "los57c_global_tool", "description": "global tool", "scripts": globalScript,
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save global cap: %s", resp.Error)
 	}
 	if resp := h.handleSaveCap(map[string]any{
 		"name": "los57c_own_tool", "description": "own tool", "project": proj, "scripts": los57cReplScript,
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save project cap: %s", resp.Error)
 	}
@@ -114,11 +118,13 @@ func TestLos57cGetCapsListsShadowedNameOnce(t *testing.T) {
 
 	if resp := h.handleSaveCap(map[string]any{
 		"name": "los57c_shadowed", "description": "global", "scripts": los57cReplScript,
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save global cap: %s", resp.Error)
 	}
 	if resp := h.handleSaveCap(map[string]any{
 		"name": "los57c_shadowed", "description": "project", "project": proj, "scripts": los57cReplScript,
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save project cap: %s", resp.Error)
 	}
@@ -182,18 +188,21 @@ func TestLos57cScopeUserConvertsTheProjectRowNotTheGlobalOne(t *testing.T) {
 
 	if resp := h.handleSaveCap(map[string]any{
 		"name": "los57c_convert", "description": "project", "project": proj, "scripts": los57cReplScript,
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save project cap: %s", resp.Error)
 	}
 	// The global row is the newer one, so list order alone would pick it.
 	if resp := h.handleSaveCap(map[string]any{
 		"name": "los57c_convert", "description": "global", "scripts": los57cReplScript,
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save global cap: %s", resp.Error)
 	}
 
 	if resp := h.handleSaveCap(map[string]any{
 		"name": "los57c_convert", "description": "converted", "project": proj, "scope": "user",
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("scope=user must stay the way out: %s", resp.Error)
 	}
@@ -236,11 +245,13 @@ func TestLos57cOwnRowWinsOverANewerGlobalRow(t *testing.T) {
 
 	if resp := h.handleSaveCap(map[string]any{
 		"name": "los57c_order", "description": "OWN", "project": proj, "scripts": los57cReplScript,
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save own cap: %s", resp.Error)
 	}
 	if resp := h.handleSaveCap(map[string]any{
 		"name": "los57c_order", "description": "GLOBAL", "scripts": los57cReplScript,
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save global cap: %s", resp.Error)
 	}
@@ -280,11 +291,13 @@ func TestLos57cRegisterCapsTagReachesTheGlobalRow(t *testing.T) {
 
 	if resp := h.handleSaveCap(map[string]any{
 		"name": "los57c_tagged", "description": "global", "scripts": globalScript, "tags": "web",
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save global cap: %s", resp.Error)
 	}
 	if resp := h.handleSaveCap(map[string]any{
 		"name": "los57c_tagged", "description": "own", "project": proj, "scripts": los57cReplScript,
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save own cap: %s", resp.Error)
 	}
@@ -308,11 +321,13 @@ func TestLos57cGetCapsShortNameReachesOnlyGlobalCaps(t *testing.T) {
 
 	if resp := h.handleSaveCap(map[string]any{
 		"name": "los57c_short_global", "description": "global", "scripts": los57cReplScript,
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save global cap: %s", resp.Error)
 	}
 	if resp := h.handleSaveCap(map[string]any{
 		"name": "los57c_short_own", "description": "own", "project": proj, "scripts": los57cReplScript,
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save own cap: %s", resp.Error)
 	}
@@ -363,12 +378,14 @@ func TestLos57cProjectLessScopeUserLeavesAmbiguousRowsAlone(t *testing.T) {
 	for _, proj := range []string{projA, projB} {
 		if resp := h.handleSaveCap(map[string]any{
 			"name": "los57c_ambiguous", "description": "copy", "project": proj, "scripts": los57cReplScript,
-		}); resp.Error != "" {
+				"citation": "text:cap suite update",
+	}); resp.Error != "" {
 			t.Fatalf("save cap for %s: %s", proj, resp.Error)
 		}
 	}
 	if resp := h.handleSaveCap(map[string]any{
 		"name": "los57c_ambiguous", "description": "global", "scope": "user", "scripts": los57cReplScript,
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save global cap: %s", resp.Error)
 	}
@@ -440,6 +457,7 @@ func TestLos57cScopeUserImportKeepsTheProjectCopy(t *testing.T) {
 
 	if resp := h.handleSaveCap(map[string]any{
 		"name": "los57c_import", "description": "project copy", "project": proj, "scripts": los57cReplScript,
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save project cap: %s", resp.Error)
 	}
@@ -447,6 +465,7 @@ func TestLos57cScopeUserImportKeepsTheProjectCopy(t *testing.T) {
 	if resp := h.handleSaveCap(map[string]any{
 		"name": "los57c_import", "description": "bundled v2", "scope": "user",
 		"scripts": los57cReplScript, "version": float64(2),
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("import global cap: %s", resp.Error)
 	}

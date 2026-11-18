@@ -399,7 +399,10 @@ func (h *Handler) autoCorrectBashCap(run storage.BashJobRun, job *ScheduledJob, 
 	}
 	// The autocorrect save is the daemon acting on its own audited decision;
 	// it is not an external save_cap caller and does not owe the gate an ask.
+	// It still documents its change: the citation names the failed run and the
+	// script it repaired.
 	params["_internal_call"] = internalCallMark{}
+	params["citation"] = fmt.Sprintf("text:auto-correct of script %q from bash_job_run #%d", run.ScriptName, run.ID)
 	resp := h.Handle(Request{Method: "save_cap", Params: params})
 	if resp.Error != "" {
 		// save_cap refuses for real reasons (sandbox lock on a project-bound

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/carsteneu/yesmem/internal/capfile"
@@ -185,6 +186,42 @@ func (h *Handler) handleSaveCap(params map[string]any) Response {
 // that body sits; its digest is compared against the installation's manifest, which is
 // the only thing that can vouch for a file numbering below the revision the row was
 // imported from (YM-450).
+// validateCapCitation judges one citation value: the formats it may take and
+// the rows it must actually name. learning:/session: citations resolve — a
+// dead or superseded row refuses; text: must at least say what it cites.
+func validateCapCitation(s *storage.Store, citation string) error {
+	if citation == "" {
+		return fmt.Errorf("cite the source of the change: learning:<id>, session:<id> or text:<description>")
+	}
+	switch {
+	case strings.HasPrefix(citation, "learning:"):
+		id, err := strconv.ParseInt(strings.TrimPrefix(citation, "learning:"), 10, 64)
+		if err != nil {
+			return fmt.Errorf("a learning citation is learning:<id>")
+		}
+		l, err := s.GetLearning(id)
+		if err != nil || l == nil {
+			return fmt.Errorf("the cited learning #%d does not exist", id)
+		}
+		if l.SupersededBy != nil {
+			return fmt.Errorf("the cited learning #%d is superseded", id)
+		}
+	case strings.HasPrefix(citation, "session:"):
+		sid := strings.TrimPrefix(citation, "session:")
+		sess, err := s.GetSession(sid)
+		if err != nil || sess == nil {
+			return fmt.Errorf("the cited session %q does not exist", sid)
+		}
+	case strings.HasPrefix(citation, "text:"):
+		if strings.TrimSpace(strings.TrimPrefix(citation, "text:")) == "" {
+			return fmt.Errorf("a text citation names what the change came from")
+		}
+	default:
+		return fmt.Errorf("a citation is learning:<id>, session:<id> or text:<description>")
+	}
+	return nil
+}
+
 func (h *Handler) handleSaveCapFrom(params map[string]any, sourcePath string) Response {
 	name := stringOr(params, "name", "")
 	if name == "" {
@@ -291,6 +328,18 @@ func (h *Handler) handleSaveCapFrom(params map[string]any, sourcePath string) Re
 	} else if global != nil {
 		if meta, err := ParseCapMeta(global.Context); err == nil {
 			predecessor, predecessorMeta = global, meta
+		}
+	}
+	// The citation: a connected upgrade documents where its change came from.
+	// The obligation binds callers that claim an agent identity (_source_agent):
+	// they are the surfaces an unattributed change could come from. The disk
+	// sync cites its manifest by construction, the system/operator path audits
+	// through its own channels, and v1 has no predecessor to cite.
+	citation := stringOr(params, "citation", "")
+	agentCaller, _ := params["_source_agent"].(string)
+	if predecessor != nil && sourcePath == "" && agentCaller != "" {
+		if err := validateCapCitation(h.store, citation); err != nil {
+			return errorResponse(fmt.Sprintf("save_cap: the upgrade of %q needs a verified citation: %v", name, err))
 		}
 	}
 	if predecessor != nil {
@@ -404,6 +453,7 @@ func (h *Handler) handleSaveCapFrom(params map[string]any, sourcePath string) Re
 		TestDate:        testDate,
 		AutoActive:      autoActive,
 		Scope:           scope,
+		Citation:        citation,
 	}
 	if actionsStr := stringOr(params, "actions", ""); actionsStr != "" {
 		if err := json.Unmarshal([]byte(actionsStr), &meta.Actions); err != nil {
@@ -528,6 +578,11 @@ func (h *Handler) handleSaveCapFrom(params map[string]any, sourcePath string) Re
 		// are gone from every active read.
 		if err := h.store.SupersedeLearningBatch(supersededIDs, id, "cap version upgrade"); err != nil {
 			log.Printf("save_cap: supersede %v → %d failed: %v", supersededIDs, id, err)
+		}
+		// The upgrade's own audit line: from → to, with the citation the caller
+		// (or the internal path) stood behind the change.
+		if err := h.store.RecordCapUpgrade(name, oldMeta.Version, version, citation); err != nil {
+			log.Printf("save_cap: upgrade audit for %s failed: %v", name, err)
 		}
 	}
 

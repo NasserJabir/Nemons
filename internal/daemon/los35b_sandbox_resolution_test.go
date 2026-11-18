@@ -32,6 +32,7 @@ func TestLos35bProjectBoundSaveSeesInheritedNone(t *testing.T) {
 		"description": "project-bound cap with an unset script profile",
 		"project":     t.TempDir(),
 		"scripts":     string(scripts),
+			"citation": "text:cap suite update",
 	})
 	if resp.Error == "" {
 		t.Fatal("project-bound save accepted a script whose effective profile is none")

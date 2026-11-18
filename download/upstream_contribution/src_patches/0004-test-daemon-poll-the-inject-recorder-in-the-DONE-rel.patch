@@ -1,0 +1,35 @@
+From 74f4593f6d8fd3fbba94e159d0c0bb7011526439 Mon Sep 17 00:00:00 2001
+From: Nasser Jabir <nasser.jabir@nemons.local>
+Date: Wed, 18 Nov 2026 19:42:55 +0000
+Subject: [PATCH 04/11] test(daemon): poll the inject recorder in the DONE
+ release check
+
+---
+ internal/daemon/done_delivery_test.go | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
+
+diff --git a/internal/daemon/done_delivery_test.go b/internal/daemon/done_delivery_test.go
+index 4aaf9d6..f20d794 100644
+--- a/internal/daemon/done_delivery_test.go
++++ b/internal/daemon/done_delivery_test.go
+@@ -701,13 +701,10 @@ func TestDONEDeliveryAsksForThePayloadAgainAfterAWithheldSend(t *testing.T) {
+ 		t.Fatal("gateDoneVerify = false, want true")
+ 	}
+ 
+-	writes := contentWrites(rec)
+-	if len(writes) == 0 {
+-		t.Fatal("the agent was written nothing: it never learns that the payload is missing")
+-	}
+-	// The recorder keeps the head of each write, and the missing delivery is the
+-	// first thing the resend prompt says.
+-	last := writes[len(writes)-1]
++	// The tick writes over the agent socket asynchronously: a single read of the
++	// recorder races it — the same 2-of-7 CI flake (2026-11-12) waitForWrite
++	// documents. Poll for the release instead of reading the recorder once.
++	last := waitForWrite(t, rec, "aber die Zustellung")
+ 	if !strings.Contains(last, "aber die Zustellung") {
+ 		t.Errorf("release message %q does not name the missing DONE delivery", last)
+ 	}
+-- 
+2.47.3
+

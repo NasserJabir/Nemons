@@ -57,6 +57,7 @@ func TestLos56i_SaveCapRefusesARetiredName(t *testing.T) {
 		"description": "recreated by hand",
 		"scope":       "user",
 		"scripts":     `[{"name":"run","kind":"tool","runtime":"bash","body":"echo hi","schema":"{}"}]`,
+			"citation": "text:cap suite update",
 	})
 	if resp.Error == "" {
 		t.Fatal("save_cap recreated a retired cap")

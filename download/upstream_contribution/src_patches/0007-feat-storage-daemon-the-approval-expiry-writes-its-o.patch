@@ -1,0 +1,334 @@
+From 5ff9f424357024746cea399df25aab2c37f49dbb Mon Sep 17 00:00:00 2001
+From: Nasser Jabir <nasser.jabir@nemons.local>
+Date: Wed, 18 Nov 2026 19:46:40 +0000
+Subject: [PATCH 07/11] feat(storage,daemon): the approval expiry writes its
+ own audit event
+
+---
+ internal/daemon/approval_sweep.go          |  45 ++++++
+ internal/daemon/daemon.go                  |   4 +
+ internal/storage/governance.go             |  79 +++++++++++
+ internal/storage/governance_expiry_test.go | 157 +++++++++++++++++++++
+ 4 files changed, 285 insertions(+)
+ create mode 100644 internal/daemon/approval_sweep.go
+ create mode 100644 internal/storage/governance_expiry_test.go
+
+diff --git a/internal/daemon/approval_sweep.go b/internal/daemon/approval_sweep.go
+new file mode 100644
+index 0000000..ce64d5c
+--- /dev/null
++++ b/internal/daemon/approval_sweep.go
+@@ -0,0 +1,45 @@
++package daemon
++
++import (
++	"context"
++	"log"
++	"time"
++
++	"github.com/carsteneu/yesmem/internal/storage"
++)
++
++// approvalSweepInterval is how often open governance asks are checked against
++// their expiry. An ask is at most governanceAskTTL old when it qualifies, so
++// this tick bounds the visible lifetime of an unanswered ask to the TTL plus
++// one interval.
++const approvalSweepInterval = time.Hour
++
++// startApprovalSweep closes open governance asks whose expiry passed. Only a
++// decision or this sweep ends an ask; nothing else reaches those rows, so an
++// ask nobody decided would sit open forever — and the gate keeps telling its
++// caller to wait on it. Every row the sweep closes writes its own
++// approval.expired audit event (see storage.ExpireStaleApprovals).
++func startApprovalSweep(ctx context.Context, store *storage.Store) {
++	sweep := func() {
++		closed, err := store.ExpireStaleApprovals(time.Now())
++		if err != nil {
++			log.Printf("[governance] expire stale approvals: %v", err)
++			return
++		}
++		if closed > 0 {
++			log.Printf("[governance] expired %d open asks whose expiry passed", closed)
++		}
++	}
++
++	sweep()
++	ticker := time.NewTicker(approvalSweepInterval)
++	defer ticker.Stop()
++	for {
++		select {
++		case <-ctx.Done():
++			return
++		case <-ticker.C:
++			sweep()
++		}
++	}
++}
+diff --git a/internal/daemon/daemon.go b/internal/daemon/daemon.go
+index f57ca14..ab732b3 100644
+--- a/internal/daemon/daemon.go
++++ b/internal/daemon/daemon.go
+@@ -607,6 +607,10 @@ func Run(cfg Config) error {
+ 	// Session pin sweep — bounds pins of sessions whose end no hook reports
+ 	go startSessionPinSweep(daemonCtx, store, storage.SessionPinMaxAge)
+ 
++	// Governance approval sweep — closes open asks whose expiry passed, each
++	// with its own audit event; only a decision or the sweep ends an ask.
++	go startApprovalSweep(daemonCtx, store)
++
+ 	// CBM daemon keeper — attach CLI calls to one permanent CBM daemon
+ 	startCBMDaemonKeeper(daemonCtx, store)
+ 
+diff --git a/internal/storage/governance.go b/internal/storage/governance.go
+index 9bf96ae..4a7b2d9 100644
+--- a/internal/storage/governance.go
++++ b/internal/storage/governance.go
+@@ -285,3 +285,82 @@ func (s *Store) GovernanceEvents(limit int) ([]GovernanceEvent, error) {
+ func (s *Store) GovernanceSnapshot() ([]GovernanceEvent, error) {
+ 	return s.GovernanceEvents(0)
+ }
++
++// ExpireStaleApprovals closes every open ask whose expiry has passed, in one
++// BEGIN IMMEDIATE transaction: it selects the due rows, then terminates each
++// BY ITS ID — a decision that lands between the read and the update has
++// already written its own event, so the expiry skips that row instead of
++// closing it twice. Every row the sweep closes writes an approval.expired
++// event carrying the row's own id and key: the request's lifecycle is covered
++// end to end, requested → decided or expired, with no silent ends.
++func (s *Store) ExpireStaleApprovals(now time.Time) (int64, error) {
++	ctx := context.Background()
++	conn, err := s.db.Conn(ctx)
++	if err != nil {
++		return 0, err
++	}
++	defer conn.Close()
++
++	if _, err := conn.ExecContext(ctx, "BEGIN IMMEDIATE"); err != nil {
++		return 0, err
++	}
++	committed := false
++	defer func() {
++		if !committed {
++			_, _ = conn.ExecContext(ctx, "ROLLBACK")
++		}
++	}()
++
++	type dueRow struct {
++		id  int64
++		key string
++	}
++	rows, err := conn.QueryContext(ctx,
++		`SELECT id, key FROM governance_approvals
++		 WHERE status = ? AND expires_at IS NOT NULL AND expires_at <= ?`,
++		ApprovalOpen, now.UTC().Format(time.RFC3339))
++	if err != nil {
++		return 0, err
++	}
++	var due []dueRow
++	for rows.Next() {
++		var r dueRow
++		if err := rows.Scan(&r.id, &r.key); err != nil {
++			rows.Close()
++			return 0, err
++		}
++		due = append(due, r)
++	}
++	rows.Close()
++	if err := rows.Err(); err != nil {
++		return 0, err
++	}
++
++	var closed int64
++	for _, r := range due {
++		res, err := conn.ExecContext(ctx,
++			`UPDATE governance_approvals SET status = ? WHERE id = ? AND status = ?`,
++			ApprovalExpired, r.id, ApprovalOpen)
++		if err != nil {
++			return 0, err
++		}
++		n, _ := res.RowsAffected()
++		if n == 0 {
++			// A concurrent decision closed it first and wrote its own event:
++			// the expiry skips the row.
++			continue
++		}
++		if _, err := conn.ExecContext(ctx,
++			`INSERT INTO governance_events (kind, approval_id, key, detail, created_at)
++			 VALUES (?, ?, ?, ?, ?)`,
++			EventApprovalExpired, r.id, r.key, "expired unread", now.UTC().Format(time.RFC3339)); err != nil {
++			return 0, err
++		}
++		closed += n
++	}
++	committed = true
++	if _, err := conn.ExecContext(ctx, "COMMIT"); err != nil {
++		return 0, err
++	}
++	return closed, nil
++}
+diff --git a/internal/storage/governance_expiry_test.go b/internal/storage/governance_expiry_test.go
+new file mode 100644
+index 0000000..a86cb0d
+--- /dev/null
++++ b/internal/storage/governance_expiry_test.go
+@@ -0,0 +1,157 @@
++package storage
++
++// The expiry arm of the approval lifecycle: an ask nobody decides ends with
++// its own audit event, written in the same transaction that closes the row.
++
++import (
++	"strings"
++	"testing"
++	"time"
++)
++
++func TestApprovalsExpier(t *testing.T) {
++	s := mustOpen(t)
++	id, err := s.RequestApproval("abcd1234", "remember", "claude", "agent", time.Minute)
++	if err != nil {
++		t.Fatalf("RequestApproval: %v", err)
++	}
++	// One event so far: the ask itself.
++	events, _ := s.GovernanceSnapshot()
++	if len(events) != 1 || events[0].Kind != EventApprovalRequested {
++		t.Fatalf("events = %+v, want the single approval.requested line", events)
++	}
++
++	closed, err := s.ExpireStaleApprovals(time.Now().Add(2 * time.Minute))
++	if err != nil {
++		t.Fatalf("ExpireStaleApprovals: %v", err)
++	}
++	if closed != 1 {
++		t.Errorf("closed = %d, want 1", closed)
++	}
++	a, _ := s.ApprovalForKey("abcd1234")
++	if a.Status != ApprovalExpired {
++		t.Errorf("status = %q, want expired", a.Status)
++	}
++
++	events, _ = s.GovernanceSnapshot()
++	if len(events) != 2 {
++		t.Fatalf("events = %d, want 2: the ask and its own expiry event", len(events))
++	}
++	exp := events[1]
++	if exp.Kind != EventApprovalExpired {
++		t.Errorf("event kind = %q, want approval.expired", exp.Kind)
++	}
++	// The expiry event names the row it closed: the audit line carries the
++	// approval's own id and key.
++	if exp.ApprovalID != id || exp.Key != "abcd1234" {
++		t.Errorf("event = %+v, want approval id %d and key abcd1234", exp, id)
++	}
++}
++
++func TestApprovalExpirySkipsDecidedRows(t *testing.T) {
++	s := mustOpen(t)
++	_, _ = s.RequestApproval("aaaa1111", "remember", "claude", "agent", time.Minute)
++	if err := s.DecideApproval("aaaa1111", ApprovalAllow, "operator"); err != nil {
++		t.Fatalf("decide: %v", err)
++	}
++	closed, err := s.ExpireStaleApprovals(time.Now().Add(2 * time.Minute))
++	if err != nil {
++		t.Fatalf("ExpireStaleApprovals: %v", err)
++	}
++	if closed != 0 {
++		t.Errorf("closed = %d, want 0: a decided row is not the sweep's to close", closed)
++	}
++	a, _ := s.ApprovalForKey("aaaa1111")
++	if a.Status != ApprovalDecided {
++		t.Errorf("status = %q, want the decision preserved", a.Status)
++	}
++}
++
++func TestApprovalExpirySkipsARowDecidedBetweenReadAndWrite(t *testing.T) {
++	s := mustOpen(t)
++	_, _ = s.RequestApproval("aaaa1111", "remember", "claude", "agent", -time.Minute) // already due
++	if err := s.DecideApproval("aaaa1111", ApprovalAllow, "operator"); err != nil {
++		t.Fatalf("decide: %v", err)
++	}
++	closed, _ := s.ExpireStaleApprovals(time.Now())
++	if closed != 0 {
++		t.Errorf("closed = %d, want 0: the decision wrote its own event first", closed)
++	}
++	events, _ := s.GovernanceSnapshot()
++	for _, e := range events {
++		if e.Kind == EventApprovalExpired {
++			t.Errorf("the trail gained an expiry event %+v for a decided row", e)
++		}
++	}
++}
++
++func TestApprovalExpiryClosesOnlyDueRows(t *testing.T) {
++	s := mustOpen(t)
++	_, _ = s.RequestApproval("aaaa1111", "remember", "claude", "agent", time.Minute)  // still fresh
++	_, _ = s.RequestApproval("bbbb2222", "save_cap", "codex", "agent", -time.Second) // due
++	closed, err := s.ExpireStaleApprovals(time.Now())
++	if err != nil {
++		t.Fatalf("ExpireStaleApprovals: %v", err)
++	}
++	if closed != 1 {
++		t.Errorf("closed = %d, want only the due row", closed)
++	}
++	fresh, _ := s.ApprovalForKey("aaaa1111")
++	if fresh.Status != ApprovalOpen {
++		t.Errorf("fresh ask status = %q, want open", fresh.Status)
++	}
++}
++
++func TestApprovalExpiryEventCountsInTheSnapshot(t *testing.T) {
++	s := mustOpen(t)
++	// The measured seed: two asks, one decided, one expired, and a second ask
++	// decided after its twin's expiry — eight events end to end.
++	_, _ = s.RequestApproval("aaaa1111", "remember", "claude", "agent", time.Minute)      // 1 requested
++	_, _ = s.RequestApproval("bbbb2222", "remember", "codex", "agent", -time.Second)      // 2 requested
++	_, _ = s.RequestApproval("cccc3333", "save_cap", "claude", "agent", -time.Second)     // 3 requested
++	if _, err := s.ExpireStaleApprovals(time.Now()); err != nil {                          // 4+5 expired ×2
++		t.Fatalf("expire: %v", err)
++	}
++	if err := s.DecideApproval("aaaa1111", ApprovalAllow, "operator"); err != nil {        // 6 decided
++		t.Fatalf("decide: %v", err)
++	}
++	_, _ = s.RequestApproval("dddd4444", "broadcast", "codex", "agent", time.Minute)       // 7 requested
++	if err := s.DecideApproval("dddd4444", ApprovalDeny, "operator"); err != nil {         // 8 decided
++		t.Fatalf("decide: %v", err)
++	}
++	events, err := s.GovernanceSnapshot()
++	if err != nil {
++		t.Fatalf("GovernanceSnapshot: %v", err)
++	}
++	if len(events) != 8 {
++		t.Fatalf("snapshot = %d events, want 8 in the measured seed", len(events))
++	}
++	kinds := ""
++	for _, e := range events {
++		kinds += e.Kind + ","
++	}
++	for _, want := range []string{EventApprovalRequested, EventApprovalExpired, EventApprovalDecided} {
++		if !strings.Contains(kinds, want) {
++			t.Errorf("trail %q lacks %s", kinds, want)
++		}
++	}
++}
++
++func TestApprovalExpiryIsIdempotent(t *testing.T) {
++	s := mustOpen(t)
++	_, _ = s.RequestApproval("aaaa1111", "remember", "claude", "agent", -time.Second)
++	if _, err := s.ExpireStaleApprovals(time.Now()); err != nil {
++		t.Fatalf("first sweep: %v", err)
++	}
++	second, err := s.ExpireStaleApprovals(time.Now())
++	if err != nil {
++		t.Fatalf("second sweep: %v", err)
++	}
++	if second != 0 {
++		t.Errorf("second sweep closed %d, want 0: an expired row is not revisited", second)
++	}
++	events, _ := s.GovernanceSnapshot()
++	if len(events) != 2 {
++		t.Errorf("events = %d, want the ask and one expiry event", len(events))
++	}
++}
+-- 
+2.47.3
+

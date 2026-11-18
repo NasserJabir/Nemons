@@ -1,0 +1,334 @@
+From 60da63da94c320c743022e87eb394c834f82f5e3 Mon Sep 17 00:00:00 2001
+From: Nasser Jabir <nasser.jabir@nemons.local>
+Date: Wed, 18 Nov 2026 19:51:22 +0000
+Subject: [PATCH 08/11] feat(daemon): the sandboxed job socket is its own
+ governed surface
+
+---
+ internal/daemon/governance_gate.go            |  32 +++-
+ .../daemon/handler_learnings_los11e_test.go   |   6 +
+ internal/daemon/job_socket.go                 |  14 ++
+ internal/daemon/job_socket_los34b_test.go     |  15 +-
+ internal/daemon/job_surface_test.go           | 155 ++++++++++++++++++
+ internal/storage/governance_gate.go           |   8 +-
+ 6 files changed, 223 insertions(+), 7 deletions(-)
+ create mode 100644 internal/daemon/job_surface_test.go
+
+diff --git a/internal/daemon/governance_gate.go b/internal/daemon/governance_gate.go
+index 459819d..6c152bf 100644
+--- a/internal/daemon/governance_gate.go
++++ b/internal/daemon/governance_gate.go
+@@ -29,9 +29,17 @@ func (h *Handler) gateRequest(req Request) *Response {
+ 	if h.store == nil {
+ 		return nil
+ 	}
+-	caller, _ := req.Params["_source_agent"].(string)
+-	surface := "agent"
+-	d := h.store.EvaluateGovernance(req.Method, caller, surface, req.Params)
++	// The surface rides on the in-process mark: a request the sandboxed job
++	// socket carries is judged under job.<method> on the job surface, and its
++	// grant lives separately from the agent surface's. The marks are stripped
++	// from the digested params — the packet's identity is its visible payload.
++	method, surface, params := req.Method, "agent", req.Params
++	if _, ok := params["_job_surface"].(jobSurfaceMark); ok {
++		method, surface = "job."+req.Method, "job"
++		params = withoutInternalMarks(params)
++	}
++	caller, _ := params["_source_agent"].(string)
++	d := h.store.EvaluateGovernance(method, caller, surface, params)
+ 	switch d.Action {
+ 	case storage.GateAllow:
+ 		return nil
+@@ -39,13 +47,27 @@ func (h *Handler) gateRequest(req Request) *Response {
+ 		r := errorResponse("governance refused the call: " + d.Reason)
+ 		return &r
+ 	default: // ask
+-		if _, err := h.store.RequestApproval(d.Key, req.Method, caller, surface, governanceAskTTL); err != nil {
++		if _, err := h.store.RequestApproval(d.Key, method, caller, surface, governanceAskTTL); err != nil {
+ 			r := errorResponse(fmt.Sprintf("governance ask failed for %s: %v", d.Key, err))
+ 			return &r
+ 		}
+ 		r := errorResponse(fmt.Sprintf(
+ 			"governance ask %s is open for %s: the operator decides it, then resend the call",
+-			d.Key, req.Method))
++			d.Key, method))
+ 		return &r
+ 	}
+ }
++
++// withoutInternalMarks copies params minus the in-process mark keys. The marks
++// are control flow, not payload; keying a job call on them would make its ask
++// depend on plumbing the caller never sees.
++func withoutInternalMarks(params map[string]any) map[string]any {
++	out := make(map[string]any, len(params))
++	for k, v := range params {
++		if k == "_job_surface" || k == "_job_caller" {
++			continue
++		}
++		out[k] = v
++	}
++	return out
++}
+diff --git a/internal/daemon/handler_learnings_los11e_test.go b/internal/daemon/handler_learnings_los11e_test.go
+index 6fff2de..c6e8d8a 100644
+--- a/internal/daemon/handler_learnings_los11e_test.go
++++ b/internal/daemon/handler_learnings_los11e_test.go
+@@ -87,6 +87,12 @@ func TestJobSocketRefusesForceSupersedeLos11e(t *testing.T) {
+ 	}
+ 
+ 	// The guard is narrow: an ordinary supersede of a non-cap row still works.
++	// The job surface is governed, so the ordinary path first takes its ask and
++	// a standing allow; the refusals above must hold even on an admitted surface.
++	admitJobCall(t, h, "remember", map[string]any{
++		"text": "job corrects its own note", "category": "gotcha", "project": "yesmem",
++		"supersedes": float64(noteID),
++	})
+ 	ordinary := h.handleJobSocket(Request{Method: "remember", Params: map[string]any{
+ 		"text": "job corrects its own note", "category": "gotcha", "project": "yesmem",
+ 		"supersedes": float64(noteID),
+diff --git a/internal/daemon/job_socket.go b/internal/daemon/job_socket.go
+index 95e8067..d855326 100644
+--- a/internal/daemon/job_socket.go
++++ b/internal/daemon/job_socket.go
+@@ -109,9 +109,23 @@ func (h *Handler) handleJobSocket(req Request) Response {
+ 		req.Params["sender"] = jobBroadcastSender
+ 		req.Params["_job_caller"] = jobCallerMark{}
+ 	}
++	// The job surface is its own governed surface: every request this socket
++	// carries is marked, and the gate judges it under job.<method> — a grant
++	// made on the agent surface is not a grant here, and only this function can
++	// produce the mark.
++	if req.Params == nil {
++		req.Params = map[string]any{}
++	}
++	req.Params["_job_surface"] = jobSurfaceMark{}
+ 	return h.Handle(req)
+ }
+ 
++// jobSurfaceMark is the in-process proof that a request travels the sandboxed
++// job surface. Like jobCallerMark it is a private empty struct: no JSON payload
++// decodes into it, so a raw client value cannot move a call onto the job's
++// governed surface — or off it.
++type jobSurfaceMark struct{}
++
+ // jobCallerMark is the in-process proof that a request came from the sandboxed
+ // job socket. A private empty struct cannot be produced by json.Unmarshal, which
+ // is what makes it usable as a marker: an unexported Go type is not a value any
+diff --git a/internal/daemon/job_socket_los34b_test.go b/internal/daemon/job_socket_los34b_test.go
+index c31e863..49fd180 100644
+--- a/internal/daemon/job_socket_los34b_test.go
++++ b/internal/daemon/job_socket_los34b_test.go
+@@ -222,7 +222,13 @@ func TestJobSocketRefusesCapRowsFromRemember(t *testing.T) {
+ 		t.Fatalf("error must name the category, got: %s", resp.Error)
+ 	}
+ 
+-	// The guard is narrow: an ordinary memory write still works.
++	// The guard is narrow: an ordinary memory write still works. The governed
++	// surface takes its ask and allow first.
++	admitJobCall(t, h, "remember", map[string]any{
++		"text":     "a job may keep a note",
++		"category": "gotcha",
++		"project":  "los34b",
++	})
+ 	ok := h.handleJobSocket(Request{Method: "remember", Params: map[string]any{
+ 		"text":     "a job may keep a note",
+ 		"category": "gotcha",
+@@ -267,6 +273,13 @@ func TestJobSocketAllowlistMatchesTheDispatch(t *testing.T) {
+ func TestJobSocketLabelsTheAnnouncementSender(t *testing.T) {
+ 	h, _ := mustHandler(t)
+ 
++	// broadcast is governed on the job surface: take the ask and the allow, then
++	// verify the labelling of an admitted announcement.
++	admitJobCall(t, h, "broadcast", map[string]any{
++		"content": "report",
++		"sender":  "yesmem",
++		"project": "/srv/los34b",
++	})
+ 	resp := h.handleJobSocket(Request{Method: "broadcast", Params: map[string]any{
+ 		"content": "report",
+ 		"sender":  "yesmem",
+diff --git a/internal/daemon/job_surface_test.go b/internal/daemon/job_surface_test.go
+new file mode 100644
+index 0000000..eaa9e6b
+--- /dev/null
++++ b/internal/daemon/job_surface_test.go
+@@ -0,0 +1,155 @@
++package daemon
++
++// The sandboxed job surface is its own governed surface: the socket marks what
++// it carries, the gate judges marked calls under job.<method>, an agent-surface
++// grant does not admit the job surface, and a raw decodable value cannot move a
++// call onto (or off) the marked surface.
++
++import (
++	"encoding/json"
++	"strings"
++	"testing"
++
++	"github.com/carsteneu/yesmem/internal/storage"
++)
++
++func jobRememberParams() map[string]any {
++	return map[string]any{"text": "job write", "project": "/w", "_source_agent": "codex"}
++}
++
++// admitJobCall opens and approves the ask a job packet owes, so a test can
++// drive the surface's ordinary path on top of a standing allow. The key is
++// parsed from the refusal itself rather than re-derived: the digest runs after
++// project resolution inside Handle, which the caller cannot repeat exactly.
++func admitJobCall(t *testing.T, h *Handler, method string, params map[string]any) {
++	t.Helper()
++	ask := h.handleJobSocket(Request{Method: method, Params: params})
++	if ask.Error == "" || !strings.Contains(ask.Error, "governance ask") {
++		t.Fatalf("expected the governed ask first, got %q", ask.Error)
++	}
++	fields := strings.Fields(ask.Error)
++	if len(fields) < 4 {
++		t.Fatalf("ask refusal %q does not name the key", ask.Error)
++	}
++	if err := h.store.DecideApproval(fields[2], storage.ApprovalAllow, "operator"); err != nil {
++		t.Fatalf("admit the job call: %v", err)
++	}
++}
++
++func TestJobSocketJudgesUnderTheJobMethod(t *testing.T) {
++	h, s := mustHandler(t)
++	resp := h.handleJobSocket(Request{Method: "remember", Params: jobRememberParams()})
++	if resp.Error == "" || !strings.Contains(resp.Error, "job.remember") {
++		t.Fatalf("refusal = %q, want the job.remember ask", resp.Error)
++	}
++	key := strings.Fields(resp.Error)[2]
++	a, _ := s.ApprovalForKey(key)
++	if a == nil {
++		t.Fatalf("no approval for the job packet %s", key)
++	}
++	if a.Method != "job.remember" || a.Surface != "job" {
++		t.Errorf("row = %s on %s, want job.remember on the job surface", a.Method, a.Surface)
++	}
++}
++
++func TestAgentGrantDoesNotOpenTheJobSurface(t *testing.T) {
++	h, s := mustHandler(t)
++	params := map[string]any{"text": "shared packet", "project": "/w", "_source_agent": "codex"}
++	_ = h.Handle(Request{Method: "remember", Params: params}) // agent ask
++	agentKey := storage.GateKey("remember", params)
++	if err := s.DecideApproval(agentKey, storage.ApprovalAllow, "operator"); err != nil {
++		t.Fatalf("agent decide: %v", err)
++	}
++	resp := h.handleJobSocket(Request{Method: "remember", Params: params})
++	if resp.Error == "" || !strings.Contains(resp.Error, "job.remember") {
++		t.Fatalf("job resend = %q, want its own ask: the agent grant is not a job grant", resp.Error)
++	}
++	jobKey := storage.GateKey("job.remember", params)
++	if agentKey == jobKey {
++		t.Fatal("both surfaces hashed to the same ask")
++	}
++}
++
++func TestRawDecodableValueCannotPretendTheMark(t *testing.T) {
++	h, _ := mustHandler(t)
++	// The client sends JSON; whatever it puts under the mark key decodes into a
++	// plain value, never into the private struct. Round-trip the params the way
++	// a socket frame would arrive and keep the decoded map.
++	raw, _ := json.Marshal(jobRememberParams())
++	var decoded map[string]any
++	_ = json.Unmarshal(raw, &decoded)
++	decoded["_job_surface"] = map[string]any{}
++	resp := h.gateRequest(Request{Method: "remember", Params: decoded})
++	if resp == nil {
++		t.Fatal("a raw value moved the call off the agent surface: it must not")
++	}
++	if !strings.Contains(resp.Error, "ask") || !strings.Contains(resp.Error, " for remember") {
++		t.Errorf("refusal = %q, want the agent-surface remember ask", resp.Error)
++	}
++}
++
++func TestJobAskKeyDiffersFromTheAgentAskKey(t *testing.T) {
++	h, _ := mustHandler(t)
++	params := jobRememberParams()
++	_ = h.handleJobSocket(Request{Method: "remember", Params: params})
++	_ = h.Handle(Request{Method: "remember", Params: params})
++	job := storage.GateKey("job.remember", params)
++	agent := storage.GateKey("remember", params)
++	if job == agent {
++		t.Fatal("the two surfaces shared one ask")
++	}
++}
++
++func TestJobDenyRefusesTheJobSurface(t *testing.T) {
++	h, s := mustHandler(t)
++	params := jobRememberParams()
++	ask := h.handleJobSocket(Request{Method: "remember", Params: params})
++	if ask.Error == "" {
++		t.Fatal("the job write ran ungoverned")
++	}
++	key := strings.Fields(ask.Error)[2]
++	if err := s.DecideApproval(key, storage.ApprovalDeny, "operator"); err != nil {
++		t.Fatalf("job decide: %v", err)
++	}
++	resp := h.handleJobSocket(Request{Method: "remember", Params: params})
++	if resp.Error == "" || !strings.Contains(resp.Error, "governance refused") {
++		t.Errorf("job resend = %q, want the governance refusal", resp.Error)
++	}
++}
++
++func TestJobAllowAdmitsTheJobCall(t *testing.T) {
++	h, s := mustHandler(t)
++	params := jobRememberParams()
++	ask := h.handleJobSocket(Request{Method: "remember", Params: params})
++	if ask.Error == "" {
++		t.Fatal("the job write ran ungoverned")
++	}
++	key := strings.Fields(ask.Error)[2]
++	if err := s.DecideApproval(key, storage.ApprovalAllow, "operator"); err != nil {
++		t.Fatalf("job decide: %v", err)
++	}
++	resp := h.handleJobSocket(Request{Method: "remember", Params: params})
++	if resp.Error != "" {
++		t.Fatalf("approved job call refused: %v", resp.Error)
++	}
++	ls, err := s.GetActiveLearnings("explicit_teaching", "/w", "", "", 10)
++	if err != nil || len(ls) == 0 {
++		t.Errorf("learnings = %d (%v), want the approved job write stored", len(ls), err)
++	}
++}
++
++func TestJobMarkSurvivesOnlyInProcess(t *testing.T) {
++	// The mark is set by the socket handler alone; nothing else in the daemon
++	// produces it, and no decode can. This is what keeps the surface assignment
++	// in-process.
++	var in any = jobSurfaceMark{}
++	if _, ok := in.(jobSurfaceMark); !ok {
++		t.Fatal("the mark type changed shape")
++	}
++	frame, _ := json.Marshal(map[string]any{"_job_surface": struct{}{}})
++	var decoded map[string]any
++	_ = json.Unmarshal(frame, &decoded)
++	if _, ok := decoded["_job_surface"].(jobSurfaceMark); ok {
++		t.Fatal("a decoded value presented itself as the job mark")
++	}
++}
+diff --git a/internal/storage/governance_gate.go b/internal/storage/governance_gate.go
+index 4585753..b54914e 100644
+--- a/internal/storage/governance_gate.go
++++ b/internal/storage/governance_gate.go
+@@ -102,9 +102,15 @@ type GateDecision struct {
+ // approval row: no row means the caller owes an ask, an open row means the ask
+ // still waits, a deny decision refuses, and an allow decision is the standing
+ // grant that admits the packet. Ungoverned methods pass with no read at all.
++// A surface-prefixed judged method (job.<method>) is registered by its bare
++// name — the registry lists methods, the judged name carries the surface.
+ func (s *Store) EvaluateGovernance(method, caller, surface string, params map[string]any) GateDecision {
+ 	key := GateKey(method, params)
+-	if !IsGovernedMethod(method) {
++	registered := method
++	if bare, ok := strings.CutPrefix(method, "job."); ok {
++		registered = bare
++	}
++	if !IsGovernedMethod(registered) {
+ 		return GateDecision{Action: GateAllow, Key: key, Reason: "method is not governed"}
+ 	}
+ 	row, err := s.ApprovalForKey(key)
+-- 
+2.47.3
+

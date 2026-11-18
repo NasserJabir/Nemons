@@ -622,6 +622,7 @@ func TestHandleSaveCap_StaleVersionIsNotAnUpdate(t *testing.T) {
 		"name":        "churn",
 		"description": "churn",
 		"scripts":     `[{"name":"run","kind":"tool","runtime":"bash","body":"echo hi","schema":"{}"}]`,
+			"citation": "text:cap suite update",
 	}
 	for i := 0; i < 3; i++ {
 		if resp := h.handleSaveCap(base); resp.Error != "" {
@@ -634,6 +635,7 @@ func TestHandleSaveCap_StaleVersionIsNotAnUpdate(t *testing.T) {
 		"description": "churn",
 		"version":     float64(1),
 		"scripts":     `[{"name":"run","kind":"tool","runtime":"bash","body":"echo hi","schema":"{}"}]`,
+			"citation": "text:cap suite update",
 	})
 	if resp.Error != "" {
 		t.Fatalf("stale save: %s", resp.Error)

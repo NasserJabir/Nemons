@@ -1,0 +1,238 @@
+From 1a3ee798c21b7d659f841f042ba5f4e0c885dfd7 Mon Sep 17 00:00:00 2001
+From: Nasser Jabir <nasser.jabir@nemons.local>
+Date: Wed, 18 Nov 2026 19:41:13 +0000
+Subject: [PATCH 03/11] feat(daemon): wire the governance gate into the central
+ path
+
+---
+ internal/daemon/governance_gate.go      |  51 +++++++++
+ internal/daemon/governance_gate_test.go | 140 ++++++++++++++++++++++++
+ internal/daemon/handler.go              |   7 ++
+ 3 files changed, 198 insertions(+)
+ create mode 100644 internal/daemon/governance_gate.go
+ create mode 100644 internal/daemon/governance_gate_test.go
+
+diff --git a/internal/daemon/governance_gate.go b/internal/daemon/governance_gate.go
+new file mode 100644
+index 0000000..459819d
+--- /dev/null
++++ b/internal/daemon/governance_gate.go
+@@ -0,0 +1,51 @@
++package daemon
++
++// The governance gate wired into the central path. A governed method reads its
++// packet's decision inside Handle before the dispatch switch touches anything
++// — the same position the unresolved-project refusal occupies, so no handler
++// runs past the gate. The evaluator stays a pure read; this wiring is what
++// opens the ask, through the audited RequestApproval interface itself, which
++// is idempotent per packet, so a caller resending its call cannot stack asks.
++
++import (
++	"fmt"
++	"time"
++
++	"github.com/carsteneu/yesmem/internal/storage"
++)
++
++// governanceAskTTL bounds an open ask: the expiry sweep (see the approval
++// expiry work) closes it later with its own audit event if nobody decides it.
++const governanceAskTTL = 24 * time.Hour
++
++// gateRequest judges a request before dispatch. nil means proceed; a Response
++// is the refusal the caller receives instead of running the method.
++func (h *Handler) gateRequest(req Request) *Response {
++	if !storage.IsGovernedMethod(req.Method) {
++		return nil
++	}
++	// A handler with no store cannot read the governance state; fold the gate
++	// open there — the wiring tolerance, not a policy decision.
++	if h.store == nil {
++		return nil
++	}
++	caller, _ := req.Params["_source_agent"].(string)
++	surface := "agent"
++	d := h.store.EvaluateGovernance(req.Method, caller, surface, req.Params)
++	switch d.Action {
++	case storage.GateAllow:
++		return nil
++	case storage.GateDeny:
++		r := errorResponse("governance refused the call: " + d.Reason)
++		return &r
++	default: // ask
++		if _, err := h.store.RequestApproval(d.Key, req.Method, caller, surface, governanceAskTTL); err != nil {
++			r := errorResponse(fmt.Sprintf("governance ask failed for %s: %v", d.Key, err))
++			return &r
++		}
++		r := errorResponse(fmt.Sprintf(
++			"governance ask %s is open for %s: the operator decides it, then resend the call",
++			d.Key, req.Method))
++		return &r
++	}
++}
+diff --git a/internal/daemon/governance_gate_test.go b/internal/daemon/governance_gate_test.go
+new file mode 100644
+index 0000000..3d27e54
+--- /dev/null
++++ b/internal/daemon/governance_gate_test.go
+@@ -0,0 +1,140 @@
++package daemon
++
++// The gate wired into Handle: a governed call asks before it runs, the ask is
++// idempotent per packet, an approved packet proceeds, a denied one is refused,
++// and an ungoverned method passes untouched. These tests drive the gate
++// through Handle exactly as a caller would.
++
++import (
++	"strings"
++	"testing"
++	"time"
++
++	"github.com/carsteneu/yesmem/internal/storage"
++)
++
++func TestGateWiredBeforeDispatch_UngovernedPasses(t *testing.T) {
++	h, s := mustHandler(t)
++	resp := h.Handle(Request{Method: "get_learnings", Params: map[string]any{"project": "/w"}})
++	if resp.Error != "" {
++		t.Fatalf("ungoverned read refused: %v", resp.Error)
++	}
++	if events, _ := s.GovernanceSnapshot(); len(events) != 0 {
++		t.Errorf("the ungoverned path wrote %d governance events", len(events))
++	}
++}
++
++func TestGateGovernedCallAsksFirst(t *testing.T) {
++	h, s := mustHandler(t)
++	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
++		"text": "gated write", "project": "/w", "_source_agent": "claude"}})
++	if resp.Error == "" {
++		t.Fatal("a governed write ran without an approval")
++	}
++	if !strings.Contains(resp.Error, "governance ask") {
++		t.Errorf("refusal %q does not name the ask", resp.Error)
++	}
++	key := storage.GateKey("remember", map[string]any{
++		"text": "gated write", "project": "/w", "_source_agent": "claude"})
++	a, _ := s.ApprovalForKey(key)
++	if a == nil || a.Status != storage.ApprovalOpen {
++		t.Errorf("approval = %+v, want the open ask the wiring opened", a)
++	}
++	if events, _ := s.GovernanceSnapshot(); len(events) != 1 {
++		t.Errorf("events = %d, want exactly the approval.requested line", len(events))
++	}
++}
++
++func TestGateAskIsIdempotentPerPacket(t *testing.T) {
++	h, s := mustHandler(t)
++	params := map[string]any{"text": "gated write", "project": "/w", "_source_agent": "claude"}
++	_ = h.Handle(Request{Method: "remember", Params: params})
++	_ = h.Handle(Request{Method: "remember", Params: params})
++	n, _ := s.OpenApprovalCount()
++	if n != 1 {
++		t.Errorf("open asks = %d, want 1: the resend did not stack a second ask", n)
++	}
++	if events, _ := s.GovernanceSnapshot(); len(events) != 1 {
++		t.Errorf("events = %d, want one approval.requested for both calls", len(events))
++	}
++}
++
++func TestGateApprovedPacketProceeds(t *testing.T) {
++	h, s := mustHandler(t)
++	params := map[string]any{"text": "approved write", "project": "/w", "_source_agent": "claude"}
++	_ = h.Handle(Request{Method: "remember", Params: params})
++	key := storage.GateKey("remember", params)
++	if err := s.DecideApproval(key, storage.ApprovalAllow, "operator"); err != nil {
++		t.Fatalf("decide: %v", err)
++	}
++	resp := h.Handle(Request{Method: "remember", Params: params})
++	if resp.Error != "" {
++		t.Fatalf("approved call refused: %v", resp.Error)
++	}
++	ls, err := s.GetActiveLearnings("explicit_teaching", "/w", "", "", 10)
++	if err != nil || len(ls) == 0 {
++		t.Errorf("learnings = %d (%v), want the approved row stored", len(ls), err)
++	}
++}
++
++func TestGateDeniedPacketRefused(t *testing.T) {
++	h, s := mustHandler(t)
++	params := map[string]any{"text": "denied write", "project": "/w", "_source_agent": "claude"}
++	_ = h.Handle(Request{Method: "remember", Params: params})
++	key := storage.GateKey("remember", params)
++	if err := s.DecideApproval(key, storage.ApprovalDeny, "operator"); err != nil {
++		t.Fatalf("decide: %v", err)
++	}
++	resp := h.Handle(Request{Method: "remember", Params: params})
++	if resp.Error == "" {
++		t.Fatal("a denied call ran")
++	}
++	if !strings.Contains(resp.Error, "governance refused") {
++		t.Errorf("refusal %q does not name the governance refusal", resp.Error)
++	}
++}
++
++func TestGateOpenAskStillBlocksResends(t *testing.T) {
++	h, _ := mustHandler(t)
++	params := map[string]any{"text": "waiting write", "project": "/w", "_source_agent": "claude"}
++	_ = h.Handle(Request{Method: "remember", Params: params})
++	resp := h.Handle(Request{Method: "remember", Params: params})
++	if resp.Error == "" || !strings.Contains(resp.Error, "is open for") {
++		t.Errorf("resend response = %q, want the open-ask wait", resp.Error)
++	}
++}
++
++func TestGateDenySurvivesExpiryWindow(t *testing.T) {
++	h, s := mustHandler(t)
++	params := map[string]any{"text": "denied and aged", "project": "/w", "_source_agent": "claude"}
++	_ = h.Handle(Request{Method: "remember", Params: params})
++	key := storage.GateKey("remember", params)
++	if err := s.DecideApproval(key, storage.ApprovalDeny, "operator"); err != nil {
++		t.Fatalf("decide: %v", err)
++	}
++	// The deny decision stands regardless of the ask's expiry clock: the row is
++	// closed, not aged out.
++	a, _ := s.ApprovalForKey(key)
++	if a.Status != storage.ApprovalDecided {
++		t.Errorf("status = %q, want decided", a.Status)
++	}
++	if time.Until(mustParse(a.DecidedAt)) > 0 {
++		t.Error("decided_at is in the future")
++	}
++}
++
++func TestGateNilStoreFoldsOpen(t *testing.T) {
++	h := &Handler{}
++	resp := h.gateRequest(Request{Method: "remember", Params: nil})
++	if resp != nil {
++		t.Errorf("nil-store gate returned %v, want the fold-open nil", resp)
++	}
++}
++
++func mustParse(t string) time.Time {
++	p, err := time.Parse(time.RFC3339, t)
++	if err != nil {
++		return time.Now().Add(time.Hour)
++	}
++	return p
++}
+diff --git a/internal/daemon/handler.go b/internal/daemon/handler.go
+index c106f04..ffe6b48 100644
+--- a/internal/daemon/handler.go
++++ b/internal/daemon/handler.go
+@@ -693,6 +693,13 @@ func (h *Handler) Handle(req Request) Response {
+ 		}
+ 	}
+ 
++	// The governance gate: a governed method reads its packet's decision before
++	// the dispatch switch touches anything. The evaluator is a pure read; the
++	// wiring opens the ask itself, idempotently, through the audited interface.
++	if resp := h.gateRequest(req); resp != nil {
++		return *resp
++	}
++
+ 	switch req.Method {
+ 	case "search":
+ 		params := req.Params
+-- 
+2.47.3
+

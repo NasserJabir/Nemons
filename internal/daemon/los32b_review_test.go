@@ -137,6 +137,7 @@ func TestHandleSaveCap_IgnoresAnInlineCommentForTheBashStoreCall(t *testing.T) {
 		"name":        "inline_comment",
 		"description": "mentions the primitive after code",
 		"scripts":     los32bScriptsParam(t, "bash", "echo ok # store the result first\n"),
+			"citation": "text:cap suite update",
 	})
 	if resp.Error != "" {
 		t.Fatalf("save_cap: %s", resp.Error)
@@ -159,6 +160,7 @@ func TestHandleSaveCap_IgnoresACommandVProbeForTheBashStoreCall(t *testing.T) {
 		"name":        "probe_only",
 		"description": "probes for the function",
 		"scripts":     los32bScriptsParam(t, "bash", "command -v store >/dev/null\n"),
+			"citation": "text:cap suite update",
 	})
 	if resp.Error != "" {
 		t.Fatalf("save_cap: %s", resp.Error)
@@ -302,6 +304,7 @@ func TestSyncCapsFromDisk_SkipsAProjectScopedFileWithoutAProject(t *testing.T) {
 		"project":     project,
 		"scope":       "project",
 		"scripts":     los32bScriptsParam(t, "bash", "echo ok"),
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("seed save_cap: %s", resp.Error)
 	}
@@ -346,7 +349,8 @@ func TestCapProposalDecide_AcceptCarriesActionsAndRequires(t *testing.T) {
 			"scripts":     los32bScriptsParam(t, "bash", "store '{\"op\":\"query\"}'\n"),
 			"requires":    "store,llm",
 			"actions":     `{"setup":"install it"}`,
-		},
+				"citation": "text:cap suite update",
+	},
 	})
 	if saveResp.Error != "" {
 		t.Fatalf("seed save_cap: %s", saveResp.Error)
@@ -384,6 +388,7 @@ func TestHandleSaveCap_RefusesProjectScopeWithoutAProject(t *testing.T) {
 		"description": "claims project scope",
 		"scope":       "project",
 		"scripts":     los32bScriptsParam(t, "bash", "echo ok"),
+			"citation": "text:cap suite update",
 	})
 	if resp.Error != "" {
 		t.Fatalf("a project-scoped save without a project is a no-op, not a failure: %s", resp.Error)

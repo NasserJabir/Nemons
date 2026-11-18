@@ -234,6 +234,7 @@ func TestLos64bForwardDeliveryKeepsTheFileBytes(t *testing.T) {
 		"name":        "sturdy",
 		"description": "disk cap, edited",
 		"tags":        "a,b",
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("metadata save: %s", resp.Error)
 	}

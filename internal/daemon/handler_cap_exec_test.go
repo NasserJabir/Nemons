@@ -32,6 +32,7 @@ func TestHandleExecuteCap_NoHandler(t *testing.T) {
 		"name":        "empty_cap",
 		"description": "has no handler",
 		"project":     "test",
+			"citation": "text:cap suite update",
 	})
 
 	resp := h.handleExecuteCap(map[string]any{"name": "empty_cap"})
@@ -53,6 +54,7 @@ func TestHandleExecuteCap_BashHandler(t *testing.T) {
 		"description":  "echos the message",
 		"handler_bash": "echo \"hello=$ARGS_message\"",
 		"scope":        "user",
+			"citation": "text:cap suite update",
 	})
 
 	resp := h.handleExecuteCap(map[string]any{
@@ -85,6 +87,7 @@ func TestHandleExecuteCap_ReplHandler(t *testing.T) {
 		"description":  "runs JavaScript",
 		"handler_repl": "globalThis.registerTool('js_cap', 'test', {type:'object',properties:{x:{type:'number'}}}, function(args) { return {doubled: args.x * 2}; })",
 		"scope":        "user",
+			"citation": "text:cap suite update",
 	})
 
 	resp := h.handleExecuteCap(map[string]any{
@@ -117,6 +120,7 @@ func TestHandleExecuteCap_MissingBun(t *testing.T) {
 		"description":  "needs bun",
 		"handler_repl": "registerTool('x','x',{},function() {})",
 		"scope":        "user",
+			"citation": "text:cap suite update",
 	})
 
 	resp := h.handleExecuteCap(map[string]any{"name": "js_cap"})
@@ -137,6 +141,7 @@ func TestHandleExecuteCap_OutputTruncated(t *testing.T) {
 		"description":  "returns big output",
 		"handler_repl": "globalThis.registerTool('big','x',{},function() { return {data: 'x'.repeat(100000)}; })",
 		"scope":        "user",
+			"citation": "text:cap suite update",
 	})
 
 	resp := h.handleExecuteCap(map[string]any{"name": "big_cap", "args": "{}"})

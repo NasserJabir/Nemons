@@ -52,6 +52,11 @@ type CapMeta struct {
 	AutoActive     bool              `json:"cap_auto_active,omitempty"`
 	Actions        map[string]string `json:"cap_actions,omitempty"`
 	Scope          string            `json:"cap_scope,omitempty"` // "user" | "project"
+	// Citation names where an upgrade's change came from: learning:<id>,
+	// session:<id> or text:<description>. A connected upgrade refuses to land
+	// without one (the documented-upgrades work); the disk sync cites its
+	// manifest by construction, and v1 has no predecessor to cite.
+	Citation string `json:"cap_citation,omitempty"`
 }
 
 // ParseCapMeta parses JSON from a Learning's Context field into CapMeta.

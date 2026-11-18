@@ -254,6 +254,7 @@ func TestHandleSaveCapability_EmbeddingTextIsCleanNotJSON(t *testing.T) {
 		"schema":       `{"type":"object","properties":{"url":{"type":"string"}},"required":["url"]}`,
 		"tags":         []any{"web", "reddit"},
 		"project":      "global",
+			"citation": "text:cap suite update",
 	})
 	if resp.Error != "" {
 		t.Fatalf("save: %s", resp.Error)
@@ -296,6 +297,7 @@ func TestHandleSaveCapability_ProjectScopeRejectsSandboxNone(t *testing.T) {
 		"scripts":     `[{"name":"x","kind":"handler","runtime":"bash","body":"echo hi","sandbox":"none"}]`,
 		"scope":       "project",
 		"project":     "global",
+			"citation": "text:cap suite update",
 	})
 	if resp.Error == "" {
 		t.Error("scope=project + sandbox=none must be refused")
@@ -313,6 +315,7 @@ func TestHandleSaveCap_ProjectBoundCapRejectsSandboxNoneWithoutExplicitScope(t *
 		"description": "runs unsandboxed",
 		"scripts":     `[{"name":"x","kind":"handler","runtime":"bash","body":"echo hi","sandbox":"none"}]`,
 		"project":     "global",
+			"citation": "text:cap suite update",
 	})
 	if resp.Error == "" {
 		t.Fatal("a project-bound cap with a sandbox=none script must be refused, scope omitted or not")
@@ -331,6 +334,7 @@ func TestHandleSaveCap_ProjectAgnosticCapAllowsSandboxNone(t *testing.T) {
 		"name":        "unsandboxed_agnostic",
 		"description": "runs unsandboxed",
 		"scripts":     `[{"name":"x","kind":"handler","runtime":"bash","body":"echo hi","sandbox":"none"}]`,
+			"citation": "text:cap suite update",
 	})
 	if resp.Error != "" {
 		t.Fatalf("a cap bound to no project is not covered by the lock: %s", resp.Error)
@@ -356,6 +360,7 @@ func TestHandleSaveCap_MetadataOnlyUpdateOnInheritedSandboxNoneIsAllowed(t *test
 		"description": "v2",
 		"scope":       "project",
 		"project":     "global",
+			"citation": "text:cap suite update",
 	})
 	if resp.Error != "" {
 		t.Fatalf("a metadata-only save must keep the repair path open: %s", resp.Error)
@@ -386,6 +391,7 @@ func TestHandleSaveCap_MetadataOnlySaveCannotMoveTheBindingOfAnUnsandboxedCap(t 
 	resp := h.handleSaveCap(map[string]any{
 		"name":        "bound",
 		"description": "v2",
+			"citation": "text:cap suite update",
 	})
 	if resp.Error == "" {
 		t.Error("dropping the project of an unsandboxed cap must not pass as a metadata-only no-op")
@@ -401,6 +407,7 @@ func TestHandleSaveCap_DeclaredProjectScopeWithoutProjectRejectsSandboxNone(t *t
 		"description": "runs unsandboxed",
 		"scope":       "project",
 		"scripts":     `[{"name":"x","kind":"handler","runtime":"bash","body":"echo hi","sandbox":"none"}]`,
+			"citation": "text:cap suite update",
 	})
 	if resp.Error == "" {
 		t.Error("scope=project + sandbox=none must be refused even without a project string")
@@ -425,6 +432,7 @@ func TestHandleSaveCap_MetadataOnlySaveLeavingProjectScopeIsAllowed(t *testing.T
 		"name":        "leaving",
 		"description": "v2",
 		"scope":       "user",
+			"citation": "text:cap suite update",
 	})
 	if resp.Error != "" {
 		t.Fatalf("scope=user must stay the way out: %s", resp.Error)
@@ -450,6 +458,7 @@ func TestHandleSaveCap_ScriptsUpdateOnProjectBoundCapRejectsInheritedSandboxNone
 		"scope":       "project",
 		"project":     "global",
 		"scripts":     `[{"name":"extra","kind":"handler","runtime":"bash","body":"echo extra"}]`,
+			"citation": "text:cap suite update",
 	})
 	if resp.Error == "" {
 		t.Error("a scripts-edit must not leave an inherited sandbox=none script on a project-bound cap")
@@ -464,6 +473,7 @@ func TestHandleSaveCapability_UserScopeAllowsSandboxNone(t *testing.T) {
 		"scripts":     `[{"name":"x","kind":"handler","runtime":"bash","body":"echo hi","sandbox":"none"}]`,
 		"scope":       "user",
 		"project":     "global",
+			"citation": "text:cap suite update",
 	})
 	if resp.Error != "" {
 		t.Fatalf("scope=user + sandbox=none must stay allowed: %s", resp.Error)
@@ -479,6 +489,7 @@ func TestHandleSaveCapability_Success(t *testing.T) {
 		"tags":         []any{"web", "reddit"},
 		"tested":       true,
 		"project":      "global",
+			"citation": "text:cap suite update",
 	})
 	result := unmarshalMap(t, resp)
 	if result["name"] != "reddit_fetch" {
@@ -496,7 +507,9 @@ func TestHandleSaveCapability_Success(t *testing.T) {
 
 func TestHandleSaveCapability_MissingName(t *testing.T) {
 	h, _ := mustHandler(t)
-	resp := h.handleSaveCap(map[string]any{"handler_bash": "echo hi"})
+	resp := h.handleSaveCap(map[string]any{"handler_bash": "echo hi",
+		"citation": "text:cap suite update",
+	})
 	if resp.Error == "" {
 		t.Fatal("expected error for missing name")
 	}
@@ -517,7 +530,8 @@ func TestHandleSaveCapability_InvalidName(t *testing.T) {
 			resp := h.handleSaveCap(map[string]any{
 				"name":         name,
 				"handler_bash": "echo hi",
-			})
+					"citation": "text:cap suite update",
+	})
 			if resp.Error == "" {
 				t.Errorf("expected error for invalid name %q, got success", name)
 			}
@@ -530,6 +544,7 @@ func TestHandleSaveCapability_MissingHandler(t *testing.T) {
 	resp := h.handleSaveCap(map[string]any{
 		"name":        "broken",
 		"description": "No handler",
+			"citation": "text:cap suite update",
 	})
 	if resp.Error == "" {
 		t.Fatal("expected error for missing handler")
@@ -542,6 +557,7 @@ func TestHandleSaveCapability_WithREPLHandler(t *testing.T) {
 		"name":         "repl_tool",
 		"handler_repl": `async ({x}) => { return sh("echo " + x) }`,
 		"tested":       true,
+			"citation": "text:cap suite update",
 	})
 	if resp.Error != "" {
 		t.Fatalf("unexpected error: %s", resp.Error)
@@ -558,10 +574,12 @@ func TestHandleSaveCapability_AutoSupersede(t *testing.T) {
 	h.handleSaveCap(map[string]any{
 		"name": "evolving", "description": "V1",
 		"handler_bash": "echo v1", "project": "global",
+			"citation": "text:cap suite update",
 	})
 	h.handleSaveCap(map[string]any{
 		"name": "evolving", "description": "V2",
 		"handler_bash": "echo v2", "project": "global",
+			"citation": "text:cap suite update",
 	})
 
 	caps := unmarshalCaps(t, h.handleGetCaps(map[string]any{"name": "evolving"}))
@@ -580,6 +598,7 @@ func TestHandleSaveCapability_CommaSeparatedTags(t *testing.T) {
 		"description":  "CSV tags test",
 		"handler_bash": "echo hi",
 		"tags":         "web,reddit,fetch",
+			"citation": "text:cap suite update",
 	})
 	if resp.Error != "" {
 		t.Fatalf("unexpected error: %s", resp.Error)
@@ -636,6 +655,7 @@ func TestCapability_FullRoundTrip(t *testing.T) {
 		"tags":         []any{"web", "reddit", "fetch"},
 		"tested":       true,
 		"project":      "global",
+			"citation": "text:cap suite update",
 	}))
 	if result["version"].(float64) != 1 {
 		t.Errorf("expected version 1, got %v", result["version"])
@@ -664,6 +684,8 @@ func TestCapability_FullRoundTrip(t *testing.T) {
 		"tags":         []any{"web", "reddit"},
 		"tested":       true,
 		"project":      "global",
+		// The documented-upgrades work: a connected upgrade cites its source.
+		"citation": "text:round-trip test update",
 	}))
 	if result2["version"].(float64) != 2 {
 		t.Errorf("expected version 2, got %v", result2["version"])
@@ -1181,6 +1203,7 @@ func TestHandleSaveCapability_StoresInternalForm(t *testing.T) {
 		"name":         "adapter_save",
 		"description":  "Tests adapter direction on save",
 		"handler_repl": `async ({q}) => { return store({action:'query', table:'t', where:q}); }`,
+			"citation": "text:cap suite update",
 	})
 	if resp.Error != "" {
 		t.Fatalf("save: %s", resp.Error)
@@ -1302,6 +1325,7 @@ func TestHandleSaveCapability_StoresAutoActiveFlag(t *testing.T) {
 		"description":  "Auto-active test cap",
 		"handler_bash": "echo hi",
 		"auto_active":  true,
+			"citation": "text:cap suite update",
 	})
 	if resp.Error != "" {
 		t.Fatalf("save failed: %s", resp.Error)
@@ -1336,6 +1360,7 @@ func TestHandleGetActiveCapabilities_IncludesAutoActiveForUnactivatedThread(t *t
 		"description":  "Always on",
 		"handler_bash": "echo",
 		"auto_active":  true,
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save auto_cap: %s", resp.Error)
 	}
@@ -1344,6 +1369,7 @@ func TestHandleGetActiveCapabilities_IncludesAutoActiveForUnactivatedThread(t *t
 		"description":  "Opt-in",
 		"handler_bash": "echo",
 		"auto_active":  false,
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save manual_cap: %s", resp.Error)
 	}
@@ -1365,6 +1391,7 @@ func TestHandleGetActiveCapabilities_DeduplicatesAutoActivePlusExplicit(t *testi
 		"description":  "Always on",
 		"handler_bash": "echo",
 		"auto_active":  true,
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save: %s", resp.Error)
 	}
@@ -1390,6 +1417,7 @@ func TestHandleGetActiveCaps_ParentThreadPropagation(t *testing.T) {
 		"description":  "Activated in parent session",
 		"handler_repl": "async () => 'parent'",
 		"auto_active":  false,
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save: %s", resp.Error)
 	}
@@ -1424,11 +1452,13 @@ func TestHandleGetActiveCaps_ParentAndOwnCaps(t *testing.T) {
 
 	if resp := h.handleSaveCap(map[string]any{
 		"name": "shared_tool", "description": "From parent", "handler_repl": "async () => 'shared'", "auto_active": false,
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save shared: %s", resp.Error)
 	}
 	if resp := h.handleSaveCap(map[string]any{
 		"name": "own_tool", "description": "Subagent's own", "handler_repl": "async () => 'own'", "auto_active": false,
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save own: %s", resp.Error)
 	}
@@ -1458,6 +1488,7 @@ func TestHandleGetActiveCaps_ParentSameAsThread(t *testing.T) {
 
 	if resp := h.handleSaveCap(map[string]any{
 		"name": "main_tool", "description": "Main session", "handler_repl": "async () => 'main'", "auto_active": false,
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save: %s", resp.Error)
 	}
@@ -1478,6 +1509,7 @@ func TestHandleGetActiveCaps_ParentChildOverlapDedup(t *testing.T) {
 
 	if resp := h.handleSaveCap(map[string]any{
 		"name": "overlap_tool", "description": "Activated in both", "handler_repl": "async () => 'overlap'", "auto_active": false,
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save: %s", resp.Error)
 	}
@@ -1505,6 +1537,7 @@ func TestHandleActivateCapability_BashOnlyOmitsAdapterJS(t *testing.T) {
 		"name":         "bash_tool",
 		"description":  "Bash only, no adapter needed",
 		"handler_bash": "echo hello",
+			"citation": "text:cap suite update",
 	}); resp.Error != "" {
 		t.Fatalf("save: %s", resp.Error)
 	}
@@ -1536,12 +1569,14 @@ func TestSaveCap_PreservesScriptsWhenOmitted(t *testing.T) {
 		"name":        "merge_test",
 		"description": "V1",
 		"scripts":     `[{"name":"run","kind":"tool","runtime":"bash","body":"echo run","schema":"{}"},{"name":"setup","kind":"handler","runtime":"bash","body":"echo setup"}]`,
+			"citation": "text:cap suite update",
 	})
 
 	// Update only description, no scripts
 	resp := h.handleSaveCap(map[string]any{
 		"name":        "merge_test",
 		"description": "V2 updated description",
+			"citation": "text:cap suite update",
 	})
 	if resp.Error != "" {
 		t.Fatalf("save without scripts: %s", resp.Error)
@@ -1570,6 +1605,7 @@ func TestSaveCap_MergesScripts(t *testing.T) {
 		"name":        "merge_test",
 		"description": "V1",
 		"scripts":     `[{"name":"run","kind":"tool","runtime":"bash","body":"echo v1","schema":"{}"},{"name":"setup","kind":"handler","runtime":"bash","body":"echo setup"}]`,
+			"citation": "text:cap suite update",
 	})
 
 	// Update: modify run, add teardown, omit setup
@@ -1577,6 +1613,7 @@ func TestSaveCap_MergesScripts(t *testing.T) {
 		"name":        "merge_test",
 		"description": "V2",
 		"scripts":     `[{"name":"run","kind":"tool","runtime":"bash","body":"echo v2","schema":"{}"},{"name":"teardown","kind":"handler","runtime":"bash","body":"echo teardown"}]`,
+			"citation": "text:cap suite update",
 	})
 	if resp.Error != "" {
 		t.Fatalf("save with merge: %s", resp.Error)
@@ -1609,12 +1646,14 @@ func TestSaveCap_PreservesScriptSandboxOnMetadataOnlyUpdate(t *testing.T) {
 		"name":        "sandbox_test",
 		"description": "V1",
 		"scripts":     `[{"name":"run","kind":"tool","runtime":"bash","body":"echo hi","schema":"{}","sandbox":"none"}]`,
+			"citation": "text:cap suite update",
 	})
 
 	// Update only description
 	resp := h.handleSaveCap(map[string]any{
 		"name":        "sandbox_test",
 		"description": "V2 updated",
+			"citation": "text:cap suite update",
 	})
 	if resp.Error != "" {
 		t.Fatalf("save without scripts: %s", resp.Error)
@@ -1637,6 +1676,7 @@ func TestSaveCap_ExplicitEmptyScriptsClearsAll(t *testing.T) {
 		"name":        "clear_test",
 		"description": "V1",
 		"scripts":     `[{"name":"run","kind":"tool","runtime":"bash","body":"echo hi","schema":"{}"}]`,
+			"citation": "text:cap suite update",
 	})
 
 	// Explicit empty scripts array
@@ -1644,6 +1684,7 @@ func TestSaveCap_ExplicitEmptyScriptsClearsAll(t *testing.T) {
 		"name":        "clear_test",
 		"description": "V2",
 		"scripts":     `[]`,
+			"citation": "text:cap suite update",
 	})
 	if resp.Error == "" {
 		t.Fatal("expected error for scripts:[] — empty scripts should be rejected")
@@ -1697,6 +1738,7 @@ func TestHandleSaveCap_MetadataOnlySaveFromWorktreePathKeepsTheExemption(t *test
 		"name":        "worktree_repair",
 		"description": "v2",
 		"project":     worktree,
+			"citation": "text:cap suite update",
 	})
 	if resp.Error != "" {
 		t.Fatalf("another spelling of the same project moves no binding: %s", resp.Error)

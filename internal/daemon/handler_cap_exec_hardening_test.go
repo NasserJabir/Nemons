@@ -27,6 +27,7 @@ func TestHandleExecuteCap_BashArgsCannotInjectCommands(t *testing.T) {
 		"description":  "arg injection probe",
 		"handler_bash": "printf '%s\\n' \"$ARGS_msg\"",
 		"scope":        "user",
+			"citation": "text:cap suite update",
 	})
 
 	resp := h.handleExecuteCap(map[string]any{
@@ -63,6 +64,7 @@ func TestHandleExecuteCap_BashArgKeysAreValidated(t *testing.T) {
 		"description":  "arg key probe",
 		"handler_bash": "echo done",
 		"scope":        "user",
+			"citation": "text:cap suite update",
 	})
 
 	resp := h.handleExecuteCap(map[string]any{

@@ -38,6 +38,7 @@ func TestHandleSaveCap_DetectsTheBashStoreCall(t *testing.T) {
 		"name":        "bash_storing",
 		"description": "reads its input from cap_store",
 		"scripts":     los32bScriptsParam(t, "bash", "store '{\"op\":\"query\",\"table\":\"posts\"}'\n"),
+			"citation": "text:cap suite update",
 	})
 	if resp.Error != "" {
 		t.Fatalf("save_cap: %s", resp.Error)
@@ -60,6 +61,7 @@ func TestHandleSaveCap_DoesNotMistakeAWordForABashStoreCall(t *testing.T) {
 		"name":        "bash_talking",
 		"description": "only mentions the primitive",
 		"scripts":     los32bScriptsParam(t, "bash", "echo \"restore the backup\"\nmy_store=1\n# store nothing\n"),
+			"citation": "text:cap suite update",
 	})
 	if resp.Error != "" {
 		t.Fatalf("save_cap: %s", resp.Error)
@@ -83,6 +85,7 @@ func TestHandleSaveCap_KeepsTheDeclaredRequires(t *testing.T) {
 		"description": "declares its adapters",
 		"requires":    "file,web",
 		"scripts":     los32bScriptsParam(t, "repl", "async () => store(\"q\")"),
+			"citation": "text:cap suite update",
 	})
 	if resp.Error != "" {
 		t.Fatalf("save_cap: %s", resp.Error)
@@ -104,6 +107,7 @@ func TestHandleSaveCap_DetectsReplAdaptersWithoutADeclaration(t *testing.T) {
 		"name":        "detected",
 		"description": "no declaration",
 		"scripts":     los32bScriptsParam(t, "repl", "async () => store(\"q\")"),
+			"citation": "text:cap suite update",
 	})
 	if resp.Error != "" {
 		t.Fatalf("save_cap: %s", resp.Error)
