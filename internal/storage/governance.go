@@ -285,3 +285,82 @@ func (s *Store) GovernanceEvents(limit int) ([]GovernanceEvent, error) {
 func (s *Store) GovernanceSnapshot() ([]GovernanceEvent, error) {
 	return s.GovernanceEvents(0)
 }
+
+// ExpireStaleApprovals closes every open ask whose expiry has passed, in one
+// BEGIN IMMEDIATE transaction: it selects the due rows, then terminates each
+// BY ITS ID — a decision that lands between the read and the update has
+// already written its own event, so the expiry skips that row instead of
+// closing it twice. Every row the sweep closes writes an approval.expired
+// event carrying the row's own id and key: the request's lifecycle is covered
+// end to end, requested → decided or expired, with no silent ends.
+func (s *Store) ExpireStaleApprovals(now time.Time) (int64, error) {
+	ctx := context.Background()
+	conn, err := s.db.Conn(ctx)
+	if err != nil {
+		return 0, err
+	}
+	defer conn.Close()
+
+	if _, err := conn.ExecContext(ctx, "BEGIN IMMEDIATE"); err != nil {
+		return 0, err
+	}
+	committed := false
+	defer func() {
+		if !committed {
+			_, _ = conn.ExecContext(ctx, "ROLLBACK")
+		}
+	}()
+
+	type dueRow struct {
+		id  int64
+		key string
+	}
+	rows, err := conn.QueryContext(ctx,
+		`SELECT id, key FROM governance_approvals
+		 WHERE status = ? AND expires_at IS NOT NULL AND expires_at <= ?`,
+		ApprovalOpen, now.UTC().Format(time.RFC3339))
+	if err != nil {
+		return 0, err
+	}
+	var due []dueRow
+	for rows.Next() {
+		var r dueRow
+		if err := rows.Scan(&r.id, &r.key); err != nil {
+			rows.Close()
+			return 0, err
+		}
+		due = append(due, r)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return 0, err
+	}
+
+	var closed int64
+	for _, r := range due {
+		res, err := conn.ExecContext(ctx,
+			`UPDATE governance_approvals SET status = ? WHERE id = ? AND status = ?`,
+			ApprovalExpired, r.id, ApprovalOpen)
+		if err != nil {
+			return 0, err
+		}
+		n, _ := res.RowsAffected()
+		if n == 0 {
+			// A concurrent decision closed it first and wrote its own event:
+			// the expiry skips the row.
+			continue
+		}
+		if _, err := conn.ExecContext(ctx,
+			`INSERT INTO governance_events (kind, approval_id, key, detail, created_at)
+			 VALUES (?, ?, ?, ?, ?)`,
+			EventApprovalExpired, r.id, r.key, "expired unread", now.UTC().Format(time.RFC3339)); err != nil {
+			return 0, err
+		}
+		closed += n
+	}
+	committed = true
+	if _, err := conn.ExecContext(ctx, "COMMIT"); err != nil {
+		return 0, err
+	}
+	return closed, nil
+}

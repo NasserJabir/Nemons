@@ -607,6 +607,10 @@ func Run(cfg Config) error {
 	// Session pin sweep — bounds pins of sessions whose end no hook reports
 	go startSessionPinSweep(daemonCtx, store, storage.SessionPinMaxAge)
 
+	// Governance approval sweep — closes open asks whose expiry passed, each
+	// with its own audit event; only a decision or the sweep ends an ask.
+	go startApprovalSweep(daemonCtx, store)
+
 	// CBM daemon keeper — attach CLI calls to one permanent CBM daemon
 	startCBMDaemonKeeper(daemonCtx, store)
 
