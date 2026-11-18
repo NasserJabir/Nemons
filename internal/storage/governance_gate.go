@@ -34,6 +34,7 @@ const (
 // see, which the stage record forbids.
 var governedMethods = map[string]bool{
 	"governance_decide": true,
+	"governance_bind":   true,
 }
 
 // GovernedMethods reports the governed registry (for the handler wiring and

@@ -106,3 +106,35 @@ func withoutInternalMarks(params map[string]any) map[string]any {
 	}
 	return out
 }
+
+// claimMethods are the memory paths that take a project claim from the caller.
+// A bound agent's claim on any of them is judged against the binding before
+// the handler runs (the E3b rejection is a server decision).
+var claimMethods = map[string]bool{
+	"get_learnings": true,
+	"remember":      true,
+	"hybrid_search": true,
+	"briefing":      true,
+}
+
+// claimMethod reports whether the method carries a project claim the binding
+// judges. The since variant resolves through get_learnings' own handler.
+func claimMethod(method string) bool { return claimMethods[method] }
+
+// handleGovernanceBind is the operator's surface for the agent↔project
+// bindings. The op is governed (the packet takes its ask first); the bind
+// lands with its own binding.upsert audit event in the same transaction.
+func (h *Handler) handleGovernanceBind(params map[string]any) Response {
+	agent, _ := params["agent"].(string)
+	project, _ := params["project"].(string)
+	if err := h.store.BindAgent(agent, project); err != nil {
+		return errorResponse(fmt.Sprintf("governance_bind: %v", err))
+	}
+	b, err := h.store.AgentBindingFor(agent)
+	if err != nil {
+		return errorResponse(fmt.Sprintf("governance_bind: %v", err))
+	}
+	return jsonResponse(map[string]any{
+		"agent": b.Agent, "project": b.Project, "canonical_project": b.CanonicalProject,
+	})
+}

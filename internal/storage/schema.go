@@ -86,6 +86,7 @@ func (s *Store) createSchema() error {
 		tableBashJobRuns,
 		tableGovernanceApprovals,
 		tableGovernanceEvents,
+		tableAgentBindings,
 	}
 	for _, ddl := range tables {
 		if _, err := s.db.Exec(ddl); err != nil {

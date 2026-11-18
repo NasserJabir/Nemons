@@ -700,9 +700,23 @@ func (h *Handler) Handle(req Request) Response {
 		return *resp
 	}
 
+	// Agent↔project bindings: a bound agent's project claim is judged here,
+	// before any handler touches a row. A claim that names another project is
+	// refused with the binding named; an unbound caller passes; a lookup that
+	// fails closes the call (E3b is a server decision, not a caller courtesy).
+	if claimMethod(req.Method) {
+		agent, _ := req.Params["_source_agent"].(string)
+		claimed, _ := req.Params["project"].(string)
+		if err := h.store.CheckProjectClaim(agent, claimed); err != nil {
+			return errorResponse(err.Error())
+		}
+	}
+
 	switch req.Method {
 	case "governance_decide":
 		return h.handleGovernanceDecide(req.Params)
+	case "governance_bind":
+		return h.handleGovernanceBind(req.Params)
 	case "search":
 		params := req.Params
 		h.injectExcludeSession(params)
