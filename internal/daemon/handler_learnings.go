@@ -162,12 +162,22 @@ func (h *Handler) handleRemember(params map[string]any) Response {
 		sharingScope = ""
 	}
 
+	// The extraction gate (TokenEconomizer adoption, Q5): a row that cites a
+	// source file carries its content hash, so the citation can be verified
+	// later against the real file. An unverifiable claim is not stored.
+	citationFile, _ := params["source_file"].(string)
+	citationHash, _ := params["source_hash"].(string)
+	if citationFile != "" && citationHash == "" {
+		return errorResponse("remember: a citation (source_file) needs its content hash (source_hash) — the extraction gate does not store unverifiable claims")
+	}
+
 	l := &models.Learning{
 		Category: category, Content: text, Project: project,
 		Confidence: 1.0, CreatedAt: timeNow(), ModelUsed: h.rememberModel(params),
 		Source: source, OriginTool: origin, ProjectSource: projectSource,
 		SharingScope: sharingScope,
 		CanonicalProject: canonicalProjectFor(project),
+		SourceFile: citationFile, SourceHash: citationHash,
 	}
 
 	// Session ID: the caller's own session first — explicit param, then the

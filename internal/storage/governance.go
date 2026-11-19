@@ -395,6 +395,20 @@ func (s *Store) RecordCapEvent(kind, name, detail string) error {
 // UpdateLearningContext rewrites one row's context JSON in place. The pin and
 // rollback lifecycle uses it to move the CapMeta flags without superseding the
 // row: a pin is metadata, not a new version.
+// UpdateLearningSourceHash records the computed citation hash for a row the
+// first time its citation is verified. It writes the one column and nothing
+// else — a correction of a stored hash goes through supersede, not here.
+func (s *Store) UpdateLearningSourceHash(id int64, hash string) error {
+	res, err := s.db.Exec(`UPDATE learnings SET source_hash = ? WHERE id = ?`, hash, id)
+	if err != nil {
+		return err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return fmt.Errorf("update source hash: no row %d", id)
+	}
+	return nil
+}
+
 func (s *Store) UpdateLearningContext(id int64, context string) error {
 	_, err := s.db.Exec(`UPDATE learnings SET context = ? WHERE id = ?`, context, id)
 	return err

@@ -14,15 +14,17 @@ import (
 	"github.com/carsteneu/yesmem/internal/models"
 )
 
-func seedPackLearning(t *testing.T, h *Handler, category, content, agent string) {
+func seedPackLearning(t *testing.T, h *Handler, category, content, agent string) int64 {
 	t.Helper()
-	if _, err := h.store.InsertLearning(&models.Learning{
+	id, err := h.store.InsertLearning(&models.Learning{
 		Category: category, Content: content, Project: "/w",
 		CreatedAt: time.Now(), ModelUsed: "test", SourceAgent: agent,
 		SharingScope: scopeForSeed(agent),
-	}); err != nil {
+	})
+	if err != nil {
 		t.Fatalf("seed %s: %v", category, err)
 	}
+	return id
 }
 
 func scopeForSeed(agent string) string {

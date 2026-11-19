@@ -737,6 +737,12 @@ func (h *Handler) Handle(req Request) Response {
 		return h.handleValidateExperience(req.Params)
 	case "get_experience_summary":
 		return h.handleGetExperienceSummary(req.Params)
+	case "verify_citation":
+		return h.handleVerifyCitation(req.Params)
+	case "record_golden_result":
+		return h.handleRecordGoldenResult(req.Params)
+	case "get_evaluation_summary":
+		return h.handleGetEvaluationSummary(req.Params)
 	case "search":
 		params := req.Params
 		h.injectExcludeSession(params)
