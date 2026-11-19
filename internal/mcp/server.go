@@ -1265,6 +1265,19 @@ func (s *Server) registerTools() {
 			mcplib.WithNumber("limit", mcplib.Description(limitDesc)),
 		), s.proxyCallFormat("get_caps", formatSimpleMessage))
 
+	// The governed feature set (ladder stages 6/8/10 + change integrity):
+	// context packing, evidence and experience, citation verification,
+	// golden baselines and regression detection, typed lineage, dependency
+	// invalidation, and the governed proposal loop — reachable by agents
+	// through the canonical transport, not only through the dispatch table.
+	// The governed feature set (stages 6/8/10 + change integrity), opt-in
+	// through YESMEM_FEATURE_TOOLS=1. The default surface stays inside the tool
+	// budget (server_budget_test): every registered definition costs tokens in
+	// every agent session — the tool-economy discipline this project enforces.
+	if os.Getenv("YESMEM_FEATURE_TOOLS") == "1" {
+		registerFeatureTools(s)
+	}
+
 	s.srv.AddTool(
 		mcplib.NewTool("save_cap",
 			mcplib.WithDescription("Save an executable capability (tool definition) that persists across sessions. Use to create reusable tools from working REPL snippets, bash commands, or multi-step workflows. Auto-supersedes existing caps with the same name. Scripts array supports tool (REPL) and handler (bash/JS) kinds."+contentLangDirective),
@@ -1907,3 +1920,65 @@ func formatRemoveDocsResult(raw json.RawMessage) string {
 
 // Helper for JSON serialization
 var _ json.Marshaler = (*json.RawMessage)(nil)
+
+// registerFeatureTools exposes the governed feature ops (context pack,
+// experience, citation, golden baselines, regression, lineage, proposals) as
+// MCP tools. Called only when YESMEM_FEATURE_TOOLS=1 — see the call site.
+func registerFeatureTools(s *Server) {
+	featureTools := []struct {
+		name, desc string
+		params     []mcplib.ToolOption
+	}{
+		{"build_context_pack", "Assemble the governed context pack for a project: rules, live knowledge, caps — through the caller's server-side scope view (private rows only for their owner).", []mcplib.ToolOption{
+			mcplib.WithString("project", mcplib.Description(projectFilterDesc)),
+		}},
+		{"log_experience", "Record a task outcome as evidence. A failure requires an attribution from the closed set (MODEL/HARNESS/SKILL/KNOWLEDGE/TOOL/POLICY/ENVIRONMENT/UNKNOWN) and recorded evidence; a success carries no attribution.", []mcplib.ToolOption{
+			mcplib.WithString("task", mcplib.Description("what was attempted")),
+			mcplib.WithString("project", mcplib.Description(projectFilterDesc)),
+			mcplib.WithString("outcome", mcplib.Description("success|failure")),
+			mcplib.WithString("attribution", mcplib.Description("required for failure: one of the eight closed causes")),
+			mcplib.WithString("evidence", mcplib.Description("required for failure: what was observed and where")),
+			mcplib.WithString("claim", mcplib.Description("optional claim this evidence supports")),
+			mcplib.WithString("sharing_scope", mcplib.Description("project (default), private, public")),
+		}},
+		{"validate_experience", "Validate or reject a recorded experience. Validation checks the recorded evidence — an evidence-free experience cannot be validated for reuse.", []mcplib.ToolOption{
+			mcplib.WithNumber("id", mcplib.Description("experience row id")),
+			mcplib.WithBoolean("reject", mcplib.Description("true to reject the experience")),
+		}},
+		{"get_experience_summary", "Aggregate live experiences for a project through the caller's scope view: success/failure tallies, attribution distribution, recent failures with their causes.", []mcplib.ToolOption{
+			mcplib.WithString("project", mcplib.Description(projectFilterDesc)),
+		}},
+		{"verify_citation", "Check a stored citation against the real source bytes (sha256). The cited file must live inside the row's project scope. First verification records the computed hash; a mismatch is audited, never auto-fixed.", []mcplib.ToolOption{
+			mcplib.WithNumber("id", mcplib.Description("learning row id carrying source_file")),
+		}},
+		{"record_golden_result", "Record one golden-task run. The first recorded result for a task becomes its baseline; later runs compare against it. Recording is evidence, not judgement.", []mcplib.ToolOption{
+			mcplib.WithString("task_id", mcplib.Description("stable reference task id")),
+			mcplib.WithString("project", mcplib.Description(projectFilterDesc)),
+			mcplib.WithBoolean("passed", mcplib.Description("did the run pass")),
+		}},
+		{"get_evaluation_summary", "Read the evaluation substrate: per-golden-task tallies against baselines, plus the token economy — injected vs used vs idle knowledge (read-only; nothing is retired automatically).", []mcplib.ToolOption{
+			mcplib.WithString("project", mcplib.Description(projectFilterDesc)),
+		}},
+		{"check_regression", "Walk the golden reference set and flag every task whose baseline passed but whose latest run failed. A regression is evidence for the governance gate, not an automatic rollback.", []mcplib.ToolOption{
+			mcplib.WithString("project", mcplib.Description(projectFilterDesc)),
+		}},
+		{"relate_typed", "Store a typed lineage relation between two learnings from the closed set: EVIDENCES, SUPERSEDES, CAUSED_BY, DERIVED_FROM, INVALIDATES. Free-text relations are refused; lineage does not cross project scopes.", []mcplib.ToolOption{
+			mcplib.WithNumber("from_id", mcplib.Description("source learning id")),
+			mcplib.WithNumber("to_id", mcplib.Description("target learning id")),
+			mcplib.WithString("type", mcplib.Description("one of the five closed lineage types")),
+		}},
+		{"check_citations", "Dependency invalidation for citations: compare every stored citation hash in a project against the real source bytes; unreadable or changed sources flag their dependents stale in the audit log.", []mcplib.ToolOption{
+			mcplib.WithString("project", mcplib.Description(projectFilterDesc)),
+		}},
+		{"propose_from_experience", "Convert a validated, evidence-backed failure attributed to an asset (SKILL/KNOWLEDGE/POLICY) into a governance ask — a proposal awaiting review. Creating the ask changes nothing; the gate decides.", []mcplib.ToolOption{
+			mcplib.WithNumber("id", mcplib.Description("validated experience row id")),
+			mcplib.WithString("target", mcplib.Description("the asset the change touches, e.g. a cap name")),
+		}},
+	}
+	for _, ft := range featureTools {
+		ft := ft
+		s.srv.AddTool(mcplib.NewTool(ft.name, append([]mcplib.ToolOption{
+			mcplib.WithDescription(ft.desc),
+		}, ft.params...)...), s.proxyCallFormat(ft.name, formatSimpleMessage))
+	}
+}
