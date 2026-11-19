@@ -743,6 +743,10 @@ func (h *Handler) Handle(req Request) Response {
 		return h.handleRecordGoldenResult(req.Params)
 	case "get_evaluation_summary":
 		return h.handleGetEvaluationSummary(req.Params)
+	case "check_regression":
+		return h.handleCheckRegression(req.Params)
+	case "relate_typed":
+		return h.handleRelateTyped(req.Params)
 	case "search":
 		params := req.Params
 		h.injectExcludeSession(params)
