@@ -1929,8 +1929,12 @@ func registerFeatureTools(s *Server) {
 		name, desc string
 		params     []mcplib.ToolOption
 	}{
-		{"build_context_pack", "Assemble the governed context pack for a project: rules, live knowledge, caps — through the caller's server-side scope view (private rows only for their owner).", []mcplib.ToolOption{
+		{"build_context_pack", "Assemble the governed context pack for a project: rules, live knowledge, caps — through the caller's server-side scope view (private rows only for their owner). Optional budget_chars caps knowledge content by whole-item selection (decisions survive longest, nothing is truncated mid-text).", []mcplib.ToolOption{
 			mcplib.WithString("project", mcplib.Description(projectFilterDesc)),
+		}},
+		{"check_pack_loss", "Verify a delivered context pack against the governed source of truth: re-derives the expected items through the same server-side scope view and reports missing / altered / injected claims with a coverage ratio (semantic loss detection).", []mcplib.ToolOption{
+			mcplib.WithString("project", mcplib.Description(projectFilterDesc)),
+			mcplib.WithString("task", mcplib.Description("the task the pack was built for")),
 		}},
 		{"log_experience", "Record a task outcome as evidence. A failure requires an attribution from the closed set (MODEL/HARNESS/SKILL/KNOWLEDGE/TOOL/POLICY/ENVIRONMENT/UNKNOWN) and recorded evidence; a success carries no attribution.", []mcplib.ToolOption{
 			mcplib.WithString("task", mcplib.Description("what was attempted")),

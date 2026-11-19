@@ -731,6 +731,8 @@ func (h *Handler) Handle(req Request) Response {
 		return h.handleGetKnowledgeStats(req.Params)
 	case "build_context_pack":
 		return h.handleBuildContextPack(req.Params)
+	case "check_pack_loss":
+		return h.handleCheckPackLoss(req.Params)
 	case "log_experience":
 		return h.handleLogExperience(req.Params)
 	case "validate_experience":

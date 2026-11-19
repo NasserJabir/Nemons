@@ -218,6 +218,104 @@ func curatedCategory(c string) bool {
 	return false
 }
 
+// handleCheckPackLoss verifies a delivered pack against the source of truth
+// (F-020 — semantic loss detection). The development study fixed the method:
+// the canonical pack carries a source reference for every part, so the check
+// re-derives the expected items through the same server-side scope view the
+// build used, then compares the delivered set claim-by-claim. Three verdicts:
+// missing (in the source, absent from delivery), altered (same id, different
+// content hash — the claim changed in transit), injected (in the delivery,
+// not in the source — unverifiable content). The audit line records counters
+// and the verdict, never the content.
+func (h *Handler) handleCheckPackLoss(params map[string]any) Response {
+	task, _ := params["task"].(string)
+	project, _ := params["project"].(string)
+	delivered, _ := params["delivered"].([]any)
+	if project == "" {
+		return errorResponse("check_pack_loss: 'project' is required — loss is checked against one project's governed source")
+	}
+	if len(delivered) == 0 {
+		return errorResponse("check_pack_loss: 'delivered' is required — the pack items the agent actually received, as [{id, content}]")
+	}
+	viewer, _ := params["_source_agent"].(string)
+
+	// Expected: the same curated fetch the pack build performs, through the
+	// same scope view — private rows resolve exactly as everywhere else.
+	rows, err := h.store.GetActiveLearningsFiltered(storage.LearningsFilter{
+		Project: project, Viewer: viewer,
+	}, 0)
+	if err != nil {
+		return errorResponse(fmt.Sprintf("check_pack_loss: %v", err))
+	}
+	expected := map[int64]string{}
+	for _, l := range rows {
+		if !curatedCategory(l.Category) {
+			continue
+		}
+		expected[l.ID] = l.Content
+	}
+
+	missing, altered := []int64{}, []int64{}
+	deliveredIDs := map[int64]bool{}
+	injected := []any{}
+	for _, d := range delivered {
+		m, ok := d.(map[string]any)
+		if !ok {
+			injected = append(injected, d)
+			continue
+		}
+		idF, _ := m["id"].(float64)
+		id := int64(idF)
+		content, _ := m["content"].(string)
+		if want, ok := expected[id]; !ok {
+			injected = append(injected, id)
+		} else if want != content {
+			altered = append(altered, id)
+			deliveredIDs[id] = true
+		} else {
+			deliveredIDs[id] = true
+		}
+	}
+	for id := range expected {
+		if !deliveredIDs[id] {
+			missing = append(missing, id)
+		}
+	}
+	sort.Slice(missing, func(i, j int) bool { return missing[i] < missing[j] })
+	sort.Slice(altered, func(i, j int) bool { return altered[i] < altered[j] })
+
+	expectedN := len(expected)
+	kept := expectedN - len(missing) - len(altered)
+	coverage := 0.0
+	if expectedN > 0 {
+		coverage = float64(kept) / float64(expectedN)
+	}
+	loss := len(missing) > 0 || len(altered) > 0 || len(injected) > 0
+
+	verdict := "lossless"
+	if loss {
+		verdict = "loss_detected"
+	}
+	if err := h.store.RecordCapEvent("context.loss.checked", project,
+		fmt.Sprintf("task %q: expected %d, missing %d, altered %d, injected %d — %s",
+			truncateForAudit(task, 60), expectedN, len(missing), len(altered), len(injected), verdict)); err != nil {
+		return errorResponse(fmt.Sprintf("check_pack_loss: %v", err))
+	}
+
+	return jsonResponse(map[string]any{
+		"task": task, "project": project, "verdict": verdict,
+		"coverage_ratio": coverage,
+		"counters": map[string]any{
+			"expected": expectedN, "delivered": len(delivered),
+			"missing": len(missing), "altered": len(altered), "injected": len(injected),
+		},
+		"missing_ids":  missing,
+		"altered_ids":  altered,
+		"injected_ids": injected,
+		"rule":         "exact content match by source id — any change in text is a loss signal, not a formatting nit",
+	})
+}
+
 func truncateForAudit(s string, n int) string {
 	r := []rune(s)
 	if len(r) <= n {
