@@ -731,6 +731,12 @@ func (h *Handler) Handle(req Request) Response {
 		return h.handleGetKnowledgeStats(req.Params)
 	case "build_context_pack":
 		return h.handleBuildContextPack(req.Params)
+	case "log_experience":
+		return h.handleLogExperience(req.Params)
+	case "validate_experience":
+		return h.handleValidateExperience(req.Params)
+	case "get_experience_summary":
+		return h.handleGetExperienceSummary(req.Params)
 	case "search":
 		params := req.Params
 		h.injectExcludeSession(params)
