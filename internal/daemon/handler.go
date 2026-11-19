@@ -747,6 +747,10 @@ func (h *Handler) Handle(req Request) Response {
 		return h.handleCheckRegression(req.Params)
 	case "relate_typed":
 		return h.handleRelateTyped(req.Params)
+	case "check_citations":
+		return h.handleCheckCitations(req.Params)
+	case "propose_from_experience":
+		return h.handleProposeFromExperience(req.Params)
 	case "search":
 		params := req.Params
 		h.injectExcludeSession(params)
