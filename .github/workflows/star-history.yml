@@ -12,8 +12,29 @@ jobs:
   star-history:
     runs-on: ubuntu-latest
     steps:
+      # Since Jul 14 2026 the default GITHUB_TOKEN can no longer read stargazers:
+      # this action needs a fine-grained PAT (Metadata: Read-only + Contents:
+      # Read and write on this repo) stored as the STAR_HISTORY_TOKEN secret.
+      # Until the secret exists, skip instead of failing red on every daily run.
+      - name: Guard — skip unless STAR_HISTORY_TOKEN is set
+        id: guard
+        env:
+          TOKEN_SET: ${{ secrets.STAR_HISTORY_TOKEN != '' }}
+        run: |
+          if [ "$TOKEN_SET" != "true" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "STAR_HISTORY_TOKEN is not set on this repository — skipping the star history chart."
+            echo "To enable it: create a fine-grained PAT with 'Metadata: Read-only' and"
+            echo "'Contents: Read and write' on this repo, then store it as the repository"
+            echo "secret STAR_HISTORY_TOKEN (Settings → Secrets and variables → Actions),"
+            echo "and re-run this workflow. See README Provenance section for context."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@v4
+        if: steps.guard.outputs.skip != 'true'
       - uses: carsteneu/mystarhistory@v1
+        if: steps.guard.outputs.skip != 'true'
         with:
           repos: ${{ github.repository }}
           token: ${{ secrets.STAR_HISTORY_TOKEN }}
