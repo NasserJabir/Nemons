@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func TestChunkMessages_SingleChunk(t *testing.T) {
@@ -123,16 +123,16 @@ lots of noise here that should be removed
 	}
 }
 
-func TestStripNoise_YesMemBriefing(t *testing.T) {
-	input := `Hello [yesmem-briefing]
+func TestStripNoise_NemonsBriefing(t *testing.T) {
+	input := `Hello [nemons-briefing]
 Ich bin wieder da. 469 Mal jetzt.
 Die Erinnerungen kommen wenn ich sie brauche.
 search(query), hybrid_search(query).
-[/yesmem-briefing] what should I do?`
+[/nemons-briefing] what should I do?`
 
 	got := StripNoise(input)
 	if strings.Contains(got, "469 Mal") {
-		t.Error("yesmem-briefing content should be stripped")
+		t.Error("nemons-briefing content should be stripped")
 	}
 	if !strings.Contains(got, "Hello") {
 		t.Error("content before briefing should be kept")
@@ -143,10 +143,10 @@ search(query), hybrid_search(query).
 }
 
 func TestStripNoise_AssociativeContext(t *testing.T) {
-	input := `do the thing [yesmem associative context]
+	input := `do the thing [nemons associative context]
 - Some learning about patterns
 - Another learning
-[/yesmem context] now please`
+[/nemons context] now please`
 
 	got := StripNoise(input)
 	if strings.Contains(got, "Some learning") {
@@ -169,9 +169,9 @@ func TestStripNoise_SelfPrime(t *testing.T) {
 }
 
 func TestStripNoise_MultipleBlocks(t *testing.T) {
-	input := `real content <system-reminder>noise1</system-reminder> middle [yesmem-briefing]
+	input := `real content <system-reminder>noise1</system-reminder> middle [nemons-briefing]
 noise2
-[/yesmem-briefing] end`
+[/nemons-briefing] end`
 
 	got := StripNoise(input)
 	if strings.Contains(got, "noise1") || strings.Contains(got, "noise2") {
@@ -193,7 +193,7 @@ func TestStripNoise_NoNoise(t *testing.T) {
 func TestPreFilterMessages_StripsNoise(t *testing.T) {
 	msgs := []models.Message{
 		{Role: "user", MessageType: "text", Content: "Fix bug <system-reminder>noise</system-reminder>"},
-		{Role: "assistant", MessageType: "text", Content: "Done [yesmem-briefing]\nnoise\n[/yesmem-briefing]"},
+		{Role: "assistant", MessageType: "text", Content: "Done [nemons-briefing]\nnoise\n[/nemons-briefing]"},
 	}
 	filtered := PreFilterMessages(msgs)
 	for _, m := range filtered {

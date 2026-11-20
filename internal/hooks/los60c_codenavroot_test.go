@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/codescan"
+	"github.com/NasserJabir/Nemons/internal/codescan"
 )
 
 // YM-436 finding 3: the hook carried its own copy of the git ascent next to the one

@@ -7,7 +7,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/benchmark"
+	"github.com/NasserJabir/Nemons/internal/benchmark"
 )
 
 // AgenticResult holds the answer plus tool-call metadata for analysis.

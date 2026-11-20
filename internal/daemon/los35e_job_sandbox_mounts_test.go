@@ -8,7 +8,7 @@ import (
 )
 
 // YM-353 (OPS-87, key 2): under ai-jail 2.x a run sees its own mounts and nothing
-// else, so a standard bash job that calls store() needs the yesmem CLI and the
+// else, so a standard bash job that calls store() needs the nemons CLI and the
 // restricted job socket mapped in. bashSandboxConfig deliberately leaves
 // ReadOnlyMounts nil and lets newSandbox fill the defaults in; this pins that
 // invariant for the job path, because a non-nil but incomplete list would silence
@@ -20,7 +20,7 @@ func TestLos35eStandardBashJobMountsCLIAndJobSocket(t *testing.T) {
 	// PATH pins the CLI lookup, so the expected mount is the path this test planted
 	// and not whatever the developer happens to have installed.
 	bin := t.TempDir()
-	cli := filepath.Join(bin, "yesmem")
+	cli := filepath.Join(bin, "nemons")
 	if err := os.WriteFile(cli, []byte("#!/bin/sh\n"), 0o755); err != nil {
 		t.Fatalf("write stand-in cli: %v", err)
 	}
@@ -49,8 +49,8 @@ func TestLos35eStandardBashJobMountsCLIAndJobSocket(t *testing.T) {
 	}
 
 	// And the run has to be pointed at that socket, or the mount is decorative.
-	if !los35eContainsEnv(sb.cfg.Env, "YESMEM_SOCK="+sock) {
-		t.Errorf("the job sandbox does not point YESMEM_SOCK at the restricted socket: %v", sb.cfg.Env)
+	if !los35eContainsEnv(sb.cfg.Env, "NEMONS_SOCK="+sock) {
+		t.Errorf("the job sandbox does not point NEMONS_SOCK at the restricted socket: %v", sb.cfg.Env)
 	}
 }
 

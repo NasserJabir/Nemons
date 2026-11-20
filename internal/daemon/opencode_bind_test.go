@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/opencode"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/opencode"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // stubOpencodeFind replaces the on-demand lookup with a fixed answer and counts

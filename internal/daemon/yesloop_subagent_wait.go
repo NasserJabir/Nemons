@@ -3,7 +3,7 @@ package daemon
 import (
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // subagentFreezeLogEvery bounds how often the freeze of one agent is reported.

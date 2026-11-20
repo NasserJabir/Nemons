@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/carsteneu/yesmem/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/daemon"
 )
 
 func parseStoreArgs(jsonStr string) (map[string]any, error) {
@@ -90,8 +90,8 @@ func parseStoreArgs(jsonStr string) (map[string]any, error) {
 
 func runStore(args []string) {
 	if len(args) < 1 {
-		fmt.Fprintln(os.Stderr, "Usage: yesmem store '<json>'")
-		fmt.Fprintln(os.Stderr, `  Example: yesmem store '{"capability":"telegram","action":"query","table":"config","where":"key=?","args":["bot_token"],"limit":1}'`)
+		fmt.Fprintln(os.Stderr, "Usage: nemons store '<json>'")
+		fmt.Fprintln(os.Stderr, `  Example: nemons store '{"capability":"telegram","action":"query","table":"config","where":"key=?","args":["bot_token"],"limit":1}'`)
 		os.Exit(1)
 	}
 
@@ -101,7 +101,7 @@ func runStore(args []string) {
 		os.Exit(1)
 	}
 
-	client, err := daemon.Dial(filepath.Join(os.Getenv("HOME"), ".claude", "yesmem"))
+	client, err := daemon.Dial(filepath.Join(os.Getenv("HOME"), ".claude", "nemons"))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "store: %v\n", err)
 		os.Exit(1)

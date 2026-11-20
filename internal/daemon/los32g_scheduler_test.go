@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // los32gProject is the absolute project directory a job is created from.
@@ -35,7 +35,7 @@ func los32gScratchpad(t *testing.T, s *storage.Store, project, section string) s
 }
 
 // YM-295 (1): every scheduler-driven write and agent registration addressed the
-// literal "yesmem", the daemon's own checkout, whatever project the job belonged
+// literal "nemons", the daemon's own checkout, whatever project the job belonged
 // to. The row and the task section therefore have to sit under the job's project,
 // or stop/relay/get cannot find the agent and a run reports into a foreign one.
 func TestLos32gExecuteAgentAddressesTheJobsProject(t *testing.T) {
@@ -59,7 +59,7 @@ func TestLos32gExecuteAgentAddressesTheJobsProject(t *testing.T) {
 	if body := los32gScratchpad(t, s, proj, section); !strings.Contains(body, "SCHEDULED TASK") {
 		t.Errorf("task section under %q = %q, want the scheduled task", proj, body)
 	}
-	if body := los32gScratchpad(t, s, "yesmem", section); body != "" {
+	if body := los32gScratchpad(t, s, "nemons", section); body != "" {
 		t.Errorf("the task section was written under the daemon's own checkout name: %q", body)
 	}
 	// The run's own bookkeeping addresses the agent by (project, section).
@@ -96,7 +96,7 @@ func TestLos32gHeadlessRunWritesNoPermissionsIntoTheProject(t *testing.T) {
 	if body := los32gScratchpad(t, s, proj, jobSectionName(job.Name)); !strings.Contains(body, "headless ok") {
 		t.Errorf("result section under the job's project = %q, want the run result", body)
 	}
-	if body := los32gScratchpad(t, s, "yesmem", jobSectionName(job.Name)); body != "" {
+	if body := los32gScratchpad(t, s, "nemons", jobSectionName(job.Name)); body != "" {
 		t.Errorf("the result was written under the daemon's own checkout name: %q", body)
 	}
 }

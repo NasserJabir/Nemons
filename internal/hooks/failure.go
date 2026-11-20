@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/daemon"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/textutil"
+	"github.com/NasserJabir/Nemons/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/textutil"
 )
 
 // RunFailure combines hook-learn + hook-assist into a single hook.
@@ -108,7 +108,7 @@ func learnFromAnyFailure(dataDir string, hook *FailureInput, toolContext string)
 
 	content := fmt.Sprintf("%s error: `%s` → %s", hook.ToolName, truncateCmd(toolContext, 120), errorOutput)
 
-	dbPath := filepath.Join(dataDir, "yesmem.db")
+	dbPath := filepath.Join(dataDir, "nemons.db")
 	store, err := storage.Open(dbPath)
 	if err != nil {
 		return
@@ -185,7 +185,7 @@ func assistFromAnyFailure(dataDir string, hook *FailureInput, toolContext string
 		return
 	}
 
-	text := "[YesMem Assist] Similar known issues:\n" + strings.Join(lines, "\n")
+	text := "[Nemons Assist] Similar known issues:\n" + strings.Join(lines, "\n")
 	out := map[string]any{
 		"hookSpecificOutput": map[string]any{
 			"hookEventName":     "PostToolUseFailure",

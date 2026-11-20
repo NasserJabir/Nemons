@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func scopeSeed(t *testing.T, s *Store, content, agent, scope string) int64 {

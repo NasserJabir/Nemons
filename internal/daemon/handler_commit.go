@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // stalenessDecision is the LLM's verdict on a single learning.

@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/sanitize"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/sanitize"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // disableSandbox forces NewSandbox(...).Available() to return false by removing
@@ -18,7 +18,7 @@ import (
 func disableSandbox(t *testing.T) {
 	t.Helper()
 	isolateHomeAt(t, t.TempDir())
-	t.Setenv("YESMEM_DISABLE_AIJAIL_DOWNLOAD", "1")
+	t.Setenv("NEMONS_DISABLE_AIJAIL_DOWNLOAD", "1")
 }
 
 // When a bash error has no matching scheduled job (or AutoCorrect=false) and
@@ -397,7 +397,7 @@ func TestAutoCorrect_SubstantialDiffCreatesProposalAndDoesNotChangeActiveCap(t *
 
 	h.processBashJobErrors(context.Background())
 
-	caps, err := s.GetActiveLearnings("cap", "yesmem", "", "", 0)
+	caps, err := s.GetActiveLearnings("cap", "nemons", "", "", 0)
 	if err != nil {
 		t.Fatalf("read caps: %v", err)
 	}
@@ -414,7 +414,7 @@ func TestAutoCorrect_SubstantialDiffCreatesProposalAndDoesNotChangeActiveCap(t *
 		}
 	}
 
-	proposals, err := s.GetActiveLearnings("cap_proposed", "yesmem", "", "", 0)
+	proposals, err := s.GetActiveLearnings("cap_proposed", "nemons", "", "", 0)
 	if err != nil {
 		t.Fatalf("read proposals: %v", err)
 	}
@@ -454,7 +454,7 @@ func TestPersistProposalForReview_FindsBashByRuntime(t *testing.T) {
 			"name":         "demo_persist",
 			"description":  "demo cap for persistProposalForReview",
 			"handler_bash": "echo old\nexit 0\n",
-			"project":      "yesmem",
+			"project":      "nemons",
 			"tags":         []any{"demo"},
 			"_from_disk":   true,
 		},
@@ -502,8 +502,8 @@ func TestPersistProposalForReview_FindsBashByRuntime(t *testing.T) {
 	if prop.TriggerRule != "cap_proposed:demo_persist" {
 		t.Errorf("trigger=%q, want cap_proposed:demo_persist", prop.TriggerRule)
 	}
-	if prop.Project != "yesmem" {
-		t.Errorf("project=%q, want yesmem (inherited from active)", prop.Project)
+	if prop.Project != "nemons" {
+		t.Errorf("project=%q, want nemons (inherited from active)", prop.Project)
 	}
 
 	meta, err := ParseCapMeta(prop.Context)
@@ -522,7 +522,7 @@ func TestPersistProposalForReview_FindsBashByRuntime(t *testing.T) {
 	}
 
 	// The active cap must still hold the original body — proposals do not mutate the live row.
-	caps, err = h.store.GetActiveLearnings("cap", "yesmem", "", "", 0)
+	caps, err = h.store.GetActiveLearnings("cap", "nemons", "", "", 0)
 	if err != nil {
 		t.Fatalf("read active caps: %v", err)
 	}
@@ -636,7 +636,7 @@ func TestAutoCorrect_GenerationLimitBlocksAfter3PerDay(t *testing.T) {
 			Category:    "cap",
 			Source:      "auto_correct_accepted",
 			TriggerRule: "cap:buggy",
-			Project:     "yesmem",
+			Project:     "nemons",
 			Confidence:  1.0,
 			CreatedAt:   time.Now().Add(-time.Duration(i+1) * time.Hour),
 		})
@@ -740,14 +740,14 @@ func TestPersistProposalForReview_MultiBashTargetsScriptByName(t *testing.T) {
 			"name":        "tg_bundle",
 			"description": "two bash handlers",
 			"scripts":     scriptsJSON,
-			"project":     "yesmem",
+			"project":     "nemons",
 		},
 	})
 	if saveResp.Error != "" {
 		t.Fatalf("seed save_cap: %s", saveResp.Error)
 	}
 
-	caps, err := h.store.GetActiveLearnings("cap", "yesmem", "", "", 0)
+	caps, err := h.store.GetActiveLearnings("cap", "nemons", "", "", 0)
 	if err != nil {
 		t.Fatalf("GetActiveLearnings: %v", err)
 	}

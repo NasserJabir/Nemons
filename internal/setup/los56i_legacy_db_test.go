@@ -20,7 +20,7 @@ func TestLos56i_RemoveLegacyDBFilesDeletesOnlyTheOrphans(t *testing.T) {
 		}
 	}
 	// A live database and its siblings must survive.
-	live := []string{"yesmem.db", "yesmem.db-wal", "runtime.db", "caps.db", "messages.db"}
+	live := []string{"nemons.db", "nemons.db-wal", "runtime.db", "caps.db", "messages.db"}
 	for _, name := range live {
 		if err := os.WriteFile(filepath.Join(dataDir, name), []byte("x"), 0600); err != nil {
 			t.Fatal(err)

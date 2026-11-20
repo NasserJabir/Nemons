@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func bindViaOp(t *testing.T, h *Handler, agent, project string) {

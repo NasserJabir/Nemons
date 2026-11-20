@@ -36,16 +36,16 @@ func TestValidateDownloadURL(t *testing.T) {
 		raw     string
 		wantErr bool
 	}{
-		{"github asset", "https://github.com/carsteneu/yesmem/releases/download/v1/yesmem_1_linux_amd64.tar.gz", false},
+		{"github asset", "https://github.com/NasserJabir/Nemons/releases/download/v1/nemons_1_linux_amd64.tar.gz", false},
 		{"github redirect target", "https://objects.githubusercontent.com/github-production-release-asset/x", false},
 		{"current asset redirect target", "https://release-assets.githubusercontent.com/github-production-release-asset/x", false},
 		{"uppercase host", "https://GitHub.com/carsteneu/yesmem", false},
 		{"explicit 443", "https://github.com:443/carsteneu/yesmem", false},
 		{"plain http", "http://github.com/carsteneu/yesmem", true},
-		{"foreign host", "https://evil.invalid/yesmem.tar.gz", true},
-		{"suffix lookalike", "https://github.com.evil.invalid/yesmem.tar.gz", true},
-		{"other port", "https://github.com:8443/yesmem.tar.gz", true},
-		{"non-ascii lookalike", "https://gİthub.com/yesmem.tar.gz", true},
+		{"foreign host", "https://evil.invalid/nemons.tar.gz", true},
+		{"suffix lookalike", "https://github.com.evil.invalid/nemons.tar.gz", true},
+		{"other port", "https://github.com:8443/nemons.tar.gz", true},
+		{"non-ascii lookalike", "https://gİthub.com/nemons.tar.gz", true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -69,8 +69,8 @@ func TestValidateDownloadURL(t *testing.T) {
 // source of the attacker's choosing, so the fetch must be refused before any
 // request leaves the machine.
 func TestDownloadAndReplace_RejectsForeignHost(t *testing.T) {
-	const asset = "yesmem_1.0.0_linux_amd64.tar.gz"
-	dest := filepath.Join(t.TempDir(), "yesmem")
+	const asset = "nemons_1.0.0_linux_amd64.tar.gz"
+	dest := filepath.Join(t.TempDir(), "nemons")
 
 	err := DownloadAndReplace(
 		"https://evil.invalid/"+asset,
@@ -94,13 +94,13 @@ func TestDownloadAndReplace_RejectsForeignHost(t *testing.T) {
 // must not be followed at all.
 func TestDownloadAndReplace_RejectsRedirectToForeignHost(t *testing.T) {
 	allowLocalDownloads(t)
-	const asset = "yesmem_1.0.0_linux_amd64.tar.gz"
+	const asset = "nemons_1.0.0_linux_amd64.tar.gz"
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "https://evil.invalid/"+asset, http.StatusFound)
 	}))
 	defer srv.Close()
 
-	dest := filepath.Join(t.TempDir(), "yesmem")
+	dest := filepath.Join(t.TempDir(), "nemons")
 	err := DownloadAndReplace(srv.URL+"/binary", srv.URL+"/checksums", asset, dest)
 	if err == nil {
 		t.Fatal("redirect to a host outside the allowlist was followed")
@@ -119,7 +119,7 @@ func TestExtractBinary_RejectsOversizedEntry(t *testing.T) {
 	var raw bytes.Buffer
 	tw := tar.NewWriter(&raw)
 	if err := tw.WriteHeader(&tar.Header{
-		Name:     "yesmem",
+		Name:     "nemons",
 		Size:     declared,
 		Mode:     0755,
 		Typeflag: tar.TypeReg,
@@ -142,14 +142,14 @@ func TestExtractBinary_RejectsOversizedEntry(t *testing.T) {
 	}
 }
 
-// Two updaters (daemon ticker and a manual `yesmem update`) share the dest
+// Two updaters (daemon ticker and a manual `nemons update`) share the dest
 // directory and its temp names. Without a lock the second one removes the first
 // one's files and both rename over each other.
 func TestDownloadAndReplace_RejectsConcurrentUpdate(t *testing.T) {
 	allowLocalDownloads(t)
-	const asset = "yesmem_1.0.0_linux_amd64.tar.gz"
+	const asset = "nemons_1.0.0_linux_amd64.tar.gz"
 	binaryContent := []byte("new-binary")
-	archive := createTarGz(t, "yesmem", binaryContent)
+	archive := createTarGz(t, "nemons", binaryContent)
 	checksumLine := fmt.Sprintf("%x  %s\n", sha256.Sum256(archive), asset)
 
 	entered := make(chan struct{})
@@ -169,7 +169,7 @@ func TestDownloadAndReplace_RejectsConcurrentUpdate(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	dest := filepath.Join(t.TempDir(), "yesmem")
+	dest := filepath.Join(t.TempDir(), "nemons")
 	os.WriteFile(dest, []byte("old-binary"), 0755)
 
 	first := make(chan error, 1)
@@ -196,7 +196,7 @@ func TestDownloadAndReplace_RejectsConcurrentUpdate(t *testing.T) {
 // oldest binary forever. The backup must survive a blocked temp name.
 func TestAtomicReplace_BackupSurvivesNonEmptyTempDir(t *testing.T) {
 	tmpDir := t.TempDir()
-	dest := filepath.Join(tmpDir, "yesmem")
+	dest := filepath.Join(tmpDir, "nemons")
 	os.WriteFile(dest, []byte("old"), 0755)
 	os.WriteFile(dest+".bak", []byte("ancient"), 0755)
 
@@ -222,14 +222,14 @@ func TestAtomicReplace_BackupSurvivesNonEmptyTempDir(t *testing.T) {
 }
 
 // The updater must keep working when the lock path is unusable. Before this
-// guard, a directory (or a root-owned file) at .yesmem-update.lock disabled
+// guard, a directory (or a root-owned file) at .nemons-update.lock disabled
 // every future update with "open update lock" — the same permanent-blockage
 // class the fixed .bak.tmp name had.
 func TestDownloadAndReplace_ProceedsWhenLockPathUnusable(t *testing.T) {
 	allowLocalDownloads(t)
-	const asset = "yesmem_1.0.0_linux_amd64.tar.gz"
+	const asset = "nemons_1.0.0_linux_amd64.tar.gz"
 	binaryContent := []byte("new-binary")
-	archive := createTarGz(t, "yesmem", binaryContent)
+	archive := createTarGz(t, "nemons", binaryContent)
 	checksumLine := fmt.Sprintf("%x  %s\n", sha256.Sum256(archive), asset)
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -243,9 +243,9 @@ func TestDownloadAndReplace_ProceedsWhenLockPathUnusable(t *testing.T) {
 	defer srv.Close()
 
 	dir := t.TempDir()
-	dest := filepath.Join(dir, "yesmem")
+	dest := filepath.Join(dir, "nemons")
 	os.WriteFile(dest, []byte("old-binary"), 0755)
-	if err := os.Mkdir(filepath.Join(dir, ".yesmem-update.lock"), 0755); err != nil {
+	if err := os.Mkdir(filepath.Join(dir, ".nemons-update.lock"), 0755); err != nil {
 		t.Fatalf("seed blocking lock dir: %v", err)
 	}
 
@@ -277,13 +277,13 @@ func TestExtractBinary_RejectsTotalBomb(t *testing.T) {
 	}
 }
 
-// A crash between the backup link and its rename leaves a yesmem-bak-<random>
+// A crash between the backup link and its rename leaves a nemons-bak-<random>
 // hardlink that holds the old binary inode. The next update must clear those.
 func TestAtomicReplace_CleansStaleBackupLinks(t *testing.T) {
 	dir := t.TempDir()
-	dest := filepath.Join(dir, "yesmem")
+	dest := filepath.Join(dir, "nemons")
 	os.WriteFile(dest, []byte("old"), 0755)
-	stale := filepath.Join(dir, "yesmem-bak-1234567")
+	stale := filepath.Join(dir, "nemons-bak-1234567")
 	os.WriteFile(stale, []byte("stale-binary"), 0755)
 
 	if err := atomicReplace(dest, []byte("new")); err != nil {

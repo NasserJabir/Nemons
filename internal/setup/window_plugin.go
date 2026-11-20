@@ -6,11 +6,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/carsteneu/yesmem/plugins"
+	"github.com/NasserJabir/Nemons/plugins"
 )
 
 // InstallWindowPlugin extracts the bundled v2 TUI plugin to
-// ~/.config/opencode/plugins/yesmem-window/tui.tsx if missing or outdated
+// ~/.config/opencode/plugins/nemons-window/tui.tsx if missing or outdated
 // (SHA256 comparison). opencode auto-discovers plugins in that directory and
 // hot-reloads them into every running TUI, which then register the session
 // their window shows with the daemon (register_window) — the source
@@ -23,12 +23,12 @@ func InstallWindowPlugin(home string) (int, error) {
 		return 0, nil
 	}
 
-	data, err := plugins.WindowPlugin.ReadFile("yesmem-window/tui.tsx")
+	data, err := plugins.WindowPlugin.ReadFile("nemons-window/tui.tsx")
 	if err != nil {
 		return 0, fmt.Errorf("read embedded window plugin: %w", err)
 	}
 
-	dst := filepath.Join(home, opencodePluginsRelDir, "yesmem-window", "tui.tsx")
+	dst := filepath.Join(home, opencodePluginsRelDir, "nemons-window", "tui.tsx")
 	if existing, err := os.ReadFile(dst); err == nil {
 		if fmt.Sprintf("%x", sha256.Sum256(existing)) == fmt.Sprintf("%x", sha256.Sum256(data)) {
 			return 0, nil

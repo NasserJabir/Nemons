@@ -4,9 +4,9 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/textutil"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/textutil"
 )
 
 // PreAdmissionAction describes what to do with a learning before insert.

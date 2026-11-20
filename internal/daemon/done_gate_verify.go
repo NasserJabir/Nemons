@@ -12,10 +12,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/verify"
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/verify"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // The DONE gate as a consumer of the verification.
@@ -1085,7 +1085,7 @@ func shortHash(hash string) string {
 // shell.
 func verifyClaimsCommand(agent storage.Agent, repo string) string {
 	return fmt.Sprintf(
-		"yesmem verify-claims --repo %s --project %s --section %s --profile %s --policy %s --strict",
+		"nemons verify-claims --repo %s --project %s --section %s --profile %s --policy %s --strict",
 		shellQuote(repo), shellQuote(agent.Project), shellQuote(verifyReportSection(agent.Section)),
 		verify.ProfileYesloopDone, doneVerifyPolicyName)
 }
@@ -1294,7 +1294,7 @@ func wantsReportTemplate(state *doneGateVerifyState) bool {
 
 // wantsProfileInitHint reports whether this block is the one a project profile
 // answers: a test claim came back as an environment gap, and the repository has
-// no .yesmem/verify.yaml.
+// no .nemons/verify.yaml.
 //
 // The class is not touched by it and nothing runs an init: the sentence is the
 // same kind of deterministic help the report template gives, one command the
@@ -1391,7 +1391,7 @@ func doneVerifyBlockedMessage(agent storage.Agent, state *doneGateVerifyState) s
 		// command that writes the profile keeps the fix in the deterministic
 		// output instead of in a skill the reader may not have loaded.
 		builder.WriteString(fmt.Sprintf(
-			"\n  No verify profile in this repository (%s): `yesmem verify-claims --init` creates one, and only after a test run of its own proved it.",
+			"\n  No verify profile in this repository (%s): `nemons verify-claims --init` creates one, and only after a test run of its own proved it.",
 			verify.ProfilePath))
 	}
 	if machineVerdict {

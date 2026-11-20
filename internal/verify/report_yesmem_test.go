@@ -2,12 +2,12 @@ package verify
 
 import "testing"
 
-// The two yesmem markers reach their checkers only through the registry and the
+// The two nemons markers reach their checkers only through the registry and the
 // parser. A missing registry entry would turn the claim into an unknown marker,
 // which reads as a defect against the agent, so the wiring is worth one test at
 // the seam where it is decided.
-func TestYesmemMarkersParse(t *testing.T) {
-	claims := ParseReport("[EVIDENCE: cold-review=ses_a, consequence=ses_b]\n[PLAN: yesmem]\n")
+func TestNemonsMarkersParse(t *testing.T) {
+	claims := ParseReport("[EVIDENCE: cold-review=ses_a, consequence=ses_b]\n[PLAN: nemons]\n")
 
 	byKind := map[string]int{}
 	for _, claim := range claims {
@@ -26,8 +26,8 @@ func TestYesmemMarkersParse(t *testing.T) {
 				t.Errorf("evidence refs = %v, want cold-review/ses_a and consequence/ses_b", claim.Evidence)
 			}
 		case "plan_items":
-			if claim.Plan != "yesmem" {
-				t.Errorf("plan = %q, want %q", claim.Plan, "yesmem")
+			if claim.Plan != "nemons" {
+				t.Errorf("plan = %q, want %q", claim.Plan, "nemons")
 			}
 		}
 	}

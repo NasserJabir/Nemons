@@ -3,7 +3,7 @@ package claimtypes
 import (
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // The sandbox bridge is configuration, and a wrong value in it is invisible

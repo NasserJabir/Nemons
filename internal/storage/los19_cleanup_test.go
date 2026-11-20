@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // YM-228: the three content markers sat outside the parenthesized junk

@@ -10,10 +10,10 @@ import (
 )
 
 func TestCleanSettingsJSON_RemovesMCPPermissions(t *testing.T) {
-	// Simulate settings with yesmem MCP tool permissions
+	// Simulate settings with nemons MCP tool permissions
 	allow := []any{"Bash(git:*)", "WebSearch"}
 	for _, name := range mcpToolNames {
-		allow = append(allow, "mcp__yesmem__"+name)
+		allow = append(allow, "mcp__nemons__"+name)
 	}
 	settings := map[string]any{
 		"permissions": map[string]any{
@@ -27,27 +27,27 @@ func TestCleanSettingsJSON_RemovesMCPPermissions(t *testing.T) {
 	perms := settings["permissions"].(map[string]any)
 	cleaned := perms["allow"].([]any)
 
-	// Only non-yesmem entries should remain
+	// Only non-nemons entries should remain
 	for _, v := range cleaned {
 		s := v.(string)
-		if strings.HasPrefix(s, "mcp__yesmem__") {
-			t.Errorf("yesmem permission not removed: %s", s)
+		if strings.HasPrefix(s, "mcp__nemons__") {
+			t.Errorf("nemons permission not removed: %s", s)
 		}
 	}
 
-	// Existing non-yesmem entries preserved
+	// Existing non-nemons entries preserved
 	if len(cleaned) != 2 {
-		t.Fatalf("expected 2 non-yesmem entries, got %d: %v", len(cleaned), cleaned)
+		t.Fatalf("expected 2 non-nemons entries, got %d: %v", len(cleaned), cleaned)
 	}
 	if cleaned[0] != "Bash(git:*)" || cleaned[1] != "WebSearch" {
-		t.Fatalf("non-yesmem entries not preserved: %v", cleaned)
+		t.Fatalf("non-nemons entries not preserved: %v", cleaned)
 	}
 }
 
 func TestCleanSettingsJSON_RemovesWildcard(t *testing.T) {
 	settings := map[string]any{
 		"permissions": map[string]any{
-			"allow": []any{"mcp__yesmem__*", "mcp__yesmem__search", "WebSearch"},
+			"allow": []any{"mcp__nemons__*", "mcp__nemons__search", "WebSearch"},
 		},
 	}
 
@@ -56,8 +56,8 @@ func TestCleanSettingsJSON_RemovesWildcard(t *testing.T) {
 	cleaned := settings["permissions"].(map[string]any)["allow"].([]any)
 	for _, v := range cleaned {
 		s := v.(string)
-		if strings.HasPrefix(s, "mcp__yesmem__") {
-			t.Errorf("yesmem entry not removed: %s", s)
+		if strings.HasPrefix(s, "mcp__nemons__") {
+			t.Errorf("nemons entry not removed: %s", s)
 		}
 	}
 	if len(cleaned) != 1 || cleaned[0] != "WebSearch" {
@@ -72,10 +72,10 @@ func TestCleanSettingsJSON_NoPermissions(t *testing.T) {
 	cleanMCPPermissions(settings)
 }
 
-func TestCleanSettingsJSON_AllYesmemPermissions_EmptyArray(t *testing.T) {
+func TestCleanSettingsJSON_AllNemonsPermissions_EmptyArray(t *testing.T) {
 	settings := map[string]any{
 		"permissions": map[string]any{
-			"allow": []any{"mcp__yesmem__search", "mcp__yesmem__remember"},
+			"allow": []any{"mcp__nemons__search", "mcp__nemons__remember"},
 		},
 	}
 
@@ -93,7 +93,7 @@ func TestCleanSettingsJSON_RemovesStatusLine(t *testing.T) {
 	settings := map[string]any{
 		"statusLine": map[string]any{
 			"type":    "command",
-			"command": "yesmem statusline",
+			"command": "nemons statusline",
 		},
 	}
 
@@ -104,7 +104,7 @@ func TestCleanSettingsJSON_RemovesStatusLine(t *testing.T) {
 	}
 }
 
-func TestCleanSettingsJSON_PreservesNonYesmemStatusLine(t *testing.T) {
+func TestCleanSettingsJSON_PreservesNonNemonsStatusLine(t *testing.T) {
 	settings := map[string]any{
 		"statusLine": map[string]any{
 			"type":    "command",
@@ -115,7 +115,7 @@ func TestCleanSettingsJSON_PreservesNonYesmemStatusLine(t *testing.T) {
 	cleanStatusLine(settings, "")
 
 	if _, ok := settings["statusLine"]; !ok {
-		t.Fatal("non-yesmem statusLine should be preserved")
+		t.Fatal("non-nemons statusLine should be preserved")
 	}
 }
 
@@ -125,7 +125,7 @@ func TestCleanSettingsJSON_RemovesSessionEndHook(t *testing.T) {
 			map[string]any{
 				"matcher": "clear|compact",
 				"hooks": []any{
-					map[string]any{"type": "command", "command": "/usr/local/bin/yesmem session-end"},
+					map[string]any{"type": "command", "command": "/usr/local/bin/nemons session-end"},
 				},
 			},
 		},
@@ -133,13 +133,13 @@ func TestCleanSettingsJSON_RemovesSessionEndHook(t *testing.T) {
 			map[string]any{
 				"matcher": "startup|resume|clear|compact",
 				"hooks": []any{
-					map[string]any{"type": "command", "command": "/usr/local/bin/yesmem briefing-hook"},
+					map[string]any{"type": "command", "command": "/usr/local/bin/nemons briefing-hook"},
 				},
 			},
 		},
 	}
 
-	removeYesmemHook(hooks, "SessionEnd", "")
+	removeNemonsHook(hooks, "SessionEnd", "")
 
 	if _, ok := hooks["SessionEnd"]; ok {
 		t.Fatal("SessionEnd hook not removed")
@@ -161,7 +161,7 @@ func TestCleanSettingsJSON_RemovesSessionEndHookFromFile(t *testing.T) {
 			"SessionEnd": []any{
 				map[string]any{
 					"hooks": []any{
-						map[string]any{"type": "command", "command": "/usr/local/bin/yesmem session-end"},
+						map[string]any{"type": "command", "command": "/usr/local/bin/nemons session-end"},
 					},
 				},
 			},
@@ -169,7 +169,7 @@ func TestCleanSettingsJSON_RemovesSessionEndHookFromFile(t *testing.T) {
 				map[string]any{
 					"matcher": "startup",
 					"hooks": []any{
-						map[string]any{"type": "command", "command": "/usr/local/bin/yesmem briefing-hook"},
+						map[string]any{"type": "command", "command": "/usr/local/bin/nemons briefing-hook"},
 					},
 				},
 			},
@@ -218,7 +218,7 @@ func TestCleanSettingsJSON_DropsEmptyUserPromptSubmitHandler(t *testing.T) {
 				},
 				map[string]any{
 					"hooks": []any{
-						map[string]any{"type": "command", "command": "/usr/local/bin/yesmem idle-tick"},
+						map[string]any{"type": "command", "command": "/usr/local/bin/nemons idle-tick"},
 					},
 				},
 			},
@@ -248,8 +248,8 @@ func TestCleanSettingsJSON_DropsEmptyUserPromptSubmitHandler(t *testing.T) {
 		if strings.TrimSpace(cmd) == "" {
 			t.Fatalf("uninstall left an empty UserPromptSubmit command: %v", hooks["UserPromptSubmit"])
 		}
-		if strings.Contains(cmd, "yesmem") {
-			t.Fatalf("uninstall left a yesmem command: %q", cmd)
+		if strings.Contains(cmd, "nemons") {
+			t.Fatalf("uninstall left a nemons command: %q", cmd)
 		}
 	}
 	if countContaining(cmds, foreign) != 1 {
@@ -265,7 +265,7 @@ func TestRestoreAPIKeyFromState_RestoresPreviousKey(t *testing.T) {
 
 	settings := map[string]any{
 		"env": map[string]any{
-			"ANTHROPIC_API_KEY": "sk-ant-installed-by-yesmem",
+			"ANTHROPIC_API_KEY": "sk-ant-installed-by-nemons",
 		},
 	}
 	restoreAPIKeyFromState(dir, settings)
@@ -357,7 +357,7 @@ func TestRestorePrimaryApiKeyFromState_RestoresOAuthAccount(t *testing.T) {
 	os.WriteFile(filepath.Join(dataDir, "install-state.json"), stateData, 0600)
 
 	// claude.json currently has our API key, no OAuth
-	claudeJSON := `{"primaryApiKey":"sk-yesmem-set","numStartups":5}`
+	claudeJSON := `{"primaryApiKey":"sk-nemons-set","numStartups":5}`
 	os.WriteFile(filepath.Join(home, ".claude.json"), []byte(claudeJSON), 0600)
 
 	restorePrimaryApiKeyFromState(dataDir, home)
@@ -454,18 +454,18 @@ func TestUninstallFlow_NoKeyRemovesBaseURL(t *testing.T) {
 	}
 }
 
-func TestCleanProjectLocalSettings_RemovesYesmemPermissions(t *testing.T) {
+func TestCleanProjectLocalSettings_RemovesNemonsPermissions(t *testing.T) {
 	home := t.TempDir()
 
-	// Create a project directory with settings.local.json containing yesmem permissions
+	// Create a project directory with settings.local.json containing nemons permissions
 	projDir := filepath.Join(home, "myproject", ".claude")
 	os.MkdirAll(projDir, 0755)
 	settings := map[string]any{
 		"permissions": map[string]any{
 			"allow": []any{
 				"WebSearch",
-				"mcp__yesmem__search",
-				"mcp__yesmem__remember",
+				"mcp__nemons__search",
+				"mcp__nemons__remember",
 				"Bash(git *)",
 			},
 		},
@@ -491,8 +491,8 @@ func TestCleanProjectLocalSettings_RemovesYesmemPermissions(t *testing.T) {
 	json.Unmarshal(result, &got)
 	perms := got["permissions"].(map[string]any)["allow"].([]any)
 	for _, p := range perms {
-		if strings.Contains(p.(string), "yesmem") {
-			t.Fatalf("yesmem permission should be removed: %v", p)
+		if strings.Contains(p.(string), "nemons") {
+			t.Fatalf("nemons permission should be removed: %v", p)
 		}
 	}
 	if len(perms) != 2 {
@@ -519,7 +519,7 @@ func TestRestorePrimaryApiKeyFromState_TightensExistingFileMode(t *testing.T) {
 		t.Fatal(err)
 	}
 	path := filepath.Join(home, ".claude.json")
-	if err := os.WriteFile(path, []byte(`{"primaryApiKey":"sk-yesmem-set"}`), 0644); err != nil {
+	if err := os.WriteFile(path, []byte(`{"primaryApiKey":"sk-nemons-set"}`), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -540,7 +540,7 @@ func TestCleanClaudeJSON_TightensExistingFileMode(t *testing.T) {
 	}
 	home := t.TempDir()
 	path := filepath.Join(home, ".claude.json")
-	if err := os.WriteFile(path, []byte(`{"mcpServers":{"yesmem":{"command":"yesmem"}}}`), 0644); err != nil {
+	if err := os.WriteFile(path, []byte(`{"mcpServers":{"nemons":{"command":"nemons"}}}`), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -557,9 +557,9 @@ func TestCleanClaudeJSON_TightensExistingFileMode(t *testing.T) {
 	}
 }
 
-func TestCleanClaudeJSON_RemovesYesmemSkillUsage(t *testing.T) {
+func TestCleanClaudeJSON_RemovesNemonsSkillUsage(t *testing.T) {
 	home := t.TempDir()
-	claudeJSON := `{"mcpServers":{},"skillUsage":{"yesmem-sessions":{"usageCount":3},"yesmem-search":{"usageCount":1},"commit":{"usageCount":5}},"numStartups":10}`
+	claudeJSON := `{"mcpServers":{},"skillUsage":{"nemons-sessions":{"usageCount":3},"nemons-search":{"usageCount":1},"commit":{"usageCount":5}},"numStartups":10}`
 	os.WriteFile(filepath.Join(home, ".claude.json"), []byte(claudeJSON), 0600)
 
 	cleanClaudeJSON(home)
@@ -569,16 +569,16 @@ func TestCleanClaudeJSON_RemovesYesmemSkillUsage(t *testing.T) {
 	json.Unmarshal(data, &cfg)
 	su, ok := cfg["skillUsage"].(map[string]any)
 	if !ok {
-		t.Fatal("skillUsage should still exist (has non-yesmem entries)")
+		t.Fatal("skillUsage should still exist (has non-nemons entries)")
 	}
-	if _, has := su["yesmem-sessions"]; has {
-		t.Fatal("yesmem-sessions should be removed")
+	if _, has := su["nemons-sessions"]; has {
+		t.Fatal("nemons-sessions should be removed")
 	}
-	if _, has := su["yesmem-search"]; has {
-		t.Fatal("yesmem-search should be removed")
+	if _, has := su["nemons-search"]; has {
+		t.Fatal("nemons-search should be removed")
 	}
 	if _, has := su["commit"]; !has {
-		t.Fatal("non-yesmem skill should be preserved")
+		t.Fatal("non-nemons skill should be preserved")
 	}
 	if cfg["numStartups"] != float64(10) {
 		t.Fatal("other fields should be preserved")
@@ -587,7 +587,7 @@ func TestCleanClaudeJSON_RemovesYesmemSkillUsage(t *testing.T) {
 
 func TestCleanClaudeJSON_RemovesEmptySkillUsage(t *testing.T) {
 	home := t.TempDir()
-	claudeJSON := `{"skillUsage":{"yesmem-sessions":{"usageCount":3}},"numStartups":5}`
+	claudeJSON := `{"skillUsage":{"nemons-sessions":{"usageCount":3}},"numStartups":5}`
 	os.WriteFile(filepath.Join(home, ".claude.json"), []byte(claudeJSON), 0600)
 
 	cleanClaudeJSON(home)
@@ -621,7 +621,7 @@ func TestRestorePrimaryApiKeyFromState_RestoresKey(t *testing.T) {
 	os.WriteFile(filepath.Join(dataDir, "install-state.json"), stateData, 0600)
 
 	// claude.json currently has our key
-	claudeJSON := `{"primaryApiKey":"sk-yesmem-set","numStartups":5}`
+	claudeJSON := `{"primaryApiKey":"sk-nemons-set","numStartups":5}`
 	os.WriteFile(filepath.Join(home, ".claude.json"), []byte(claudeJSON), 0600)
 
 	restorePrimaryApiKeyFromState(dataDir, home)
@@ -652,8 +652,8 @@ func TestSavePreInstallState_SavesPrimaryApiKey(t *testing.T) {
 	}
 }
 
-func TestCleanSettingsJSON_KeepsForeignHandlerNamedLikeYesmem(t *testing.T) {
-	foreign := "/home/user/bin/my-yesmem-notes.sh"
+func TestCleanSettingsJSON_KeepsForeignHandlerNamedLikeNemons(t *testing.T) {
+	foreign := "/home/user/bin/my-nemons-notes.sh"
 	home := writeSettingsForClean(t, map[string]any{
 		"hooks": map[string]any{
 			"SessionStart": []any{
@@ -674,14 +674,14 @@ func TestCleanSettingsJSON_KeepsForeignHandlerNamedLikeYesmem(t *testing.T) {
 	hooks := readHooksAfterClean(t, home)
 	cmds := hookCommands(hooks, "SessionStart")
 	if countContaining(cmds, foreign) != 1 {
-		t.Fatalf("uninstall deleted a foreign handler that merely mentions yesmem: %v", cmds)
+		t.Fatalf("uninstall deleted a foreign handler that merely mentions nemons: %v", cmds)
 	}
 }
 
-func TestCleanSettingsJSON_RemovesHandlerOfBinaryWithoutYesmemInPath(t *testing.T) {
+func TestCleanSettingsJSON_RemovesHandlerOfBinaryWithoutNemonsInPath(t *testing.T) {
 	home := writeSettingsForClean(t, map[string]any{
 		"mcpServers": map[string]any{
-			"yesmem": map[string]any{"command": "/opt/bin/ym", "args": []string{"mcp"}},
+			"nemons": map[string]any{"command": "/opt/bin/ym", "args": []string{"mcp"}},
 		},
 		"hooks": map[string]any{
 			"SessionEnd": []any{
@@ -700,12 +700,12 @@ func TestCleanSettingsJSON_RemovesHandlerOfBinaryWithoutYesmemInPath(t *testing.
 
 	hooks := readHooksAfterClean(t, home)
 	if _, ok := hooks["SessionEnd"]; ok {
-		t.Fatalf("uninstall left the hook of a binary whose name lacks 'yesmem': %v", hooks["SessionEnd"])
+		t.Fatalf("uninstall left the hook of a binary whose name lacks 'nemons': %v", hooks["SessionEnd"])
 	}
 }
 
 func TestCleanSettingsJSON_KeepsForeignStatusLine(t *testing.T) {
-	foreign := "/home/user/bin/my-yesmem-statusline.sh"
+	foreign := "/home/user/bin/my-nemons-statusline.sh"
 	home := writeSettingsForClean(t, map[string]any{
 		"statusLine": map[string]any{"type": "command", "command": foreign},
 	})
@@ -724,7 +724,7 @@ func TestCleanSettingsJSON_KeepsForeignStatusLine(t *testing.T) {
 	}
 	sl, ok := got["statusLine"].(map[string]any)
 	if !ok || sl["command"] != foreign {
-		t.Fatalf("uninstall deleted a foreign statusLine that merely mentions yesmem: %v", got["statusLine"])
+		t.Fatalf("uninstall deleted a foreign statusLine that merely mentions nemons: %v", got["statusLine"])
 	}
 }
 
@@ -751,7 +751,7 @@ func TestRemoveProxyEnvVar_RemovesClaudeCodeRepl(t *testing.T) {
 func TestCleanSettingsJSON_RemovesHandlerOfMovedUnnamedBinary(t *testing.T) {
 	home := writeSettingsForClean(t, map[string]any{
 		"mcpServers": map[string]any{
-			"yesmem": map[string]any{"command": "/old/bin/ym", "args": []string{"mcp"}},
+			"nemons": map[string]any{"command": "/old/bin/ym", "args": []string{"mcp"}},
 		},
 		"hooks": map[string]any{
 			"SessionEnd": []any{
@@ -770,7 +770,7 @@ func TestCleanSettingsJSON_RemovesHandlerOfMovedUnnamedBinary(t *testing.T) {
 
 	hooks := readHooksAfterClean(t, home)
 	if _, ok := hooks["SessionEnd"]; ok {
-		t.Fatalf("uninstall left the hook of a moved binary whose name lacks 'yesmem': %v", hooks["SessionEnd"])
+		t.Fatalf("uninstall left the hook of a moved binary whose name lacks 'nemons': %v", hooks["SessionEnd"])
 	}
 }
 
@@ -842,16 +842,16 @@ func TestUninstallHome_RejectsUnusableHome(t *testing.T) {
 	})
 }
 
-// skillUsage is keyed by skill name. Matching the substring "yesmem" removes a
-// user's own skill and misses yesmem's own unprefixed skills at the same time.
-func TestCleanClaudeJSON_RemovesOnlyYesmemSkills(t *testing.T) {
+// skillUsage is keyed by skill name. Matching the substring "nemons" removes a
+// user's own skill and misses nemons's own unprefixed skills at the same time.
+func TestCleanClaudeJSON_RemovesOnlyNemonsSkills(t *testing.T) {
 	home := t.TempDir()
 	claudeJSON := `{"skillUsage":{` +
-		`"yesmem-remember":{"usageCount":3},` +
+		`"nemons-remember":{"usageCount":3},` +
 		`"yesloop":{"usageCount":2},` +
 		`"reddit":{"usageCount":1},` +
 		`"reddit_fetch":{"usageCount":6},` +
-		`"my-yesmem-helper":{"usageCount":4},` +
+		`"my-nemons-helper":{"usageCount":4},` +
 		`"commit":{"usageCount":5}}}`
 	if err := os.WriteFile(filepath.Join(home, ".claude.json"), []byte(claudeJSON), 0600); err != nil {
 		t.Fatal(err)
@@ -864,14 +864,14 @@ func TestCleanClaudeJSON_RemovesOnlyYesmemSkills(t *testing.T) {
 	su := readSkillUsage(t, home)
 	// reddit_fetch is the shape a cap-backed skill writes: the tool name, not
 	// the directory name.
-	for _, gone := range []string{"yesmem-remember", "yesloop", "reddit", "reddit_fetch"} {
+	for _, gone := range []string{"nemons-remember", "yesloop", "reddit", "reddit_fetch"} {
 		if _, has := su[gone]; has {
-			t.Errorf("%s is a yesmem skill and should be removed", gone)
+			t.Errorf("%s is a nemons skill and should be removed", gone)
 		}
 	}
-	for _, kept := range []string{"my-yesmem-helper", "commit"} {
+	for _, kept := range []string{"my-nemons-helper", "commit"} {
 		if _, has := su[kept]; !has {
-			t.Errorf("%s is not a yesmem skill and must be preserved", kept)
+			t.Errorf("%s is not a nemons skill and must be preserved", kept)
 		}
 	}
 }

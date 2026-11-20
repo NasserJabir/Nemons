@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/verify"
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/verify"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // The delivery side of the DONE contract: a send_to that announces DONE reaches
@@ -141,7 +141,7 @@ func TestDONEDeliveryWithoutVerdictWithholdsTheMessage(t *testing.T) {
 	}
 
 	// The sender holds the defect and the command, not a bare refusal.
-	for _, want := range []string{"DONE-VERIFY-BLOCKED", "not been verified", "yesmem verify-claims --repo", reportSectionArg(agent)} {
+	for _, want := range []string{"DONE-VERIFY-BLOCKED", "not been verified", "nemons verify-claims --repo", reportSectionArg(agent)} {
 		if !strings.Contains(response.Error, want) {
 			t.Errorf("sender message %q does not carry %q", response.Error, want)
 		}

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // los33GateDaemon answers the daemon calls the four gated features make.
@@ -111,7 +111,7 @@ func TestLos33MessagesPathRespectsRulesReminderGate(t *testing.T) {
 		s.handleMessages(httptest.NewRecorder(), first)
 
 		secondBody := `{"model":"claude-opus-4-6","stream":false,"thinking":{"type":"adaptive"},` +
-			`"system":[{"type":"text","text":"Primary working directory: /home/tester/memory/yesmem"}],` +
+			`"system":[{"type":"text","text":"Primary working directory: /home/tester/memory/nemons"}],` +
 			`"messages":[{"role":"user","content":"` + big + `"},` +
 			`{"role":"assistant","content":"on it"},` +
 			`{"role":"user","content":"continue"}]}`

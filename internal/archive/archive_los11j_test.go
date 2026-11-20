@@ -17,10 +17,10 @@ import (
 // the path's UTF-16 code units with int32 wrap). The third case was verified end
 // to end as well: a live Claude run with an isolated CLAUDE_CONFIG_DIR in that
 // working directory created exactly that folder name. It also settles which
-// string is hashed, the raw path (5aq5fp) and not the encoded name (tcdjh7).
+// string is hashed, the raw path (5w9n9h) and not the encoded name (tcdjh7).
 func TestProjectDirNameCapsTheEncodedName_Los11j(t *testing.T) {
 	probedName := strings.Repeat("a", 100) + "_" + strings.Repeat("b", 100)
-	probedPath := "/home/chief/memory/yesmem/.worktrees/yesloop-los-11j/.yesmem/tmp/probe100/" + probedName
+	probedPath := "/home/chief/memory/nemons/.worktrees/yesloop-los-11j/.nemons/tmp/probe100/" + probedName
 
 	cases := []struct{ name, path, want string }{
 		{
@@ -44,8 +44,8 @@ func TestProjectDirNameCapsTheEncodedName_Los11j(t *testing.T) {
 			// in front of the run, 100 a's, the dash the "_" becomes, and 25 b's.
 			name: "long path keeps its prefix and a hash of the raw path",
 			path: probedPath,
-			want: "-home-chief-memory-yesmem--worktrees-yesloop-los-11j--yesmem-tmp-probe100-" +
-				strings.Repeat("a", 100) + "-" + strings.Repeat("b", 25) + "-5aq5fp",
+			want: "-home-chief-memory-nemons--worktrees-yesloop-los-11j--nemons-tmp-probe100-" +
+				strings.Repeat("a", 100) + "-" + strings.Repeat("b", 25) + "-5w9n9h",
 		},
 	}
 	for _, tc := range cases {
@@ -119,10 +119,10 @@ func TestArchiveFileAcceptsAClaudeEncodedProjectName_Los11j(t *testing.T) {
 	if err := os.WriteFile(src, []byte(`{"type":"user"}`+"\n"), 0o644); err != nil {
 		t.Fatalf("write source: %v", err)
 	}
-	if err := a.ArchiveFile(src, "-home-chief-memory-yesmem"); err != nil {
+	if err := a.ArchiveFile(src, "-home-chief-memory-nemons"); err != nil {
 		t.Fatalf("ArchiveFile rejected an encoded project name: %v", err)
 	}
-	if _, err := os.Stat(filepath.Join(root, "archive", "-home-chief-memory-yesmem", "session.jsonl")); err != nil {
+	if _, err := os.Stat(filepath.Join(root, "archive", "-home-chief-memory-nemons", "session.jsonl")); err != nil {
 		t.Fatalf("archived copy missing: %v", err)
 	}
 }

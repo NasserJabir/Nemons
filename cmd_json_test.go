@@ -409,7 +409,7 @@ func TestJSONCLIRun_RawField(t *testing.T) {
 }
 
 func TestJSONCLIRun_NullInputBuildsObject(t *testing.T) {
-	// Mirrors how caps build payloads: yesmem json -n --arg k V --argjson n 1 '{k:$k, n:$n}'
+	// Mirrors how caps build payloads: nemons json -n --arg k V --argjson n 1 '{k:$k, n:$n}'
 	out, exit, err := jsonCLIRun([]string{
 		"-n",
 		"--arg", "k", "hello",

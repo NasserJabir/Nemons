@@ -148,7 +148,7 @@ func TestInstallOpencodePlugin_PreservesChosenModel(t *testing.T) {
 	// Step 7d on a v1 host: the plugin install is refused with the
 	// unsupported-version message, the provider/model settings still land so
 	// the host keeps a usable opencode config until it upgrades.
-	_, err := installOpencodePlugin(dir, "/test/yesmem", "opencode/big-pickle", "opencode/big-pickle")
+	_, err := installOpencodePlugin(dir, "/test/nemons", "opencode/big-pickle", "opencode/big-pickle")
 	if err == nil || !strings.Contains(err.Error(), "no longer supported") {
 		t.Fatalf("expected the unsupported-version message, got %v", err)
 	}

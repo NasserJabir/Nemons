@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/opencode"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/opencode"
 )
 
 // CLIClient calls a CLI binary for LLM completions via stdin.
@@ -99,7 +99,7 @@ func (c *CLIClient) run(system, userMsg string, schema map[string]any, opts ...C
 }
 
 func (c *CLIClient) runClaude(ctx context.Context, system, userMsg string, schema map[string]any, o callOpts) (string, error) {
-	sysFile, err := os.CreateTemp("", "yesmem-sys-*.txt")
+	sysFile, err := os.CreateTemp("", "nemons-sys-*.txt")
 	if err != nil {
 		return "", fmt.Errorf("create temp file: %w", err)
 	}
@@ -112,7 +112,7 @@ func (c *CLIClient) runClaude(ctx context.Context, system, userMsg string, schem
 	sysFile.Close()
 
 	// Write user message to temp file
-	msgFile, err := os.CreateTemp("", "yesmem-msg-*.txt")
+	msgFile, err := os.CreateTemp("", "nemons-msg-*.txt")
 	if err != nil {
 		return "", fmt.Errorf("create msg file: %w", err)
 	}
@@ -121,7 +121,7 @@ func (c *CLIClient) runClaude(ctx context.Context, system, userMsg string, schem
 	msgFile.Close()
 
 	// Build wrapper script — Go exec.Command can't pass --tools= correctly
-	scriptFile, err := os.CreateTemp("", "yesmem-cli-*.sh")
+	scriptFile, err := os.CreateTemp("", "nemons-cli-*.sh")
 	if err != nil {
 		return "", fmt.Errorf("create script: %w", err)
 	}
@@ -141,7 +141,7 @@ func (c *CLIClient) runClaude(ctx context.Context, system, userMsg string, schem
 
 	// Unset nested-session guards AND proxy redirect
 	cmd.Env = filterEnv(os.Environ(), "CLAUDECODE", "CLAUDE_CODE_ENTRYPOINT", "ANTHROPIC_BASE_URL")
-	cmd.Env = append(cmd.Env, "TERM=dumb", "NO_COLOR=1", "YESMEM_DAEMON_CHILD=1")
+	cmd.Env = append(cmd.Env, "TERM=dumb", "NO_COLOR=1", "NEMONS_DAEMON_CHILD=1")
 
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
@@ -191,9 +191,9 @@ func (c *CLIClient) runStdin(ctx context.Context, system, userMsg string, schema
 	cmdArgs := c.stdinArgs(o.sessionID)
 
 	baseEnv := filterEnv(os.Environ(), "ANTHROPIC_BASE_URL", "ANTHROPIC_API_KEY", "OPENAI_API_KEY")
-	baseEnv = append(baseEnv, "TERM=dumb", "NO_COLOR=1", "YESMEM_DAEMON_CHILD=1")
+	baseEnv = append(baseEnv, "TERM=dumb", "NO_COLOR=1", "NEMONS_DAEMON_CHILD=1")
 	if o.tools {
-		baseEnv = append(baseEnv, "YESMEM_ALLOW_CHILD_MCP=1")
+		baseEnv = append(baseEnv, "NEMONS_ALLOW_CHILD_MCP=1")
 	}
 	if c.sourceAgent == models.SourceAgentOpencode {
 		baseEnv = append(baseEnv,
@@ -464,7 +464,7 @@ func filterEnv(env []string, exclude ...string) []string {
 }
 
 // opencodeProviderOptions is the subset of a provider's options block that we
-// rewrite when routing the opencode CLI subprocess through the yesmem proxy.
+// rewrite when routing the opencode CLI subprocess through the nemons proxy.
 // Field declaration order determines JSON key order — baseURL before headers
 // keeps the output stable and human-readable.
 type opencodeProviderOptions struct {
@@ -478,8 +478,8 @@ type opencodeProviderOptions struct {
 type opencodeProviderEntry map[string]any
 
 // opencodeConfigOverride is the full OPENCODE_CONFIG_CONTENT value. The mcp
-// block disables recursion (child yesmem mcp → daemon socket), the provider
-// block routes every provider through the yesmem proxy.
+// block disables recursion (child nemons mcp → daemon socket), the provider
+// block routes every provider through the nemons proxy.
 type opencodeConfigOverride struct {
 	MCP      opencodeMCPConfig                `json:"mcp"`
 	Provider map[string]opencodeProviderEntry `json:"provider"`
@@ -489,37 +489,37 @@ type opencodeConfigOverride struct {
 // (Learning #73012). Disabling default plugins + defining our own MCP keeps
 // the subprocess from recursing into the daemon socket.
 type opencodeMCPConfig struct {
-	Yesmem struct {
+	Nemons struct {
 		Type        string            `json:"type"`
 		Command     []string          `json:"command"`
 		Enabled     bool              `json:"enabled"`
 		Timeout     int               `json:"timeout"`
 		Environment map[string]string `json:"environment"`
-	} `json:"yesmem"`
+	} `json:"nemons"`
 }
 
 // defaultOpencodeMCPBlock is the mcp subtree byte-identical to the pre-dynamic
 // recipe. Used in defaultOpencodeFallbackConfig below; the assembled override
 // path goes through opencodeMCPBlockValue() (typed struct) instead.
-const defaultOpencodeMCPBlock = `"mcp":{"yesmem":{"type":"local","command":["yesmem","mcp"],"enabled":true,"timeout":120000,"environment":{"YESMEM_SOURCE_AGENT":"opencode"}}}`
+const defaultOpencodeMCPBlock = `"mcp":{"nemons":{"type":"local","command":["nemons","mcp"],"enabled":true,"timeout":120000,"environment":{"NEMONS_SOURCE_AGENT":"opencode"}}}`
 
 // defaultOpencodeFallbackConfig is the byte-identical pre-dynamic fallback,
 // used when the user's opencode.json cannot be read. Preserves the DeepSeek-only
 // behavior so legacy users see no change when their config is missing.
-const defaultOpencodeFallbackConfig = `{` + defaultOpencodeMCPBlock + `,"provider":{"deepseek":{"options":{"baseURL":"http://localhost:9099/v1","headers":{"x-yesmem-allow-mcp":"1"}}}}}`
+const defaultOpencodeFallbackConfig = `{` + defaultOpencodeMCPBlock + `,"provider":{"deepseek":{"options":{"baseURL":"http://localhost:9099/v1","headers":{"x-nemons-allow-mcp":"1"}}}}}`
 
-// yesmemProxyBaseURL is the proxy endpoint the opencode CLI subprocess must
+// nemonsProxyBaseURL is the proxy endpoint the opencode CLI subprocess must
 // route through to benefit from SYSTEM.md injection (Learning #73598).
-const yesmemProxyBaseURL = "http://localhost:9099/v1"
+const nemonsProxyBaseURL = "http://localhost:9099/v1"
 
-// yesmemAllowMCPHeader activates SYSTEM.md injection in the proxy openai_handler
+// nemonsAllowMCPHeader activates SYSTEM.md injection in the proxy openai_handler
 // when set on the outgoing request (Learning #73598).
-const yesmemAllowMCPHeader = "x-yesmem-allow-mcp"
+const nemonsAllowMCPHeader = "x-nemons-allow-mcp"
 
 // buildOpencodeConfigOverride builds the OPENCODE_CONFIG_CONTENT JSON value by
 // reading the user's opencode config (opencode.jsonc/json/config.json —
 // resolved by opencode.ConfigPath) and rewriting every provider's baseURL to
-// the yesmem proxy. Falls back to defaultOpencodeFallbackConfig when the
+// the nemons proxy. Falls back to defaultOpencodeFallbackConfig when the
 // user's opencode config is missing or unreadable, preserving the legacy
 // DeepSeek-only behavior byte-for-byte.
 //
@@ -556,13 +556,13 @@ func buildOpencodeConfigOverride(home string) string {
 		}
 		// Replace the options block wholesale. We discard any user-set nested
 		// options fields (headers, timeout, apiKey, errorRetry, …) because the
-		// proxy must win on baseURL and the x-yesmem-allow-mcp header is our
+		// proxy must win on baseURL and the x-nemons-allow-mcp header is our
 		// own signal. The proxy re-injects provider auth from daemon storage,
 		// so dropping user headers is intentional, not a bug. Top-level fields
 		// (npm, models, name, limit, interleaved, …) are preserved.
 		opts := opencodeProviderOptions{
-			BaseURL: yesmemProxyBaseURL,
-			Headers: map[string]string{yesmemAllowMCPHeader: "1"},
+			BaseURL: nemonsProxyBaseURL,
+			Headers: map[string]string{nemonsAllowMCPHeader: "1"},
 		}
 		rewritten["options"] = opts
 		override.Provider[providerID] = rewritten
@@ -579,11 +579,11 @@ func buildOpencodeConfigOverride(home string) string {
 // assembled override serializes byte-identical to defaultOpencodeMCPBlock.
 func opencodeMCPBlockValue() opencodeMCPConfig {
 	var m opencodeMCPConfig
-	m.Yesmem.Type = "local"
-	m.Yesmem.Command = []string{"yesmem", "mcp"}
-	m.Yesmem.Enabled = true
-	m.Yesmem.Timeout = 120000
-	m.Yesmem.Environment = map[string]string{"YESMEM_SOURCE_AGENT": "opencode"}
+	m.Nemons.Type = "local"
+	m.Nemons.Command = []string{"nemons", "mcp"}
+	m.Nemons.Enabled = true
+	m.Nemons.Timeout = 120000
+	m.Nemons.Environment = map[string]string{"NEMONS_SOURCE_AGENT": "opencode"}
 	return m
 }
 

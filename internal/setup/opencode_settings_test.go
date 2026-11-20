@@ -38,23 +38,23 @@ func TestDefaultOpencodeSettings_HasRequiredKeys(t *testing.T) {
 	}
 
 	mcp := s["mcp"].(map[string]any)
-	yesmem, ok := mcp["yesmem"].(map[string]any)
+	nemons, ok := mcp["nemons"].(map[string]any)
 	if !ok {
-		t.Fatal("missing mcp.yesmem")
+		t.Fatal("missing mcp.nemons")
 	}
-	if yesmem["type"] != "local" {
-		t.Errorf("wrong mcp type: %v", yesmem["type"])
+	if nemons["type"] != "local" {
+		t.Errorf("wrong mcp type: %v", nemons["type"])
 	}
-	cmd, ok := yesmem["command"].([]any)
-	if !ok || len(cmd) != 2 || cmd[0] != "yesmem" || cmd[1] != "mcp" {
-		t.Errorf("wrong mcp command: %v", yesmem["command"])
+	cmd, ok := nemons["command"].([]any)
+	if !ok || len(cmd) != 2 || cmd[0] != "nemons" || cmd[1] != "mcp" {
+		t.Errorf("wrong mcp command: %v", nemons["command"])
 	}
-	env, ok := yesmem["environment"].(map[string]any)
-	if !ok || env["YESMEM_SOURCE_AGENT"] != "opencode" {
-		t.Errorf("mcp.yesmem.environment.YESMEM_SOURCE_AGENT should be opencode, got %v", yesmem["environment"])
+	env, ok := nemons["environment"].(map[string]any)
+	if !ok || env["NEMONS_SOURCE_AGENT"] != "opencode" {
+		t.Errorf("mcp.nemons.environment.NEMONS_SOURCE_AGENT should be opencode, got %v", nemons["environment"])
 	}
-	if yesmem["timeout"] != 60000 {
-		t.Errorf("wrong mcp timeout: got %v, want 60000", yesmem["timeout"])
+	if nemons["timeout"] != 60000 {
+		t.Errorf("wrong mcp timeout: got %v, want 60000", nemons["timeout"])
 	}
 
 	compaction := s["compaction"].(map[string]any)
@@ -93,7 +93,7 @@ func TestRemoveOpencodeProviders(t *testing.T) {
 	}
 }
 
-func TestRemoveOpencodeProviders_AllYesMem(t *testing.T) {
+func TestRemoveOpencodeProviders_AllNemons(t *testing.T) {
 	cfg := map[string]any{
 		"provider": map[string]any{
 			"deepseek":  map[string]any{"options": nil},
@@ -162,8 +162,8 @@ func TestDefaultOpencodeSettings_OpencodeProviderHasMCPAllowHeader(t *testing.T)
 		t.Fatal("missing provider.opencode.options.headers")
 	}
 
-	if headers["x-yesmem-allow-mcp"] != "1" {
-		t.Errorf("x-yesmem-allow-mcp header should be '1', got %v", headers["x-yesmem-allow-mcp"])
+	if headers["x-nemons-allow-mcp"] != "1" {
+		t.Errorf("x-nemons-allow-mcp header should be '1', got %v", headers["x-nemons-allow-mcp"])
 	}
 }
 
@@ -189,7 +189,7 @@ func TestRemoveOpencodeProviders_DeletesOpencode(t *testing.T) {
 func TestRemoveOpencodeMCP(t *testing.T) {
 	cfg := map[string]any{
 		"mcp": map[string]any{
-			"yesmem": map[string]any{"type": "local"},
+			"nemons": map[string]any{"type": "local"},
 			"custom": map[string]any{"type": "remote"},
 		},
 	}
@@ -197,18 +197,18 @@ func TestRemoveOpencodeMCP(t *testing.T) {
 	removeOpencodeMCP(cfg)
 
 	mcp := cfg["mcp"].(map[string]any)
-	if mcp["yesmem"] != nil {
-		t.Error("yesmem MCP not removed")
+	if mcp["nemons"] != nil {
+		t.Error("nemons MCP not removed")
 	}
 	if mcp["custom"] == nil {
 		t.Error("custom MCP was incorrectly removed")
 	}
 }
 
-func TestRemoveOpencodeMCP_OnlyYesMem(t *testing.T) {
+func TestRemoveOpencodeMCP_OnlyNemons(t *testing.T) {
 	cfg := map[string]any{
 		"mcp": map[string]any{
-			"yesmem": map[string]any{"type": "local"},
+			"nemons": map[string]any{"type": "local"},
 		},
 	}
 
@@ -239,12 +239,12 @@ func TestRemoveOpencodeCompaction(t *testing.T) {
 }
 
 // Uninstall must drop exactly the entry a v1 install wrote. Matching any
-// "…/index.ts" with "yesmem" somewhere in the path takes a user's own plugin
+// "…/index.ts" with "nemons" somewhere in the path takes a user's own plugin
 // down with it (YM-296).
 func TestRemoveOpencodeSettings_DropsOnlyOwnPluginEntry(t *testing.T) {
 	home := filepath.Join(t.TempDir(), "home")
 	own := filepath.Join(v1InstallDir(home), "index.ts")
-	foreign := "/home/other/projects/yesmem-tools/plugins/index.ts"
+	foreign := "/home/other/projects/nemons-tools/plugins/index.ts"
 	other := "/home/other/.config/opencode/plugins/other.ts"
 	writeOpencodeJSONC(t, home, `{"plugin": ["`+own+`", "`+foreign+`", "`+other+`"]}`)
 
@@ -278,15 +278,15 @@ func TestRemoveOpencodeSettings_DeletesEmptyPluginKey(t *testing.T) {
 	}
 }
 
-// A config entry only proves a yesmem install when it points at the file a v1
-// install wrote: a foreign plugin path with "yesmem" in it reported a working
+// A config entry only proves a nemons install when it points at the file a v1
+// install wrote: a foreign plugin path with "nemons" in it reported a working
 // installation that does not exist (YM-296).
-func TestReadOpencodeConfigState_ForeignYesmemPathIsNotConfigured(t *testing.T) {
+func TestReadOpencodeConfigState_ForeignNemonsPathIsNotConfigured(t *testing.T) {
 	home := filepath.Join(t.TempDir(), "home")
-	writeOpencodeJSONC(t, home, `{"plugin": ["/home/other/projects/yesmem-tools/plugins/index.ts"]}`)
+	writeOpencodeJSONC(t, home, `{"plugin": ["/home/other/projects/nemons-tools/plugins/index.ts"]}`)
 
 	if state := readOpencodeConfigState(home); state.PluginConfigured {
-		t.Error("foreign plugin path reported as a yesmem install")
+		t.Error("foreign plugin path reported as a nemons install")
 	}
 }
 
@@ -307,14 +307,14 @@ func TestReadOpencodeConfigState_OwnV1EntryCountsAsConfigured(t *testing.T) {
 	}
 }
 
-// A v1 dev setup wrote the plugin path as <bin>/../plugins/opencode-yesmem/
+// A v1 dev setup wrote the plugin path as <bin>/../plugins/opencode-nemons/
 // index.ts, and that shape is ours only while it sits next to the running
 // binary (isDevTreeEntry). A bare path in the home is not: before YM-371 it was
 // swept together with another project's registration in the same home. The
-// entry stays and status does not report a yesmem install.
+// entry stays and status does not report a nemons install.
 func TestLos18iRemoveOpencodeSettingsKeepsAForeignDevTreeEntry(t *testing.T) {
 	home := filepath.Join(t.TempDir(), "home")
-	foreignEntry := filepath.Join(home, "projects", "otherapp", "bin", "..", "plugins", "opencode-yesmem", "index.ts")
+	foreignEntry := filepath.Join(home, "projects", "otherapp", "bin", "..", "plugins", "opencode-nemons", "index.ts")
 	if err := os.MkdirAll(filepath.Dir(foreignEntry), 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -455,10 +455,10 @@ func TestDefaultOpencodeSettings_MergePreservesExisting(t *testing.T) {
 		t.Error("openai provider not added")
 	}
 
-	// yesmem MCP must be added
+	// nemons MCP must be added
 	mcp := cfg["mcp"].(map[string]any)
-	if mcp["yesmem"] == nil {
-		t.Error("yesmem MCP not added")
+	if mcp["nemons"] == nil {
+		t.Error("nemons MCP not added")
 	}
 	// custom MCP must be preserved
 	if mcp["custom_mcp"] == nil {
@@ -523,9 +523,9 @@ func TestOpencodeSettingsEndToEnd(t *testing.T) {
 		t.Error("openai provider not added")
 	}
 
-	// yesmem MCP added
-	if cfg["mcp"].(map[string]any)["yesmem"] == nil {
-		t.Error("yesmem MCP not added")
+	// nemons MCP added
+	if cfg["mcp"].(map[string]any)["nemons"] == nil {
+		t.Error("nemons MCP not added")
 	}
 
 	// compaction added
@@ -569,9 +569,9 @@ func TestOpencodeSettingsRemoveEndToEnd(t *testing.T) {
     }
   },
   "mcp": {
-    "yesmem": {
+    "nemons": {
       "type": "local",
-      "command": ["yesmem", "mcp"],
+      "command": ["nemons", "mcp"],
       "enabled": true
     },
     "custom_mcp": {
@@ -597,8 +597,8 @@ func TestOpencodeSettingsRemoveEndToEnd(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if strings.Contains(string(data), "yesmem") {
-		t.Errorf("yesmem entries not fully removed:\n%s", string(data))
+	if strings.Contains(string(data), "nemons") {
+		t.Errorf("nemons entries not fully removed:\n%s", string(data))
 	}
 
 	var cfg map[string]any
@@ -619,10 +619,10 @@ func TestOpencodeSettingsRemoveEndToEnd(t *testing.T) {
 		t.Error("custom_provider was incorrectly removed")
 	}
 
-	// mcp.yesmem should be removed
+	// mcp.nemons should be removed
 	mcp := cfg["mcp"].(map[string]any)
-	if mcp["yesmem"] != nil {
-		t.Error("yesmem MCP not removed")
+	if mcp["nemons"] != nil {
+		t.Error("nemons MCP not removed")
 	}
 	if mcp["custom_mcp"] == nil {
 		t.Error("custom_mcp was incorrectly removed")
@@ -656,7 +656,7 @@ func TestOpencodeSettingsRemove_EmptyConfigPreserved(t *testing.T) {
     "openai": {"options": {"baseURL": "http://localhost:9099/v1"}}
   },
   "mcp": {
-    "yesmem": {"type": "local", "command": ["yesmem", "mcp"]}
+    "nemons": {"type": "local", "command": ["nemons", "mcp"]}
   },
   "compaction": {
     "auto": false
@@ -671,15 +671,15 @@ func TestOpencodeSettingsRemove_EmptyConfigPreserved(t *testing.T) {
 	}
 
 	// File MUST remain (opencode needs the file present; deleting it would
-	// break opencode for users who set it up manually for non-yesmem reasons).
-	// yesmem entries are removed, $schema stays.
+	// break opencode for users who set it up manually for non-nemons reasons).
+	// nemons entries are removed, $schema stays.
 	data, err := os.ReadFile(cfgPath)
 	if err != nil {
-		t.Fatalf("opencode.json must still exist after yesmem uninstall: %v", err)
+		t.Fatalf("opencode.json must still exist after nemons uninstall: %v", err)
 	}
 	body := string(data)
-	if strings.Contains(body, "yesmem") {
-		t.Errorf("yesmem entries should be removed but found 'yesmem' in: %s", body)
+	if strings.Contains(body, "nemons") {
+		t.Errorf("nemons entries should be removed but found 'nemons' in: %s", body)
 	}
 	if !strings.Contains(body, "$schema") {
 		t.Errorf("$schema should be preserved, got: %s", body)
@@ -698,7 +698,7 @@ func TestOpencodeSettingsRemove_NoFile(t *testing.T) {
 func TestUpgradeOpencodeTimeout_OldDefault(t *testing.T) {
 	cfg := map[string]any{
 		"mcp": map[string]any{
-			"yesmem": map[string]any{
+			"nemons": map[string]any{
 				"timeout": float64(10000),
 			},
 		},
@@ -706,16 +706,16 @@ func TestUpgradeOpencodeTimeout_OldDefault(t *testing.T) {
 
 	upgradeOpencodeTimeout(cfg)
 
-	yesmem := cfg["mcp"].(map[string]any)["yesmem"].(map[string]any)
-	if yesmem["timeout"] != float64(60000) {
-		t.Errorf("old timeout not upgraded: got %v, want 60000", yesmem["timeout"])
+	nemons := cfg["mcp"].(map[string]any)["nemons"].(map[string]any)
+	if nemons["timeout"] != float64(60000) {
+		t.Errorf("old timeout not upgraded: got %v, want 60000", nemons["timeout"])
 	}
 }
 
 func TestUpgradeOpencodeTimeout_CustomPreserved(t *testing.T) {
 	cfg := map[string]any{
 		"mcp": map[string]any{
-			"yesmem": map[string]any{
+			"nemons": map[string]any{
 				"timeout": float64(60000),
 			},
 		},
@@ -723,9 +723,9 @@ func TestUpgradeOpencodeTimeout_CustomPreserved(t *testing.T) {
 
 	upgradeOpencodeTimeout(cfg)
 
-	yesmem := cfg["mcp"].(map[string]any)["yesmem"].(map[string]any)
-	if yesmem["timeout"] != float64(60000) {
-		t.Errorf("custom timeout was changed: got %v, want 60000", yesmem["timeout"])
+	nemons := cfg["mcp"].(map[string]any)["nemons"].(map[string]any)
+	if nemons["timeout"] != float64(60000) {
+		t.Errorf("custom timeout was changed: got %v, want 60000", nemons["timeout"])
 	}
 }
 
@@ -745,9 +745,9 @@ func TestMergeOpencodeSettings_UpgradesOldTimeout(t *testing.T) {
 	existingConfig := `{
   "$schema": "https://opencode.ai/config.json",
   "mcp": {
-    "yesmem": {
+    "nemons": {
       "type": "local",
-      "command": ["yesmem", "mcp"],
+      "command": ["nemons", "mcp"],
       "enabled": true,
       "timeout": 10000
     }
@@ -770,9 +770,9 @@ func TestMergeOpencodeSettings_UpgradesOldTimeout(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	yesmem := cfg["mcp"].(map[string]any)["yesmem"].(map[string]any)
-	if yesmem["timeout"] != float64(60000) {
-		t.Errorf("old timeout not upgraded in merge: got %v, want 60000", yesmem["timeout"])
+	nemons := cfg["mcp"].(map[string]any)["nemons"].(map[string]any)
+	if nemons["timeout"] != float64(60000) {
+		t.Errorf("old timeout not upgraded in merge: got %v, want 60000", nemons["timeout"])
 	}
 }
 
@@ -875,7 +875,7 @@ func writeOpencodeJSONC(t *testing.T, home, body string) {
 	}
 }
 
-func TestMigrateOpencodeJsonToJsonc_MigratesYesmemContent(t *testing.T) {
+func TestMigrateOpencodeJsonToJsonc_MigratesNemonsContent(t *testing.T) {
 	tmpDir := t.TempDir()
 	home := filepath.Join(tmpDir, "home")
 	writeOpencodeJSON(t, home, `{
@@ -883,7 +883,7 @@ func TestMigrateOpencodeJsonToJsonc_MigratesYesmemContent(t *testing.T) {
 	  "provider": {
 	    "deepseek": {"options": {"baseURL": "http://localhost:9099/v1"}}
 	  },
-	  "mcp": {"yesmem": {"type": "local"}}
+	  "mcp": {"nemons": {"type": "local"}}
 	}`)
 
 	if err := migrateOpencodeJsonToJsonc(home); err != nil {
@@ -904,8 +904,8 @@ func TestMigrateOpencodeJsonToJsonc_MigratesYesmemContent(t *testing.T) {
 		t.Errorf("deepseek provider not migrated: %v", cfg["provider"])
 	}
 	mcp, ok := cfg["mcp"].(map[string]any)
-	if !ok || mcp["yesmem"] == nil {
-		t.Errorf("mcp.yesmem not migrated: %v", cfg["mcp"])
+	if !ok || mcp["nemons"] == nil {
+		t.Errorf("mcp.nemons not migrated: %v", cfg["mcp"])
 	}
 	// $schema must be preserved at the top.
 	if cfg["$schema"] == nil {
@@ -921,9 +921,9 @@ func TestMigrateOpencodeJsonToJsonc_PreservesJsoncUserContent(t *testing.T) {
 	    "deepseek": {"options": {"baseURL": "http://localhost:9099/v1"}},
 	    "openai": {"options": {"baseURL": "http://localhost:9099/v1"}}
 	  },
-	  "mcp": {"yesmem": {"type": "local"}}
+	  "mcp": {"nemons": {"type": "local"}}
 	}`)
-	// User has manually edited jsonc with a non-yesmem provider — must not be clobbered.
+	// User has manually edited jsonc with a non-nemons provider — must not be clobbered.
 	writeOpencodeJSONC(t, home, `{
 	  "$schema": "https://opencode.ai/config.json",
 	  "provider": {
@@ -971,7 +971,7 @@ func TestMigrateOpencodeJsonToJsonc_Idempotent(t *testing.T) {
 		t.Fatal(err)
 	}
 	if string(before) != string(after) {
-		t.Errorf("jsonc modified despite already having yesmem content (not idempotent)")
+		t.Errorf("jsonc modified despite already having nemons content (not idempotent)")
 	}
 }
 
@@ -1009,7 +1009,7 @@ func TestMigrateOpencodeJsonToJsonc_NoJsonPresent(t *testing.T) {
 // A config that Go cannot parse must never be replaced by the defaults: the
 // user's file survives and the merge reports the problem. Before the fix both
 // merges treated a parse failure as "empty config" and wrote back only
-// yesmem's keys (plus $schema), which deleted the user's providers and MCP
+// nemons's keys (plus $schema), which deleted the user's providers and MCP
 // entries.
 
 func TestMergeOpencodeSettingsWith_LeavesUnparseableConfigUntouched(t *testing.T) {
@@ -1069,7 +1069,7 @@ func TestMergeOpencodeSettingsWith_StillMergesValidConfig(t *testing.T) {
 }
 
 // The uninstall follows the same fail-closed policy as the merge paths: a
-// config yesmem cannot parse is reported, not silently treated as "nothing to
+// config nemons cannot parse is reported, not silently treated as "nothing to
 // remove". Reporting it as a clean uninstall leaves the user with a config
 // nobody touched and no hint why.
 func TestRemoveOpencodeSettings_ReportsUnparseableConfig(t *testing.T) {
@@ -1103,7 +1103,7 @@ func TestMigrateOpencodeJsonToJsonc_ReplacesTheFileInsteadOfTruncatingIt(t *test
 	home := filepath.Join(t.TempDir(), "home")
 	writeOpencodeJSON(t, home, `{
 	  "$schema": "https://opencode.ai/config.json",
-	  "mcp": {"yesmem": {"type": "local"}}
+	  "mcp": {"nemons": {"type": "local"}}
 	}`)
 	writeOpencodeJSONC(t, home, `{"$schema": "https://opencode.ai/config.json"}`)
 	jsonc := filepath.Join(home, ".config", "opencode", "opencode.jsonc")
@@ -1127,8 +1127,8 @@ func TestMigrateOpencodeJsonToJsonc_ReplacesTheFileInsteadOfTruncatingIt(t *test
 	if err := json.Unmarshal(readFileOrFail(t, jsonc), &cfg); err != nil {
 		t.Fatalf("migrated jsonc is not valid JSON: %v", err)
 	}
-	if mcp, ok := cfg["mcp"].(map[string]any); !ok || mcp["yesmem"] == nil {
-		t.Errorf("mcp.yesmem not migrated: %v", cfg["mcp"])
+	if mcp, ok := cfg["mcp"].(map[string]any); !ok || mcp["nemons"] == nil {
+		t.Errorf("mcp.nemons not migrated: %v", cfg["mcp"])
 	}
 }
 
@@ -1168,7 +1168,7 @@ func TestRemoveOpencodePlugin_ReportsBothErrors(t *testing.T) {
 	}
 	home := filepath.Join(t.TempDir(), "home")
 	pluginsDir := filepath.Join(home, ".config", "opencode", "plugins")
-	if err := os.MkdirAll(filepath.Join(pluginsDir, "opencode-yesmem"), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Join(pluginsDir, "opencode-nemons"), 0755); err != nil {
 		t.Fatal(err)
 	}
 	writeOpencodeJSONC(t, home, "{ // hand-written\n}\n")

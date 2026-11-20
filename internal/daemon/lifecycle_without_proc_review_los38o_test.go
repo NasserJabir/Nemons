@@ -18,16 +18,16 @@ func TestStopRoleFallsBackToTheListingWhenLaunchdRefuses(t *testing.T) {
 	home := t.TempDir()
 	isolateHomeAt(t, home)
 	prevExe := selfBinaryPath
-	selfBinaryPath = "/opt/yesmem/yesmem"
+	selfBinaryPath = "/opt/nemons/nemons"
 	t.Cleanup(func() { selfBinaryPath = prevExe })
 	stubServicePlatform(t, "darwin")
-	writeDaemonPlist(t, home, "daemon", "/opt/yesmem/yesmem")
+	writeDaemonPlist(t, home, "daemon", "/opt/nemons/nemons")
 	calls := stubLaunchctl(t, map[string]error{
 		"bootout": fmt.Errorf("Could not find service"),
 		"unload":  fmt.Errorf("Could not find specified service"),
 	})
-	dataDir := filepath.Join(home, ".claude", "yesmem")
-	stubProcessListing(t, []string{"  4321 /opt/yesmem/yesmem daemon"})
+	dataDir := filepath.Join(home, ".claude", "nemons")
+	stubProcessListing(t, []string{"  4321 /opt/nemons/nemons daemon"})
 	signals := stubRoleStopSeams(t, func(int) bool { return true }, nil)
 
 	pids, stopped, err := StopRole("daemon", dataDir)
@@ -54,15 +54,15 @@ func TestStopRoleReportsTheLaunchdRefusalWhenNothingElseMatched(t *testing.T) {
 	home := t.TempDir()
 	isolateHomeAt(t, home)
 	prevExe := selfBinaryPath
-	selfBinaryPath = "/opt/yesmem/yesmem"
+	selfBinaryPath = "/opt/nemons/nemons"
 	t.Cleanup(func() { selfBinaryPath = prevExe })
 	stubServicePlatform(t, "darwin")
-	writeDaemonPlist(t, home, "daemon", "/opt/yesmem/yesmem")
+	writeDaemonPlist(t, home, "daemon", "/opt/nemons/nemons")
 	stubLaunchctl(t, map[string]error{"bootout": fmt.Errorf("Could not find service"), "unload": fmt.Errorf("nope")})
 	stubProcessListing(t, nil)
 	stubRoleStopSeams(t, func(int) bool { return true }, nil)
 
-	if _, _, err := StopRole("daemon", filepath.Join(home, ".claude", "yesmem")); err == nil {
+	if _, _, err := StopRole("daemon", filepath.Join(home, ".claude", "nemons")); err == nil {
 		t.Fatal("StopRole reported success although launchd refused and the listing matched nothing")
 	}
 }
@@ -74,12 +74,12 @@ func TestStopRolePrefersThePidFileIdentity(t *testing.T) {
 	home := t.TempDir()
 	isolateHomeAt(t, home)
 	prevExe := selfBinaryPath
-	selfBinaryPath = "/opt/yesmem/yesmem"
+	selfBinaryPath = "/opt/nemons/nemons"
 	t.Cleanup(func() { selfBinaryPath = prevExe })
 	stubServicePlatform(t, "darwin")
 	stubLaunchctl(t, nil)
 
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	if err := os.MkdirAll(dataDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -87,8 +87,8 @@ func TestStopRolePrefersThePidFileIdentity(t *testing.T) {
 		t.Fatal(err)
 	}
 	stubProcessListing(t, []string{
-		"  4100 /opt/yesmem/yesmem daemon", // the pid file's own
-		"  4200 /opt/yesmem/yesmem daemon", // another HOME, same binary
+		"  4100 /opt/nemons/nemons daemon", // the pid file's own
+		"  4200 /opt/nemons/nemons daemon", // another HOME, same binary
 	})
 	signals := stubRoleStopSeams(t, func(int) bool { return true }, nil)
 
@@ -128,7 +128,7 @@ func TestPlistProgramFollowsLaunchdsPrecedence(t *testing.T) {
 	content := `<plist><dict>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/opt/yesmem/yesmem</string>
+		<string>/opt/nemons/nemons</string>
 		<string>daemon</string>
 	</array>
 	<key>Program</key>
@@ -149,10 +149,10 @@ func TestStartRoleRefusesAPlistOfAnotherBinary(t *testing.T) {
 	home := t.TempDir()
 	isolateHomeAt(t, home)
 	prevExe := selfBinaryPath
-	selfBinaryPath = "/opt/yesmem/yesmem"
+	selfBinaryPath = "/opt/nemons/nemons"
 	t.Cleanup(func() { selfBinaryPath = prevExe })
 	stubServicePlatform(t, "darwin")
-	writeDaemonPlist(t, home, "daemon", "/usr/local/bin/yesmem")
+	writeDaemonPlist(t, home, "daemon", "/usr/local/bin/nemons")
 	calls := stubLaunchctl(t, nil)
 
 	if _, err := StartRole("daemon"); err == nil {

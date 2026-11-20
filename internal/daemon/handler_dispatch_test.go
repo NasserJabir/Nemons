@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 func TestHandle_Ping(t *testing.T) {
@@ -142,7 +142,7 @@ func TestHandle_IncrementCounters(t *testing.T) {
 	// increment_turn needs project, not ids
 	resp := h.Handle(Request{
 		Method: "increment_turn",
-		Params: map[string]any{"project": "yesmem"},
+		Params: map[string]any{"project": "nemons"},
 	})
 	if resp.Error != "" {
 		t.Errorf("increment_turn error: %s", resp.Error)
@@ -174,10 +174,10 @@ func TestResolveProjectParam(t *testing.T) {
 	h, _ := mustHandler(t)
 
 	// With project set
-	params := map[string]any{"project": "yesmem"}
+	params := map[string]any{"project": "nemons"}
 	resolved := h.resolveProjectParam(params)
-	if resolved["project"] != "yesmem" {
-		t.Errorf("expected 'yesmem', got %q", resolved["project"])
+	if resolved["project"] != "nemons" {
+		t.Errorf("expected 'nemons', got %q", resolved["project"])
 	}
 
 	// Without project — should not crash

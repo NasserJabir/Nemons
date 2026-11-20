@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/ingest"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/ingest"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // YM-374 [DEV-DT59]: the CLI sync skipped a source without a path with a log
@@ -119,10 +119,10 @@ func TestDocsCLI_SweepKeepsChunksWhenTheSourceIsReregisteredInTheWindowLos55e(t 
 		t.Fatalf("write guide: %v", err)
 	}
 
-	if err := os.MkdirAll(filepath.Join(home, ".claude", "yesmem"), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Join(home, ".claude", "nemons"), 0755); err != nil {
 		t.Fatalf("mkdir data dir: %v", err)
 	}
-	store, err := storage.Open(filepath.Join(home, ".claude", "yesmem", "yesmem.db"))
+	store, err := storage.Open(filepath.Join(home, ".claude", "nemons", "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}

@@ -13,7 +13,7 @@ import (
 // repo plus the skill and cap instructions that tell agents what to run;
 // tests, history (CHANGELOG) and design notes may mention it.
 func TestProductDoesNotUseXdotool(t *testing.T) {
-	skipDirs := map[string]bool{".git": true, "node_modules": true, ".yesmem": true, ".worktrees": true, "vendor": true, "yesdocs": true, "docs": true}
+	skipDirs := map[string]bool{".git": true, "node_modules": true, ".nemons": true, ".worktrees": true, "vendor": true, "yesdocs": true, "docs": true}
 	exts := map[string]bool{".go": true, ".ts": true, ".tsx": true, ".js": true, ".sh": true, ".py": true}
 	// Markdown counts only where it is executable guidance for agents.
 	instructionRoots := []string{"skills" + string(filepath.Separator), "caps" + string(filepath.Separator)}

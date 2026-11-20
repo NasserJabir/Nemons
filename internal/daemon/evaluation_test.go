@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func unpack(t *testing.T, data []byte) map[string]any {

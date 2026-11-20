@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // TestLos56hListDocsKeepsEverySourceOnOneLine covers YM-389: the row printed the source
@@ -86,7 +86,7 @@ func TestLos56hExportQuotesThePath(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "export\nforged: second line.json")
 
 	args := os.Args
-	os.Args = []string{"yesmem", "export", path}
+	os.Args = []string{"nemons", "export", path}
 	t.Cleanup(func() { os.Args = args })
 
 	out := captureOutput(t, func() { runExport() })

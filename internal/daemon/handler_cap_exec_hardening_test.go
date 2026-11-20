@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // YM-13: cap args are rendered into the handler script. A value or key that
@@ -116,11 +116,11 @@ func TestRenderCapBashVars_RejectsInvalidKey(t *testing.T) {
 }
 
 // YM-14: the mapped binaries and the daemon socket must be read-only inside the
-// sandbox — a cap that can rewrite the yesmem binary escapes the sandbox. Since
+// sandbox — a cap that can rewrite the nemons binary escapes the sandbox. Since
 // YM-314 the paths are registered on the Sandbox instead of being rendered at the
 // call site, so the assertion runs through the flags the sandbox renders.
 func TestCapExecMountPathsAreReadOnly(t *testing.T) {
-	paths := capExecMountPaths("/run/yesmem.sock", "/usr/local/bin/yesmem", "")
+	paths := capExecMountPaths("/run/nemons.sock", "/usr/local/bin/nemons", "")
 	if len(paths) != 2 {
 		t.Fatalf("paths = %v, want the binary and the socket (an empty binary produces no path)", paths)
 	}
@@ -131,10 +131,10 @@ func TestCapExecMountPathsAreReadOnly(t *testing.T) {
 	if strings.Contains(joined, "--rw-map") {
 		t.Errorf("cap mounts must never be writable, got %v", joined)
 	}
-	if !strings.Contains(joined, "--map /usr/local/bin/yesmem") {
+	if !strings.Contains(joined, "--map /usr/local/bin/nemons") {
 		t.Errorf("binary must be mapped read-only, got %v", joined)
 	}
-	if !strings.Contains(joined, "--map /run/yesmem.sock") {
+	if !strings.Contains(joined, "--map /run/nemons.sock") {
 		t.Errorf("daemon socket must be mapped read-only, got %v", joined)
 	}
 	if count := strings.Count(joined, "--map "); count != 2 {

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func TestCLIClientImplementsInterface(t *testing.T) {
@@ -374,7 +374,7 @@ func writeOpencodeJSONForTest(t *testing.T, content string) string {
 // TestBuildOpencodeConfigOverride_FreeTierBigPickle verifies that a user with
 // only the opencode free-tier provider (big-pickle) gets an override whose
 // provider block carries the opencode provider with the proxy baseURL and the
-// x-yesmem-allow-mcp header. This is the regression case from the scratchpad:
+// x-nemons-allow-mcp header. This is the regression case from the scratchpad:
 // previously the hardcoded DeepSeek override broke free-tier users.
 func TestBuildOpencodeConfigOverride_FreeTierBigPickle(t *testing.T) {
 	cfg := `{
@@ -409,11 +409,11 @@ func TestBuildOpencodeConfigOverride_FreeTierBigPickle(t *testing.T) {
 		t.Errorf("override missing 'opencode' provider; got providers=%v\nraw: %s", keys(parsed.Provider), got)
 	}
 	entry := parsed.Provider["opencode"]
-	if entry.Options.BaseURL != yesmemProxyBaseURL {
-		t.Errorf("opencode.options.baseURL = %q, want %q", entry.Options.BaseURL, yesmemProxyBaseURL)
+	if entry.Options.BaseURL != nemonsProxyBaseURL {
+		t.Errorf("opencode.options.baseURL = %q, want %q", entry.Options.BaseURL, nemonsProxyBaseURL)
 	}
-	if got := entry.Options.Headers[yesmemAllowMCPHeader]; got != "1" {
-		t.Errorf("opencode.options.headers[%q] = %q, want \"1\"", yesmemAllowMCPHeader, got)
+	if got := entry.Options.Headers[nemonsAllowMCPHeader]; got != "1" {
+		t.Errorf("opencode.options.headers[%q] = %q, want \"1\"", nemonsAllowMCPHeader, got)
 	}
 	// Models block must be preserved so big-pickle is still callable.
 	if _, ok := entry.Models["big-pickle"]; !ok {
@@ -431,7 +431,7 @@ func TestBuildOpencodeConfigOverride_FreeTierBigPickle(t *testing.T) {
 
 // TestBuildOpencodeConfigOverride_DeepSeek verifies the DeepSeek-only user
 // (the pre-fix primary case) still gets a valid override with the proxy
-// baseURL and the x-yesmem-allow-mcp header.
+// baseURL and the x-nemons-allow-mcp header.
 func TestBuildOpencodeConfigOverride_DeepSeek(t *testing.T) {
 	cfg := `{
   "provider": {
@@ -462,11 +462,11 @@ func TestBuildOpencodeConfigOverride_DeepSeek(t *testing.T) {
 	if !ok {
 		t.Fatalf("override missing 'deepseek' provider; got=%v\nraw: %s", keys(parsed.Provider), got)
 	}
-	if entry.Options.BaseURL != yesmemProxyBaseURL {
-		t.Errorf("deepseek.options.baseURL = %q, want %q", entry.Options.BaseURL, yesmemProxyBaseURL)
+	if entry.Options.BaseURL != nemonsProxyBaseURL {
+		t.Errorf("deepseek.options.baseURL = %q, want %q", entry.Options.BaseURL, nemonsProxyBaseURL)
 	}
-	if got := entry.Options.Headers[yesmemAllowMCPHeader]; got != "1" {
-		t.Errorf("deepseek.options.headers[%q] = %q, want \"1\"", yesmemAllowMCPHeader, got)
+	if got := entry.Options.Headers[nemonsAllowMCPHeader]; got != "1" {
+		t.Errorf("deepseek.options.headers[%q] = %q, want \"1\"", nemonsAllowMCPHeader, got)
 	}
 	if _, ok := entry.Models["deepseek-chat"]; !ok {
 		t.Errorf("models.deepseek-chat missing; got models=%v", keys(entry.Models))
@@ -517,11 +517,11 @@ func TestBuildOpencodeConfigOverride_Mixed(t *testing.T) {
 			t.Errorf("override missing provider %q; got providers=%v", p, keys(parsed.Provider))
 			continue
 		}
-		if entry.Options.BaseURL != yesmemProxyBaseURL {
-			t.Errorf("provider %q: baseURL = %q, want %q", p, entry.Options.BaseURL, yesmemProxyBaseURL)
+		if entry.Options.BaseURL != nemonsProxyBaseURL {
+			t.Errorf("provider %q: baseURL = %q, want %q", p, entry.Options.BaseURL, nemonsProxyBaseURL)
 		}
-		if got := entry.Options.Headers[yesmemAllowMCPHeader]; got != "1" {
-			t.Errorf("provider %q: headers[%q] = %q, want \"1\"", p, yesmemAllowMCPHeader, got)
+		if got := entry.Options.Headers[nemonsAllowMCPHeader]; got != "1" {
+			t.Errorf("provider %q: headers[%q] = %q, want \"1\"", p, nemonsAllowMCPHeader, got)
 		}
 	}
 	// No extra providers should have been synthesized.
@@ -545,7 +545,7 @@ func TestBuildOpencodeConfigOverride_Fallback(t *testing.T) {
 	// pre-dynamic recipe. This test fails if anyone silently changes the
 	// fallback's shape.
 	t.Run("fallback matches pre-fix literal byte-for-byte", func(t *testing.T) {
-		original := `{"mcp":{"yesmem":{"type":"local","command":["yesmem","mcp"],"enabled":true,"timeout":120000,"environment":{"YESMEM_SOURCE_AGENT":"opencode"}}},"provider":{"deepseek":{"options":{"baseURL":"http://localhost:9099/v1","headers":{"x-yesmem-allow-mcp":"1"}}}}}`
+		original := `{"mcp":{"nemons":{"type":"local","command":["nemons","mcp"],"enabled":true,"timeout":120000,"environment":{"NEMONS_SOURCE_AGENT":"opencode"}}},"provider":{"deepseek":{"options":{"baseURL":"http://localhost:9099/v1","headers":{"x-nemons-allow-mcp":"1"}}}}}`
 		if defaultOpencodeFallbackConfig != original {
 			t.Errorf("defaultOpencodeFallbackConfig drifted from pre-fix bytes:\n got: %s\nwant: %s", defaultOpencodeFallbackConfig, original)
 		}
@@ -630,11 +630,11 @@ func TestBuildOpencodeConfigOverride_NoOptionsKey(t *testing.T) {
 	if !ok {
 		t.Fatalf("override missing 'bare' provider; got=%v\nraw: %s", keys(parsed.Provider), got)
 	}
-	if entry.Options.BaseURL != yesmemProxyBaseURL {
-		t.Errorf("bare.options.baseURL = %q, want %q (rewriter must add options block)", entry.Options.BaseURL, yesmemProxyBaseURL)
+	if entry.Options.BaseURL != nemonsProxyBaseURL {
+		t.Errorf("bare.options.baseURL = %q, want %q (rewriter must add options block)", entry.Options.BaseURL, nemonsProxyBaseURL)
 	}
-	if got := entry.Options.Headers[yesmemAllowMCPHeader]; got != "1" {
-		t.Errorf("bare.options.headers[%q] = %q, want \"1\"", yesmemAllowMCPHeader, got)
+	if got := entry.Options.Headers[nemonsAllowMCPHeader]; got != "1" {
+		t.Errorf("bare.options.headers[%q] = %q, want \"1\"", nemonsAllowMCPHeader, got)
 	}
 	if _, ok := entry.Models["bare-model"]; !ok {
 		t.Errorf("models.bare-model missing; the rewriter must preserve non-options fields; got models=%v", keys(entry.Models))

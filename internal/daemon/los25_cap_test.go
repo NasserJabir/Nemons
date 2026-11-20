@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/embedding"
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/embedding"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func los25InsertDatedLearning(t *testing.T, s interface {
@@ -102,7 +102,7 @@ func TestLos25_CapClusterableKeepsTheNewestLearnings(t *testing.T) {
 func TestLos25_ClusterLearningsFindsClusterBeyondTheCap(t *testing.T) {
 	s := los25EmbeddingTestStore(t)
 
-	const project = "/home/tester/memory/yesmem"
+	const project = "/home/tester/memory/nemons"
 	for i := 0; i < 3; i++ {
 		los25UpsertSession(t, s, fmt.Sprintf("los25sess-cap-%d", i), project)
 	}
@@ -131,7 +131,7 @@ func TestLos25_ClusterLearningsFindsClusterBeyondTheCap(t *testing.T) {
 
 	ClusterLearnings(s, &los25CountingLLM{reply: "shared topic"}, vec)
 
-	clusters, err := s.GetLearningClusters("yesmem")
+	clusters, err := s.GetLearningClusters("nemons")
 	if err != nil {
 		t.Fatalf("get clusters: %v", err)
 	}

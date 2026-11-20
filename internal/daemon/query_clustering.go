@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/clustering"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/clustering"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // RunQueryClustering clusters unclustered query_log entries and updates cluster scores.

@@ -16,7 +16,7 @@ import (
 // and track_proxy_usage with source=fork (token_usage). The CREATE TABLE
 // constants must therefore carry them.
 func TestLos19e_FreshStoreCarriesAlterOnlyColumns(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "yesmem.db")
+	path := filepath.Join(t.TempDir(), "nemons.db")
 	if _, err := os.Stat(path); !errors.Is(err, fs.ErrNotExist) {
 		t.Fatalf("precondition: store file already exists (%v), this is not a first lifetime", err)
 	}
@@ -52,7 +52,7 @@ func TestLos19e_FreshStoreCarriesAlterOnlyColumns(t *testing.T) {
 // The two symptoms the missing columns produced, on a first-open store: the
 // proxy path update_fixation_ratio must work, and a fork usage report must land.
 func TestLos19e_FirstOpenServesFixationAndForkUsage(t *testing.T) {
-	s, err := Open(filepath.Join(t.TempDir(), "yesmem.db"))
+	s, err := Open(filepath.Join(t.TempDir(), "nemons.db"))
 	if err != nil {
 		t.Fatalf("open fresh store: %v", err)
 	}

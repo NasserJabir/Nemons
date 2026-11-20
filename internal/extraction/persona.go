@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // PersonaExtractionSystemPrompt is the system prompt for extracting persona signals.

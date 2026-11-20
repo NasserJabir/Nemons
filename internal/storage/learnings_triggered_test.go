@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // YM-106: GetTriggeredLearnings limited to 10 rows without ordering or rule

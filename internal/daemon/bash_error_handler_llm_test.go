@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // autoCorrectStubClient is the daemon LLM client for these tests: it records
@@ -258,7 +258,7 @@ func TestAutoCorrect_VerifiesTheBodyTheJobWouldRun(t *testing.T) {
 	if verified == "" {
 		t.Fatal("the verification run never happened")
 	}
-	if !strings.Contains(verified, "YESMEM_WORKER_IN") {
+	if !strings.Contains(verified, "NEMONS_WORKER_IN") {
 		t.Errorf("the verified body lacks the adapter prelude the job gets: %.120q", verified)
 	}
 }

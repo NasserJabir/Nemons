@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // los19StubExtractor satisfies SessionExtractor without calling an LLM.

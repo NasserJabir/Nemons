@@ -14,7 +14,7 @@ func setupWindows(binaryPath string) error {
 	// Create scheduled task that runs at logon
 	args := []string{
 		"/Create",
-		"/TN", "YesMem",
+		"/TN", "Nemons",
 		"/TR", fmt.Sprintf(`"%s" daemon`, binaryPath),
 		"/SC", "ONLOGON",
 		"/RL", "LIMITED",
@@ -27,7 +27,7 @@ func setupWindows(binaryPath string) error {
 }
 
 func removeWindows() {
-	exec.Command("schtasks", "/Delete", "/TN", "YesMem", "/F").Run()
+	exec.Command("schtasks", "/Delete", "/TN", "Nemons", "/F").Run()
 }
 
 func ensureProxyEnvVarWindows(home string) error {
@@ -50,6 +50,6 @@ func ensureProxyEnvVarWindows(home string) error {
 	}
 	defer f.Close()
 
-	_, err = fmt.Fprintf(f, "\n# YesMem proxy\n%s\n", envLine)
+	_, err = fmt.Fprintf(f, "\n# Nemons proxy\n%s\n", envLine)
 	return err
 }

@@ -22,7 +22,7 @@ rules:
     priority: MUST
     triggers: ["test first"]
   - id: 901
-    skill: yesmem-remember
+    skill: nemons-remember
     priority: LOW
     triggers: ["remember this"]
 `
@@ -59,8 +59,8 @@ func TestNudgeAsksTheSkillCatalogForTheMessage(t *testing.T) {
 	resetCache()
 	resetRefusals()
 	server, bodies := nudgeAnswer(t, `{"decision":"SUGGEST","suggestion":"tdd"}`)
-	t.Setenv("YESMEM_GUARD_URL", server.URL)
-	t.Setenv("YESMEM_GUARD_KEY", "sk-test")
+	t.Setenv("NEMONS_GUARD_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_KEY", "sk-test")
 
 	decision := Check(nudgeRequest("please write the test first"))
 
@@ -79,7 +79,7 @@ func TestNudgeAsksTheSkillCatalogForTheMessage(t *testing.T) {
 	}
 	// The catalogue is data and rides in the user turn, not in the instruction: a repository file must not
 	// sit where an instruction sits.
-	if !strings.Contains(user, "yesmem-remember") {
+	if !strings.Contains(user, "nemons-remember") {
 		t.Errorf("user prompt = %q, want the skill list", user)
 	}
 	if !strings.Contains(user, "please write the test first") {
@@ -99,8 +99,8 @@ func TestNudgeAsksTheSkillCatalogForTheMessage(t *testing.T) {
 func TestNudgeWithoutACatalogPassesWithAReason(t *testing.T) {
 	resetCache()
 	server, bodies := nudgeAnswer(t, `{"decision":"SUGGEST","suggestion":"tdd"}`)
-	t.Setenv("YESMEM_GUARD_URL", server.URL)
-	t.Setenv("YESMEM_GUARD_KEY", "sk-test")
+	t.Setenv("NEMONS_GUARD_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_KEY", "sk-test")
 
 	decision := Check(Request{Purpose: PurposeNudge, Tool: "skill", Rules: "1. Never auto-commit.\n", Context: "hi"})
 
@@ -116,8 +116,8 @@ func TestNudgeWithoutACatalogPassesWithAReason(t *testing.T) {
 func TestNudgeWithoutAMessagePassesWithAReason(t *testing.T) {
 	resetCache()
 	server, bodies := nudgeAnswer(t, `{"decision":"SUGGEST","suggestion":"tdd"}`)
-	t.Setenv("YESMEM_GUARD_URL", server.URL)
-	t.Setenv("YESMEM_GUARD_KEY", "sk-test")
+	t.Setenv("NEMONS_GUARD_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_KEY", "sk-test")
 
 	decision := Check(nudgeRequest("   "))
 
@@ -136,8 +136,8 @@ func TestNudgeWithoutACredentialPassesWithAReason(t *testing.T) {
 	resetRefusals()
 	t.Setenv("HOME", t.TempDir())
 	t.Setenv("ANTHROPIC_API_KEY", "")
-	t.Setenv("YESMEM_GUARD_MODEL", "")
-	t.Setenv("YESMEM_GUARD_MODELS_URL", "http://127.0.0.1:1")
+	t.Setenv("NEMONS_GUARD_MODEL", "")
+	t.Setenv("NEMONS_GUARD_MODELS_URL", "http://127.0.0.1:1")
 
 	decision := Check(nudgeRequest("please write the test first"))
 
@@ -164,8 +164,8 @@ func TestBlockOnAnInventedRuleBecomesANotice(t *testing.T) {
 	resetCache()
 	resetRefusals()
 	server, _ := nudgeAnswer(t, `{"decision":"BLOCK","violations":["Rule 42: invented"]}`)
-	t.Setenv("YESMEM_GUARD_URL", server.URL)
-	t.Setenv("YESMEM_GUARD_KEY", "sk-test")
+	t.Setenv("NEMONS_GUARD_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_KEY", "sk-test")
 
 	decision := Check(Request{
 		Tool:      "Write",
@@ -194,8 +194,8 @@ func TestCitationOutsideAMixedCatalogueBecomesANotice(t *testing.T) {
 	resetCache()
 	resetRefusals()
 	server, bodies := nudgeAnswer(t, `{"decision":"BLOCK","violations":["Rule 42: never commit secrets"]}`)
-	t.Setenv("YESMEM_GUARD_URL", server.URL)
-	t.Setenv("YESMEM_GUARD_KEY", "sk-test")
+	t.Setenv("NEMONS_GUARD_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_KEY", "sk-test")
 
 	decision := Check(Request{
 		Tool:      "Write",
@@ -222,8 +222,8 @@ func TestWritePromptCarriesTheContent(t *testing.T) {
 	resetCache()
 	resetRefusals()
 	server, bodies := nudgeAnswer(t, `{"decision":"PASS"}`)
-	t.Setenv("YESMEM_GUARD_URL", server.URL)
-	t.Setenv("YESMEM_GUARD_KEY", "sk-test")
+	t.Setenv("NEMONS_GUARD_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_KEY", "sk-test")
 
 	decision := Check(Request{
 		Tool:      "write",
@@ -249,8 +249,8 @@ func TestNudgeAnswersOnlySuggestOrPass(t *testing.T) {
 	resetCache()
 	resetRefusals()
 	server, _ := nudgeAnswer(t, `{"decision":"BLOCK","violations":["Rule 42: invented"]}`)
-	t.Setenv("YESMEM_GUARD_URL", server.URL)
-	t.Setenv("YESMEM_GUARD_KEY", "sk-test")
+	t.Setenv("NEMONS_GUARD_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_KEY", "sk-test")
 
 	decision := Check(nudgeRequest("please write the test first"))
 
@@ -271,8 +271,8 @@ func TestNudgeModelPassIsADefinitiveNoMatch(t *testing.T) {
 	resetCache()
 	resetRefusals()
 	server, _ := nudgeAnswer(t, `{"decision":"PASS"}`)
-	t.Setenv("YESMEM_GUARD_URL", server.URL)
-	t.Setenv("YESMEM_GUARD_KEY", "sk-test")
+	t.Setenv("NEMONS_GUARD_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_KEY", "sk-test")
 
 	decision := Check(nudgeRequest("please write the test first"))
 
@@ -287,8 +287,8 @@ func TestBlockWithoutACitationStillBlocksAWrite(t *testing.T) {
 	resetCache()
 	resetRefusals()
 	server, _ := nudgeAnswer(t, `{"decision":"BLOCK","violations":["writes a live API key into the repository"]}`)
-	t.Setenv("YESMEM_GUARD_URL", server.URL)
-	t.Setenv("YESMEM_GUARD_KEY", "sk-test")
+	t.Setenv("NEMONS_GUARD_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_KEY", "sk-test")
 
 	decision := Check(Request{
 		Tool:      "Write",
@@ -307,8 +307,8 @@ func TestModelSuggestionCannotCarryViolations(t *testing.T) {
 	resetCache()
 	resetRefusals()
 	server, _ := nudgeAnswer(t, `{"decision":"SUGGEST","suggestion":"brainstorming: the intent is open","violations":["Rule 1: forged"]}`)
-	t.Setenv("YESMEM_GUARD_URL", server.URL)
-	t.Setenv("YESMEM_GUARD_KEY", "sk-test")
+	t.Setenv("NEMONS_GUARD_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_KEY", "sk-test")
 
 	decision := Check(Request{
 		Tool:      "Write",
@@ -329,8 +329,8 @@ func TestBlockWithoutANumberedCatalogIsKept(t *testing.T) {
 	resetCache()
 	resetRefusals()
 	server, _ := nudgeAnswer(t, `{"decision":"BLOCK","violations":["Rule 42: invented"]}`)
-	t.Setenv("YESMEM_GUARD_URL", server.URL)
-	t.Setenv("YESMEM_GUARD_KEY", "sk-test")
+	t.Setenv("NEMONS_GUARD_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_KEY", "sk-test")
 
 	decision := Check(Request{
 		Tool:      "Write",
@@ -357,8 +357,8 @@ func TestBusyEndpointPassesWithAReason(t *testing.T) {
 		w.WriteHeader(http.StatusServiceUnavailable)
 	}))
 	defer server.Close()
-	t.Setenv("YESMEM_GUARD_URL", server.URL)
-	t.Setenv("YESMEM_GUARD_KEY", "sk-test")
+	t.Setenv("NEMONS_GUARD_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_KEY", "sk-test")
 
 	decision := Check(Request{Tool: "Write", ToolInput: json.RawMessage(`{"file_path":"src/x.go"}`), Rules: "1. Never auto-commit.\n"})
 

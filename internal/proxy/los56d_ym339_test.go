@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // YM-331 (3): the frozen per-message store is keyed by the thread id. For a

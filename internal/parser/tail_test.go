@@ -243,7 +243,7 @@ func TestFileSessionIdentityClaude(t *testing.T) {
 }
 
 // Subagent files carry the parent sessionId plus their own agentId; the agent
-// id is the identity yesmem stores for them.
+// id is the identity nemons stores for them.
 func TestFileSessionIdentitySubagentPrefersAgentID(t *testing.T) {
 	id, err := FileSessionIdentity("testdata/sample-subagent.jsonl")
 	if err != nil {

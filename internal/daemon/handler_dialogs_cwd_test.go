@@ -7,12 +7,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // --- resolveSessionID fallback for opencode v2 (cwd-based) ---
 //
-// In opencode v2 every `yesmem mcp` child is spawned by the shared
+// In opencode v2 every `nemons mcp` child is spawned by the shared
 // `opencode serve --service` process, so the child's PPID — and therefore the
 // _caller_pid the MCP layer sends — is that one service PID for every session
 // it hosts, never the TUI PID stored in agents.pid. The PID lookups in

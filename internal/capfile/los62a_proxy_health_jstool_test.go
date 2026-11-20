@@ -36,7 +36,7 @@ func los62aJSRunner(t *testing.T) func(proxyLog string) map[string]any {
 	}
 	writeStub(t, filepath.Join(bin, "journalctl"), `#!/bin/sh
 case "$*" in
-  *yesmem-proxy*) cat "$LOS62A_PROXY_LOG" ;;
+  *nemons-proxy*) cat "$LOS62A_PROXY_LOG" ;;
   *) cat "$LOS62A_DAEMON_LOG" ;;
 esac
 exit 0
@@ -50,10 +50,10 @@ exit 0
 	module := filepath.Join(dir, "cap.mjs")
 	script := `import { execSync } from 'node:child_process';
 const sh = (cmd) => execSync(cmd, {encoding: 'utf8'}).toString();
-const mcp__yesmem__cap_store = async () => ({ok: true});
-const mcp__yesmem__broadcast = async () => ({ok: true});
+const mcp__nemons__cap_store = async () => ({ok: true});
+const mcp__nemons__broadcast = async () => ({ok: true});
 const handler = ` + body + `;
-const out = await handler({hours: 1, alert: true, project: '/home/tester/memory/yesmem'});
+const out = await handler({hours: 1, alert: true, project: '/home/tester/memory/nemons'});
 console.log(JSON.stringify(out));
 `
 	if err := os.WriteFile(module, []byte(script), 0o644); err != nil {
@@ -114,8 +114,8 @@ func TestLos62aHealthJSCountsAColouredTransportFailure(t *testing.T) {
 func TestLos62aHealthJSIsNotCrowdedOutByCommitSubjects(t *testing.T) {
 	run := los62aJSRunner(t)
 	res := run(los32eResponseLines(
-		`[req 1 yesmem tid=abc] git commit detected: 1234abc fix upstream 429: rate_limit handling`, 60) +
-		los32eProxyLine(`[req 2 yesmem tid=abc] upstream 503: real failure`) +
+		`[req 1 nemons tid=abc] git commit detected: 1234abc fix upstream 429: rate_limit handling`, 60) +
+		los32eProxyLine(`[req 2 nemons tid=abc] upstream 503: real failure`) +
 		los32eProxyLine(`[keepalive] ping tid=abc cache_read=1 cache_write=42 out=3 remaining=1 mode=5m`))
 
 	total, byType := los62aJSAPIErrors(t, res)
@@ -127,9 +127,9 @@ func TestLos62aHealthJSIsNotCrowdedOutByCommitSubjects(t *testing.T) {
 func TestLos62aHealthJSIgnoresCommitSubjectLines(t *testing.T) {
 	run := los62aJSRunner(t)
 	res := run(los32eResponseLines(
-		`[req 1 yesmem tid=abc] git commit detected: 1234abc log listening on 127.0.0.1:3456 threshold=525000`, 6) +
+		`[req 1 nemons tid=abc] git commit detected: 1234abc log listening on 127.0.0.1:3456 threshold=525000`, 6) +
 		los32eResponseLines(
-			`[req 1 yesmem tid=abc] git commit detected: 1234abc fix error: i/o timeout in the daemon retry`, 4) +
+			`[req 1 nemons tid=abc] git commit detected: 1234abc fix error: i/o timeout in the daemon retry`, 4) +
 		los32eProxyLine(`[keepalive] ping tid=abc cache_read=1 cache_write=42 out=3 remaining=1 mode=5m`))
 
 	if res["status"] != "healthy" {

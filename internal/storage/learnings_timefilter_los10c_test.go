@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // los10cZones returns two locations one hour ahead and one hour behind the local

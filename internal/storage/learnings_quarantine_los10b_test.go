@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // insertQuarantineLos10bLearning inserts a learning with its own session and

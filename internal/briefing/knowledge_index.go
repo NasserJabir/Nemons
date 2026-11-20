@@ -7,7 +7,7 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/carsteneu/yesmem/internal/codescan"
+	"github.com/NasserJabir/Nemons/internal/codescan"
 )
 
 // HealthData holds counts for the health section of the briefing.

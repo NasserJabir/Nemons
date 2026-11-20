@@ -42,7 +42,7 @@ func TestEnsureSystemArray_Missing(t *testing.T) {
 
 func TestAppendSystemBlock_StringToArray(t *testing.T) {
 	req := map[string]any{"system": "You are Claude."}
-	AppendSystemBlock(req, "yesmem-narrative", "Session-Kontext: test")
+	AppendSystemBlock(req, "nemons-narrative", "Session-Kontext: test")
 
 	blocks, ok := req["system"].([]any)
 	if !ok {
@@ -56,7 +56,7 @@ func TestAppendSystemBlock_StringToArray(t *testing.T) {
 	if !strings.Contains(text, "Session-Kontext: test") {
 		t.Errorf("second block text mismatch: %s", text)
 	}
-	if !strings.HasPrefix(text, "[yesmem-narrative]") {
+	if !strings.HasPrefix(text, "[nemons-narrative]") {
 		t.Errorf("second block should be tagged: %s", text)
 	}
 }
@@ -67,7 +67,7 @@ func TestAppendSystemBlock_ArrayAppend(t *testing.T) {
 			map[string]any{"type": "text", "text": "You are Claude."},
 		},
 	}
-	AppendSystemBlock(req, "yesmem-narrative", "Session-Kontext: test")
+	AppendSystemBlock(req, "nemons-narrative", "Session-Kontext: test")
 
 	blocks := req["system"].([]any)
 	if len(blocks) != 2 {
@@ -79,10 +79,10 @@ func TestReplaceSystemBlock_ReplacesExisting(t *testing.T) {
 	req := map[string]any{
 		"system": []any{
 			map[string]any{"type": "text", "text": "You are Claude."},
-			map[string]any{"type": "text", "text": "[yesmem-narrative]\nold content"},
+			map[string]any{"type": "text", "text": "[nemons-narrative]\nold content"},
 		},
 	}
-	ReplaceSystemBlock(req, "yesmem-narrative", "new content")
+	ReplaceSystemBlock(req, "nemons-narrative", "new content")
 
 	blocks := req["system"].([]any)
 	if len(blocks) != 2 {
@@ -90,7 +90,7 @@ func TestReplaceSystemBlock_ReplacesExisting(t *testing.T) {
 	}
 	second := blocks[1].(map[string]any)
 	text, _ := second["text"].(string)
-	if text != "[yesmem-narrative]\nnew content\n\n" {
+	if text != "[nemons-narrative]\nnew content\n\n" {
 		t.Errorf("expected replaced content, got: %q", text)
 	}
 }
@@ -101,7 +101,7 @@ func TestReplaceSystemBlock_AppendsIfNotFound(t *testing.T) {
 			map[string]any{"type": "text", "text": "You are Claude."},
 		},
 	}
-	ReplaceSystemBlock(req, "yesmem-narrative", "new content")
+	ReplaceSystemBlock(req, "nemons-narrative", "new content")
 
 	blocks := req["system"].([]any)
 	if len(blocks) != 2 {
@@ -109,14 +109,14 @@ func TestReplaceSystemBlock_AppendsIfNotFound(t *testing.T) {
 	}
 	second := blocks[1].(map[string]any)
 	text, _ := second["text"].(string)
-	if text != "[yesmem-narrative]\nnew content\n\n" {
+	if text != "[nemons-narrative]\nnew content\n\n" {
 		t.Errorf("expected appended content, got: %q", text)
 	}
 }
 
 func TestAppendSystemBlockCached(t *testing.T) {
 	req := map[string]any{"system": "You are Claude."}
-	AppendSystemBlockCached(req, "yesmem-briefing", "Briefing text")
+	AppendSystemBlockCached(req, "nemons-briefing", "Briefing text")
 
 	blocks := req["system"].([]any)
 	if len(blocks) != 2 {
@@ -131,7 +131,7 @@ func TestAppendSystemBlockCached(t *testing.T) {
 		t.Error("cache_control type should be ephemeral")
 	}
 	text, _ := second["text"].(string)
-	if !strings.HasPrefix(text, "[yesmem-briefing]") {
+	if !strings.HasPrefix(text, "[nemons-briefing]") {
 		t.Errorf("should be tagged: %s", text)
 	}
 }
@@ -155,7 +155,7 @@ func TestUpsertSystemBlockCached_RespectsBudget(t *testing.T) {
 		},
 	}
 
-	UpsertSystemBlockCached(req, "yesmem-briefing", "Briefing text")
+	UpsertSystemBlockCached(req, "nemons-briefing", "Briefing text")
 
 	blocks := req["system"].([]any)
 	last := blocks[len(blocks)-1].(map[string]any)
@@ -170,20 +170,20 @@ func TestUpsertSystemBlockCached_ReplacesExistingWithoutDuplication(t *testing.T
 			map[string]any{"type": "text", "text": "You are Claude."},
 			map[string]any{
 				"type":          "text",
-				"text":          "[yesmem-briefing]\nold briefing",
+				"text":          "[nemons-briefing]\nold briefing",
 				"cache_control": map[string]any{"type": "ephemeral"},
 			},
 		},
 	}
 
-	UpsertSystemBlockCached(req, "yesmem-briefing", "new briefing")
+	UpsertSystemBlockCached(req, "nemons-briefing", "new briefing")
 
 	blocks := req["system"].([]any)
 	if len(blocks) != 2 {
 		t.Fatalf("expected 2 blocks, got %d", len(blocks))
 	}
 	second := blocks[1].(map[string]any)
-	if text, _ := second["text"].(string); text != "[yesmem-briefing]\nnew briefing\n\n" {
+	if text, _ := second["text"].(string); text != "[nemons-briefing]\nnew briefing\n\n" {
 		t.Fatalf("unexpected text: %q", text)
 	}
 	if _, ok := second["cache_control"]; !ok {
@@ -197,12 +197,12 @@ func TestReplaceSystemBlock_PreservesCacheControl(t *testing.T) {
 			map[string]any{"type": "text", "text": "You are Claude."},
 			map[string]any{
 				"type":          "text",
-				"text":          "[yesmem-briefing]\nold briefing",
+				"text":          "[nemons-briefing]\nold briefing",
 				"cache_control": map[string]any{"type": "ephemeral"},
 			},
 		},
 	}
-	ReplaceSystemBlock(req, "yesmem-briefing", "new briefing")
+	ReplaceSystemBlock(req, "nemons-briefing", "new briefing")
 
 	blocks := req["system"].([]any)
 	second := blocks[1].(map[string]any)
@@ -210,7 +210,7 @@ func TestReplaceSystemBlock_PreservesCacheControl(t *testing.T) {
 		t.Error("cache_control should be preserved after replace")
 	}
 	text, _ := second["text"].(string)
-	if text != "[yesmem-briefing]\nnew briefing\n\n" {
+	if text != "[nemons-briefing]\nnew briefing\n\n" {
 		t.Errorf("text not replaced: %q", text)
 	}
 }
@@ -372,8 +372,8 @@ func TestStripCLAUDEMDDisclaimer_StripsFromContentBlocks(t *testing.T) {
 
 func TestMultipleBlocks(t *testing.T) {
 	req := map[string]any{"system": "You are Claude."}
-	AppendSystemBlockCached(req, "yesmem-briefing", "Briefing")
-	AppendSystemBlock(req, "yesmem-narrative", "Narrative")
+	AppendSystemBlockCached(req, "nemons-briefing", "Briefing")
+	AppendSystemBlock(req, "nemons-narrative", "Narrative")
 
 	blocks := req["system"].([]any)
 	if len(blocks) != 3 {
@@ -381,7 +381,7 @@ func TestMultipleBlocks(t *testing.T) {
 	}
 
 	// Replace narrative, briefing should stay
-	ReplaceSystemBlock(req, "yesmem-narrative", "Updated Narrative")
+	ReplaceSystemBlock(req, "nemons-narrative", "Updated Narrative")
 	blocks = req["system"].([]any)
 	if len(blocks) != 3 {
 		t.Fatalf("expected still 3 blocks after replace, got %d", len(blocks))

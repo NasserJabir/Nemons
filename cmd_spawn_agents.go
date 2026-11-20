@@ -12,8 +12,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/daemon"
-	"github.com/carsteneu/yesmem/internal/orchestrator"
+	"github.com/NasserJabir/Nemons/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/orchestrator"
 )
 
 func runSpawnAgents(args []string) {
@@ -37,8 +37,8 @@ func runSpawnAgents(args []string) {
 	terminal := orchestrator.DetectTerminal()
 	fmt.Printf("Terminal detected: %s\n", terminal)
 
-	dataDir := yesmemDataDir()
-	yesmemBin, _ := os.Executable()
+	dataDir := nemonsDataDir()
+	nemonsBin, _ := os.Executable()
 
 	// Connect to daemon for agent state management
 	client, err := daemon.DialTimeout(dataDir, 5*time.Second)
@@ -101,7 +101,7 @@ func runSpawnAgents(args []string) {
 		go bridge.Serve()
 
 		// 3. Open terminal window
-		bin, spawnArgs := orchestrator.BuildSpawnCommand(terminal, yesmemBin, "", "agent-tty", "--sock", sockPath)
+		bin, spawnArgs := orchestrator.BuildSpawnCommand(terminal, nemonsBin, "", "agent-tty", "--sock", sockPath)
 		termCmd := exec.Command(bin, spawnArgs...)
 		if err := termCmd.Start(); err != nil {
 			fmt.Fprintf(os.Stderr, "%s: terminal failed: %v\n", spawnResult.ID, err)

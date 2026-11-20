@@ -102,7 +102,7 @@ func los34fOpencodeModelEntries(t *testing.T) string {
 
 // YM-303 (0): since YM-291 both ai-jail majors start a run in its work dir, and a
 // job's work dir is the project. A project .ai-jail is then read and merged over
-// the flags the daemon renders: the yesmem checkout carries a tracked one whose
+// the flags the daemon renders: the nemons checkout carries a tracked one whose
 // command is a telegram poll, and its mask/rw_maps/hide_dotdirs keys would widen
 // the sandbox. --clean makes ai-jail ignore that file (measured on 0.9.2: the
 // repo mask applied without it and did not apply with it).
@@ -161,9 +161,9 @@ func TestLos34fMasksTheOpencodeConfigAndServesTheModelList(t *testing.T) {
 		t.Fatalf("the config has to survive as a placeholder, stat: %v", err)
 	}
 
-	models, ok := los34fEnvValue(sb.cfg.Env, "YESMEM_OPENCODE_MODELS")
+	models, ok := los34fEnvValue(sb.cfg.Env, "NEMONS_OPENCODE_MODELS")
 	if !ok {
-		t.Fatalf("the run carries no YESMEM_OPENCODE_MODELS, env = %v", sb.cfg.Env)
+		t.Fatalf("the run carries no NEMONS_OPENCODE_MODELS, env = %v", sb.cfg.Env)
 	}
 	// The list replaces what the caps used to read out of the file.
 	for _, want := range []string{"zai/glm-5.2", "other/* (default)"} {
@@ -487,7 +487,7 @@ func TestLos34fCapExecutionDeliversTheModelListToTheProcess(t *testing.T) {
 	los34fPinExecAiJail(t, 0)
 	los34fOpencodeModelEntries(t)
 	h, _ := mustHandler(t)
-	insertCapWithSandbox(t, h, "los34f_env", `printf '%s' "${YESMEM_OPENCODE_MODELS:-MISSING}"`, "standard")
+	insertCapWithSandbox(t, h, "los34f_env", `printf '%s' "${NEMONS_OPENCODE_MODELS:-MISSING}"`, "standard")
 
 	out := los34fCapOutput(t, h, "los34f_env")
 	if strings.TrimSpace(out) == "MISSING" || !strings.Contains(out, "zai/glm-5.2") {
@@ -522,8 +522,8 @@ func TestLos34fDropsMountsInsideAnyMaskedPath(t *testing.T) {
 	if err := os.MkdirAll(maskedDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	inside := filepath.Join(maskedDir, "yesmem")
-	outside := filepath.Join(t.TempDir(), "yesmem")
+	inside := filepath.Join(maskedDir, "nemons")
+	outside := filepath.Join(t.TempDir(), "nemons")
 
 	sb := h.newSandbox(SandboxConfig{
 		Enabled:        true,
@@ -787,7 +787,7 @@ func TestLos34fModelListFollowsTheXdgRoot(t *testing.T) {
 
 	sb := h.newSandbox(SandboxConfig{Enabled: true})
 
-	models, ok := los34fEnvValue(sb.cfg.Env, "YESMEM_OPENCODE_MODELS")
+	models, ok := los34fEnvValue(sb.cfg.Env, "NEMONS_OPENCODE_MODELS")
 	if !ok || !strings.Contains(models, "zai/glm-5.2") {
 		t.Fatalf("model list = %q (present=%v), want the entries from the XDG config", models, ok)
 	}
@@ -819,7 +819,7 @@ func TestLos34fMasksTheClaudeGlobalConfigBackups(t *testing.T) {
 	}
 }
 
-// Nachreview (5.3): the caller already sets YESMEM_SOCK and newSandbox appends it
+// Nachreview (5.3): the caller already sets NEMONS_SOCK and newSandbox appends it
 // again. Two entries become two --env flags on 2.x and two environment entries on
 // 0.9.x; which one wins is a consumer detail, so the list carries each key once.
 func TestLos34fEnvHasNoDuplicateKeys(t *testing.T) {
@@ -828,15 +828,15 @@ func TestLos34fEnvHasNoDuplicateKeys(t *testing.T) {
 	h, _ := mustHandler(t)
 
 	sock := JobSocketPath(h.dataDir)
-	sb := h.newSandbox(SandboxConfig{Enabled: true, Env: []string{"YESMEM_SOCK=" + sock}})
+	sb := h.newSandbox(SandboxConfig{Enabled: true, Env: []string{"NEMONS_SOCK=" + sock}})
 
 	count := 0
 	for _, kv := range sb.cfg.Env {
-		if strings.HasPrefix(kv, "YESMEM_SOCK=") {
+		if strings.HasPrefix(kv, "NEMONS_SOCK=") {
 			count++
 		}
 	}
 	if count != 1 {
-		t.Fatalf("YESMEM_SOCK appears %d times in %v, want 1", count, sb.cfg.Env)
+		t.Fatalf("NEMONS_SOCK appears %d times in %v, want 1", count, sb.cfg.Env)
 	}
 }

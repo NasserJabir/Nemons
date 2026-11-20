@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // --- handleGetSession ---
@@ -21,7 +21,7 @@ func TestHandleGetSession_NotFound(t *testing.T) {
 
 func TestHandleGetSession_SummaryMode(t *testing.T) {
 	h, s := mustHandler(t)
-	seedSession(t, s, "sess-1", "yesmem", 3)
+	seedSession(t, s, "sess-1", "nemons", 3)
 
 	resp := h.handleGetSession(map[string]any{"session_id": "sess-1"})
 	if resp.Error != "" {
@@ -46,7 +46,7 @@ func TestHandleGetSession_SummaryMode(t *testing.T) {
 
 func TestHandleGetSession_SummaryMode_Explicit(t *testing.T) {
 	h, s := mustHandler(t)
-	seedSession(t, s, "sess-2", "yesmem", 2)
+	seedSession(t, s, "sess-2", "nemons", 2)
 
 	resp := h.handleGetSession(map[string]any{"session_id": "sess-2", "mode": "summary"})
 	if resp.Error != "" {
@@ -64,7 +64,7 @@ func TestHandleGetSession_SummaryMode_Explicit(t *testing.T) {
 
 func TestHandleGetSession_RecentMode(t *testing.T) {
 	h, s := mustHandler(t)
-	seedSession(t, s, "sess-r", "yesmem", 5)
+	seedSession(t, s, "sess-r", "nemons", 5)
 
 	resp := h.handleGetSession(map[string]any{
 		"session_id": "sess-r",
@@ -90,7 +90,7 @@ func TestHandleGetSession_RecentMode(t *testing.T) {
 
 func TestHandleGetSession_RecentMode_LimitExceedsMessages(t *testing.T) {
 	h, s := mustHandler(t)
-	seedSession(t, s, "sess-rl", "yesmem", 2)
+	seedSession(t, s, "sess-rl", "nemons", 2)
 
 	resp := h.handleGetSession(map[string]any{
 		"session_id": "sess-rl",
@@ -109,7 +109,7 @@ func TestHandleGetSession_RecentMode_LimitExceedsMessages(t *testing.T) {
 
 func TestHandleGetSession_PaginatedMode(t *testing.T) {
 	h, s := mustHandler(t)
-	seedSession(t, s, "sess-p", "yesmem", 10)
+	seedSession(t, s, "sess-p", "nemons", 10)
 
 	resp := h.handleGetSession(map[string]any{
 		"session_id": "sess-p",
@@ -139,7 +139,7 @@ func TestHandleGetSession_PaginatedMode(t *testing.T) {
 
 func TestHandleGetSession_PaginatedMode_OffsetPastEnd(t *testing.T) {
 	h, s := mustHandler(t)
-	seedSession(t, s, "sess-pe", "yesmem", 3)
+	seedSession(t, s, "sess-pe", "nemons", 3)
 
 	resp := h.handleGetSession(map[string]any{
 		"session_id": "sess-pe",
@@ -158,7 +158,7 @@ func TestHandleGetSession_PaginatedMode_OffsetPastEnd(t *testing.T) {
 
 func TestHandleGetSession_PaginatedMode_LastPage(t *testing.T) {
 	h, s := mustHandler(t)
-	seedSession(t, s, "sess-lp", "yesmem", 5)
+	seedSession(t, s, "sess-lp", "nemons", 5)
 
 	resp := h.handleGetSession(map[string]any{
 		"session_id": "sess-lp",
@@ -181,7 +181,7 @@ func TestHandleGetSession_PaginatedMode_LastPage(t *testing.T) {
 
 func TestHandleGetSession_FullMode(t *testing.T) {
 	h, s := mustHandler(t)
-	seedSession(t, s, "sess-f", "yesmem", 5)
+	seedSession(t, s, "sess-f", "nemons", 5)
 
 	resp := h.handleGetSession(map[string]any{
 		"session_id": "sess-f",
@@ -199,7 +199,7 @@ func TestHandleGetSession_FullMode(t *testing.T) {
 
 func TestHandleGetSession_FullMode_TruncatesOver100(t *testing.T) {
 	h, s := mustHandler(t)
-	seedSession(t, s, "sess-ft", "yesmem", 110)
+	seedSession(t, s, "sess-ft", "nemons", 110)
 
 	resp := h.handleGetSession(map[string]any{
 		"session_id": "sess-ft",
@@ -223,11 +223,11 @@ func TestHandleGetSession_FullMode_TruncatesOver100(t *testing.T) {
 
 func TestHandleGetSession_SubagentCount(t *testing.T) {
 	h, s := mustHandler(t)
-	seedSession(t, s, "parent-1", "yesmem", 2)
+	seedSession(t, s, "parent-1", "nemons", 2)
 
 	// Insert a child session referencing parent-1
 	child := &models.Session{
-		ID: "child-1", Project: "/home/test/yesmem", ProjectShort: "yesmem",
+		ID: "child-1", Project: "/home/test/nemons", ProjectShort: "nemons",
 		MessageCount: 5, StartedAt: time.Now(), ParentSessionID: "parent-1",
 		AgentType: "task",
 	}
@@ -247,7 +247,7 @@ func TestHandleGetSession_SubagentCount(t *testing.T) {
 
 func TestHandleGetSession_DefaultLimitAndOffset(t *testing.T) {
 	h, s := mustHandler(t)
-	seedSession(t, s, "sess-def", "yesmem", 3)
+	seedSession(t, s, "sess-def", "nemons", 3)
 
 	// No explicit limit/offset — defaults should apply (limit=50, offset=0)
 	resp := h.handleGetSession(map[string]any{
@@ -270,7 +270,7 @@ func TestHandleGetSession_SummaryContent(t *testing.T) {
 	h, s := mustHandler(t)
 
 	sess := &models.Session{
-		ID: "sess-sc", Project: "/home/test/yesmem", ProjectShort: "yesmem",
+		ID: "sess-sc", Project: "/home/test/nemons", ProjectShort: "nemons",
 		MessageCount: 3, StartedAt: time.Now(),
 	}
 	if err := s.UpsertSession(sess); err != nil {
@@ -414,7 +414,7 @@ func TestHandleGetSession_LightMessagesTruncatesContent(t *testing.T) {
 	h, s := mustHandler(t)
 
 	sess := &models.Session{
-		ID: "sess-trunc", Project: "/home/test/yesmem", ProjectShort: "yesmem",
+		ID: "sess-trunc", Project: "/home/test/nemons", ProjectShort: "nemons",
 		MessageCount: 1, StartedAt: time.Now(),
 	}
 	if err := s.UpsertSession(sess); err != nil {

@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // TestGenerateForKeyUsesTheKeyItselfLos16e (YM-382, Review-Runde 6): the refresh

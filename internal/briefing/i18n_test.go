@@ -94,7 +94,7 @@ func TestBuildTranslationPrompt(t *testing.T) {
 
 func TestParseTranslationResponse(t *testing.T) {
 	// Simulate a YAML response from the LLM
-	yamlResponse := `greeting: "Du hast ein Langzeitgedaechtnis (YesMem)."
+	yamlResponse := `greeting: "Du hast ein Langzeitgedaechtnis (Nemons)."
 tool_hint: "Nutze search() BEVOR du implementierst."
 your_counterpart: "Dein Gegenueber:"
 known_pitfalls: "Bekannte Fallstricke:"
@@ -111,7 +111,7 @@ sessions_total: "Sessions insgesamt"
 	if err != nil {
 		t.Fatalf("parse: %v", err)
 	}
-	if s.Greeting != "Du hast ein Langzeitgedaechtnis (YesMem)." {
+	if s.Greeting != "Du hast ein Langzeitgedaechtnis (Nemons)." {
 		t.Errorf("greeting: got %q", s.Greeting)
 	}
 	if s.YourCounterpart != "Dein Gegenueber:" {
@@ -124,11 +124,11 @@ func TestResolveStringsUsesFileIfExists(t *testing.T) {
 	path := filepath.Join(dir, "strings.yaml")
 
 	custom := DefaultStrings()
-	custom.Greeting = "Moin! YesMem hier."
+	custom.Greeting = "Moin! Nemons hier."
 	SaveStrings(path, custom)
 
 	s := ResolveStrings(path)
-	if s.Greeting != "Moin! YesMem hier." {
+	if s.Greeting != "Moin! Nemons hier." {
 		t.Errorf("should use file: got %q", s.Greeting)
 	}
 }

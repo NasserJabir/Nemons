@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // los60bInsert writes a plain active learning and returns its id.
@@ -271,7 +271,7 @@ func TestLos60b_DeleteDocSource_ClearsInboundReferences(t *testing.T) {
 // pointed at it.
 func TestLos60b_DeleteOldNarratives_ClearsInboundReferences(t *testing.T) {
 	s := mustOpen(t)
-	project := "/home/tester/memory/yesmem"
+	project := "/home/tester/memory/nemons"
 	base := time.Now().Truncate(time.Second).Add(-4 * time.Hour)
 	dropped := los13dInsertNarrative(t, s, "sess-old", project, "old story", base)
 	kept := los13dInsertNarrative(t, s, "sess-new", project, "new story", base.Add(time.Minute))

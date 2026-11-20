@@ -23,7 +23,7 @@ var fileChangeLinePattern = regexp.MustCompile(`(?m)^\s+(\d+)→`)
 //
 // Protected (never stripped): SessionStart blocks only.
 // Narrative and briefing now live in system block and are actively stripped from messages.
-// Immediately stripped: skill-check, task-reminder, local-command-caveat, yesmem-context.
+// Immediately stripped: skill-check, task-reminder, local-command-caveat, nemons-context.
 // Age-based: file-change diffs (full < 3 turns, summary 3-10, minimal > 10).
 // FilterSystemRoleMessages removes messages with role:system from the array.
 // These are not valid in Anthropic's native messages API and cause 400 errors
@@ -169,8 +169,8 @@ func classifyAndReplace(body string, msgAge int) string {
 	if isThinkReminder(body) {
 		return "[think]"
 	}
-	if isYesMemContext(body) {
-		return "[yesmem-context]"
+	if isNemonsContext(body) {
+		return "[nemons-context]"
 	}
 	if isTaskReminder(body) {
 		return "[task-reminder]"
@@ -206,8 +206,8 @@ func isThinkReminder(body string) bool {
 	return strings.Contains(body, "Before acting") && strings.Contains(body, "hybrid_search()")
 }
 
-func isYesMemContext(body string) bool {
-	return strings.Contains(body, "YesMem Gotchas:") ||
+func isNemonsContext(body string) bool {
+	return strings.Contains(body, "Nemons Gotchas:") ||
 		strings.Contains(body, "PreToolUse:") ||
 		strings.Contains(body, "hook additional context:")
 }

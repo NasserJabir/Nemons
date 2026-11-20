@@ -1,7 +1,7 @@
 // Package guardmodel resolves which model the rule guard asks and in which request format.
 //
 // Consumers: the guard core (internal/guard), which both the Claude Code hook and the daemon RPC run, and
-// yesmem setup, which reports at the end of an installation what the guard will use. The opencode plugin
+// nemons setup, which reports at the end of an installation what the guard will use. The opencode plugin
 // has no resolution of its own any more: it asks the daemon, which resolves here.
 package guardmodel
 
@@ -41,7 +41,7 @@ const (
 
 	// SourceEnv, SourceConfig, SourceAccount, SourceRegistry and SourceFallback name where a model came from,
 	// so the setup report can say it instead of presenting every resolution as equal.
-	SourceEnv        = "YESMEM_GUARD_MODEL"
+	SourceEnv        = "NEMONS_GUARD_MODEL"
 	SourceConfig     = "rule_guard.model"
 	SourceAccount    = "account model list"
 	SourceRegistry   = "models.json"
@@ -60,7 +60,7 @@ var modelListTimeout = 3 * time.Second
 
 // CachePath is the file both guards use for the account's model list.
 func CachePath(home string) string {
-	return filepath.Join(home, ".claude", "yesmem", "guard_models.json")
+	return filepath.Join(home, ".claude", "nemons", "guard_models.json")
 }
 
 // Transport returns the request shape the resolved provider speaks. Derived from the provider entry itself:
@@ -137,7 +137,7 @@ func writeModelCache(home string, models []string) {
 // modelListURL is the endpoint that answers "which models does this account have". The environment override
 // exists so a test can point it at a local server: no test may reach api.anthropic.com.
 func modelListURL(baseURL string) string {
-	if override := os.Getenv("YESMEM_GUARD_MODELS_URL"); override != "" {
+	if override := os.Getenv("NEMONS_GUARD_MODELS_URL"); override != "" {
 		return override
 	}
 	return strings.TrimRight(baseURL, "/") + "/v1/models?limit=100"
@@ -250,7 +250,7 @@ func newestHaikuInRegistry(registry Registry) string {
 // registry, and finally the one constant. Only the Anthropic path uses it; the OpenAI path keeps the model
 // the provider search was keyed on.
 func ResolveModel(configured, apiKey, baseURL string, registry Registry, home string) (model string, fallbacks []string, source string) {
-	if env := strings.TrimSpace(os.Getenv("YESMEM_GUARD_MODEL")); env != "" {
+	if env := strings.TrimSpace(os.Getenv("NEMONS_GUARD_MODEL")); env != "" {
 		return env, nil, SourceEnv
 	}
 	if configured != "" {

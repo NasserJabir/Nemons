@@ -1,6 +1,6 @@
 # Config Reference (`config.yaml`)
 
-Complete reference for all settings in `~/.claude/yesmem/config.yaml`.
+Complete reference for all settings in `~/.claude/nemons/config.yaml`.
 Missing keys are filled with defaults from `internal/config/config.go:Default()`.
 
 ---
@@ -126,16 +126,16 @@ Each injection can be toggled individually. Default: all `true` except as noted.
 | `prompt_ungate` | bool | `true` | `[deprecated]` Use `claude_prompt.prompt_ungate`. Strip CLAUDE.md subordination disclaimer. |
 | `prompt_rewrite` | bool | `false` | `[deprecated]` Use `claude_prompt.prompt_rewrite`. Strip output-throttling + inject quality directives. |
 | `prompt_enhance` | bool | `false` | `[deprecated]` Use `claude_prompt.prompt_enhance`. CLAUDE.md authority boost + comment discipline + persona tone. |
-| `prompt_tool_prefs` | bool | `true` | `[yesmem-tool-prefs]` Edit/Write preference + error-semantics warning. |
-| `prompt_output_discipline` | bool | `true` | `[yesmem-output-discipline]` No preamble + no skill eval + exploratory heuristic. |
-| `prompt_coding_discipline` | bool | `true` | `[yesmem-coding-discipline]` Read-before-propose + no brute force + no half-finished. |
-| `prompt_beweislast` | bool | `true` | `[yesmem-beweislast]` Fabrication guard + claim vs proof + tool-result honesty. |
-| `prompt_scope_discipline` | bool | `true` | `[yesmem-scope-discipline]` Deliver A not A+B+C + adjacent findings separate. |
-| `prompt_delegation_contract` | bool | `true` | `[yesmem-delegation-contract]` Self-contained prompts + parallel dispatch. |
-| `prompt_clarify_first` | bool | `true` | `[yesmem-clarify-first]` Only clarify when alternative interpretations produce materially different work. |
-| `prompt_code_tools_first` | bool | `true` | `[yesmem-code-tools-first]` Prefer MCP code-navigation tools over agent spawns. |
-| `prompt_wiki_first` | bool | `true` | `[yesmem-wiki-first]` Check the project wiki before broad exploration. |
-| `prompt_fable` | bool | `true` | `[yesmem-fable]` Baseline/rollback/readback discipline for high-stakes changes. |
+| `prompt_tool_prefs` | bool | `true` | `[nemons-tool-prefs]` Edit/Write preference + error-semantics warning. |
+| `prompt_output_discipline` | bool | `true` | `[nemons-output-discipline]` No preamble + no skill eval + exploratory heuristic. |
+| `prompt_coding_discipline` | bool | `true` | `[nemons-coding-discipline]` Read-before-propose + no brute force + no half-finished. |
+| `prompt_beweislast` | bool | `true` | `[nemons-beweislast]` Fabrication guard + claim vs proof + tool-result honesty. |
+| `prompt_scope_discipline` | bool | `true` | `[nemons-scope-discipline]` Deliver A not A+B+C + adjacent findings separate. |
+| `prompt_delegation_contract` | bool | `true` | `[nemons-delegation-contract]` Self-contained prompts + parallel dispatch. |
+| `prompt_clarify_first` | bool | `true` | `[nemons-clarify-first]` Only clarify when alternative interpretations produce materially different work. |
+| `prompt_code_tools_first` | bool | `true` | `[nemons-code-tools-first]` Prefer MCP code-navigation tools over agent spawns. |
+| `prompt_wiki_first` | bool | `true` | `[nemons-wiki-first]` Check the project wiki before broad exploration. |
+| `prompt_fable` | bool | `true` | `[nemons-fable]` Baseline/rollback/readback discipline for high-stakes changes. |
 | `prompt_pattern_suggest` | bool | `true` | Record repeated shell-command shapes for cap-suggestion analysis. |
 | `effort_floor` | string | `""` | Minimum effort level: `low`, `medium`, `high`, `max`. Empty = off. |
 | `skill_eval_inject` | string | `silent` | `true` (verbose eval output), `silent` (internal eval only), `false` (disabled). |
@@ -171,16 +171,16 @@ Replaces the default system prompt with the SYSTEM.md template for supported pip
 | `custom_system_prompt.enabled_opencode` | bool | `true` | Inject SYSTEM.md for OpenCode/DeepSeek/OpenAI-compatible pipelines. |
 | `custom_system_prompt.enabled_claude_code` | bool | `false` | Inject SYSTEM.md for the Claude Code pipeline. |
 | `custom_system_prompt.enabled_codex` | bool | `false` | Inject SYSTEM.md for the Codex pipeline. |
-| `custom_system_prompt.template_path` | string | `~/.claude/yesmem/SYSTEM.md` | Path to the system prompt template file. |
+| `custom_system_prompt.template_path` | string | `~/.claude/nemons/SYSTEM.md` | Path to the system prompt template file. |
 
 ### Per-Model Feature Gates
 
-Control which yesmem behavioral features are active per model/provider. Keys under `model_features` are model name prefixes matched case-insensitively (longest wins). A key a matching block does not name falls back to the same key under `feature_defaults`; a key the block does name wins, including a written `false`. Models not listed use `feature_defaults` for every key.
+Control which nemons behavioral features are active per model/provider. Keys under `model_features` are model name prefixes matched case-insensitively (longest wins). A key a matching block does not name falls back to the same key under `feature_defaults`; a key the block does name wins, including a written `false`. Models not listed use `feature_defaults` for every key.
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `model_features.<model>.skill_eval` | bool | `true` | Inject [skill-eval] instruction block. |
-| `model_features.<model>.briefing` | bool | `true` | Inject yesmem briefing at session start. |
+| `model_features.<model>.briefing` | bool | `true` | Inject nemons briefing at session start. |
 | `model_features.<model>.rules_reminder` | bool | `true` | Periodic reminder of project rules/guidelines. |
 | `model_features.<model>.plan_checkpoint` | bool | `true` | Inject plan checkpoint reminders during long sessions. |
 | `model_features.<model>.think_reminder` | bool | `true` | Inject hybrid_search() hint to check memory before assuming. |
@@ -210,7 +210,7 @@ proxy:
 | `search.ivf.k` | int | `0` | IVF cluster count (`0` = auto sqrt). |
 | `search.ivf.nprobe` | int | `15` | IVF cluster search breadth. |
 
-The vector store path is fixed at `~/.claude/yesmem/vectors/`; it is not configurable. Dimensions are fixed at 512 for the `sse` provider (the model is embedded, not downloaded).
+The vector store path is fixed at `~/.claude/nemons/vectors/`; it is not configurable. Dimensions are fixed at 512 for the `sse` provider (the model is embedded, not downloaded).
 
 ---
 
@@ -235,15 +235,15 @@ The vector store path is fixed at `~/.claude/yesmem/vectors/`; it is not configu
 
 ---
 
-## claudemd — Operative Reference (`yesmem-ops.md`)
+## claudemd — Operative Reference (`nemons-ops.md`)
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `enabled` | bool | `true` | Auto-generate `yesmem-ops.md` per project. |
+| `enabled` | bool | `true` | Auto-generate `nemons-ops.md` per project. |
 | `max_per_category` | map | (see below) | Max learnings per category in the reference. |
 | `refresh_interval` | string | `2h` | Regeneration interval (Go duration: `2h`, `30m`, `24h`). |
 | `min_sessions` | int | `3` | Minimum sessions before generating a reference. |
-| `output_file` | string | `yesmem-ops.md` | Output file (placed in project's `.claude/` directory). |
+| `output_file` | string | `nemons-ops.md` | Output file (placed in project's `.claude/` directory). |
 | `model` | string | `""` | Model (empty = `narrative_model`). |
 
 **Default `max_per_category`:**
@@ -274,7 +274,7 @@ Off by default. The daemon reads config once at startup, so a change needs a dae
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `pprof` | bool | `false` | Start the Go pprof endpoint. `YESMEM_PPROF` overrides it (`1`/`true`/`yes`/`on` forces on, `0`/`false`/`no`/`off` forces off). |
+| `pprof` | bool | `false` | Start the Go pprof endpoint. `NEMONS_PPROF` overrides it (`1`/`true`/`yes`/`on` forces on, `0`/`false`/`no`/`off` forces off). |
 | `pprof_listen` | string | `127.0.0.1:7071` | Listen address. Must be loopback — a non-loopback host (`0.0.0.0`, `::`, a LAN address) is rejected and the endpoint does not start. |
 
 The endpoint serves Go runtime profiles only — allocation sites, goroutine stacks and CPU samples, never session transcripts. It is **unauthenticated**: any process on this machine can read a profile (`/debug/pprof/cmdline` returns the daemon's argv), and on a machine with other logged-in users they can read it too.
@@ -338,7 +338,7 @@ Pass `?gc=1` to sample from live data — it triggers a real garbage collection 
 | `permission_kick_delay` | string | `3m` | Stream-inactivity before the first kick (empty = 3m). |
 | `permission_kick_interval` | string | `5m` | Re-kick interval (empty = 5m). |
 | `token_budget` | int | `0` | Max output tokens per agent. `0` = no limit (the default is no limit, not a number). Overridable per spawn. |
-| `themes` | map | `{}` | Agent type → opencode TUI theme for spawned agents (e.g. `yesloop: yesmem-loop`). Empty value disables the type's theme. See [agents.themes](#agentsthemes--agent-tui-themes). |
+| `themes` | map | `{}` | Agent type → opencode TUI theme for spawned agents (e.g. `yesloop: nemons-loop`). Empty value disables the type's theme. See [agents.themes](#agentsthemes--agent-tui-themes). |
 
 ### agents.themes — Agent TUI Themes
 
@@ -349,10 +349,10 @@ windows are distinguishable at a glance. The type is the section prefix:
 
 | Type | Theme | Accent |
 |------|-------|--------|
-| `yesloop` | `yesmem-loop` | Amber |
-| `yesresearch` | `yesmem-research` | Teal |
-| `subresearch` | `yesmem-subresearch` | Magenta (with its own status/menu tone) |
-| `orchestrator` | `yesmem-dark` | Violet |
+| `yesloop` | `nemons-loop` | Amber |
+| `yesresearch` | `nemons-research` | Teal |
+| `subresearch` | `nemons-subresearch` | Magenta (with its own status/menu tone) |
+| `orchestrator` | `nemons-dark` | Violet |
 
 `subresearch` is a mapping for `subresearch-*` sections. The yesresearch skill
 names its area agents `yesresearch-<topic>-<cluster>`, so they take the research
@@ -361,13 +361,13 @@ accent; name a section `subresearch-…` (or pass `theme`) to get magenta.
 All four share one dark base (background, body text, borders), so the accent is
 what carries the type. They are dark-only by construction; with `theme.mode: light`
 in `cli.json`, opencode keeps its light surfaces for a few elements (its own
-built-in dark themes behave the same way). The theme files ship with yesmem and
+built-in dark themes behave the same way). The theme files ship with nemons and
 are installed to
-`~/.config/opencode/themes/` by `yesmem update`, the setup wizard, and
+`~/.config/opencode/themes/` by `nemons update`, the setup wizard, and
 `make deploy`; opencode discovers every `*.json` in that directory (and in any
-`.opencode/themes/` between the working directory and `$HOME`). `yesmem uninstall`
+`.opencode/themes/` between the working directory and `$HOME`). `nemons uninstall`
 removes the files it installed and leaves themes you added yourself alone. A
-`yesmem-*` theme that is not installed is reported in the daemon log — opencode
+`nemons-*` theme that is not installed is reported in the daemon log — opencode
 itself falls back to its default theme for an unknown name without saying so.
 
 Resolution order per spawn: the `theme` parameter of `spawn_agent` →
@@ -380,17 +380,17 @@ flag (checked once per binary generation, keyed by mtime+size), otherwise it set
 parsed as a flag is refused, since it would abort the start of the TUI. If that
 variable is already set in the daemon's environment, the daemon leaves it alone —
 an explicit operator setting wins over the agent theme. The one exception is
-yesmem's own value (`{"theme":{"name":…}}` and nothing else): a daemon started
+nemons's own value (`{"theme":{"name":…}}` and nothing else): a daemon started
 from inside an agent window inherits it, and reading that as an operator decision
 would disable theming for good.
 
 ```yaml
 agents:
   themes:
-    yesloop: yesmem-loop
-    yesresearch: yesmem-research
-    subresearch: yesmem-subresearch
-    orchestrator: yesmem-dark
+    yesloop: nemons-loop
+    yesresearch: nemons-research
+    subresearch: nemons-subresearch
+    orchestrator: nemons-dark
     # Any opencode theme name works, including the built-in ones:
     # yesresearch: tokyonight
     # Disable theming for one type:
@@ -446,9 +446,9 @@ Per-million-token pricing for budget tracking. Configurable without rebuild.
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `db` | string | `~/.claude/yesmem/yesmem.db` | Main database. |
-| `bleve_index` | string | `~/.claude/yesmem/bleve-index` | Full-text index. |
-| `archive` | string | `~/.claude/yesmem/archive` | Archive path. |
+| `db` | string | `~/.claude/nemons/nemons.db` | Main database. |
+| `bleve_index` | string | `~/.claude/nemons/bleve-index` | Full-text index. |
+| `archive` | string | `~/.claude/nemons/archive` | Archive path. |
 | `claude_projects` | string | `~/.claude/projects` | Claude Code project directory. |
 
 ---

@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func TestLearningToTraits_Language(t *testing.T) {

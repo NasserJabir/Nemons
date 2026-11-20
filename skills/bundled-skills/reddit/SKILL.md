@@ -1,6 +1,6 @@
 ---
 name: reddit
-description: "Fetch a Reddit post URL via old.reddit.com HTML scraping — the .json API is blocked for unauthenticated requests since May 2026. Returns structured data: post metadata + nested comments (with depth) + unique external links categorized (github/reddit/external). Persists into cap_store tables (reddit.posts, .comments, .links). Uses yesmem cap-blob-put to pipe curl output into daemon DB, then reads back via cap_store — no /tmp file, no Read-tool prompt, bypasses the sh() 30KB wall. Also search across subreddits with LLM classification and multi-subreddit topic research with synthesis."
+description: "Fetch a Reddit post URL via old.reddit.com HTML scraping — the .json API is blocked for unauthenticated requests since May 2026. Returns structured data: post metadata + nested comments (with depth) + unique external links categorized (github/reddit/external). Persists into cap_store tables (reddit.posts, .comments, .links). Uses nemons cap-blob-put to pipe curl output into daemon DB, then reads back via cap_store — no /tmp file, no Read-tool prompt, bypasses the sh() 30KB wall. Also search across subreddits with LLM classification and multi-subreddit topic research with synthesis."
 version: 13
 tags: [web, reddit, fetch, capblob, structured-storage, html-scraping, search, research]
 runtime: repl
@@ -19,13 +19,13 @@ Also search across subreddits with LLM classification and multi-subreddit topic 
 
 ```javascript
 // Fetch a single post with comments
-await yesmem_execute_cap({name:"reddit", fn:"reddit_fetch", args:'{"url":"<reddit-url>","max_comments":30}'})
+await nemons_execute_cap({name:"reddit", fn:"reddit_fetch", args:'{"url":"<reddit-url>","max_comments":30}'})
 
 // Search across subreddits
-await yesmem_execute_cap({name:"reddit", fn:"reddit_search", args:'{"query":"<topic>","limit":25,"sort":"relevance","t":"week"}'})
+await nemons_execute_cap({name:"reddit", fn:"reddit_search", args:'{"query":"<topic>","limit":25,"sort":"relevance","t":"week"}'})
 
 // Multi-subreddit topic research with synthesis
-await yesmem_execute_cap({name:"reddit", fn:"reddit_research", args:'{"topic":"<topic>","limit":10,"fetch_top":5,"synthesize":true}'})
+await nemons_execute_cap({name:"reddit", fn:"reddit_research", args:'{"topic":"<topic>","limit":10,"fetch_top":5,"synthesize":true}'})
 ```
 
 ## Functions
@@ -50,14 +50,14 @@ async ({url, max_comments}) => {
   const oldUrl = url.replace(/^https?:\/\/(www\.)?reddit\.com/, 'https://old.reddit.com');
   const key = 'url:' + url;
   
-  const curlCmd = `curl -sL -A "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" -H "Accept: text/html,application/xhtml+xml" -H "Accept-Language: en-US,en;q=0.9" --max-time 20 ${JSON.stringify(oldUrl)} | yesmem cap-blob-put --cap reddit --key ${JSON.stringify(key)}`;
+  const curlCmd = `curl -sL -A "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" -H "Accept: text/html,application/xhtml+xml" -H "Accept-Language: en-US,en;q=0.9" --max-time 20 ${JSON.stringify(oldUrl)} | nemons cap-blob-put --cap reddit --key ${JSON.stringify(key)}`;
   
   const putRes = await sh(curlCmd, 25000);
   if (!putRes || !putRes.includes('"status":"ok"')) return {error: 'cap-blob-put failed', detail: String(putRes).slice(0,400)};
   
   let rows = [];
   for (let i = 0; i < 50; i++) {
-    const r = await mcp__yesmem__cap_store({capability: 'reddit', action: 'query', table: 'blobs', where: 'key=? AND chunk_idx=?', args: JSON.stringify([key, i]), limit: 1});
+    const r = await mcp__nemons__cap_store({capability: 'reddit', action: 'query', table: 'blobs', where: 'key=? AND chunk_idx=?', args: JSON.stringify([key, i]), limit: 1});
     const parsed = typeof r === 'string' ? JSON.parse(r) : r;
     const arr = Array.isArray(parsed) ? parsed : (parsed.rows || []);
     if (!arr.length) break;
@@ -158,15 +158,15 @@ async ({url, max_comments}) => {
   }
   
   // === CAP_STORE PERSISTENCE ===
-  await mcp__yesmem__cap_store({capability:'reddit',action:'create_table',table:'posts',columns:JSON.stringify([{name:'permalink',type:'TEXT'},{name:'subreddit',type:'TEXT'},{name:'author',type:'TEXT'},{name:'title',type:'TEXT'},{name:'body',type:'TEXT'},{name:'score',type:'INTEGER'},{name:'num_comments',type:'INTEGER'},{name:'created_utc',type:'INTEGER'},{name:'external_url',type:'TEXT'},{name:'fetched_at',type:'INTEGER'}])});
-  await mcp__yesmem__cap_store({capability:'reddit',action:'create_table',table:'comments',columns:JSON.stringify([{name:'post_permalink',type:'TEXT'},{name:'comment_id',type:'TEXT'},{name:'depth',type:'INTEGER'},{name:'author',type:'TEXT'},{name:'score',type:'INTEGER'},{name:'body',type:'TEXT'},{name:'created_utc',type:'INTEGER'},{name:'parent_id',type:'TEXT'},{name:'fetched_at',type:'INTEGER'}])});
-  await mcp__yesmem__cap_store({capability:'reddit',action:'create_table',table:'links',columns:JSON.stringify([{name:'post_permalink',type:'TEXT'},{name:'target_url',type:'TEXT'},{name:'kind',type:'TEXT'},{name:'source_kind',type:'TEXT'},{name:'source_author',type:'TEXT'},{name:'source_comment_id',type:'TEXT'},{name:'fetched_at',type:'INTEGER'}])});
-  await mcp__yesmem__cap_store({capability:'reddit',action:'delete',table:'posts',where:'permalink=?',args:JSON.stringify([postPermalink])});
-  await mcp__yesmem__cap_store({capability:'reddit',action:'delete',table:'comments',where:'post_permalink=?',args:JSON.stringify([postPermalink])});
-  await mcp__yesmem__cap_store({capability:'reddit',action:'delete',table:'links',where:'post_permalink=?',args:JSON.stringify([postPermalink])});
+  await mcp__nemons__cap_store({capability:'reddit',action:'create_table',table:'posts',columns:JSON.stringify([{name:'permalink',type:'TEXT'},{name:'subreddit',type:'TEXT'},{name:'author',type:'TEXT'},{name:'title',type:'TEXT'},{name:'body',type:'TEXT'},{name:'score',type:'INTEGER'},{name:'num_comments',type:'INTEGER'},{name:'created_utc',type:'INTEGER'},{name:'external_url',type:'TEXT'},{name:'fetched_at',type:'INTEGER'}])});
+  await mcp__nemons__cap_store({capability:'reddit',action:'create_table',table:'comments',columns:JSON.stringify([{name:'post_permalink',type:'TEXT'},{name:'comment_id',type:'TEXT'},{name:'depth',type:'INTEGER'},{name:'author',type:'TEXT'},{name:'score',type:'INTEGER'},{name:'body',type:'TEXT'},{name:'created_utc',type:'INTEGER'},{name:'parent_id',type:'TEXT'},{name:'fetched_at',type:'INTEGER'}])});
+  await mcp__nemons__cap_store({capability:'reddit',action:'create_table',table:'links',columns:JSON.stringify([{name:'post_permalink',type:'TEXT'},{name:'target_url',type:'TEXT'},{name:'kind',type:'TEXT'},{name:'source_kind',type:'TEXT'},{name:'source_author',type:'TEXT'},{name:'source_comment_id',type:'TEXT'},{name:'fetched_at',type:'INTEGER'}])});
+  await mcp__nemons__cap_store({capability:'reddit',action:'delete',table:'posts',where:'permalink=?',args:JSON.stringify([postPermalink])});
+  await mcp__nemons__cap_store({capability:'reddit',action:'delete',table:'comments',where:'post_permalink=?',args:JSON.stringify([postPermalink])});
+  await mcp__nemons__cap_store({capability:'reddit',action:'delete',table:'links',where:'post_permalink=?',args:JSON.stringify([postPermalink])});
   
   const postCreatedUtc = Math.floor(postTimestamp / 1000);
-  await mcp__yesmem__cap_store({capability:'reddit',action:'upsert',table:'posts',data:JSON.stringify({permalink:postPermalink,subreddit:postSubreddit,author:postAuthor,title:postTitle,body:postBody,score:finalScore,num_comments:postNumComments,created_utc:postCreatedUtc,external_url:'',fetched_at:fetchedAt})});
+  await mcp__nemons__cap_store({capability:'reddit',action:'upsert',table:'posts',data:JSON.stringify({permalink:postPermalink,subreddit:postSubreddit,author:postAuthor,title:postTitle,body:postBody,score:finalScore,num_comments:postNumComments,created_utc:postCreatedUtc,external_url:'',fetched_at:fetchedAt})});
   
   // === LINK EXTRACTION ===
   const categorize = (u) => {
@@ -205,10 +205,10 @@ async ({url, max_comments}) => {
   }
   
   for (const row of commentRows) {
-    await mcp__yesmem__cap_store({capability:'reddit',action:'upsert',table:'comments',data:JSON.stringify(row)});
+    await mcp__nemons__cap_store({capability:'reddit',action:'upsert',table:'comments',data:JSON.stringify(row)});
   }
   for (const row of linkRows) {
-    await mcp__yesmem__cap_store({capability:'reddit',action:'upsert',table:'links',data:JSON.stringify(row)});
+    await mcp__nemons__cap_store({capability:'reddit',action:'upsert',table:'links',data:JSON.stringify(row)});
   }
   
   return {
@@ -286,4 +286,4 @@ CREATE TABLE cap_reddit__links (
 - Comment depth is calculated by walking the parent-chain (parent short_id → depth).
 - URL trailing punctuation is trimmed from extracted links.
 - No auth, OAuth, cookies, or Reddit app registration needed — purely anonymous.
-- This skill is the user-facing entry point. The actual cap is named `reddit` (not `reddit_fetch`). Use `yesmem_execute_cap({name:"reddit", fn:"<function>", args:'...'})`.
+- This skill is the user-facing entry point. The actual cap is named `reddit` (not `reddit_fetch`). Use `nemons_execute_cap({name:"reddit", fn:"<function>", args:'...'})`.

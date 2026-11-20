@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/opencode"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/opencode"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // los38sRow creates an agent row for the stop/report tests below.

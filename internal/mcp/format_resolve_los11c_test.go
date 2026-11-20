@@ -11,7 +11,7 @@ import (
 // candidates. The formatter has to surface them, otherwise the agent sees only
 // "Not resolved" and cannot pick an id.
 func TestFormatResolve_Los11c_RendersCandidates(t *testing.T) {
-	raw := json.RawMessage(`{"resolved":false,"message":"Not resolved: 2 unfinished items contain all 3 search terms, pass the learning_id instead","candidates":[{"id":66092,"content":"Scheduled job proxy-health-check was triggered on 2026-05-11","project":"yesmem"},{"id":1,"content":"proxy rules cache rebuild","project":"yesmem"}]}`)
+	raw := json.RawMessage(`{"resolved":false,"message":"Not resolved: 2 unfinished items contain all 3 search terms, pass the learning_id instead","candidates":[{"id":66092,"content":"Scheduled job proxy-health-check was triggered on 2026-05-11","project":"nemons"},{"id":1,"content":"proxy rules cache rebuild","project":"nemons"}]}`)
 
 	got := formatResolve(raw)
 	for _, want := range []string{"Not resolved:", "#66092", "#1", "proxy rules cache rebuild"} {

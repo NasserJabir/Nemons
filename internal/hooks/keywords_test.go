@@ -13,14 +13,14 @@ func TestExtractKeywords(t *testing.T) {
 		wantHas []string
 	}{
 		// The path segments in these rows are filtered by pathNoise since YM-269,
-		// so "bin" and "yesmem" are no longer keywords; the dotted file name is.
+		// so "bin" and "nemons" are no longer keywords; the dotted file name is.
 		{"cp foo ~/.local/bin/bar", 2, []string{"foo", ".local", "bar"}},
 		{"git push --force origin main", 2, []string{"git", "push", "origin", "main"}},
 		{"sudo systemctl restart nginx", 1, []string{"systemctl", "restart", "nginx"}},
 		{"echo hello", 0, nil},
 		{"ls -la", 0, nil},
-		{"sqlite3 ~/.claude/yesmem/yesmem.db", 2, []string{"sqlite3", "yesmem.db"}},
-		{"go build -o ~/.local/bin/yesmem .", 2, []string{"build", ".local"}},
+		{"sqlite3 ~/.claude/nemons/nemons.db", 2, []string{"sqlite3", "nemons.db"}},
+		{"go build -o ~/.local/bin/nemons .", 2, []string{"build", ".local"}},
 	}
 
 	for _, tt := range tests {
@@ -48,10 +48,10 @@ func TestExtractKeywords(t *testing.T) {
 // path segment of a command became a keyword, and hasLongKeywordMatch accepts any
 // single keyword of six characters or more. A command that merely runs inside a
 // worktree of this checkout therefore lifted every gotcha naming ".worktrees",
-// "yesmem" or "memory" to the warning threshold.
+// "nemons" or "memory" to the warning threshold.
 //
 // The scope was measured against the 8948 active gotchas of this installation:
-// "cd /home/tester/memory/yesmem/.worktrees/x && go build ./..." matched 481 of
+// "cd /home/tester/memory/nemons/.worktrees/x && go build ./..." matched 481 of
 // them with the old keyword set and 15 with pathNoise applied. A build that also
 // names bin, cmd, src and lib still matched 295 with only the checkout names
 // dropped, and 0 with the full list, so the generic path words belong in the
@@ -65,20 +65,20 @@ func TestExtractKeywordsDropsInfrastructureSegments(t *testing.T) {
 	}{
 		{
 			name:    "worktree path of this checkout",
-			cmd:     "cd /home/tester/memory/yesmem/.worktrees/yesloop-los-31c && go build ./...",
-			noise:   []string{"home", "memory", "yesmem", ".worktrees"},
+			cmd:     "cd /home/tester/memory/nemons/.worktrees/yesloop-los-31c && go build ./...",
+			noise:   []string{"home", "memory", "nemons", ".worktrees"},
 			wantHas: []string{"build", "yesloop-los-31c"},
 		},
 		{
 			name:    "dotted infrastructure segments",
-			cmd:     "sqlite3 ~/.claude/yesmem/yesmem.db",
-			noise:   []string{".claude", "yesmem"},
-			wantHas: []string{"sqlite3", "yesmem.db"},
+			cmd:     "sqlite3 ~/.claude/nemons/nemons.db",
+			noise:   []string{".claude", "nemons"},
+			wantHas: []string{"sqlite3", "nemons.db"},
 		},
 		{
 			name:    "generic build directories",
-			cmd:     "go build -o bin/yesmem ./cmd/yesmem && ls src/lib",
-			noise:   []string{"bin", "cmd", "src", "lib", "yesmem"},
+			cmd:     "go build -o bin/nemons ./cmd/nemons && ls src/lib",
+			noise:   []string{"bin", "cmd", "src", "lib", "nemons"},
 			wantHas: []string{"build"},
 		},
 		{
@@ -87,8 +87,8 @@ func TestExtractKeywordsDropsInfrastructureSegments(t *testing.T) {
 			// keywords here means losing the hard block on the one command class that
 			// deletes the installation, so the path words come back as the signal.
 			name:    "command that is nothing but a path into this installation",
-			cmd:     "rm -rf /home/tester/.claude/yesmem",
-			wantHas: []string{"home", "tester", ".claude", "yesmem"},
+			cmd:     "rm -rf /home/tester/.claude/nemons",
+			wantHas: []string{"home", "tester", ".claude", "nemons"},
 		},
 		{
 			// The fallback must not depend on this developer's user name being in
@@ -96,8 +96,8 @@ func TestExtractKeywordsDropsInfrastructureSegments(t *testing.T) {
 			// exactly one short keyword ("alice") survives and the command drops below
 			// the match threshold.
 			name:    "path-only command under another user name",
-			cmd:     "rm -rf /home/alice/.claude/yesmem",
-			wantHas: []string{"home", "alice", ".claude", "yesmem"},
+			cmd:     "rm -rf /home/alice/.claude/nemons",
+			wantHas: []string{"home", "alice", ".claude", "nemons"},
 		},
 	}
 
@@ -135,7 +135,7 @@ func TestHomeUserNames(t *testing.T) {
 		cmd  string
 		want []string
 	}{
-		{"linux home", "rm -rf /home/alice/.claude/yesmem", []string{"alice"}},
+		{"linux home", "rm -rf /home/alice/.claude/nemons", []string{"alice"}},
 		{"macOS home", "cat /users/bob/.claude.json", []string{"bob"}},
 		{"two homes", "/home/a/x /home/b/y", []string{"a", "b"}},
 		{"no home path", "go build ./...", nil},
@@ -286,14 +286,14 @@ func TestExtractPathKeywords(t *testing.T) {
 		wantHas []string
 		wantNot []string
 	}{
-		// The checkout directory names ("memory", "yesmem") appear in nearly every
+		// The checkout directory names ("memory", "nemons") appear in nearly every
 		// gotcha text, so as keywords they lift every edit of a file below them to
 		// score 2 — the warning threshold — on their own (YM-160).
-		{"/home/user/memory/yesmem/main.go", 3, []string{"user", "main.go", "main"}, []string{"memory", "yesmem"}},
-		{"/home/user/memory/yesmem/internal/hooks/check.go", 3, []string{"user", "hooks", "check.go", "check"}, []string{"memory", "yesmem"}},
+		{"/home/user/memory/nemons/main.go", 3, []string{"user", "main.go", "main"}, []string{"memory", "nemons"}},
+		{"/home/user/memory/nemons/internal/hooks/check.go", 3, []string{"user", "hooks", "check.go", "check"}, []string{"memory", "nemons"}},
 		// The extension-less stem is derived from the segment, so a noise word must
 		// not slip back in through it.
-		{"/x/data/yesmem.db", 2, []string{"data", "yesmem.db"}, []string{"yesmem"}},
+		{"/x/data/nemons.db", 2, []string{"data", "nemons.db"}, []string{"nemons"}},
 		{"/var/www/html/erecht/analyser/src/Service/MetricsService.php", 3, []string{"erecht", "analyser", "service", "metricsservice.php", "metricsservice"}, nil},
 		// YM-226: ".worktrees" and ".claude" are infrastructure segments like
 		// "internal" — one sits in every worktree path, the other in every path
@@ -381,8 +381,8 @@ func TestHasNonFilenameKeywordMatch(t *testing.T) {
 			// carries an extension. "Makefile" must not count as overlap just
 			// because the transcript echoes "[Makefile:12:".
 			name:    "extension-less file name only",
-			path:    "/home/u/yesmem/Makefile",
-			content: "Bash error: `make deploy` in /home/u/yesmem → make: *** [Makefile:12: deploy] Error 1",
+			path:    "/home/u/nemons/Makefile",
+			content: "Bash error: `make deploy` in /home/u/nemons → make: *** [Makefile:12: deploy] Error 1",
 			want:    false,
 		},
 		{

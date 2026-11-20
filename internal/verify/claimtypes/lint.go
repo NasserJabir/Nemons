@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // A LINT claim asserts that a lint tool ran clean on the checked-out code.

@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // StatsFilter holds optional time range and project filters for stats queries.

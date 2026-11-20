@@ -229,7 +229,7 @@ func TestApplyDecay_Stage3_ReturnsEmpty(t *testing.T) {
 func TestDecayTracker_PinnedPath_SlowsDecay(t *testing.T) {
 	dt := NewDecayTracker()
 	dt.MarkStubbed(5, 10, 0.0)
-	dt.SetFilePath(5, "/home/user/memory/yesmem/yesdocs/plans/my-plan.md")
+	dt.SetFilePath(5, "/home/user/memory/nemons/yesdocs/plans/my-plan.md")
 	dt.SetPinnedPaths([]string{"yesdocs/plans/my-plan.md"})
 
 	// Without pinning: age 8, s0end=5 → stage 1
@@ -252,7 +252,7 @@ func TestDecayTracker_PinnedPath_SlowsDecay(t *testing.T) {
 func TestDecayTracker_PinnedPath_SuffixMatch(t *testing.T) {
 	dt := NewDecayTracker()
 	dt.MarkStubbed(5, 10, 0.0)
-	dt.SetFilePath(5, "/home/user/memory/yesmem/internal/proxy/proxy.go")
+	dt.SetFilePath(5, "/home/user/memory/nemons/internal/proxy/proxy.go")
 	dt.SetPinnedPaths([]string{"proxy/proxy.go"})
 
 	// Suffix match should work

@@ -31,7 +31,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const los60ePluginDir = "plugins/opencode-yesmem-v2"
+const los60ePluginDir = "plugins/opencode-nemons-v2"
 
 // los60eMakefile holds the parts of a Makefile this test needs: simple variable
 // assignments (unexpanded), per-target prerequisites and recipe lines.

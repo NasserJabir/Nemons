@@ -102,42 +102,42 @@ rules:
 	}
 }
 
-func TestFilterStaleSkillRules_RealisticYesmemDocsCase(t *testing.T) {
-	// Reproduces the actual bug: yesmem-docs exists in bundled catalog but
-	// ~/.claude/skills/yesmem-docs/ has no SKILL.md → agent can't activate →
+func TestFilterStaleSkillRules_RealisticNemonsDocsCase(t *testing.T) {
+	// Reproduces the actual bug: nemons-docs exists in bundled catalog but
+	// ~/.claude/skills/nemons-docs/ has no SKILL.md → agent can't activate →
 	// guard suggests it repeatedly → noise.
 	input := `## Skill Catalog
 rules:
   - id: 28
-    skill: yesmem-config
+    skill: nemons-config
     priority: MUST
     triggers: ["pin this"]
     rule: "config rule"
   - id: 29
-    skill: yesmem-docs
+    skill: nemons-docs
     priority: MUST
     triggers: ["docs_search"]
     rule: "docs rule"
   - id: 50
-    skill: yesmem-docs
+    skill: nemons-docs
     priority: SHOULD
     triggers: ["grep"]
     rule: "code nav rule"
 `
 	available := map[string]bool{
-		"yesmem-config": true,
-		// yesmem-docs NOT available (ghost dir)
+		"nemons-config": true,
+		// nemons-docs NOT available (ghost dir)
 	}
 	got := filterStaleSkillRulesWith(input, available)
 
-	if !strings.Contains(got, "skill: yesmem-config") {
-		t.Error("yesmem-config should survive")
+	if !strings.Contains(got, "skill: nemons-config") {
+		t.Error("nemons-config should survive")
 	}
-	// yesmem-docs appears twice in input — both must be dropped
-	if strings.Contains(got, "skill: yesmem-docs") {
-		t.Error("yesmem-docs entries must both be filtered out")
+	// nemons-docs appears twice in input — both must be dropped
+	if strings.Contains(got, "skill: nemons-docs") {
+		t.Error("nemons-docs entries must both be filtered out")
 	}
 	if strings.Contains(got, "docs rule") || strings.Contains(got, "code nav rule") {
-		t.Error("yesmem-docs rule text must be filtered out")
+		t.Error("nemons-docs rule text must be filtered out")
 	}
 }

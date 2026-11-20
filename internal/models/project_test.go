@@ -27,9 +27,9 @@ func TestCanonicalProject(t *testing.T) {
 		cwd  string
 		want string
 	}{
-		{"/home/user/projects/yesmem/.worktrees/opencode-proxy", "yesmem"},
-		{"/home/user/projects/yesmem/.worktrees/feat+capability-memory", "yesmem"},
-		{"/home/user/projects/yesmem", "yesmem"},
+		{"/home/user/projects/nemons/.worktrees/opencode-proxy", "nemons"},
+		{"/home/user/projects/nemons/.worktrees/feat+capability-memory", "nemons"},
+		{"/home/user/projects/nemons", "nemons"},
 		{"/home/user/projects/gluten", "gluten"},
 		{"/var/www/html/GreenWashProjekt/greenWebsite", "greenWebsite"},
 		{"/home/user/projects/.worktrees/my-feature", "projects"},

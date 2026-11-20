@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/embedding"
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/embedding"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // YM-273 (3): GetActiveLearnings also returns the global learnings
@@ -19,7 +19,7 @@ import (
 func TestLos25b_ClusterLearningsIgnoresGlobalLearnings(t *testing.T) {
 	s := los25EmbeddingTestStore(t)
 
-	const project = "/home/tester/memory/yesmem"
+	const project = "/home/tester/memory/nemons"
 	for i := 0; i < 3; i++ {
 		los25UpsertSession(t, s, fmt.Sprintf("los25bsess-%d", i), project)
 	}

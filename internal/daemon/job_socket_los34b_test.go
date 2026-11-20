@@ -97,8 +97,8 @@ func TestJobSocketPassesAllowedMethodsThrough(t *testing.T) {
 	}
 }
 
-// YM-267 (1): the yesmem CLI inside the sandbox has to be directed at the
-// restricted socket; without YESMEM_SOCK every store()/llm() polyfill keeps
+// YM-267 (1): the nemons CLI inside the sandbox has to be directed at the
+// restricted socket; without NEMONS_SOCK every store()/llm() polyfill keeps
 // dialling the full one.
 func TestDialHonoursTheSocketPathFromEnv(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "redirected.sock")
@@ -117,20 +117,20 @@ func TestDialHonoursTheSocketPathFromEnv(t *testing.T) {
 		}
 	}()
 
-	t.Setenv("YESMEM_SOCK", path)
+	t.Setenv("NEMONS_SOCK", path)
 
 	// A data dir that holds no socket at all: reaching the listener proves the
 	// env value won.
 	client, err := Dial(t.TempDir())
 	if err != nil {
-		t.Fatalf("Dial did not honour YESMEM_SOCK: %v", err)
+		t.Fatalf("Dial did not honour NEMONS_SOCK: %v", err)
 	}
 	defer client.Close()
 
 	select {
 	case <-accepted:
 	case <-time.After(2 * time.Second):
-		t.Fatal("listener behind YESMEM_SOCK was never reached")
+		t.Fatal("listener behind NEMONS_SOCK was never reached")
 	}
 }
 
@@ -143,7 +143,7 @@ func TestJobSandboxForwardsTheSocketPath(t *testing.T) {
 	h, _ := mustHandler(t)
 
 	sb := h.newSandbox(SandboxConfig{Enabled: true})
-	want := "YESMEM_SOCK=" + JobSocketPath(h.dataDir)
+	want := "NEMONS_SOCK=" + JobSocketPath(h.dataDir)
 	found := false
 	for _, kv := range sb.cfg.Env {
 		if kv == want {
@@ -160,7 +160,7 @@ func TestJobSandboxForwardsTheSocketPath(t *testing.T) {
 		t.Fatal("sandbox unavailable")
 	}
 	flags := strings.Join(sb.sandboxFlags(ProfileStandard), " ")
-	if !strings.Contains(flags, "--env YESMEM_SOCK") {
+	if !strings.Contains(flags, "--env NEMONS_SOCK") {
 		t.Fatalf("2.x renders the variable as a forward, flags = %v", flags)
 	}
 }
@@ -262,14 +262,14 @@ func TestJobSocketAllowlistMatchesTheDispatch(t *testing.T) {
 }
 
 // The sender on a job's announcement is the caller's claim, and the channel
-// routes on it. A run must not be able to pass its message off as "yesmem" or as
+// routes on it. A run must not be able to pass its message off as "nemons" or as
 // another agent.
 func TestJobSocketLabelsTheAnnouncementSender(t *testing.T) {
 	h, _ := mustHandler(t)
 
 	resp := h.handleJobSocket(Request{Method: "broadcast", Params: map[string]any{
 		"content": "report",
-		"sender":  "yesmem",
+		"sender":  "nemons",
 		"project": "/srv/los34b",
 	}})
 	if resp.Error != "" {

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // The coverage claim: every changed production line was executed by the suite.

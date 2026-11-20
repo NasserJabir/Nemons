@@ -3,13 +3,13 @@ package daemon
 import (
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // --- resolveSessionID: env-derived opencode ids ---
 //
-// Under opencode v2 the `yesmem mcp` children belong to the shared
-// `opencode serve --service` process, so YESMEM_SESSION_ID in their environment
+// Under opencode v2 the `nemons mcp` children belong to the shared
+// `opencode serve --service` process, so NEMONS_SESSION_ID in their environment
 // names the session created last — never the caller. The MCP layer marks such
 // an id with _session_id_source="env", and the daemon then prefers the caller's
 // working directory.

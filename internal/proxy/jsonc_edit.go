@@ -605,7 +605,7 @@ func writeFileAtomic(path string, data []byte, mode os.FileMode) error {
 	return writeFileAtomicPolicy(path, data, mode, true)
 }
 
-// writeFileAtomicNoFollow is writeFileAtomic for yesmem's own artifacts. A
+// writeFileAtomicNoFollow is writeFileAtomic for nemons's own artifacts. A
 // symlink at path is replaced by the regular file instead of being resolved and
 // written through: the rename never follows a link, so nothing that a link at
 // that path points at can be overwritten, and no decision on this path redirects

@@ -23,7 +23,7 @@ sandbox: standard
 ```javascript
 async ({cap, source_table, filter_where, filter_args, instruction, summary, row_count, model, tags}) => {
   if (!cap || !source_table || !instruction || !summary) return {error: 'cap, source_table, instruction, summary required'};
-  const createRes = await mcp__yesmem__cap_store({capability: cap, action: 'create_table', table: 'analyses', columns: JSON.stringify([
+  const createRes = await mcp__nemons__cap_store({capability: cap, action: 'create_table', table: 'analyses', columns: JSON.stringify([
     {name:'source_table',type:'TEXT'},
     {name:'filter_where',type:'TEXT'},
     {name:'filter_args',type:'TEXT'},
@@ -47,7 +47,7 @@ async ({cap, source_table, filter_where, filter_args, instruction, summary, row_
     model: model || 'claude-opus-4-7',
     tags: tags || ''
   };
-  const r = await mcp__yesmem__cap_store({capability: cap, action: 'upsert', table: 'analyses', data: JSON.stringify(row)});
+  const r = await mcp__nemons__cap_store({capability: cap, action: 'upsert', table: 'analyses', data: JSON.stringify(row)});
   if (typeof r === 'string' && r.startsWith('Error:')) {
     return {error: 'upsert failed', detail: r};
   }

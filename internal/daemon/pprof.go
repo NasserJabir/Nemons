@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // maxPprofSeconds caps the seconds parameter of the CPU profile and the

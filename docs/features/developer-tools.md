@@ -33,12 +33,12 @@ Runs via keywords (`symfony:5`, `symfony:7`) and embedding match — no separate
 
 ### CLI Commands
 ```
-yesmem add-docs  --name symfony --path /docs/symfony --version 7.2 --project myapp
-yesmem add-docs  --name press --path /docs/press --domain marketing
-yesmem sync-docs --name symfony          # re-sync single source
-yesmem sync-docs --all                   # re-sync everything
-yesmem list-docs --project myapp         # show registered sources
-yesmem remove-docs --name symfony        # delete source + chunks
+nemons add-docs  --name symfony --path /docs/symfony --version 7.2 --project myapp
+nemons add-docs  --name press --path /docs/press --domain marketing
+nemons sync-docs --name symfony          # re-sync single source
+nemons sync-docs --all                   # re-sync everything
+nemons list-docs --project myapp         # show registered sources
+nemons remove-docs --name symfony        # delete source + chunks
 ```
 
 Two caveats on `add-docs`:
@@ -49,7 +49,7 @@ Two caveats on `add-docs`:
 
 ## 2. Hook System
 
-YesMem hooks into Claude Code at multiple event points.
+Nemons hooks into Claude Code at multiple event points.
 
 ### Active Hooks
 
@@ -61,13 +61,13 @@ YesMem hooks into Claude Code at multiple event points.
 | `hook-failure` | PostToolUseFailure | Learn gotcha from the failure + deep search for solutions (combined) |
 | `hook-resolve` | PostToolUse | Auto-resolve open `unfinished` items when a git commit message matches |
 | `session-end` | **SessionEnd** (not Stop) | Session tracking for clear/compact recovery, pin cleanup, extraction trigger |
-| `idle-tick` | UserPromptSubmit | Dynamic yesmem-usage reminder when idle |
+| `idle-tick` | UserPromptSubmit | Dynamic nemons-usage reminder when idle |
 
 `hook-think` no longer exists: setup actively removes a stale entry (`removeThinkHook`), and the reminder injection it used to do is handled by the proxy.
 
 ### Knowledge-Aware PreToolUse Check (`hook-check`)
 
-The core of YesMem's proactive knowledge injection. Fires on every Bash, Edit, and Write tool call and does two things: it suggests the code-navigation tools when a shell command targets an indexed file, and it injects relevant gotchas **before** the action happens.
+The core of Nemons's proactive knowledge injection. Fires on every Bash, Edit, and Write tool call and does two things: it suggests the code-navigation tools when a shell command targets an indexed file, and it injects relevant gotchas **before** the action happens.
 
 The recognised navigation commands are `grep`, `egrep`, `fgrep`, `rg`, `sed`, `awk`, `cat`, `head`, `tail`. `find` is **not** in that set, so directory-tree searches get no code-nav hint.
 
@@ -88,14 +88,14 @@ The recognised navigation commands are `grep`, `egrep`, `fgrep`, `rg`, `sed`, `a
 |-----------|----------|-----------|
 | Gotcha matched, `fail_count < 5` | Warning via `additionalContext` — Claude sees it, can proceed | 0 |
 | Gotcha matched, `fail_count ≥ 5`, match score ≥ 4, `source=hook_auto_learned` | **Hard block** — tool call prevented entirely | 2 |
-| Edit/Write to protected file (`yesmem-ops.md`) | **Hard block** — must fix source learning instead | 2 |
+| Edit/Write to protected file (`nemons-ops.md`) | **Hard block** — must fix source learning instead | 2 |
 
 The score requirement (`blockMinScore = 4`) is easy to miss: a gotcha with high `fail_count` but a weak match to the current command only warns. Imported rows (`origin_tool = import`) are excluded from blocking, because their counters were observed in another installation.
 
 #### Protected files
 
 Auto-generated files are blocked from direct editing:
-- `yesmem-ops.md` — generated from learnings, fix via `remember()` + `supersedes` parameter
+- `nemons-ops.md` — generated from learnings, fix via `remember()` + `supersedes` parameter
 - Block message guides Claude to the correct workflow
 
 #### save_count heuristic
@@ -112,14 +112,14 @@ Measures whether warnings actually prevented errors:
 #### Feedback loop with `hook-failure`
 
 The PreToolUse check and PostToolUseFailure hook form a closed learning loop:
-- **`hook-failure`** auto-learns a gotcha from **any** tool failure, not just Bash (`Bash`, `WebFetch`, `Read`, `Grep`, and a generic fallback for everything else). It writes **directly into `yesmem.db`** (`storage.Open` + `InsertLearning`) with `source=hook_auto_learned` and **no project**, so the gotcha is global. A near-duplicate (TokenSimilarity ≥ 0.5) bumps `match_count`/`fail_count` instead of creating a row
+- **`hook-failure`** auto-learns a gotcha from **any** tool failure, not just Bash (`Bash`, `WebFetch`, `Read`, `Grep`, and a generic fallback for everything else). It writes **directly into `nemons.db`** (`storage.Open` + `InsertLearning`) with `source=hook_auto_learned` and **no project**, so the gotcha is global. A near-duplicate (TokenSimilarity ≥ 0.5) bumps `match_count`/`fail_count` instead of creating a row
 - **`hook-check`** surfaces those gotchas before the same mistake repeats
 - After 5 repeated failures → hard block escalation (see the score requirement above)
 - After fix confirmed → `resolve_by_text()` or the git-commit auto-resolve removes the block. `hook-resolve` only touches `unfinished` items; it never clears gotchas
 
 ### Session Recovery (Clear/Compact)
 
-After `/clear` or `/compact`, Claude Code sends a new session ID. YesMem provides seamless recovery:
+After `/clear` or `/compact`, Claude Code sends a new session ID. Nemons provides seamless recovery:
 - **session-end hook** captures the old session ID via daemon RPC (not direct DB access — avoids SQLite locking issues with concurrent proxy/daemon)
 - **briefing-hook** looks up the tracked session and generates a recovery briefing
 - Recovery block is injected **post-refine** so it survives the briefing refinement pass
@@ -127,7 +127,7 @@ After `/clear` or `/compact`, Claude Code sends a new session ID. YesMem provide
 
 ### REPL Pattern Detection
 
-YesMem detects repeating tool-use patterns across conversation turns and suggests converting them into reusable capabilities (caps).
+Nemons detects repeating tool-use patterns across conversation turns and suggests converting them into reusable capabilities (caps).
 
 **How it works:**
 - Each turn's tool sequence is hashed into a compact signature and stored per thread in the **`thread_sequences`** table (`turn_hashes` JSON per thread), not in one row per turn
@@ -141,11 +141,11 @@ YesMem detects repeating tool-use patterns across conversation turns and suggest
 
 ## 3. OpenCode Plugin
 
-YesMem ships a TypeScript plugin for opencode's plugin API: **`plugins/opencode-yesmem-v2/`**. The v1 plugin (`plugins/opencode-yesmem/`) is no longer in the repository and is not loaded anywhere — where this document used to describe v1 behaviour, the v2 behaviour is what runs.
+Nemons ships a TypeScript plugin for opencode's plugin API: **`plugins/opencode-nemons-v2/`**. The v1 plugin (`plugins/opencode-nemons/`) is no longer in the repository and is not loaded anywhere — where this document used to describe v1 behaviour, the v2 behaviour is what runs.
 
 ### Installation
 
-The plugin is embedded in the yesmem binary via `go:embed` (`plugins/embed.go`, `opencode-yesmem-v2/*.ts`). During `yesmem setup`, `InstallOpencodePlugin` installs it to `~/.config/opencode/plugins/opencode-yesmem/` and registers it in `opencode.json`. A Unix socket RPC layer (`rpc.ts`) forwards all tool calls to the yesmem daemon via `daemon.sock`.
+The plugin is embedded in the nemons binary via `go:embed` (`plugins/embed.go`, `opencode-nemons-v2/*.ts`). During `nemons setup`, `InstallOpencodePlugin` installs it to `~/.config/opencode/plugins/opencode-nemons/` and registers it in `opencode.json`. A Unix socket RPC layer (`rpc.ts`) forwards all tool calls to the nemons daemon via `daemon.sock`.
 
 ### Hooks
 
@@ -153,21 +153,21 @@ The plugin registers more than five hooks. `index.ts` wires them in this order:
 
 | Registration | Components | Purpose |
 |---|---|---|
-| `tool.execute.before` | `code_nav`, then `rule_guard`, plus `injectYesMemToolContext` | Code-nav block, then the RULES.md guard; the first non-empty message rejects the call |
+| `tool.execute.before` | `code_nav`, then `rule_guard`, plus `injectNemonsToolContext` | Code-nav block, then the RULES.md guard; the first non-empty message rejects the call |
 | `tool.execute.after` | `rule_guard.after`, `failure_learn`, `auto_resolve` | SUGGEST prefix (guard may rewrite the error first), then gotcha learning, then commit auto-resolve |
 | `session.hook("context")` ×4 | `guard.capture`, `skill_nudge`, `ledger_nudge`, `idle_reminder` | Capture the user message before any patch, then three nudges that each touch only the terminal user message |
-| `shell.hook("create.before")` | `shell` | Inject `YESMEM_SOCKET` / `YESMEM_SOURCE_AGENT` into the shell environment |
+| `shell.hook("create.before")` | `shell` | Inject `NEMONS_SOCKET` / `NEMONS_SOURCE_AGENT` into the shell environment |
 | `event.subscribe()` | `session` | Session tracking: register the owning process for every session that starts |
 
 So the components are nine (`code_nav`, `rule_guard`, `failure_learn`, `auto_resolve`, `skill_nudge`, `ledger_nudge`, `idle_reminder`, `shell`, `session`). `idle_reminder` has **no timer of its own**: it is a message-context hook that decides on the turn, not a periodic task.
 
 ### Shell Environment
 
-The plugin injects `YESMEM_SOCKET` (pointing to `daemon.sock`) and `YESMEM_SOURCE_AGENT=opencode` into every shell environment. This enables the bash-polyfill layer for cap scripts (see §25) and ensures the daemon can attribute sessions to the correct source agent.
+The plugin injects `NEMONS_SOCKET` (pointing to `daemon.sock`) and `NEMONS_SOURCE_AGENT=opencode` into every shell environment. This enables the bash-polyfill layer for cap scripts (see §25) and ensures the daemon can attribute sessions to the correct source agent.
 
 ### Session Lifecycle
 
-On `session.created`, the session tracker registers the session with the daemon via `register_pid` RPC — mapping the opencode session ID to the yesmem PID-session infrastructure. This enables:
+On `session.created`, the session tracker registers the session with the daemon via `register_pid` RPC — mapping the opencode session ID to the nemons PID-session infrastructure. This enables:
 - Agent-to-agent messaging (send_to, broadcast) for opencode sessions
 - Session identity resolution via PID reverse-lookup
 - Briefing injection by the proxy (which handles opencode parity requests)
@@ -178,9 +178,9 @@ At startup, the plugin primes the code index through the guard (`codeNav.prime()
 
 ```
 opencode session
-  → opencode-yesmem-v2 plugin (TypeScript/Bun)
+  → opencode-nemons-v2 plugin (TypeScript/Bun)
     → rpc.ts (Unix socket to daemon.sock)
-      → yesmem daemon (Go)
+      → nemons daemon (Go)
         → RPC handlers (search_code_index, register_pid, store_learning, etc.)
 ```
 
@@ -227,29 +227,29 @@ The final stable configuration (v2 hook names):
 - `tool.execute.before` → `ToolError` for BLOCK (hard stop)
 - `tool.execute.after` → output prefix for SUGGEST (non-blocking directive)
 - `session.hook("context")` → capture the last user message for the guard's context (v2 replaces v1's `experimental.chat.messages.transform` / `chat.params` pair)
-- All logging goes to `~/.claude/yesmem/logs/plugin.log` via `dbgLog()` (never `console.*` — that corrupts opencode's TUI)
+- All logging goes to `~/.claude/nemons/logs/plugin.log` via `dbgLog()` (never `console.*` — that corrupts opencode's TUI)
 
 #### API Key Resolution
 
-The plugin does not resolve a key. `guardmodel.Resolve` in the daemon does, and `docs/features/guard.md` lists the order: `YESMEM_GUARD_URL`/`_KEY`/`_MODEL`/`_NPM`, then the provider search over `~/.cache/opencode/models.json` and `~/.local/share/opencode/auth.json` (config.yaml names the model), then `proxy.provider_targets` with the opencode `gateway` key, then an Anthropic credential. With no resolvable key the decision is `PASS` with the reason `no guard credential`, and the destructive pre-check still runs.
+The plugin does not resolve a key. `guardmodel.Resolve` in the daemon does, and `docs/features/guard.md` lists the order: `NEMONS_GUARD_URL`/`_KEY`/`_MODEL`/`_NPM`, then the provider search over `~/.cache/opencode/models.json` and `~/.local/share/opencode/auth.json` (config.yaml names the model), then `proxy.provider_targets` with the opencode `gateway` key, then an Anthropic credential. With no resolvable key the decision is `PASS` with the reason `no guard credential`, and the destructive pre-check still runs.
 
 ---
 
 ## 4. Code Intelligence
 
-YesMem includes a language-agnostic code intelligence system that scans, indexes, and exposes codebase structure through MCP tools and proxy-injected context.
+Nemons includes a language-agnostic code intelligence system that scans, indexes, and exposes codebase structure through MCP tools and proxy-injected context.
 
 ### 18.1 Architecture
 
 The system consists of three layers:
 
-1. **Scanner** — CBM CLI (`codebase-memory-mcp`), an external binary that parses source files using TreeSitter grammars. Extracts functions, types, methods, imports, call edges. Auto-downloaded during `yesmem setup` if not present. Its index lives outside yesmem at `~/.cache/codebase-memory-mcp/<project>.db`
-2. **Scan cache** — yesmem's own SQLite tables `project_scan` (the scan JSON plus a git-head and CBM-mtime fingerprint) and `project_scan_files` (per-path membership, so "is this file indexed?" is one indexed lookup). The cache key is the **repository root path**: a linked worktree resolves to its main repository, so one repository has one cache row whichever worktree is scanned
+1. **Scanner** — CBM CLI (`codebase-memory-mcp`), an external binary that parses source files using TreeSitter grammars. Extracts functions, types, methods, imports, call edges. Auto-downloaded during `nemons setup` if not present. Its index lives outside nemons at `~/.cache/codebase-memory-mcp/<project>.db`
+2. **Scan cache** — nemons's own SQLite tables `project_scan` (the scan JSON plus a git-head and CBM-mtime fingerprint) and `project_scan_files` (per-path membership, so "is this file indexed?" is one indexed lookup). The cache key is the **repository root path**: a linked worktree resolves to its main repository, so one repository has one cache row whichever worktree is scanned
 3. **MCP Tools** — Eight tools expose the graph to Claude Code sessions.
 
 ### 18.2 Scanning
 
-Scanning runs on daemon startup, on demand through the wiki render path (`yesmem wiki-render`), and on demand from the code-intelligence RPCs (`getCodeGraph` in `handler_code_intelligence.go`, `code_describe.go`). There is no `yesmem scan` subcommand. The scanner:
+Scanning runs on daemon startup, on demand through the wiki render path (`nemons wiki-render`), and on demand from the code-intelligence RPCs (`getCodeGraph` in `handler_code_intelligence.go`, `code_describe.go`). There is no `nemons scan` subcommand. The scanner:
 
 - Walks the project directory, respecting `.gitignore`
 - Reuses the cached scan when the git head and the CBM index mtime are unchanged (per-path membership in `project_scan_files`)
@@ -292,10 +292,10 @@ The code-navigation hook prevents agents from reaching for shell tools when the 
 
 **Implementation (opencode plugin):**
 
-The `code_nav` hook in the `opencode-yesmem-v2` plugin fires on `tool.execute.before`. It checks whether the target path exists in the code graph and, if so, rejects the call with a tool-specific suggestion:
+The `code_nav` hook in the `opencode-nemons-v2` plugin fires on `tool.execute.before`. It checks whether the target path exists in the code graph and, if so, rejects the call with a tool-specific suggestion:
 
 ```
-YesMem: BLOCKED <scope>
+Nemons: BLOCKED <scope>
   → get_file_symbols("<file>", "<project>") for overview, or get_code_snippet(file="<file>", project="<project>", start_line=x, end_line=y)
   Call sites of a function: search_code("<symbol>(", "<project>") returns them with file and line.
   If you need this <tool> anyway: run the same command again, or call dismiss_code_nav(session_id="<session>") to lift the block for this session.
@@ -307,17 +307,17 @@ Blocked shell commands: `grep`, `egrep`, `fgrep`, `rg`, `sed`, `awk`, `cat`, `he
 
 **Dismissal:**
 
-The suggestion uses a 2-strike auto-allow system with 1h TTL. The first attempt is blocked with a yesmem tool suggestion, the second attempt is auto-allowed.
+The suggestion uses a 2-strike auto-allow system with 1h TTL. The first attempt is blocked with a nemons tool suggestion, the second attempt is auto-allowed.
 
 **Mode (`code_nav_mode`):**
 
 Both layers read `proxy.code_nav_mode`, so the setting has one meaning for Claude Code and opencode:
 
 - `block` (default): the call is rejected, with the two-strike rule and `dismiss_code_nav` as ways past it. This is the only mode in which those two apply.
-- `nudge`: the call runs. `tool.execute.before` cannot carry a message, so the hint is recorded per tool call and `execute.after` prefixes the result with `[code_nav] HINT: yesmem has code-navigation tools for indexed file …` — the same advice the Claude Code hook prints to stdout.
+- `nudge`: the call runs. `tool.execute.before` cannot carry a message, so the hint is recorded per tool call and `execute.after` prefixes the result with `[code_nav] HINT: nemons has code-navigation tools for indexed file …` — the same advice the Claude Code hook prints to stdout.
 - `off`: nothing is checked and nothing is said.
 
-The plugin re-reads `~/.claude/yesmem/config.yaml` at most once a minute, so a changed value lands without restarting opencode.
+The plugin re-reads `~/.claude/nemons/config.yaml` at most once a minute, so a changed value lands without restarting opencode.
 
 **Legacy support (Claude Code):**
 
@@ -325,7 +325,7 @@ For Claude Code sessions (which don't run the opencode plugin), the older `hook-
 
 **Impact:**
 
-- The code graph tracks which sessions touched which files (`yesmem_related_to_file`)
+- The code graph tracks which sessions touched which files (`nemons_related_to_file`)
 - CBM scanner re-parses only when the git working tree changes (cached `CodeGraph`)
 
 ### 18.6 Worktree Awareness
@@ -339,7 +339,7 @@ Practical consequence: the cached file list is shared, the CBM symbol index is n
 
 ### 18.7 Wiki Export — Rendered Knowledge Base
 
-The daemon periodically renders all YesMem learnings, sessions, files, and code intelligence data into a browsable, pure-Markdown wiki at `~/.claude/yesmem/wiki/<basename>/` (`internal/wikidir` is the single source of truth for that path, and every reader resolves through it — code-map header, `[yesmem-wiki-first]` and docs). Two live projects that share a basename are disambiguated: the owner recorded in `<dir>/.project` keeps the plain basename, every other one gets `<base>-<8 hex of the cleaned path>`. This gives agents (and humans) a static, always-available entry point into the accumulated knowledge of a project — without needing the daemon to be running, and without any MCP tool calls.
+The daemon periodically renders all Nemons learnings, sessions, files, and code intelligence data into a browsable, pure-Markdown wiki at `~/.claude/nemons/wiki/<basename>/` (`internal/wikidir` is the single source of truth for that path, and every reader resolves through it — code-map header, `[nemons-wiki-first]` and docs). Two live projects that share a basename are disambiguated: the owner recorded in `<dir>/.project` keeps the plain basename, every other one gets `<base>-<8 hex of the cleaned path>`. This gives agents (and humans) a static, always-available entry point into the accumulated knowledge of a project — without needing the daemon to be running, and without any MCP tool calls.
 
 #### What Gets Rendered
 
@@ -366,27 +366,27 @@ The daemon periodically renders all YesMem learnings, sessions, files, and code 
 #### Performance
 
 - **Parallel queries:** The `loadAll` phase runs database queries for learnings, sessions, entities, and files concurrently via goroutines + `sync.WaitGroup`.
-- **Result:** Wiki rendering went from **36 seconds** (sequential queries, no caching, full writes every tick) to **under 1 second** on the main yesmem project (400+ rendered files) — a ~36× improvement across three commits: parallelization, content-hash skip, and code graph caching.
+- **Result:** Wiki rendering went from **36 seconds** (sequential queries, no caching, full writes every tick) to **under 1 second** on the main nemons project (400+ rendered files) — a ~36× improvement across three commits: parallelization, content-hash skip, and code graph caching.
 - **Phase timing:** Each render logs per-phase timing: load, compute, template execution, and write — making regressions immediately visible in the daemon log.
 
 #### Integration with Code Map
 
 The code map (see §18.4) includes a wiki link at the top of every code map injection: the wiki path, the last build timestamp, and a "BEFORE editing any file, check its wiki page" directive. The wiki is the browsable backup of the code graph — the code map is the summary; the wiki is the reference library.
 
-The `[yesmem-wiki-first]` system block (injected by the proxy) reinforces this: agents are instructed to check the wiki for per-file gotchas and learnings before editing any file. Falls back to `search_code_index` / `get_code_snippet` / raw grep when wiki pages don't yet exist for a file.
+The `[nemons-wiki-first]` system block (injected by the proxy) reinforces this: agents are instructed to check the wiki for per-file gotchas and learnings before editing any file. Falls back to `search_code_index` / `get_code_snippet` / raw grep when wiki pages don't yet exist for a file.
 
 #### CLI Access
 
 ```bash
 # Trigger a one-shot wiki render for the current project
-yesmem wiki-render --project yesmem
+nemons wiki-render --project nemons
 
 # View the rendered wiki in a browser or file viewer
-ls ~/.claude/yesmem/wiki/yesmem/
-cat ~/.claude/yesmem/wiki/yesmem/index.md
+ls ~/.claude/nemons/wiki/nemons/
+cat ~/.claude/nemons/wiki/nemons/index.md
 ```
 
-The command is `yesmem wiki-render`. `wiki_export` is **not** a bundled cap in the repository (`caps/bundled-caps/`); a `wiki_export` capability may exist as a locally saved cap, but it is not shipped and not required for scheduled rendering.
+The command is `nemons wiki-render`. `wiki_export` is **not** a bundled cap in the repository (`caps/bundled-caps/`); a `wiki_export` capability may exist as a locally saved cap, but it is not shipped and not required for scheduled rendering.
 
 ---
 
@@ -415,8 +415,8 @@ A declarative rule file with 30+ rules and a skill catalog. Rules are evaluated 
 
 ### OpenCode Plugin Lifecycle
 
-- **Non-destructive setup:** `mergeOpencodeSettings()` preserves existing user configuration during `yesmem setup` — provider, model, and MCP settings are merged without overwriting.
-- **Auto-update via migration:** `InstallOpencodePlugin()` runs during `yesmem update` — SHA256 comparison ensures only changed plugin files are written.
+- **Non-destructive setup:** `mergeOpencodeSettings()` preserves existing user configuration during `nemons setup` — provider, model, and MCP settings are merged without overwriting.
+- **Auto-update via migration:** `InstallOpencodePlugin()` runs during `nemons update` — SHA256 comparison ensures only changed plugin files are written.
 - **Git branch awareness:** The rule_guard detects the current git branch via `getGitBranch()` and includes it in the evaluation context — suppressing false feature-branch suggestions (e.g., no need to suggest worktree/branch skills on a feature branch).
 
 ### Project Exclusion

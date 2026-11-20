@@ -3,7 +3,7 @@ package daemon
 import (
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // planThreadsForAgent lists the threads that can hold this agent's plan, in the

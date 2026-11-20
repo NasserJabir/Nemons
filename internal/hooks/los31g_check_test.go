@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // los31gCases asserts every command in blocked is blocked and names want, and every
@@ -44,7 +44,7 @@ func TestLos31gGluedRedirectOperatorReachesTheGuard(t *testing.T) {
 		{"a quoted target", `printf PWNED x> "$HOME/.claude/settings.json"`, settings},
 		{"a clobber operator behind an operand", `printf PWNED x>| $HOME/.claude/settings.json`, settings},
 		{"a double redirect behind an operand", `printf PWNED x>> $HOME/.claude/settings.json`, settings},
-		{"the generated ops file", `printf PWNED x> $HOME/.claude/yesmem-ops.md`, "yesmem-ops.md"},
+		{"the generated ops file", `printf PWNED x> $HOME/.claude/nemons-ops.md`, "nemons-ops.md"},
 		{"a relative target after cd", `cd $HOME/.claude && printf PWNED x> settings.json`, settings},
 	}
 	allowed := [][2]string{
@@ -73,11 +73,11 @@ func TestLos31gVariablePrefixTargetReachesTheGuard(t *testing.T) {
 		{"an absolute home behind the prefix", `printf PWNED > ${x}` + settings, settings},
 		{"a quoted home behind the prefix", `printf PWNED > ${x}"$HOME"/.claude/settings.json`, settings},
 		{"an attached operator", `printf PWNED >${x}$HOME/.claude/settings.json`, settings},
-		{"the generated ops file", `echo x > ${x}$HOME/.claude/yesmem-ops.md`, "yesmem-ops.md"},
+		{"the generated ops file", `echo x > ${x}$HOME/.claude/nemons-ops.md`, "nemons-ops.md"},
 		{"a relative target after cd", `cd $HOME/.claude && printf PWNED > ${x}settings.json`, settings},
 		{"a cd into a prefixed home", `cd ${x}$HOME/.claude && printf PWNED > settings.json`, settings},
-		{"a copy into a prefixed home", `cp /x/yesmem-ops.md ${x}$HOME/.claude/`, "yesmem-ops.md"},
-		{"a copy whose source carries the prefix", `cp ${x}yesmem-ops.md $HOME/.claude/`, "yesmem-ops.md"},
+		{"a copy into a prefixed home", `cp /x/nemons-ops.md ${x}$HOME/.claude/`, "nemons-ops.md"},
+		{"a copy whose source carries the prefix", `cp ${x}nemons-ops.md $HOME/.claude/`, "nemons-ops.md"},
 	}
 	allowed := [][2]string{
 		{"a prefix in front of an unrelated file", `printf PWNED > ${x}$HOME/notes.txt`},
@@ -103,7 +103,7 @@ func TestLos31gBothStreamsRedirectReachesTheGuard(t *testing.T) {
 		{"a separate target", `printf PWNED >& $HOME/.claude/settings.json`, settings},
 		{"the other spelling", `printf PWNED &>$HOME/.claude/settings.json`, settings},
 		{"a second redirect behind it", `printf PWNED >&$HOME/.claude/settings.json 2>&1`, settings},
-		{"the generated ops file", `echo x >&$HOME/.claude/yesmem-ops.md`, "yesmem-ops.md"},
+		{"the generated ops file", `echo x >&$HOME/.claude/nemons-ops.md`, "nemons-ops.md"},
 		{"a relative target after cd", `cd $HOME/.claude && printf PWNED >& settings.json`, settings},
 	}
 	allowed := [][2]string{
@@ -148,7 +148,7 @@ func TestLos31gQuotedSpanKeepsItsStateAcrossWords(t *testing.T) {
 		{"a quoted non-breaking space", "printf PWNED \"x\u00a0y\">$HOME/.claude/settings.json", settings},
 		{"a single-quoted non-breaking space", "printf PWNED 'x\u00a0y'>$HOME/.claude/settings.json", settings},
 		{"an append", "printf PWNED \"x\ny\">>$HOME/.claude/settings.json", settings},
-		{"the generated ops file", "echo x \"x\u00a0y\">$HOME/.claude/yesmem-ops.md", "yesmem-ops.md"},
+		{"the generated ops file", "echo x \"x\u00a0y\">$HOME/.claude/nemons-ops.md", "nemons-ops.md"},
 	}
 	los31gAssert(t, home, blocked, nil)
 }
@@ -184,7 +184,7 @@ func TestLos31gExpansionContinuingThePathReachesTheGuard(t *testing.T) {
 		{"a pre-set variable", `x=/settings.json; printf PWNED > $HOME/.claude$x`, settings},
 		{"an attached operator", `printf PWNED >$HOME/.claude$x`, settings},
 		{"a variable behind a partial file name", `printf PWNED > $HOME/.claude/settings$x`, settings},
-		{"the generated ops file", `printf PWNED > $HOME/.claude/yesmem-ops.m$x`, "yesmem-ops.md"},
+		{"the generated ops file", `printf PWNED > $HOME/.claude/nemons-ops.m$x`, "nemons-ops.md"},
 	}
 	allowed := [][2]string{
 		{"a variable behind a longer name", `printf PWNED > $HOME/.claudex`},
@@ -219,7 +219,7 @@ func TestLos31gRedirectIsNoOperandReachesTheGuard(t *testing.T) {
 		{"a move", `mv a ` + settings + ` &>/dev/null`, settings},
 		{"a link", `ln -sf a ` + settings + ` &>/dev/null`, settings},
 		{"a truncate", `truncate -s0 ` + settings + ` &>/dev/null`, settings},
-		{"a copy into the directory", `cp /x/yesmem-ops.md $HOME/.claude/ &>/dev/null`, "yesmem-ops.md"},
+		{"a copy into the directory", `cp /x/nemons-ops.md $HOME/.claude/ &>/dev/null`, "nemons-ops.md"},
 		{"a copy silenced with a plain redirect", `cp a ` + settings + ` > /dev/null`, settings},
 		{"a copy silenced through stderr", `cp a ` + settings + ` 2>/dev/null`, settings},
 		{"a copy silenced on both streams", `cp a ` + settings + ` >/dev/null 2>&1`, settings},
@@ -285,7 +285,7 @@ func TestLos31gOperatorGluedToTheTargetReachesTheGuard(t *testing.T) {
 		{"an input redirect behind the target", `printf PWNED >$HOME/.claude/settings.json</dev/null`, settings},
 		{"an appended redirect behind a spaced operator", `printf PWNED > $HOME/.claude/settings.json> /dev/null`, settings},
 		{"a clobber redirect behind the target", `printf PWNED >|$HOME/.claude/settings.json> /dev/null`, settings},
-		{"an appended redirect on the ops file", `echo x >$HOME/.claude/yesmem-ops.md> /dev/null`, "yesmem-ops.md"},
+		{"an appended redirect on the ops file", `echo x >$HOME/.claude/nemons-ops.md> /dev/null`, "nemons-ops.md"},
 	}
 	allowed := [][2]string{
 		{"an appended redirect on an unrelated file", `printf PWNED >` + filepath.Join(home, "notes.txt") + `> /dev/null`},

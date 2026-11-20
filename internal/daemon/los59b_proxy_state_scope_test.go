@@ -27,7 +27,7 @@ import (
 // los59bWithProcess points the process table at a fixture for one pid: the cmdline
 // the peer checks read and, optionally, the environment the peer process carries.
 // Both are what the kernel reports, so a test can be a specific caller without
-// being a yesmem binary.
+// being a nemons binary.
 func los59bWithProcess(t *testing.T, pid int, cmdline string, env ...string) {
 	t.Helper()
 	dir := t.TempDir()
@@ -80,14 +80,14 @@ func TestLos59bSetProxyStateRefusesAForeignPeerForASessionThreshold(t *testing.T
 	}
 }
 
-// The model namespace and the proxy itself stay writable: `yesmem config set`
+// The model namespace and the proxy itself stay writable: `nemons config set`
 // mirrors a per-model slot through this RPC, and the proxy persists the state it
 // serves. A model slot that happens to look like a session id is not session state
 // — it lives in a namespace the session reader does not touch (see
 // TestLos59bSessionOverrideIgnoresTheModelNamespace in internal/proxy).
 func TestLos59bSetProxyStateKeepsTheModelSlotAndTheProxyWritable(t *testing.T) {
 	h, s := mustHandler(t)
-	los59bWithProcess(t, 4242, "/usr/local/bin/yesmem\x00config\x00set\x00proxy.token_thresholds.glm-5.2\x00500000")
+	los59bWithProcess(t, 4242, "/usr/local/bin/nemons\x00config\x00set\x00proxy.token_thresholds.glm-5.2\x00500000")
 
 	for _, key := range []string{
 		"config_override:token_threshold",
@@ -106,7 +106,7 @@ func TestLos59bSetProxyStateKeepsTheModelSlotAndTheProxyWritable(t *testing.T) {
 	}
 
 	h2, s2 := mustHandler(t)
-	los59bWithProcess(t, 4242, "/home/u/.local/bin/yesmem\x00proxy\x00--port\x004000")
+	los59bWithProcess(t, 4242, "/home/u/.local/bin/nemons\x00proxy\x00--port\x004000")
 	resp := h2.Handle(Request{Method: "set_proxy_state", Params: map[string]any{
 		"key": "session_override:token_threshold:ses_live", "value": "300000", "_peer_pid": 4242,
 	}})
@@ -217,7 +217,7 @@ func TestLos59bDeleteProxyStatePrefixRefusesAForeignPeerForTheThresholdFamily(t 
 func TestLos59bSetConfigRefusesAnOverrideForAForeignSession(t *testing.T) {
 	requireProcTable(t)
 	h, s := mustHandler(t)
-	los59bWithProcess(t, 4242, "/home/u/.local/bin/yesmem\x00mcp", "YESMEM_SESSION_ID=opencode:ses_own")
+	los59bWithProcess(t, 4242, "/home/u/.local/bin/nemons\x00mcp", "NEMONS_SESSION_ID=opencode:ses_own")
 
 	resp := h.Handle(Request{Method: "set_config", Params: map[string]any{
 		"key":         "token_threshold",
@@ -241,7 +241,7 @@ func TestLos59bSetConfigRefusesAnOverrideForAForeignSession(t *testing.T) {
 func TestLos59bSetConfigRefusesAForgedSelfReport(t *testing.T) {
 	requireProcTable(t)
 	h, s := mustHandler(t)
-	los59bWithProcess(t, 4242, "/home/u/.local/bin/yesmem\x00mcp")
+	los59bWithProcess(t, 4242, "/home/u/.local/bin/nemons\x00mcp")
 
 	resp := h.Handle(Request{Method: "set_config", Params: map[string]any{
 		"key":         "token_threshold",
@@ -260,12 +260,12 @@ func TestLos59bSetConfigRefusesAForgedSelfReport(t *testing.T) {
 
 // The documented case stays working where the daemon can bind the caller: a harness
 // that starts its MCP child with its session in the environment (Claude Code, codex,
-// a yesmem-spawned agent). An opencode session behind the shared service carries no
+// a nemons-spawned agent). An opencode session behind the shared service carries no
 // such value, so it is refused and pointed at the global threshold — the narrowing
 // this fix buys, and the one the DONE report carries.
 func TestLos59bSetConfigKeepsTheCallersOwnSessionWorking(t *testing.T) {
 	h, s := mustHandler(t)
-	los59bWithProcess(t, 4242, "/home/u/.local/bin/yesmem\x00mcp", "YESMEM_SESSION_ID=opencode:ses_own")
+	los59bWithProcess(t, 4242, "/home/u/.local/bin/nemons\x00mcp", "NEMONS_SESSION_ID=opencode:ses_own")
 
 	resp := h.Handle(Request{Method: "set_config", Params: map[string]any{
 		"key":        "token_threshold",
@@ -308,7 +308,7 @@ func TestLos59bGetConfigRefusesAForeignSessionsOverride(t *testing.T) {
 	if err := s.SetProxyState("session_override:token_threshold:ses_victim", "123456"); err != nil {
 		t.Fatalf("seed: %v", err)
 	}
-	los59bWithProcess(t, 4242, "/home/u/.local/bin/yesmem\x00mcp", "YESMEM_SESSION_ID=opencode:ses_own")
+	los59bWithProcess(t, 4242, "/home/u/.local/bin/nemons\x00mcp", "NEMONS_SESSION_ID=opencode:ses_own")
 
 	resp := h.Handle(Request{Method: "get_config", Params: map[string]any{
 		"key":        "token_threshold",
@@ -329,7 +329,7 @@ func TestLos59bGetConfigKeepsTheCallersOwnReadWorking(t *testing.T) {
 	if err := s.SetProxyState("session_override:token_threshold:ses_own", "123456"); err != nil {
 		t.Fatalf("seed: %v", err)
 	}
-	los59bWithProcess(t, 4242, "/home/u/.local/bin/yesmem\x00mcp", "YESMEM_SESSION_ID=opencode:ses_own")
+	los59bWithProcess(t, 4242, "/home/u/.local/bin/nemons\x00mcp", "NEMONS_SESSION_ID=opencode:ses_own")
 
 	for _, named := range []string{"ses_own", "opencode:ses_own"} {
 		resp := h.Handle(Request{Method: "get_config", Params: map[string]any{

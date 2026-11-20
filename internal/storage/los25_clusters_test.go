@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // YM-115: clustering ran once per worktree path, so one cluster existed once per
@@ -13,8 +13,8 @@ import (
 func TestLos25_ClusterRowsAreKeyedByCanonicalProject(t *testing.T) {
 	s := mustOpen(t)
 
-	const worktree = "/home/tester/memory/yesmem/.worktrees/yesloop-los-25"
-	const mainRepo = "/home/tester/memory/yesmem"
+	const worktree = "/home/tester/memory/nemons/.worktrees/yesloop-los-25"
+	const mainRepo = "/home/tester/memory/nemons"
 
 	cluster := models.LearningCluster{
 		Label:         "clustering",
@@ -57,7 +57,7 @@ func TestLos25_ClusterRowsAreKeyedByCanonicalProject(t *testing.T) {
 func TestLos25_ClusterChangeFingerprintCoversWorktreeLearnings(t *testing.T) {
 	s := mustOpen(t)
 
-	const worktree = "/home/tester/memory/yesmem/.worktrees/yesloop-los-25"
+	const worktree = "/home/tester/memory/nemons/.worktrees/yesloop-los-25"
 	insert := func(content, project, category string) {
 		t.Helper()
 		if _, err := s.InsertLearning(&models.Learning{
@@ -72,7 +72,7 @@ func TestLos25_ClusterChangeFingerprintCoversWorktreeLearnings(t *testing.T) {
 	}
 	fingerprint := func() string {
 		t.Helper()
-		fp, err := s.ClusterChangeFingerprint("yesmem")
+		fp, err := s.ClusterChangeFingerprint("nemons")
 		if err != nil {
 			t.Fatalf("fingerprint: %v", err)
 		}
@@ -117,22 +117,22 @@ func TestLos25_ClusterChangeFingerprintCoversWorktreeLearnings(t *testing.T) {
 // one pass per path.
 func TestLos25_GroupByCanonicalProjectMergesWorktrees(t *testing.T) {
 	projects := []ProjectSummary{
-		{Project: "/home/tester/memory/yesmem", ProjectShort: "/home/tester/memory/yesmem", SessionCount: 7},
-		{Project: "/home/tester/memory/yesmem/.worktrees/yesloop-los-25", ProjectShort: "/home/tester/memory/yesmem/.worktrees/yesloop-los-25", SessionCount: 4},
-		{Project: "/home/tester/memory/yesmem/.worktrees/yesloop-los-31", ProjectShort: "/home/tester/memory/yesmem/.worktrees/yesloop-los-31", SessionCount: 2},
+		{Project: "/home/tester/memory/nemons", ProjectShort: "/home/tester/memory/nemons", SessionCount: 7},
+		{Project: "/home/tester/memory/nemons/.worktrees/yesloop-los-25", ProjectShort: "/home/tester/memory/nemons/.worktrees/yesloop-los-25", SessionCount: 4},
+		{Project: "/home/tester/memory/nemons/.worktrees/yesloop-los-31", ProjectShort: "/home/tester/memory/nemons/.worktrees/yesloop-los-31", SessionCount: 2},
 		{Project: "/home/tester/other", ProjectShort: "/home/tester/other", SessionCount: 5},
 	}
 
 	groups := GroupByCanonicalProject(projects)
 	if len(groups) != 2 {
-		t.Fatalf("got %d groups, want 2 (yesmem + other): %+v", len(groups), groups)
+		t.Fatalf("got %d groups, want 2 (nemons + other): %+v", len(groups), groups)
 	}
 	byKey := make(map[string]int, len(groups))
 	for _, g := range groups {
 		byKey[g.Canonical] = g.Sessions
 	}
-	if byKey["yesmem"] != 13 {
-		t.Fatalf("yesmem sessions = %d, want 13 (7+4+2)", byKey["yesmem"])
+	if byKey["nemons"] != 13 {
+		t.Fatalf("nemons sessions = %d, want 13 (7+4+2)", byKey["nemons"])
 	}
 	if byKey["other"] != 5 {
 		t.Fatalf("other sessions = %d, want 5", byKey["other"])

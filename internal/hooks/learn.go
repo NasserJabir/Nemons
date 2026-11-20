@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/textutil"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/textutil"
 )
 
 // FailureInput represents the JSON Claude Code sends for PostToolUseFailure.
@@ -58,7 +58,7 @@ func RunLearn(dataDir string) {
 
 	content := fmt.Sprintf("Bash error: `%s` → %s", truncateCmd(bash.Command, 120), errorOutput)
 
-	dbPath := filepath.Join(dataDir, "yesmem.db")
+	dbPath := filepath.Join(dataDir, "nemons.db")
 	store, err := storage.Open(dbPath)
 	if err != nil {
 		return

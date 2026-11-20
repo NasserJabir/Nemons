@@ -43,8 +43,8 @@ globalThis.sh = async function(cmd) {
   await p.exited;
   return out;
 };
-globalThis.mcp__yesmem__cap_store = async function() { return {}; };
-globalThis.mcp__yesmem__broadcast = async function() { return {}; };
+globalThis.mcp__nemons__cap_store = async function() { return {}; };
+globalThis.mcp__nemons__broadcast = async function() { return {}; };
 var _handler = __BODY__;
 var _r = _handler(JSON.parse(process.env.CAP_ARGS));
 if (_r && typeof _r.then === 'function') { _r = await _r; }
@@ -63,7 +63,7 @@ func los38hRun(t *testing.T, hours any) (string, error) {
 		t.Fatalf("mkdir bin: %v", err)
 	}
 	stub := `#!/bin/sh
-echo "Oct 17 12:00:00 host yesmem-proxy[1]: listening on 127.0.0.1:9378 threshold=150000"
+echo "Oct 17 12:00:00 host nemons-proxy[1]: listening on 127.0.0.1:9378 threshold=150000"
 exit 0
 `
 	if err := os.WriteFile(filepath.Join(bin, "journalctl"), []byte(stub), 0o755); err != nil {

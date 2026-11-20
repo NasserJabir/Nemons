@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/wikidir"
+	"github.com/NasserJabir/Nemons/internal/wikidir"
 )
 
 // renderWikiLink builds the code-map header for a project. project is the

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // YM-144: prepareOpenAIRequestContext labelled every client "opencode", so a
@@ -63,18 +63,18 @@ func TestLos33ParityPathUsesTheClientProfile(t *testing.T) {
 	}
 
 	codexBody := parityBody(t, "codex-tui/0.132.0 (linux mint)", "")
-	if !strings.Contains(codexBody, "[yesmem-scope-discipline]") {
+	if !strings.Contains(codexBody, "[nemons-scope-discipline]") {
 		t.Error("codex_prompt layer did not reach the codex request")
 	}
-	if strings.Contains(codexBody, "[yesmem-clarify-first]") {
+	if strings.Contains(codexBody, "[nemons-clarify-first]") {
 		t.Error("codex request received the opencode_prompt layer")
 	}
 
 	ocBody := parityBody(t, "opencode/1.2.3", "ses_los33_profile_layer")
-	if !strings.Contains(ocBody, "[yesmem-clarify-first]") {
+	if !strings.Contains(ocBody, "[nemons-clarify-first]") {
 		t.Error("opencode request did not receive the opencode_prompt layer")
 	}
-	if strings.Contains(ocBody, "[yesmem-scope-discipline]") {
+	if strings.Contains(ocBody, "[nemons-scope-discipline]") {
 		t.Error("opencode request received the codex_prompt layer")
 	}
 }

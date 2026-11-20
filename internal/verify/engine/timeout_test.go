@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// A project may declare a profile that runs its whole Go suite (yesmem: 44
+// A project may declare a profile that runs its whole Go suite (nemons: 44
 // packages). In the bwrap sandbox such a run measured over five minutes on
 // 2026-11-10 while the same command finished in about three on the host, so a
 // five minute cap turns a green project into an unverifiable DONE. The cap is

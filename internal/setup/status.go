@@ -8,15 +8,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // Status prints the current index status.
 func Status(dataDir string) error {
-	dbPath := filepath.Join(dataDir, "yesmem.db")
+	dbPath := filepath.Join(dataDir, "nemons.db")
 	if _, err := os.Stat(dbPath); os.IsNotExist(err) {
-		fmt.Println("YesMem is not initialized. Run: yesmem install")
+		fmt.Println("Nemons is not initialized. Run: nemons install")
 		return nil
 	}
 
@@ -26,7 +26,7 @@ func Status(dataDir string) error {
 	}
 	defer store.Close()
 
-	fmt.Println("YesMem Status")
+	fmt.Println("Nemons Status")
 	fmt.Println("=============")
 
 	// The Codex and Opencode sections are read from the home directory. Without a
@@ -74,7 +74,7 @@ func Status(dataDir string) error {
 		fmt.Printf("  config.json:     %s\n", statusText(opencodeState.ConfigPresent, "present", "missing"))
 		// Only probe the binary when the config has no plugin entry to go on.
 		fmt.Printf("  plugin:          %s\n", opencodePluginStatusText(opencodeState.PluginConfigured, opencodePluginBuiltin))
-		fmt.Printf("  mcp.yesmem:      %s\n", statusText(opencodeState.MCPConfigured, "configured", "missing"))
+		fmt.Printf("  mcp.nemons:      %s\n", statusText(opencodeState.MCPConfigured, "configured", "missing"))
 		fmt.Printf("  provider.llm:    %s\n", statusText(opencodeState.ProviderConfigured, "configured", "missing"))
 		fmt.Printf("  compaction.auto: %s\n", statusText(opencodeState.CompactionConfigured, "disabled", "not set"))
 	}
@@ -92,7 +92,7 @@ func Status(dataDir string) error {
 		}
 	}
 
-	// Superseded/resolved learnings, read from the same statistics `yesmem stats`
+	// Superseded/resolved learnings, read from the same statistics `nemons stats`
 	// prints. Two surfaces of one quantity must not carry two definitions
 	// (YM-445): the counts, their total and their words come from one place now.
 	if lstats, err := store.GetLearningStatsF(storage.StatsFilter{}); err == nil {
@@ -176,7 +176,7 @@ func Status(dataDir string) error {
 	appCfg, _ := config.Load(filepath.Join(dataDir, "config.yaml"))
 	fmt.Println("\nDisk usage:")
 	printSize("  Database", dbPath)
-	// The Bleve index is legacy: nothing writes it any more and yesmem migrate
+	// The Bleve index is legacy: nothing writes it any more and nemons migrate
 	// deletes it. Its size still explains disk usage on installations from
 	// before the switch to SQLite FTS5.
 	printSize("  Bleve index", filepath.Join(dataDir, "bleve-index"))
@@ -195,7 +195,7 @@ func Status(dataDir string) error {
 }
 
 // supersedeSummaryLine renders the retirement line of the status output from the
-// shared statistics. `yesmem stats` prints the same fields of the same struct,
+// shared statistics. `nemons stats` prints the same fields of the same struct,
 // so the two surfaces cannot report one quantity as two different numbers
 // (YM-445). An empty string means there is nothing to report.
 func supersedeSummaryLine(st *storage.LearningStats) string {

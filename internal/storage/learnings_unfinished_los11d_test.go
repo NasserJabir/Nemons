@@ -17,10 +17,10 @@ func quarantineTestLearning(t *testing.T, s *Store, id int64) {
 
 func TestSearchUnfinishedRanked_Los11d_SkipsQuarantinedItems(t *testing.T) {
 	s := mustOpen(t)
-	quarantinedID := insertTestLearningForProject(t, s, "proxy rules cache rebuild", "unfinished", "yesmem", "yesmem")
+	quarantinedID := insertTestLearningForProject(t, s, "proxy rules cache rebuild", "unfinished", "nemons", "nemons")
 	quarantineTestLearning(t, s, quarantinedID)
 
-	got, err := s.SearchUnfinishedRanked("proxy rules cache", "yesmem")
+	got, err := s.SearchUnfinishedRanked("proxy rules cache", "nemons")
 	if err != nil {
 		t.Fatalf("SearchUnfinishedRanked: %v", err)
 	}
@@ -34,11 +34,11 @@ func TestSearchUnfinishedRanked_Los11d_SkipsQuarantinedItems(t *testing.T) {
 
 func TestSearchUnfinished_Los11d_DisplayListSkipsQuarantinedItems(t *testing.T) {
 	s := mustOpen(t)
-	quarantinedID := insertTestLearningForProject(t, s, "proxy rules cache cleanup", "unfinished", "yesmem", "yesmem")
+	quarantinedID := insertTestLearningForProject(t, s, "proxy rules cache cleanup", "unfinished", "nemons", "nemons")
 	quarantineTestLearning(t, s, quarantinedID)
-	activeID := insertTestLearningForProject(t, s, "proxy rules cache documentation", "unfinished", "yesmem", "yesmem")
+	activeID := insertTestLearningForProject(t, s, "proxy rules cache documentation", "unfinished", "nemons", "nemons")
 
-	items, err := s.SearchUnfinished("proxy rules cache", "yesmem")
+	items, err := s.SearchUnfinished("proxy rules cache", "nemons")
 	if err != nil {
 		t.Fatalf("SearchUnfinished: %v", err)
 	}
@@ -51,11 +51,11 @@ func TestSearchUnfinished_Los11d_DisplayListSkipsQuarantinedItems(t *testing.T) 
 // it simply does not take part in the ranking.
 func TestSearchUnfinishedRanked_Los11d_QuarantinedTwinDoesNotCreateAmbiguity(t *testing.T) {
 	s := mustOpen(t)
-	quarantinedID := insertTestLearningForProject(t, s, "proxy rules cache rebuild", "unfinished", "yesmem", "yesmem")
+	quarantinedID := insertTestLearningForProject(t, s, "proxy rules cache rebuild", "unfinished", "nemons", "nemons")
 	quarantineTestLearning(t, s, quarantinedID)
-	targetID := insertTestLearningForProject(t, s, "proxy rules cache rebuild", "unfinished", "yesmem", "yesmem")
+	targetID := insertTestLearningForProject(t, s, "proxy rules cache rebuild", "unfinished", "nemons", "nemons")
 
-	got, err := s.SearchUnfinishedRanked("proxy rules cache", "yesmem")
+	got, err := s.SearchUnfinishedRanked("proxy rules cache", "nemons")
 	if err != nil {
 		t.Fatalf("SearchUnfinishedRanked: %v", err)
 	}

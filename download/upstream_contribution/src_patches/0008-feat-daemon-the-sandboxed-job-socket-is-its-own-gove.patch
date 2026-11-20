@@ -80,11 +80,11 @@ index 6fff2de..c6e8d8a 100644
 +	// The job surface is governed, so the ordinary path first takes its ask and
 +	// a standing allow; the refusals above must hold even on an admitted surface.
 +	admitJobCall(t, h, "remember", map[string]any{
-+		"text": "job corrects its own note", "category": "gotcha", "project": "yesmem",
++		"text": "job corrects its own note", "category": "gotcha", "project": "nemons",
 +		"supersedes": float64(noteID),
 +	})
  	ordinary := h.handleJobSocket(Request{Method: "remember", Params: map[string]any{
- 		"text": "job corrects its own note", "category": "gotcha", "project": "yesmem",
+ 		"text": "job corrects its own note", "category": "gotcha", "project": "nemons",
  		"supersedes": float64(noteID),
 diff --git a/internal/daemon/job_socket.go b/internal/daemon/job_socket.go
 index 95e8067..d855326 100644
@@ -141,12 +141,12 @@ index c31e863..49fd180 100644
 +	// verify the labelling of an admitted announcement.
 +	admitJobCall(t, h, "broadcast", map[string]any{
 +		"content": "report",
-+		"sender":  "yesmem",
++		"sender":  "nemons",
 +		"project": "/srv/los34b",
 +	})
  	resp := h.handleJobSocket(Request{Method: "broadcast", Params: map[string]any{
  		"content": "report",
- 		"sender":  "yesmem",
+ 		"sender":  "nemons",
 diff --git a/internal/daemon/job_surface_test.go b/internal/daemon/job_surface_test.go
 new file mode 100644
 index 0000000..eaa9e6b
@@ -165,7 +165,7 @@ index 0000000..eaa9e6b
 +	"strings"
 +	"testing"
 +
-+	"github.com/carsteneu/yesmem/internal/storage"
++	"github.com/NasserJabir/Nemons/internal/storage"
 +)
 +
 +func jobRememberParams() map[string]any {

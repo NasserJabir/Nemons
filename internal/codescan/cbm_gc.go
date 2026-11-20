@@ -222,7 +222,7 @@ func runCBMGCGated(findings []CBMGCFinding, dryRun bool) {
 }
 
 // RunCBMGC scans the default CBM cache directory and reports (dryRun) or
-// deletes orphaned worktree index files. Called by `yesmem cbm-gc` and the
+// deletes orphaned worktree index files. Called by `nemons cbm-gc` and the
 // daemon's daily GC task.
 func RunCBMGC(dryRun bool) ([]CBMGCFinding, error) {
 	home, err := os.UserHomeDir()

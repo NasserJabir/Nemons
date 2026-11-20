@@ -1,12 +1,12 @@
 package capfile
 
-// RetiredBundledCaps names caps yesmem used to ship and no longer does. Their
+// RetiredBundledCaps names caps nemons used to ship and no longer does. Their
 // CAP.md stays on existing installations, and without this list the import path
 // would read it back as an active cap learning at every daemon start, so the cap
 // reappears in the catalog and stays executable.
 //
 // wiki_export is the case that forced the list (YM-181, YM-197): the wiki
-// rendering moved into "yesmem wiki-render" (cmd_wiki_render.go, which writes
+// rendering moved into "nemons wiki-render" (cmd_wiki_render.go, which writes
 // through internal/wikidir), and the cap was a third writer that left out the
 // .project marker and could overwrite another project's directory.
 //

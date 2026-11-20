@@ -96,7 +96,7 @@ func TestDetectPlanToolCallSeesCodeModeExecute(t *testing.T) {
 				map[string]any{
 					"type":  "tool_use",
 					"name":  "execute",
-					"input": map[string]any{"code": `await tools.yesmem.set_plan({items:[{content:"a",status:"pending"}]})`},
+					"input": map[string]any{"code": `await tools.nemons.set_plan({items:[{content:"a",status:"pending"}]})`},
 				},
 			},
 		},
@@ -110,7 +110,7 @@ func TestDetectPlanToolCallSeesCodeModeExecute(t *testing.T) {
 // The namespaced spellings must count too.
 func TestDetectPlanToolCallSeesNamespacedTools(t *testing.T) {
 	s := &Server{}
-	for _, name := range []string{"yesmem_set_plan", "tools.yesmem.update_plan", "set_plan"} {
+	for _, name := range []string{"nemons_set_plan", "tools.nemons.update_plan", "set_plan"} {
 		messages := []any{
 			map[string]any{
 				"role": "assistant",

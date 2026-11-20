@@ -62,13 +62,13 @@ func NewCBMScanner() *CBMScanner {
 
 // FindCBMBinary returns the path to codebase-memory-mcp binary, or empty if not found.
 // FindCBMBinary returns the path to the codebase-memory-mcp binary.
-// Checks yesmem CLI dir first, then PATH.
+// Checks nemons CLI dir first, then PATH.
 func FindCBMBinary() string {
 	home, err := os.UserHomeDir()
 	if err == nil {
-		yesmemPath := filepath.Join(home, ".claude", "yesmem", "cli", "codebase-memory-mcp")
-		if _, err := os.Stat(yesmemPath); err == nil {
-			return yesmemPath
+		nemonsPath := filepath.Join(home, ".claude", "nemons", "cli", "codebase-memory-mcp")
+		if _, err := os.Stat(nemonsPath); err == nil {
+			return nemonsPath
 		}
 	}
 	if p, err := exec.LookPath("codebase-memory-mcp"); err == nil {

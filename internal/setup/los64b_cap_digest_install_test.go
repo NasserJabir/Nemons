@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/capfile"
-	"github.com/carsteneu/yesmem/internal/textutil"
+	"github.com/NasserJabir/Nemons/internal/capfile"
+	"github.com/NasserJabir/Nemons/internal/textutil"
 )
 
 // YM-450 (Los 64b), Lücke 1: the provenance digest was textutil.ContentHash, which

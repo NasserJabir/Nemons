@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/carsteneu/yesmem/internal/repair"
+	"github.com/NasserJabir/Nemons/internal/repair"
 )
 
 // runRepairAttribution repairs learnings whose stored session (and project)
@@ -14,7 +14,7 @@ import (
 // default and prints the id / old / new / basis table; --apply writes the
 // unambiguous rows after copying them into repair.BackupTable.
 func runRepairAttribution() {
-	yesmemDB := filepath.Join(yesmemDataDir(), "yesmem.db")
+	nemonsDB := filepath.Join(nemonsDataDir(), "nemons.db")
 	opencodeDB := defaultOpencodeDB()
 	since := repair.DefaultSince
 	apply := false
@@ -29,7 +29,7 @@ func runRepairAttribution() {
 				log.Fatal("--db needs a path")
 			}
 			i++
-			yesmemDB = args[i]
+			nemonsDB = args[i]
 		case "--opencode-db":
 			if i+1 >= len(args) {
 				log.Fatal("--opencode-db needs a path")
@@ -47,7 +47,7 @@ func runRepairAttribution() {
 		}
 	}
 
-	report, err := repair.Plan(yesmemDB, opencodeDB, since)
+	report, err := repair.Plan(nemonsDB, opencodeDB, since)
 	if err != nil {
 		log.Fatalf("plan session attribution repair: %v", err)
 	}
@@ -60,7 +60,7 @@ func runRepairAttribution() {
 		fmt.Println("dry run — nothing written. Pass --apply to write the REPAIR rows.")
 		return
 	}
-	changed, err := repair.Apply(yesmemDB, report)
+	changed, err := repair.Apply(nemonsDB, report)
 	if err != nil {
 		log.Fatalf("apply session attribution repair: %v", err)
 	}

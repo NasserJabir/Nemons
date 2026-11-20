@@ -8,8 +8,8 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/carsteneu/yesmem/caps"
-	"github.com/carsteneu/yesmem/internal/capfile"
+	"github.com/NasserJabir/Nemons/caps"
+	"github.com/NasserJabir/Nemons/internal/capfile"
 )
 
 const (
@@ -73,7 +73,7 @@ func saveInstalledCapManifest(path string, m capManifest) error {
 	if err != nil {
 		return fmt.Errorf("render cap manifest: %w", err)
 	}
-	header := "# Written by yesmem setup. Provenance of the installed caps: derived_from_hash\n" +
+	header := "# Written by nemons setup. Provenance of the installed caps: derived_from_hash\n" +
 		"# is the body the bundled CAP.md was derived from, revision counts the installs\n" +
 		"# that reached this installation (YM-450). Edit it only to reconcile a reported\n" +
 		"# conflict.\n"

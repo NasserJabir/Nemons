@@ -3,7 +3,7 @@ package daemon
 import (
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 func TestPruneScanState_RemovesOrphanedRows(t *testing.T) {

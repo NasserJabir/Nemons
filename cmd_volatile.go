@@ -7,18 +7,18 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/daemon"
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // runVolatileSweep classifies active learnings that look like volatile state
 // snapshots with the LLM sentinel and (with --apply) applies the verdicts:
 // volatile → superseded as noise, bounded → 30-day TTL + staleness_type.
 func runVolatileSweep() {
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 	cfg, _ := config.Load(filepath.Join(dataDir, "config.yaml"))
 
 	fs := flag.NewFlagSet("volatile-sweep", flag.ExitOnError)
@@ -26,7 +26,7 @@ func runVolatileSweep() {
 	limit := fs.Int("limit", 0, "limit number of classified candidates (0 = all)")
 	fs.Parse(os.Args[2:])
 
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		log.Fatalf("open db: %v", err)
 	}

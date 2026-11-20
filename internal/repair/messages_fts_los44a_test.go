@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // los44aMessagesPath builds a real messages.db under t.TempDir (schema from the
@@ -14,7 +14,7 @@ import (
 func los44aMessagesPath(t *testing.T) string {
 	t.Helper()
 	dir := t.TempDir()
-	store, err := storage.Open(filepath.Join(dir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("create schema: %v", err)
 	}
@@ -162,7 +162,7 @@ func TestApplyMessagesFTSBackfillsOnlyIndexableTextLos44a(t *testing.T) {
 
 	// The backfilled blob row has to be reachable through the store's own search,
 	// which is the whole point of the backfill.
-	store, err := storage.Open(filepath.Join(filepath.Dir(path), "yesmem.db"))
+	store, err := storage.Open(filepath.Join(filepath.Dir(path), "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}

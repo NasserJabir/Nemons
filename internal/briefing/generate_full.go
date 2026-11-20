@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // BriefingResult holds the complete briefing output.

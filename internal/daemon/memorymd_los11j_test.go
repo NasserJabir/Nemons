@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/archive"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/archive"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // YM-354 (Los 11j): the sweep built the Claude projects directory by hand from
@@ -143,7 +143,7 @@ func los11jAssertMemoryMD(t *testing.T, memFile string) {
 	if err != nil {
 		t.Fatalf("MEMORY.md missing at %s: %v", memFile, err)
 	}
-	if !strings.Contains(string(data), yesmemMarker) {
-		t.Errorf("MEMORY.md without the yesmem marker: %q", string(data))
+	if !strings.Contains(string(data), nemonsMarker) {
+		t.Errorf("MEMORY.md without the nemons marker: %q", string(data))
 	}
 }

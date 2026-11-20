@@ -236,10 +236,10 @@ func TestBuildMeta_WithLoopWarning(t *testing.T) {
 	meta := &TimestampMeta{
 		Timestamp:   "Di 2026-05-12 12:00:00",
 		Delta:       "5s",
-		LoopWarning: "[YesMem Loop Detection] level 1: you are repeating the same Edit→Bash cycle.",
+		LoopWarning: "[Nemons Loop Detection] level 1: you are repeating the same Edit→Bash cycle.",
 	}
 	got := BuildMeta(7, meta)
-	want := "[Di 2026-05-12 12:00:00] [msg:7] [+5s]\n[loop-warning] [YesMem Loop Detection] level 1: you are repeating the same Edit→Bash cycle."
+	want := "[Di 2026-05-12 12:00:00] [msg:7] [+5s]\n[loop-warning] [Nemons Loop Detection] level 1: you are repeating the same Edit→Bash cycle."
 	if got != want {
 		t.Errorf("got %q, want %q", got, want)
 	}
@@ -481,7 +481,7 @@ func TestTimestampStore_StoreExtendedMeta(t *testing.T) {
 
 func TestTimestampStore_LoopWarningFreezeOnceReplay(t *testing.T) {
 	ts := NewTimestampStore()
-	warning1 := "[YesMem Loop Detection] level 1: Edit→Bash cycle."
+	warning1 := "[Nemons Loop Detection] level 1: Edit→Bash cycle."
 	ts.Store("t1", 10, &TimestampMeta{
 		Timestamp:   "Di 2026-05-12 12:00:00",
 		LoopWarning: warning1,

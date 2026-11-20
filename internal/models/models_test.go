@@ -152,7 +152,7 @@ func TestSession_IsSubagent(t *testing.T) {
 
 func TestBuildEmbeddingText_WithAnticipatedQueries(t *testing.T) {
 	l := Learning{
-		Project:            "yesmem",
+		Project:            "nemons",
 		Domain:             "code",
 		Category:           "gotcha",
 		Content:            "FTS5 braucht quoted terms bei Bindestrichen",
@@ -166,7 +166,7 @@ func TestBuildEmbeddingText_WithAnticipatedQueries(t *testing.T) {
 
 	// Must contain all sections
 	checks := []string{
-		"[yesmem code gotcha]",
+		"[nemons code gotcha]",
 		"FTS5 braucht quoted terms",
 		"Context: SQL error",
 		"Trigger: Wenn FTS5",

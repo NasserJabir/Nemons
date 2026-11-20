@@ -13,12 +13,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/embedding"
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/embedding"
+	"github.com/NasserJabir/Nemons/internal/models"
 	"gopkg.in/yaml.v3"
 )
 
-// Config holds all YesMem configuration.
+// Config holds all Nemons configuration.
 type Config struct {
 	Extraction            ExtractionConfig          `yaml:"extraction"`
 	Evolution             EvolutionConfig           `yaml:"evolution"`
@@ -56,7 +56,7 @@ type ModelPricing struct {
 // AgentsConfig controls agent spawning behavior.
 type AgentsConfig struct {
 	Terminal               string `yaml:"terminal"`                 // Preferred terminal: ghostty, kitty, gnome-terminal, alacritty, wezterm, xterm. Empty = auto-detect.
-	ViewerTerminal         string `yaml:"viewer_terminal"`          // Terminal for showing yesmem-agents session. Falls back to terminal if empty.
+	ViewerTerminal         string `yaml:"viewer_terminal"`          // Terminal for showing nemons-agents session. Falls back to terminal if empty.
 	DefaultBackend         string `yaml:"default_backend"`          // Default agent backend: "claude" or "opencode". Empty = "claude".
 	MaxRuntime             string `yaml:"max_runtime"`              // Max runtime per agent (Go duration: "30m", "1h"). Empty = 48h default (getAgentMaxRuntime).
 	MaxTurns               int    `yaml:"max_turns"`                // Max relay turns per agent. 0 = 30 default.
@@ -81,7 +81,7 @@ type SecretsSanitizationConfig struct {
 }
 
 // RuleGuardConfig is the opencode plugin's pre-tool rule guard.
-// plugins/opencode-yesmem-v2/rule_guard.ts reads rule_guard.model itself and
+// plugins/opencode-nemons-v2/rule_guard.ts reads rule_guard.model itself and
 // falls back to its own default when the key is empty. The field exists so the
 // key is part of the schema: `config set rule_guard.model` reaches the file and
 // `config get` can read it back, instead of the section being a foreign key
@@ -227,12 +227,12 @@ type CustomSystemPromptConfig struct {
 	ModelTemplates    map[string]string `yaml:"model_templates"` // per-model overrides: modelPattern → templatePath
 }
 
-// FeatureGates controls which yesmem behavioral features are active
+// FeatureGates controls which nemons behavioral features are active
 // for a given model/provider. Default (zero value) = all disabled.
 // This is separate from PromptFlags which control prompt text injection.
 type FeatureGates struct {
 	SkillEval             bool `yaml:"skill_eval"`               // inject [skill-eval] instruction block
-	Briefing              bool `yaml:"briefing"`                 // inject yesmem briefing at session start
+	Briefing              bool `yaml:"briefing"`                 // inject nemons briefing at session start
 	RulesReminder         bool `yaml:"rules_reminder"`           // inject rules/guidelines reminder
 	PlanCheckpoint        bool `yaml:"plan_checkpoint"`          // inject plan checkpoint reminders
 	ThinkReminder         bool `yaml:"think_reminder"`           // inject extended-thinking reminder
@@ -695,12 +695,12 @@ const DefaultPprofListen = "127.0.0.1:7071"
 // Shared with the daemon so the default lives in one place.
 const DefaultProxyListen = ":9099"
 
-// PprofEnabled reports whether the pprof endpoint should start. The YESMEM_PPROF
+// PprofEnabled reports whether the pprof endpoint should start. The NEMONS_PPROF
 // environment variable overrides the config value (1/true/yes/on forces it on,
 // 0/false/no/off forces it off) so diagnostics can be toggled on hosts without
 // access to config.yaml.
 func (d DiagnosticsConfig) PprofEnabled() bool {
-	switch strings.ToLower(strings.TrimSpace(os.Getenv("YESMEM_PPROF"))) {
+	switch strings.ToLower(strings.TrimSpace(os.Getenv("NEMONS_PPROF"))) {
 	case "1", "true", "yes", "on":
 		return true
 	case "0", "false", "no", "off":
@@ -775,7 +775,7 @@ type PathsConfig struct {
 // Default returns a config with sensible defaults.
 func Default() *Config {
 	home, _ := os.UserHomeDir()
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 
 	return &Config{
 		Extraction: ExtractionConfig{
@@ -817,7 +817,7 @@ func Default() *Config {
 			OpenAIBaseURL: os.Getenv("OPENAI_BASE_URL"),
 		},
 		Paths: PathsConfig{
-			DB:             filepath.Join(dataDir, "yesmem.db"),
+			DB:             filepath.Join(dataDir, "nemons.db"),
 			BleveIndex:     filepath.Join(dataDir, "bleve-index"),
 			Archive:        filepath.Join(dataDir, "archive"),
 			ClaudeProjects: filepath.Join(home, ".claude", "projects"),
@@ -897,7 +897,7 @@ func Default() *Config {
 				EnabledOpenCode:   true,
 				EnabledClaudeCode: false,
 				EnabledCodex:      false,
-				TemplatePath:      "~/.claude/yesmem/SYSTEM.md",
+				TemplatePath:      "~/.claude/nemons/SYSTEM.md",
 			},
 		},
 		Signals: SignalsConfig{
@@ -917,7 +917,7 @@ func Default() *Config {
 			},
 			RefreshInterval: "2h",
 			MinSessions:     3,
-			OutputFileName:  "yesmem-ops.md",
+			OutputFileName:  "nemons-ops.md",
 			Model:           "",
 		},
 		HTTP: HTTPConfig{
@@ -1052,7 +1052,7 @@ func (c *Config) ClaudeProjectsDir() string {
 // so the setup template promised a configurable location that nothing honoured.
 //
 // The loader's default does not count as configured. Default() anchors
-// paths.archive at ~/.claude/yesmem whatever data directory the caller runs
+// paths.archive at ~/.claude/nemons whatever data directory the caller runs
 // with, so a daemon started against a different one would write its archive into
 // the live installation instead of beside its own database. Comparing against
 // that default keeps such a call on the data-dir fallback, while an explicitly
@@ -1084,14 +1084,14 @@ func (c *Config) ArchiveDir(dataDir string) string {
 // ~/.claude/caps, so with a configured caps_dir it installed the bundled caps
 // where the daemon does not import them. The data dir moves the default with it,
 // which is why it is an input here rather than a constant: the daemon, the export
-// path and yesmem update all run against a configured data dir. Setup fixes its
-// data dir to ~/.claude/yesmem, so on that path the default never moves, and the
+// path and nemons update all run against a configured data dir. Setup fixes its
+// data dir to ~/.claude/nemons, so on that path the default never moves, and the
 // derivation is shared there to keep the two sides from drifting apart (YM-353).
 //
 // The result is absolute whenever it can be anchored at all, and it is anchored
 // the same way in every process. A leading "~" is expanded, and a relative value is
 // resolved against the home directory. Resolving it against the working directory
-// would restore the split this derivation exists to end: the daemon and yesmem
+// would restore the split this derivation exists to end: the daemon and nemons
 // update do not share a working directory. Only the "~/" form is expanded, because
 // Go has no portable expansion for "~user".
 //
@@ -1167,7 +1167,7 @@ func warnSchemaIssues(path string, issues []Issue) {
 	if seen && previous == message {
 		return
 	}
-	log.Printf("warn: %s: %d key(s) the schema does not read: %srun 'yesmem migrate' to move misplaced proxy keys", filepath.Base(path), len(issues), message)
+	log.Printf("warn: %s: %d key(s) the schema does not read: %srun 'nemons migrate' to move misplaced proxy keys", filepath.Base(path), len(issues), message)
 }
 
 func expandEnvRef(value string) string {
@@ -1297,7 +1297,7 @@ const configWriteLockSuffix = ".lock"
 const configWriteLockWait = 3 * time.Second
 
 // lockConfigWrite serializes the read-modify-write cycles on one config.yaml.
-// The CLI ("yesmem config set") and the daemon (set_config) both read the whole
+// The CLI ("nemons config set") and the daemon (set_config) both read the whole
 // document, change one key and write it back; without the lock the second write
 // carries the first one's state and drops its change (YM-392).
 //

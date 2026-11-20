@@ -70,7 +70,7 @@ func TestDeriveThreadID_StableWhenNarrativeRequestCounterChanges(t *testing.T) {
 			"system": []any{
 				map[string]any{"type": "text", "text": "x-anthropic-billing-header: cch=abc;"},
 				map[string]any{"type": "text", "text": "# Environment\n - Primary working directory: /home/user/proj\n"},
-				map[string]any{"type": "text", "text": "[yesmem-narrative]\nSession-Kontext (auto-generiert, Request " + reqNum + "):\nZiel: debugging"},
+				map[string]any{"type": "text", "text": "[nemons-narrative]\nSession-Kontext (auto-generiert, Request " + reqNum + "):\nZiel: debugging"},
 			},
 			"messages": []any{
 				map[string]any{"role": "user", "content": "test"},

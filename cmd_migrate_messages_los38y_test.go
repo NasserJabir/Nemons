@@ -28,10 +28,10 @@ func los38ySeedForeignTarget(t *testing.T, path string) {
 // TestLos38yCompletesInterruptedMigration: the target already holds every source
 // row, so the earlier run copied them and stopped before the DELETE. The next run
 // has to finish the delete and the compaction; reporting "nothing to do" and
-// exiting 0 leaves yesmem.db carrying a second copy of every message forever.
+// exiting 0 leaves nemons.db carrying a second copy of every message forever.
 func TestLos38yCompletesInterruptedMigration(t *testing.T) {
 	home, dataDir := los38wInstallation(t)
-	mainDB := filepath.Join(dataDir, "yesmem.db")
+	mainDB := filepath.Join(dataDir, "nemons.db")
 	messagesDB := filepath.Join(dataDir, "messages.db")
 
 	los38wSeedMessages(t, messagesDB)
@@ -59,7 +59,7 @@ func TestLos38yCompletesInterruptedMigration(t *testing.T) {
 // cannot be completed, and it must say so instead of exiting 0.
 func TestLos38yRefusesUncoveredTarget(t *testing.T) {
 	home, dataDir := los38wInstallation(t)
-	mainDB := filepath.Join(dataDir, "yesmem.db")
+	mainDB := filepath.Join(dataDir, "nemons.db")
 
 	los38ySeedForeignTarget(t, filepath.Join(dataDir, "messages.db"))
 
@@ -85,7 +85,7 @@ func TestLos38yRefusesUncoveredTarget(t *testing.T) {
 // text nowhere.
 func TestLos38yRefusesStaleTargetContent(t *testing.T) {
 	home, dataDir := los38wInstallation(t)
-	mainDB := filepath.Join(dataDir, "yesmem.db")
+	mainDB := filepath.Join(dataDir, "nemons.db")
 
 	los38wSeedMessages(t, filepath.Join(dataDir, "messages.db"))
 	los38wExec(t, filepath.Join(dataDir, "messages.db"),
@@ -116,7 +116,7 @@ func TestLos38yRefusesTargetWithDifferentMetadata(t *testing.T) {
 	} {
 		t.Run(stmt, func(t *testing.T) {
 			home, dataDir := los38wInstallation(t)
-			mainDB := filepath.Join(dataDir, "yesmem.db")
+			mainDB := filepath.Join(dataDir, "nemons.db")
 
 			los38wSeedMessages(t, filepath.Join(dataDir, "messages.db"))
 			los38wExec(t, filepath.Join(dataDir, "messages.db"), stmt)
@@ -136,7 +136,7 @@ func TestLos38yRefusesTargetWithDifferentMetadata(t *testing.T) {
 // instead of exiting 0 while the index stays forever.
 func TestLos38yRemovesLeftoverBleveOnRetry(t *testing.T) {
 	home, dataDir := los38wInstallation(t)
-	mainDB := filepath.Join(dataDir, "yesmem.db")
+	mainDB := filepath.Join(dataDir, "nemons.db")
 
 	los38wSeedMessages(t, filepath.Join(dataDir, "messages.db"))
 	los38wExec(t, mainDB, `DELETE FROM messages`)
@@ -162,7 +162,7 @@ func TestLos38yRemovesLeftoverBleveOnRetry(t *testing.T) {
 // instead of an opaque constraint failure.
 func TestLos38yRefusesDuplicateSourcePairs(t *testing.T) {
 	home, dataDir := los38wInstallation(t)
-	mainDB := filepath.Join(dataDir, "yesmem.db")
+	mainDB := filepath.Join(dataDir, "nemons.db")
 	los38wExec(t, mainDB,
 		`INSERT INTO messages (session_id, source_agent, role, message_type, content, timestamp, sequence, model)
 		 VALUES ('session-0', 'codex', 'user', 'text', 'duplicate', '2026-10-19T00:00:00Z', 0, 'gpt-x')`)
@@ -180,11 +180,11 @@ func TestLos38yRefusesDuplicateSourcePairs(t *testing.T) {
 func TestLos38yCopiesAcrossBatchBoundary(t *testing.T) {
 	const rows = 2500
 	home := t.TempDir()
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	if err := os.MkdirAll(dataDir, 0o700); err != nil {
 		t.Fatalf("mkdir data dir: %v", err)
 	}
-	mainDB := filepath.Join(dataDir, "yesmem.db")
+	mainDB := filepath.Join(dataDir, "nemons.db")
 	messagesDB := filepath.Join(dataDir, "messages.db")
 	los38wSeedBulk(t, mainDB, rows)
 

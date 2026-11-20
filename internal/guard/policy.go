@@ -161,7 +161,7 @@ func downgradeUnknownCitation(d Decision, rules string) Decision {
 	}
 	return Decision{
 		Decision:   "SUGGEST",
-		Suggestion: "yesmem-remember: mandatory check — " + reason,
+		Suggestion: "nemons-remember: mandatory check — " + reason,
 		Violations: d.Violations,
 		Model:      d.Model,
 	}
@@ -185,7 +185,7 @@ func downgradeUnauthorizedBlock(d Decision, toolName string, blockable map[int]b
 	// advisory note they are, instead of turning this text into a skill name (opencode's adapter does).
 	return Decision{
 		Decision:   "SUGGEST",
-		Suggestion: "yesmem-remember: mandatory check — " + reason,
+		Suggestion: "nemons-remember: mandatory check — " + reason,
 		Violations: d.Violations,
 	}
 }
@@ -215,7 +215,7 @@ func homeDir() (string, error) {
 }
 
 func defaultDataDir(home string) string {
-	return filepath.Join(home, ".claude", "yesmem")
+	return filepath.Join(home, ".claude", "nemons")
 }
 
 // maxMessageChars bounds a message that reaches a harness's context.

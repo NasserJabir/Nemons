@@ -15,7 +15,7 @@ import (
 func TestUninstallPreviewNamesEveryOpencodeArtifactItRemoves(t *testing.T) {
 	home := filepath.Join(t.TempDir(), "home")
 	pluginsDir := filepath.Join(home, ".config", "opencode", "plugins")
-	for _, name := range []string{"yesmem.ts", "opencode-yesmem", "yesmem-window"} {
+	for _, name := range []string{"nemons.ts", "opencode-nemons", "nemons-window"} {
 		if err := os.MkdirAll(filepath.Join(pluginsDir, name), 0755); err != nil {
 			t.Fatal(err)
 		}
@@ -27,7 +27,7 @@ func TestUninstallPreviewNamesEveryOpencodeArtifactItRemoves(t *testing.T) {
 	if err := os.MkdirAll(themesDir, 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(themesDir, "yesmem-default.json"), []byte("{}"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(themesDir, "nemons-default.json"), []byte("{}"), 0644); err != nil {
 		t.Fatal(err)
 	}
 	// A leftover v1 install: removeOpencodePlugin deletes its source tree once
@@ -45,7 +45,7 @@ func TestUninstallPreviewNamesEveryOpencodeArtifactItRemoves(t *testing.T) {
 	}
 
 	preview := strings.Join(uninstallPreviewLines(), "\n")
-	for _, name := range []string{"yesmem.ts", "opencode-yesmem", "yesmem-window"} {
+	for _, name := range []string{"nemons.ts", "opencode-nemons", "nemons-window"} {
 		if _, err := os.Lstat(filepath.Join(pluginsDir, name)); !os.IsNotExist(err) {
 			t.Errorf("%s survived the uninstall: lstat err=%v", name, err)
 		}
@@ -53,7 +53,7 @@ func TestUninstallPreviewNamesEveryOpencodeArtifactItRemoves(t *testing.T) {
 			t.Errorf("the uninstall announcement does not name the removed plugin entry %s:\n%s", name, preview)
 		}
 	}
-	if _, err := os.Stat(filepath.Join(themesDir, "yesmem-default.json")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(themesDir, "nemons-default.json")); !os.IsNotExist(err) {
 		t.Errorf("the installed theme survived the uninstall: %v", err)
 	}
 	if !strings.Contains(preview, "opencode/"+ThemeDir) {
@@ -62,7 +62,7 @@ func TestUninstallPreviewNamesEveryOpencodeArtifactItRemoves(t *testing.T) {
 	if _, err := os.Stat(v1SourceDir); !os.IsNotExist(err) {
 		t.Errorf("the v1 plugin source tree survived the uninstall: %v", err)
 	}
-	if !strings.Contains(preview, "share/yesmem/plugins/opencode-yesmem") {
+	if !strings.Contains(preview, "share/nemons/plugins/opencode-nemons") {
 		t.Errorf("the uninstall announcement does not name the removed v1 plugin source tree:\n%s", preview)
 	}
 }

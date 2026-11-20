@@ -23,7 +23,7 @@ func TestToolDefinitionBudget(t *testing.T) {
 	totalChars := 0
 	for _, st := range tools {
 		anthropicTool := map[string]any{
-			"name":         "mcp__yesmem__" + st.Tool.Name,
+			"name":         "mcp__nemons__" + st.Tool.Name,
 			"description":  st.Tool.Description,
 			"input_schema": st.Tool.InputSchema,
 		}

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func TestLimitLearnings_UnderMax(t *testing.T) {

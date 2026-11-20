@@ -530,7 +530,7 @@ func bashCopyIntoProtectedDir(verb string, maskedArgs, rawArgs []string, redirec
 		return "", false // the plain word scan already covers a direct destination
 	}
 	// Only a destination that is a directory receives the source's name; otherwise the
-	// join would invent a path ("mv a.md b.md" must not become b.md/yesmem-ops.md).
+	// join would invent a path ("mv a.md b.md" must not become b.md/nemons-ops.md).
 	if !strings.HasSuffix(dstWord, "/") {
 		if info, err := os.Stat(dst); err != nil || !info.IsDir() {
 			return "", false

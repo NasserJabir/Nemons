@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/opencode"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/opencode"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // v2Session is one canned session row of the stub server below.
@@ -618,10 +618,10 @@ func TestAttemptRestart_StopsUnbindableOpencodeAgent(t *testing.T) {
 // TestLiveCaptureOpencodeSessionID is the daemon-side acceptance proof: the
 // exact function the spawn path calls resolves the real session id of a
 // previously-failing agent, using the live services (read-only GETs only).
-// Opt-in: set YESMEM_LIVE_OPENCODE_E2E=1.
+// Opt-in: set NEMONS_LIVE_OPENCODE_E2E=1.
 func TestLiveCaptureOpencodeSessionID(t *testing.T) {
-	if os.Getenv("YESMEM_LIVE_OPENCODE_E2E") == "" {
-		t.Skip("set YESMEM_LIVE_OPENCODE_E2E=1 to run against the live opencode services")
+	if os.Getenv("NEMONS_LIVE_OPENCODE_E2E") == "" {
+		t.Skip("set NEMONS_LIVE_OPENCODE_E2E=1 to run against the live opencode services")
 	}
 	const (
 		workDir = "/home/tester/projects/opencode/.worktrees/v2-code-fence-default"

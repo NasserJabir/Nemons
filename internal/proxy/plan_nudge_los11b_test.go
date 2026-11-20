@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // los11bPlanReadMessages builds the shape annotateOpenAIMessageMetadata sees on

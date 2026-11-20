@@ -8,14 +8,14 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/briefing"
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/hooks"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/briefing"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/hooks"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 func runBriefing() {
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 
 	// Load config for briefing settings
 	cfg, _ := config.Load(filepath.Join(dataDir, "config.yaml"))
@@ -41,7 +41,7 @@ func runBriefing() {
 		}
 	}
 
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		log.Fatalf("open db: %v", err)
 	}
@@ -143,7 +143,7 @@ func runBriefingHook() {
 	json.NewDecoder(os.Stdin).Decode(&hookInput)
 
 	if hookInput.SessionID != "" {
-		dataDir := yesmemDataDir()
+		dataDir := nemonsDataDir()
 		ppid := os.Getppid()
 		hooks.RegisterPID(dataDir, hookInput.SessionID, ppid)
 		hooks.WritePIDFile(dataDir, hookInput.SessionID, ppid)
@@ -176,8 +176,8 @@ func runCodemapHook() {
 		return
 	}
 
-	dataDir := yesmemDataDir()
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	dataDir := nemonsDataDir()
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		return
 	}
@@ -204,7 +204,7 @@ func runCodemapHook() {
 
 // injectPinnedBlock inserts the pinned block between prose and toolsBlock.
 func runMicroReminder() {
-	reminder := `You have a long-term memory (yesmem). For EVERY non-trivial task (implementation, debugging, architecture, configuration, error analysis): FIRST search(topic) — get context before you start, alternatively use hybrid_search for associative search. When you discover something important (bug, decision, user preference): remember(text, category). Categories: gotcha, decision, pattern, preference, explicit_teaching. More tools: deep_search, related_to_file, get_session, get_learnings.`
+	reminder := `You have a long-term memory (nemons). For EVERY non-trivial task (implementation, debugging, architecture, configuration, error analysis): FIRST search(topic) — get context before you start, alternatively use hybrid_search for associative search. When you discover something important (bug, decision, user preference): remember(text, category). Categories: gotcha, decision, pattern, preference, explicit_teaching. More tools: deep_search, related_to_file, get_session, get_learnings.`
 
 	out := map[string]string{"additionalContext": reminder}
 	jsonOut, _ := json.Marshal(out)

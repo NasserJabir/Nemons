@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/clustering"
+	"github.com/NasserJabir/Nemons/internal/clustering"
 )
 
 func TestFindProjectDir_Exact(t *testing.T) {

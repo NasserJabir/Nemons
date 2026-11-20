@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	los04iDispatchArgsEnv = "YESMEM_LOS04I_DISPATCH_ARGS"
-	los04iDispatchPathEnv = "YESMEM_LOS04I_DISPATCH_PATH"
+	los04iDispatchArgsEnv = "NEMONS_LOS04I_DISPATCH_ARGS"
+	los04iDispatchPathEnv = "NEMONS_LOS04I_DISPATCH_PATH"
 )
 
 // los04iCleanDispatchEnv drops every variable that would point the child at
@@ -20,7 +20,7 @@ func los04iCleanDispatchEnv() []string {
 	for _, kv := range os.Environ() {
 		key, _, _ := strings.Cut(kv, "=")
 		switch key {
-		case "HOME", "YESMEM_DATA_DIR", "YESMEM_SOCK", los04iDispatchArgsEnv, los04iDispatchPathEnv:
+		case "HOME", "NEMONS_DATA_DIR", "NEMONS_SOCK", los04iDispatchArgsEnv, los04iDispatchPathEnv:
 			continue
 		}
 		out = append(out, kv)
@@ -35,12 +35,12 @@ func TestLos04iDispatchCommand(t *testing.T) {
 	// A path carrying a newline cannot travel in the space separated args, so it
 	// comes in its own variable.
 	if path := os.Getenv(los04iDispatchPathEnv); path != "" {
-		os.Args = []string{"yesmem", "add-docs", "--name", "los04i-probe", "--path", path, "--project", "p"}
+		os.Args = []string{"nemons", "add-docs", "--name", "los04i-probe", "--path", path, "--project", "p"}
 		main()
 		t.Fatal("the dispatched command returned, want a fatal exit")
 	}
 	if args := os.Getenv(los04iDispatchArgsEnv); args != "" {
-		os.Args = append([]string{"yesmem"}, strings.Fields(args)...)
+		os.Args = append([]string{"nemons"}, strings.Fields(args)...)
 		main()
 		t.Fatal("the dispatched command returned, want a fatal exit")
 	}

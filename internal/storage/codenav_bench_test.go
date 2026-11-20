@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-// benchScanJSON builds a scan document of roughly the size yesmem's own index
+// benchScanJSON builds a scan document of roughly the size nemons's own index
 // reaches, so the per-call cost of IsFileInCodeIndex is visible.
 func benchScanJSON(packages, filesPerPkg int) string {
 	type file struct{ Path string }

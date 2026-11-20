@@ -16,12 +16,12 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/carsteneu/yesmem/internal/codescan"
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/hints"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/textutil"
+	"github.com/NasserJabir/Nemons/internal/codescan"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/hints"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/textutil"
 )
 
 // HookInput represents the JSON Claude Code sends on stdin for hook events.
@@ -106,9 +106,9 @@ func codeNavCommands(toolName, inputStr string) []string {
 	return nil
 }
 
-// mcpToolPrefix is how Claude Code qualifies the yesmem MCP tools in the hook
-// payload: the dialog call arrives as "mcp__yesmem__send_to", never bare (YM-158).
-const mcpToolPrefix = "mcp__yesmem__"
+// mcpToolPrefix is how Claude Code qualifies the nemons MCP tools in the hook
+// payload: the dialog call arrives as "mcp__nemons__send_to", never bare (YM-158).
+const mcpToolPrefix = "mcp__nemons__"
 
 // fileToolPath reads the target file of a file-mutating tool. NotebookEdit names
 // it in notebook_path, the other tools in file_path.
@@ -144,7 +144,7 @@ func RunCheck(dataDir string) {
 	}
 
 	// Parse tool input to get inputStr (for save_count) and keywords (for matching).
-	// MCP tools arrive qualified ("mcp__yesmem__send_to"), so the name is stripped
+	// MCP tools arrive qualified ("mcp__nemons__send_to"), so the name is stripped
 	// once here and every comparison below works on the bare name (YM-158).
 	toolName := strings.TrimPrefix(hook.ToolName, mcpToolPrefix)
 	var keywords []string
@@ -219,7 +219,7 @@ func RunCheck(dataDir string) {
 			return
 		}
 		// The installation's own settings file: a whole-file Write drops whichever
-		// yesmem keys the caller did not reproduce, a surgical edit can only touch
+		// nemons keys the caller did not reproduce, a surgical edit can only touch
 		// what it targets. Block the first, warn on the second (YM-269). MultiEdit is
 		// the Edit case — its edits are old_string/new_string pairs — while a
 		// NotebookEdit addresses a cell of its notebook. The target is resolved first
@@ -279,7 +279,7 @@ func RunCheck(dataDir string) {
 		}
 	}
 
-	dbPath := filepath.Join(dataDir, "yesmem.db")
+	dbPath := filepath.Join(dataDir, "nemons.db")
 	store, err := storage.Open(dbPath)
 	if err != nil {
 		emit("")
@@ -584,7 +584,7 @@ func buildGotchaOutput(matches []matchedGotcha) (text string, injectedIDs []int6
 	top := matches[0]
 	injectedIDs = append(injectedIDs, top.learning.ID)
 	var buf strings.Builder
-	buf.WriteString("YesMem Gotchas:\n- ")
+	buf.WriteString("Nemons Gotchas:\n- ")
 	buf.WriteString(top.learning.Content)
 	if len(matches) > 1 {
 		rest := matches[1:]
@@ -617,7 +617,7 @@ func emitReminder(gotchaText string) {
 // default name; a target renamed through config.yaml (output_file) is not known
 // here and stays unprotected (YM-342 scope).
 var protectedFiles = []string{
-	"yesmem-ops.md",
+	"nemons-ops.md",
 }
 
 // protectedFileDir is the directory the generated files live in, relative to the
@@ -970,7 +970,7 @@ func los31eShCallee(code string, i int) bool {
 }
 
 // protectedSettingsPath is the installation's own Claude Code settings file,
-// relative to the home directory. `yesmem setup` writes the hook registration, the
+// relative to the home directory. `nemons setup` writes the hook registration, the
 // mcpServers entry and the proxy environment block into it, so a rewrite through
 // the Edit or Write tool drops whatever the caller does not reproduce, and with the
 // hook registration it drops the guard itself (YM-269).
@@ -986,9 +986,9 @@ var protectedSettingsPath = filepath.Join(".claude", "settings.json")
 // through a symlink, and a case variant of the name, which is the same path on the
 // case-insensitive filesystems macOS and Windows ship. On Linux the case rule errs
 // towards protecting. A path whose directory cannot be resolved stays unprotected:
-// a bare "yesmem-ops.md" says nothing about where it lies, and the tool payload
+// a bare "nemons-ops.md" says nothing about where it lies, and the tool payload
 // carries an absolute path with a cwd in practice. That also loses a symlinked
-// alias the call itself creates (`ln -s ~/.claude x && echo > x/yesmem-ops.md`): at
+// alias the call itself creates (`ln -s ~/.claude x && echo > x/nemons-ops.md`): at
 // check time the link does not exist yet, so the path does not resolve. The
 // installation's settings file is unaffected, it is decided by isProtectedSettingsFile
 // and does not hang on this predicate (YM-342).
@@ -1072,9 +1072,9 @@ func isProtectedSettingsFile(filePath string) bool {
 // touches only what it targets, while a whole-file Write is what loses keys.
 func settingsEditWarning(filePath string) string {
 	return fmt.Sprintf(
-		"YesMem: %s carries the keys that 'yesmem setup' writes (hook registration, "+
+		"Nemons: %s carries the keys that 'nemons setup' writes (hook registration, "+
 			"MCP server entry, proxy environment). Change only the key you mean, and "+
-			"run 'yesmem setup' afterwards if the guard hook or the MCP entry is gone.",
+			"run 'nemons setup' afterwards if the guard hook or the MCP entry is gone.",
 		filePath,
 	)
 }
@@ -1196,16 +1196,16 @@ func blockEdit(filePath string) {
 	reason := fmt.Sprintf(
 		"BLOCKED: %s is auto-generated from learnings. "+
 			"Use remember() with supersedes parameter to update the source learning, "+
-			"then regenerate via 'yesmem claudemd'.",
+			"then regenerate via 'nemons claudemd'.",
 		filepath.Base(filePath),
 	)
 	if isProtectedSettingsFile(filePath) {
 		reason = fmt.Sprintf(
-			"BLOCKED: %s carries the keys that 'yesmem setup' writes: the hook "+
+			"BLOCKED: %s carries the keys that 'nemons setup' writes: the hook "+
 				"registration, the MCP server entry and the proxy environment block. "+
 				"A whole-file write drops whichever of them you did not reproduce, and "+
 				"with the hook registration the gotcha guard itself. Let the "+
-				"installation write it ('yesmem setup'), or edit only the key you need.",
+				"installation write it ('nemons setup'), or edit only the key you need.",
 			filePath,
 		)
 	}
@@ -1219,7 +1219,7 @@ func blockEdit(filePath string) {
 }
 
 // blockCodeNav outputs a JSON response that blocks a shell navigation command
-// when yesmem MCP tools should be used instead.
+// when nemons MCP tools should be used instead.
 func blockCodeNav(reason string) {
 	out := map[string]any{
 		"decision": "block",

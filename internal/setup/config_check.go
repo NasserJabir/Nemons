@@ -6,11 +6,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // PrintConfigCheck reports the config.yaml keys the schema cannot read or that sit at the wrong nesting
-// level. `yesmem update` and `yesmem setup` both call it, so the two entry points cannot drift apart in
+// level. `nemons update` and `nemons setup` both call it, so the two entry points cannot drift apart in
 // what they tell the user about the same file (YM-463). Unknown keys are reported, never removed.
 func PrintConfigCheck(path string, out, warn io.Writer) {
 	// A missing file has no issues by contract, but "OK" about a file that does not exist reads like a

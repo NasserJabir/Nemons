@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // los16eInsertSession records a session whose project id is its absolute path,
@@ -229,8 +229,8 @@ func TestResolveCanonicalProjectWorktreeOnlyRootLos16e(t *testing.T) {
 func TestResolveCanonicalProjectKeepsPathScopeWithoutWorktreeRowsLos16e(t *testing.T) {
 	s := mustOpen(t)
 
-	first := filepath.Join(t.TempDir(), "001", "yesmem")
-	second := filepath.Join(t.TempDir(), "002", "yesmem")
+	first := filepath.Join(t.TempDir(), "001", "nemons")
+	second := filepath.Join(t.TempDir(), "002", "nemons")
 	los16eInsertSession(t, s, "sess-los16e-same-1", first, time.Now())
 	if _, err := s.InsertLearning(&models.Learning{
 		Content: "REAL_PROJECT_SECRET", Category: "gotcha", Source: "user_stated",
@@ -481,8 +481,8 @@ func TestLearningsReadKeepSiblingProjectsOfOneCheckoutApartLos16e(t *testing.T) 
 func TestLearningsReadKeepSameNamedRepositoriesApartLos16e(t *testing.T) {
 	s := mustOpen(t)
 
-	first := filepath.Join(t.TempDir(), "001", "yesmem")
-	second := filepath.Join(t.TempDir(), "002", "yesmem")
+	first := filepath.Join(t.TempDir(), "001", "nemons")
+	second := filepath.Join(t.TempDir(), "002", "nemons")
 	for i, root := range []string{first, second} {
 		worktree := filepath.Join(root, ".worktrees", "feat")
 		if err := os.MkdirAll(worktree, 0o755); err != nil {
@@ -557,8 +557,8 @@ func TestLearningsReadKeepSameNamedRepositoriesApartLos16e(t *testing.T) {
 func TestResolveCanonicalProjectKeepsSameNamedWorktreeOnlyRootIsolatedLos16e(t *testing.T) {
 	s := mustOpen(t)
 
-	first := filepath.Join(t.TempDir(), "001", "yesmem")
-	second := filepath.Join(t.TempDir(), "002", "yesmem")
+	first := filepath.Join(t.TempDir(), "001", "nemons")
+	second := filepath.Join(t.TempDir(), "002", "nemons")
 	for i, root := range []string{first, second} {
 		worktree := filepath.Join(root, ".worktrees", "feat")
 		if err := os.MkdirAll(worktree, 0o755); err != nil {

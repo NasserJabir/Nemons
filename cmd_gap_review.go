@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/daemon"
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 const gapReviewSystemPrompt = `You review Knowledge Gaps from an AI assistant memory system.
@@ -54,10 +54,10 @@ func runGapReview() {
 	limit := fs.Int("limit", 50, "max gaps per batch")
 	fs.Parse(os.Args[2:])
 
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 	cfg, _ := config.Load(filepath.Join(dataDir, "config.yaml"))
 
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		log.Fatalf("open db: %v", err)
 	}

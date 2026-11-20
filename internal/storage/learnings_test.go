@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func TestLearningClusters_InsertAndGet(t *testing.T) {
@@ -14,7 +14,7 @@ func TestLearningClusters_InsertAndGet(t *testing.T) {
 
 	clusters := []models.LearningCluster{
 		{
-			Project:        "yesmem",
+			Project:        "nemons",
 			Label:          "Proxy-Architektur",
 			LearningCount:  5,
 			AvgRecencyDays: 3.2,
@@ -23,7 +23,7 @@ func TestLearningClusters_InsertAndGet(t *testing.T) {
 			LearningIDs:    "[1,2,3,4,5]",
 		},
 		{
-			Project:        "yesmem",
+			Project:        "nemons",
 			Label:          "Persona-Engine",
 			LearningCount:  3,
 			AvgRecencyDays: 7.0,
@@ -33,11 +33,11 @@ func TestLearningClusters_InsertAndGet(t *testing.T) {
 		},
 	}
 
-	if err := s.ReplaceLearningClusters("/home/user/yesmem", clusters); err != nil {
+	if err := s.ReplaceLearningClusters("/home/user/nemons", clusters); err != nil {
 		t.Fatalf("replace clusters: %v", err)
 	}
 
-	got, err := s.GetLearningClusters("/home/user/yesmem")
+	got, err := s.GetLearningClusters("/home/user/nemons")
 	if err != nil {
 		t.Fatalf("get clusters: %v", err)
 	}
@@ -79,22 +79,22 @@ func TestLearningClusters_ReplaceDeletesOld(t *testing.T) {
 
 	// Insert initial clusters
 	old := []models.LearningCluster{
-		{Project: "yesmem", Label: "Old-Cluster-1", LearningCount: 2, Confidence: 0.5, LearningIDs: "[1,2]"},
-		{Project: "yesmem", Label: "Old-Cluster-2", LearningCount: 1, Confidence: 0.3, LearningIDs: "[3]"},
+		{Project: "nemons", Label: "Old-Cluster-1", LearningCount: 2, Confidence: 0.5, LearningIDs: "[1,2]"},
+		{Project: "nemons", Label: "Old-Cluster-2", LearningCount: 1, Confidence: 0.3, LearningIDs: "[3]"},
 	}
-	if err := s.ReplaceLearningClusters("/home/user/yesmem", old); err != nil {
+	if err := s.ReplaceLearningClusters("/home/user/nemons", old); err != nil {
 		t.Fatalf("insert old: %v", err)
 	}
 
 	// Replace with new clusters
 	fresh := []models.LearningCluster{
-		{Project: "yesmem", Label: "New-Cluster", LearningCount: 4, Confidence: 0.95, LearningIDs: "[10,11,12,13]"},
+		{Project: "nemons", Label: "New-Cluster", LearningCount: 4, Confidence: 0.95, LearningIDs: "[10,11,12,13]"},
 	}
-	if err := s.ReplaceLearningClusters("/home/user/yesmem", fresh); err != nil {
+	if err := s.ReplaceLearningClusters("/home/user/nemons", fresh); err != nil {
 		t.Fatalf("replace: %v", err)
 	}
 
-	got, err := s.GetLearningClusters("/home/user/yesmem")
+	got, err := s.GetLearningClusters("/home/user/nemons")
 	if err != nil {
 		t.Fatalf("get: %v", err)
 	}
@@ -107,7 +107,7 @@ func TestLearningClusters_ReplaceDeletesOld(t *testing.T) {
 
 	// Verify old clusters are gone (not just hidden)
 	var count int
-	s.DB().QueryRow(`SELECT COUNT(*) FROM learning_clusters WHERE project = '/home/user/yesmem'`).Scan(&count)
+	s.DB().QueryRow(`SELECT COUNT(*) FROM learning_clusters WHERE project = '/home/user/nemons'`).Scan(&count)
 	if count != 1 {
 		t.Errorf("expected 1 row in DB, got %d", count)
 	}
@@ -544,7 +544,7 @@ func TestInsertLearningMarksEmbeddingPending(t *testing.T) {
 	id, err := s.InsertLearning(&models.Learning{
 		Category:  "gotcha",
 		Content:   "docker needs host networking",
-		Project:   "yesmem",
+		Project:   "nemons",
 		CreatedAt: time.Now(),
 		Source:    "test",
 	})
@@ -570,7 +570,7 @@ func TestMarkEmbeddingsDone(t *testing.T) {
 	id, err := s.InsertLearning(&models.Learning{
 		Category:  "gotcha",
 		Content:   "nginx wants explicit proxy headers",
-		Project:   "yesmem",
+		Project:   "nemons",
 		CreatedAt: time.Now(),
 		Source:    "test",
 	})
@@ -602,7 +602,7 @@ func TestBackfillContentHashesWithSingleConnection(t *testing.T) {
 	id1, err := s.InsertLearning(&models.Learning{
 		Category:   "gotcha",
 		Content:    "first learning without hash",
-		Project:    "yesmem",
+		Project:    "nemons",
 		Confidence: 1.0,
 		CreatedAt:  now,
 		ModelUsed:  "self",
@@ -613,7 +613,7 @@ func TestBackfillContentHashesWithSingleConnection(t *testing.T) {
 	id2, err := s.InsertLearning(&models.Learning{
 		Category:   "decision",
 		Content:    "second learning without hash",
-		Project:    "yesmem",
+		Project:    "nemons",
 		Confidence: 1.0,
 		CreatedAt:  now,
 		ModelUsed:  "self",
@@ -873,25 +873,25 @@ func TestCanonicalProjectFamilyScope(t *testing.T) {
 	s := mustOpen(t)
 	now := time.Now().UTC()
 
-	// Simulate worktree learning: project="opencode-proxy", canonical_project="yesmem"
+	// Simulate worktree learning: project="opencode-proxy", canonical_project="nemons"
 	s.InsertLearning(&models.Learning{
 		SessionID:        "s1",
 		Category:         "gotcha",
 		Content:          "canonical test learning",
 		Project:          "opencode-proxy",
-		CanonicalProject: "yesmem",
+		CanonicalProject: "nemons",
 		Source:           "user_stated",
 		Confidence:       1.0,
 		CreatedAt:        now,
 		ModelUsed:        "test",
 	})
-	// Simulate main-repo learning: project="yesmem", canonical_project="yesmem"
+	// Simulate main-repo learning: project="nemons", canonical_project="nemons"
 	s.InsertLearning(&models.Learning{
 		SessionID:        "s2",
 		Category:         "decision",
 		Content:          "main repo learning",
-		Project:          "yesmem",
-		CanonicalProject: "yesmem",
+		Project:          "nemons",
+		CanonicalProject: "nemons",
 		Source:           "user_stated",
 		Confidence:       1.0,
 		CreatedAt:        now,
@@ -910,26 +910,26 @@ func TestCanonicalProjectFamilyScope(t *testing.T) {
 		ModelUsed:        "test",
 	})
 
-	// Query with canonical project "yesmem" — should see both yesmem + opencode-proxy
-	learnings, err := s.GetActiveLearnings("", "yesmem", "", "", 0)
+	// Query with canonical project "nemons" — should see both nemons + opencode-proxy
+	learnings, err := s.GetActiveLearnings("", "nemons", "", "", 0)
 	if err != nil {
 		t.Fatalf("GetActiveLearnings: %v", err)
 	}
 	if len(learnings) != 2 {
-		t.Errorf("expected 2 learnings for canonical_project=yesmem, got %d", len(learnings))
+		t.Errorf("expected 2 learnings for canonical_project=nemons, got %d", len(learnings))
 	}
 	projects := make(map[string]bool)
 	for _, l := range learnings {
 		projects[l.Project] = true
 	}
 	if !projects["opencode-proxy"] {
-		t.Error("worktree learning (opencode-proxy) not visible from parent (yesmem)")
+		t.Error("worktree learning (opencode-proxy) not visible from parent (nemons)")
 	}
-	if !projects["yesmem"] {
-		t.Error("main repo learning (yesmem) not visible from parent (yesmem)")
+	if !projects["nemons"] {
+		t.Error("main repo learning (nemons) not visible from parent (nemons)")
 	}
 	if projects["other"] {
-		t.Error("unrelated learning (other) leaked into yesmem scope")
+		t.Error("unrelated learning (other) leaked into nemons scope")
 	}
 
 	// Query with canonical project "opencode-proxy" — should also see both (symmetric)

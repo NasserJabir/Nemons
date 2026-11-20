@@ -8,12 +8,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/daemon"
 )
 
 func runScratchpad() {
 	if len(os.Args) < 3 {
-		fmt.Fprintln(os.Stderr, "Usage: yesmem scratchpad <write|read|list|delete> [flags]")
+		fmt.Fprintln(os.Stderr, "Usage: nemons scratchpad <write|read|list|delete> [flags]")
 		fmt.Fprintln(os.Stderr, "  write  --project NAME --section SEC --content TEXT (or - for stdin)")
 		fmt.Fprintln(os.Stderr, "  read   --project NAME [--section SEC]")
 		fmt.Fprintln(os.Stderr, "  list   [--project NAME]")
@@ -146,7 +146,7 @@ func runScratchpadDelete(args []string) {
 
 // scratchpadCall dials the daemon and calls a scratchpad RPC method.
 func scratchpadCall(method string, params map[string]any) (json.RawMessage, error) {
-	client, err := daemon.DialTimeout(yesmemDataDir(), 5*time.Second)
+	client, err := daemon.DialTimeout(nemonsDataDir(), 5*time.Second)
 	if err != nil {
 		return nil, fmt.Errorf("connect to daemon: %w", err)
 	}

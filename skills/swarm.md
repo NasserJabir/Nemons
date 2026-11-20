@@ -1,6 +1,6 @@
 # /swarm — Multi-Agent Orchestration
 
-> YesMem Skill: Autonomous agent swarms for research, analysis, and content creation.
+> Nemons Skill: Autonomous agent swarms for research, analysis, and content creation.
 
 ## Invocation
 
@@ -180,7 +180,7 @@ Every agent reads the plan on startup, sees its prerequisites, and waits via sen
 For deterministic workflows the user can specify dependencies on invocation:
 
 ```
-/swarm --project yesmem \
+/swarm --project nemons \
   --tasks "research,design,implement,review" \
   --depends "implement:research+design, review:implement"
 ```
@@ -345,7 +345,7 @@ The daemon monitors all running agents automatically via health check (every 30s
    - Message: `"FAILED: Agent 'X' crashed after 3 attempts. Runtime: 2m15s."`
 
 **Why quarantine before retry?**
-Agents share state via yesmem — learnings, briefing, scratchpad. Without quarantine:
+Agents share state via nemons — learnings, briefing, scratchpad. Without quarantine:
 - The retry gets the briefing with the crashed session's learnings → same error → crash loop
 - Other agents find poisoned learnings via hybrid_search → contamination spreads
 - Scratchpad sections may be incomplete → report agent works with broken data
@@ -395,11 +395,11 @@ spawn_agent(project="{project}", section="research", backend="opencode", model="
 
 | Backend | CLI | Strengths | Limitations |
 |---------|-----|-----------|-------------|
-| `claude` (default) | `claude` | YesMem proxy integration, prompt cache, full MCP access | Only Anthropic models (sonnet, opus, haiku). NEVER use with DeepSeek — silent failure (0 turns). |
+| `claude` (default) | `claude` | Nemons proxy integration, prompt cache, full MCP access | Only Anthropic models (sonnet, opus, haiku). NEVER use with DeepSeek — silent failure (0 turns). |
 | `codex` | `codex` | DeepSeek models, different provider, second opinion | No prompt cache. No proxy channel inject. |
 | `opencode` | `opencode` | Same capabilities as codex, different binary name | No prompt cache. No proxy channel inject. |
 
-**Codex/Opencode agents communicate exclusively via MCP tools** (scratchpad, send_to, remember) — not via proxy injection. YesMem is registered as MCP server.
+**Codex/Opencode agents communicate exclusively via MCP tools** (scratchpad, send_to, remember) — not via proxy injection. Nemons is registered as MCP server.
 
 **Important with DeepSeek models:** Always `backend: "opencode"` or `backend: "codex"` + `model: "deepseek-v4-pro"`. Never `backend: "claude"` with DeepSeek — the `claude` binary doesn't know the endpoint.
 

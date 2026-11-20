@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func TestProjectSourceColumnExists(t *testing.T) {
@@ -22,7 +22,7 @@ func TestProjectSourceRoundtrip(t *testing.T) {
 	id, err := s.InsertLearning(&models.Learning{
 		Category:      "gotcha",
 		Content:       "attributed by content signal",
-		Project:       "/home/test/memory/yesmem",
+		Project:       "/home/test/memory/nemons",
 		ProjectSource: "content",
 		Source:        "test",
 		CreatedAt:     time.Now(),

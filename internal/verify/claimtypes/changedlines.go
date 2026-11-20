@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // changedScope is the diff scope of a quality claim: the changed production lines

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func TestTraitsHash(t *testing.T) {
@@ -101,7 +101,7 @@ func TestBuildSynthesisPromptWithPivots(t *testing.T) {
 	}
 	pivots := []models.Learning{
 		{Content: "User sagte 'immer optimal' — erkannt als tiefe Praeferenz"},
-		{Content: "User fragte 'wie schaffen wir dass du yesmem oefter nutzt'"},
+		{Content: "User fragte 'wie schaffen wir dass du nemons oefter nutzt'"},
 	}
 
 	prompt := BuildSynthesisPrompt(traits, 100, pivots)
@@ -111,7 +111,7 @@ func TestBuildSynthesisPromptWithPivots(t *testing.T) {
 	if !containsStr(prompt, "immer optimal") {
 		t.Error("prompt should contain first pivot")
 	}
-	if !containsStr(prompt, "yesmem oefter nutzt") {
+	if !containsStr(prompt, "nemons oefter nutzt") {
 		t.Error("prompt should contain second pivot")
 	}
 }

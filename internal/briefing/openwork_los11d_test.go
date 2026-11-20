@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // YM-261 (Los 11d): since YM-251 resolve_by_text refuses any text with more than
@@ -16,7 +16,7 @@ func TestRenderOpenWork_Los11d_CapIdeaDismissUsesTheLearningID(t *testing.T) {
 	s := DefaultStrings()
 	g := &Generator{strings: s}
 	items := []models.Learning{
-		{ID: 4242, Content: "Cap: Telegram polling; yesmem telegram poll", TaskType: "cap_idea", MatchCount: 4, Importance: 1},
+		{ID: 4242, Content: "Cap: Telegram polling; nemons telegram poll", TaskType: "cap_idea", MatchCount: 4, Importance: 1},
 	}
 
 	result := g.renderOpenWork(s, items, 5.0, nil)

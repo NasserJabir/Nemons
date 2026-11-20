@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/update"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/update"
 )
 
 // Constants for the update ticker's wait for the config load.

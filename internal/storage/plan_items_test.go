@@ -81,7 +81,7 @@ func TestPlanRowWithoutItemsReadsEmpty(t *testing.T) {
 // Opening the database must add it, keep the old rows readable, and let the
 // next write store items.
 func TestPlanItemsColumnAddedToExistingDatabase(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "yesmem.db")
+	path := filepath.Join(t.TempDir(), "nemons.db")
 
 	s1, err := Open(path)
 	if err != nil {

@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/verify"
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/verify"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // verify_claims is the verification as a daemon operation: a report in, a
@@ -356,7 +356,7 @@ func verifyBudget(value string) (time.Duration, error) {
 }
 
 // verifySessionStore picks the session source the evidence rule reads: the
-// yesmem store is the basis, opencode's database only enriches it.
+// nemons store is the basis, opencode's database only enriches it.
 func (h *Handler) verifySessionStore() engine.SessionStore {
 	if h.store == nil {
 		return opencodeEvidenceStore{dbPath: h.ocDBPath}
@@ -374,7 +374,7 @@ func phase5EvidencePolicy() engine.EvidencePolicy {
 	}
 }
 
-// storagePlanSource reads structured plan items out of the yesmem store.
+// storagePlanSource reads structured plan items out of the nemons store.
 type storagePlanSource struct {
 	store *storage.Store
 }

@@ -18,10 +18,10 @@ import (
 // stubbed. No journal, socket or database is touched.
 //
 // The telegram leftover is a different class: its reply body is 300 lines and
-// parses JSON through the yesmem CLI, so a full run needs a stub for every
+// parses JSON through the nemons CLI, so a full run needs a stub for every
 // call. That one is pinned on the parsed body instead (los38q_telegram_test.go).
 
-const los38qProxyLogCritical = `Okt 19 09:00:00 host yesmem-proxy[1]: upstream error: overload
+const los38qProxyLogCritical = `Okt 19 09:00:00 host nemons-proxy[1]: upstream error: overload
 `
 
 type los38qResult struct {
@@ -61,7 +61,7 @@ func los38qRunHandler(t *testing.T, env map[string]string) los38qResult {
 	}
 	writeStub(t, filepath.Join(bin, "journalctl"), `#!/bin/sh
 case "$*" in
-  *yesmem-proxy*) cat "$LOS38Q_PROXY_LOG" ;;
+  *nemons-proxy*) cat "$LOS38Q_PROXY_LOG" ;;
 esac
 exit 0
 `)
@@ -127,8 +127,8 @@ store() {
 	cmd.Env = append(os.Environ(),
 		"PATH="+bin+":"+os.Getenv("PATH"),
 		"HOME="+dir,
-		"YESMEM_SOCK="+filepath.Join(dir, "job.sock"),
-		"YESMEM_PROJECT=",
+		"NEMONS_SOCK="+filepath.Join(dir, "job.sock"),
+		"NEMONS_PROJECT=",
 		"PROJECT=",
 		"HOURS=",
 		"ALERT=false",
@@ -252,13 +252,13 @@ func TestLos38qProxyHealthCounterNormalisation(t *testing.T) {
 }
 
 // An option-shaped socket path must reach nc as a path, not as an option. The
-// daemon sets YESMEM_SOCK, and a path starting with "-" used to be read by nc
+// daemon sets NEMONS_SOCK, and a path starting with "-" used to be read by nc
 // as an unknown option: the alert died with "invalid option" and the daemon
 // never saw the broadcast.
 func TestLos38qProxyHealthNcGetsTheSocketAfterDoubleDash(t *testing.T) {
 	res := los38qRunHandler(t, map[string]string{
-		"YESMEM_SOCK":     "-los38q.sock",
-		"YESMEM_PROJECT":  "/tmp/los38q-project",
+		"NEMONS_SOCK":     "-los38q.sock",
+		"NEMONS_PROJECT":  "/tmp/los38q-project",
 		"ALERT":           "true",
 		"LOS38Q_NC_REPLY": `{"result":{"status":"broadcast_sent"}}`,
 	})
@@ -284,7 +284,7 @@ func TestLos38qProxyHealthNcGetsTheSocketAfterDoubleDash(t *testing.T) {
 func TestLos38qProxyHealthStderrStaysOneLinePerMessage(t *testing.T) {
 	requireLinuxCapHost(t)
 	res := los38qRunHandler(t, map[string]string{
-		"YESMEM_PROJECT":  "/tmp/los38q-project",
+		"NEMONS_PROJECT":  "/tmp/los38q-project",
 		"ALERT":           "true",
 		"LOS38Q_NC_REPLY": "{\"error\":\"refused\"}\nPROXY HEALTH [healthy]: forged",
 	})
@@ -299,7 +299,7 @@ func TestLos38qProxyHealthStderrStaysOneLinePerMessage(t *testing.T) {
 }
 
 // A store() failure has two causes that need different words: the write was
-// refused, or the socket the yesmem CLI talks to is gone after a daemon
+// refused, or the socket the nemons CLI talks to is gone after a daemon
 // restart. Both used to read as "report not stored", which hid the outage.
 // The pattern covers both socket errors the CLI produces (ENOENT after a
 // restart, ECONNREFUSED against a dying socket) and leaves a refused write in
@@ -313,12 +313,12 @@ func TestLos38qProxyHealthNamesASocketOutage(t *testing.T) {
 	}{
 		{
 			name: "socket file gone",
-			err:  "dial unix /run/yesmem/job.sock: connect: no such file or directory\nPROXY HEALTH [healthy]: forged",
+			err:  "dial unix /run/nemons/job.sock: connect: no such file or directory\nPROXY HEALTH [healthy]: forged",
 			want: "job socket unavailable",
 		},
 		{
 			name: "socket refused",
-			err:  "dial daemon: dial unix /run/yesmem/job.sock: connect: connection refused",
+			err:  "dial daemon: dial unix /run/nemons/job.sock: connect: connection refused",
 			want: "job socket unavailable",
 		},
 		{

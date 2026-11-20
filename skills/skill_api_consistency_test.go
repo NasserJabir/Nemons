@@ -7,11 +7,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // yesResearchSkillPath is the bundled yesresearch skill (installed to
-// ~/.claude/skills/yesresearch/SKILL.md by yesmem setup).
+// ~/.claude/skills/yesresearch/SKILL.md by nemons setup).
 const yesResearchSkillPath = "bundled-skills/yesresearch/SKILL.md"
 
 // yesloopSkillPath is the bundled yesloop skill, the pipeline every loop agent
@@ -60,7 +60,7 @@ func functionBody(src, signature string) string {
 	return rest
 }
 
-// TestYesResearchSkillOnlyNamesRealSpawnParams: every yesmem_spawn_agent(...)
+// TestYesResearchSkillOnlyNamesRealSpawnParams: every nemons_spawn_agent(...)
 // call in the skill may only use parameters the daemon accepts.
 func TestYesResearchSkillOnlyNamesRealSpawnParams(t *testing.T) {
 	data, err := os.ReadFile(yesResearchSkillPath)
@@ -69,7 +69,7 @@ func TestYesResearchSkillOnlyNamesRealSpawnParams(t *testing.T) {
 	}
 	known := spawnAgentParams(t)
 
-	callRe := regexp.MustCompile(`yesmem_spawn_agent\(([^)]*)\)`)
+	callRe := regexp.MustCompile(`nemons_spawn_agent\(([^)]*)\)`)
 	checked := 0
 	for _, call := range callRe.FindAllStringSubmatch(string(data), -1) {
 		for _, arg := range strings.Split(call[1], ",") {
@@ -162,7 +162,7 @@ func TestYesResearchSkillDoesNotPromiseListAgentsStreamFields(t *testing.T) {
 }
 
 // TestYesloopSkillBunTestPathsExist: the proof example names the plugin's test
-// directory. Los 18c moved it to opencode-yesmem-v2, and a path that no longer
+// directory. Los 18c moved it to opencode-nemons-v2, and a path that no longer
 // exists makes the recommended proof command fail before it proves anything
 // (YM-296).
 func TestYesloopSkillBunTestPathsExist(t *testing.T) {

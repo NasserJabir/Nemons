@@ -104,7 +104,7 @@ func (h *Handler) handleJobSocket(req Request) Response {
 		}
 	}
 	// The sender is the caller's claim and the channel routes on it: a run that
-	// could name itself "yesmem" or after another agent could pass its message off
+	// could name itself "nemons" or after another agent could pass its message off
 	// as theirs. Its announcement is labelled as what it is. The mark is a private
 	// type: only this function can set it, and no JSON payload decodes into it, so
 	// a socket client cannot borrow the job's permission to name its own sender

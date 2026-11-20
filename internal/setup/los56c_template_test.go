@@ -3,7 +3,7 @@ package setup
 import (
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 	"gopkg.in/yaml.v3"
 )
 

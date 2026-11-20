@@ -35,11 +35,11 @@ func makefileRecipe(t *testing.T, target string) string {
 
 // YM-312: `make reap-stale-mcp` swept the process table with pgrep -f and killed
 // every match whose /proc/<pid>/exe read "(deleted)". Nothing verified that a hit
-// was a `yesmem mcp` helper: a grep whose arguments carried "yesmem mcp", a search
+// was a `nemons mcp` helper: a grep whose arguments carried "nemons mcp", a search
 // command, or a helper of another installation all qualified, and the pattern also
 // missed helpers that the status scanner (argv-anchored) does report. The rule now
-// delegates to the binary, where the same scan that `yesmem status` uses decides.
-func TestMakefileReapDelegatesToYesmemBinary(t *testing.T) {
+// delegates to the binary, where the same scan that `nemons status` uses decides.
+func TestMakefileReapDelegatesToNemonsBinary(t *testing.T) {
 	recipe := makefileRecipe(t, "reap-stale-mcp")
 	if recipe == "" {
 		t.Fatal("Makefile has no reap-stale-mcp target")

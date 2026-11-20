@@ -111,7 +111,7 @@ func TestLos56fLockUpdateDoesNotFollowSymlink(t *testing.T) {
 
 	// An unusable lock has to degrade, not fail: the pre-lock behavior was
 	// "update without a lock", and a planted link must not disable updates.
-	unlock, err := lockUpdate(filepath.Join(dir, "yesmem"))
+	unlock, err := lockUpdate(filepath.Join(dir, "nemons"))
 	if err != nil {
 		t.Fatalf("lockUpdate refused instead of degrading: %v", err)
 	}
@@ -139,7 +139,7 @@ func TestLos56fVersionIsQuotedInLog(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	dest := filepath.Join(t.TempDir(), "yesmem")
+	dest := filepath.Join(t.TempDir(), "nemons")
 	if _, err := runUpdateTo(dest, "v1.0.0", log.New(&buf, "", 0)); err == nil {
 		t.Fatal("an update without a binary URL must fail")
 	}
@@ -177,7 +177,7 @@ func TestLos56fFailedVersionIsSkipped(t *testing.T) {
 	}
 
 	dir := t.TempDir()
-	dest := filepath.Join(dir, "yesmem")
+	dest := filepath.Join(dir, "nemons")
 	if err := os.WriteFile(dest, []byte("old-binary"), 0755); err != nil {
 		t.Fatalf("seed dest: %v", err)
 	}

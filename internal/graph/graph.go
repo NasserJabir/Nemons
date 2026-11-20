@@ -3,7 +3,7 @@ package graph
 import (
 	"sync"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // Node represents a node in the association graph.

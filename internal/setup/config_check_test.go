@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-// YM-463: `yesmem update` reports keys the schema cannot read, `yesmem setup` did not. Both now print the
+// YM-463: `nemons update` reports keys the schema cannot read, `nemons setup` did not. Both now print the
 // same lines from the same function, so an existing config.yaml with an invented key is named instead of
 // being replaced silently.
 

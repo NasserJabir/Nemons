@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/carsteneu/yesmem/internal/codescan"
-	"github.com/carsteneu/yesmem/internal/textutil"
+	"github.com/NasserJabir/Nemons/internal/codescan"
+	"github.com/NasserJabir/Nemons/internal/textutil"
 )
 
 // runCBMGc GCs orphaned CBM worktree-index DBs. Default is a real run;

@@ -1,11 +1,11 @@
 # Documentation
 
-Technical documentation for YesMem.
+Technical documentation for Nemons.
 
 ## Contents
 
 - **[config-reference.md](config-reference.md)** — Complete reference for all `config.yaml` settings
-- **[settings-json-reference.md](settings-json-reference.md)** — YesMem-relevant `settings.json` entries: MCP server, hooks, permissions
+- **[settings-json-reference.md](settings-json-reference.md)** — Nemons-relevant `settings.json` entries: MCP server, hooks, permissions
 - **[CapFeatures.md](CapFeatures.md)** — Capability memory system: design, architecture, implementation status
 - **[CAPS-md-spec.md](CAPS-md-spec.md)** — CAP.md file format specification (YAML frontmatter + Markdown)
 - **[caps-vs-skills-rationale.md](caps-vs-skills-rationale.md)** — Rationale for caps vs. skills as a standalone format

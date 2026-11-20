@@ -71,8 +71,8 @@ func sandboxEnvValue(env []string, name string) (string, bool) {
 func TestLos65aCapExecEnvCarriesTheWrapperInputs(t *testing.T) {
 	env := capExecSandboxEnv("/run/job.sock", `{"from_version":100}`, "ses_abc")
 
-	if got, ok := sandboxEnvValue(env, "YESMEM_SOCK"); !ok || got != "/run/job.sock" {
-		t.Errorf("YESMEM_SOCK = %q (present=%v), want /run/job.sock", got, ok)
+	if got, ok := sandboxEnvValue(env, "NEMONS_SOCK"); !ok || got != "/run/job.sock" {
+		t.Errorf("NEMONS_SOCK = %q (present=%v), want /run/job.sock", got, ok)
 	}
 	if got, ok := sandboxEnvValue(env, "CAP_ARGS"); !ok || got != `{"from_version":100}` {
 		t.Errorf("CAP_ARGS = %q (present=%v): the tool wrapper reads its arguments from it", got, ok)
@@ -100,7 +100,7 @@ func TestLos65aCapExecEnvIsForwardedOnV2(t *testing.T) {
 	}
 	for _, profile := range []SandboxProfile{ProfileStandard, ProfileStrict} {
 		flags := sb.sandboxFlags(profile)
-		for _, name := range []string{"YESMEM_SOCK", "CAP_ARGS", "CAP_SESSION_ID"} {
+		for _, name := range []string{"NEMONS_SOCK", "CAP_ARGS", "CAP_SESSION_ID"} {
 			found := false
 			for i := 0; i+1 < len(flags); i++ {
 				if flags[i] == "--env" && flags[i+1] == name {

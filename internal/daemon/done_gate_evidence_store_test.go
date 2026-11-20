@@ -4,11 +4,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
-// The gate resolves Phase 5 evidence over the yesmem session store, and the two
+// The gate resolves Phase 5 evidence over the nemons session store, and the two
 // details that decide whether that works are both easy to get wrong: the store
 // keys sessions namespaced ("opencode:ses_x") while the reported id is bare,
 // and it does not carry the agent type of an opencode subagent, so a check that

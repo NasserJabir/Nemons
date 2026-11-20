@@ -12,9 +12,9 @@ func TestLos58bProjectOriginSeparatesTheThreeStates(t *testing.T) {
 		want    ProjectOrigin
 	}{
 		{"", ProjectOriginUnassigned},
-		{"/home/tester/memory/yesmem", ProjectOriginPath},
-		{"/home/tester/memory/yesmem/.worktrees/yesloop-los-58b", ProjectOriginPath},
-		{"yesmem", ProjectOriginLegacy},
+		{"/home/tester/memory/nemons", ProjectOriginPath},
+		{"/home/tester/memory/nemons/.worktrees/yesloop-los-58b", ProjectOriginPath},
+		{"nemons", ProjectOriginLegacy},
 		{"yesloop-sealdb-export-migration", ProjectOriginLegacy},
 		{".worktrees/yesloop-los-58b", ProjectOriginLegacy},
 	}

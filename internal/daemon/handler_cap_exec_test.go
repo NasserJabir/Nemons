@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func TestHandleExecuteCap_RequiresName(t *testing.T) {

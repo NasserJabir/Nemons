@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 func setupStore(t *testing.T) *storage.Store {
@@ -479,7 +479,7 @@ func TestBriefingShowsCapIdeasAboveThreshold(t *testing.T) {
 
 	aboveID, err := store.InsertLearning(&models.Learning{
 		Category: "unfinished", TaskType: "cap_idea",
-		Content: "Cap: Telegram polling; yesmem telegram poll",
+		Content: "Cap: Telegram polling; nemons telegram poll",
 		Project: "/var/www/p", Confidence: 1.0,
 		CreatedAt: time.Now(), ModelUsed: "test",
 	})
@@ -492,7 +492,7 @@ func TestBriefingShowsCapIdeasAboveThreshold(t *testing.T) {
 
 	belowID, err := store.InsertLearning(&models.Learning{
 		Category: "unfinished", TaskType: "cap_idea",
-		Content: "Cap: One-off; yesmem one",
+		Content: "Cap: One-off; nemons one",
 		Project: "/var/www/p", Confidence: 1.0,
 		CreatedAt: time.Now(), ModelUsed: "test",
 	})

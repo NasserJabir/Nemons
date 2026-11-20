@@ -439,7 +439,7 @@ func TestQuarantineSessionInProject_ShortNameMatchesAShortNameRowLos55a(t *testi
 	}
 }
 
-// Beide Worktree-Layouts gehören zum Repository (models.worktreeMarkers): yesmem
+// Beide Worktree-Layouts gehören zum Repository (models.worktreeMarkers): nemons
 // spawnt unter .worktrees/, anderes Tooling unter .claude/worktrees/.
 func TestQuarantineSessionInProject_MatchesTheSecondWorktreeLayoutLos55a(t *testing.T) {
 	s := mustOpen(t)

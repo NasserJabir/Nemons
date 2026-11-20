@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // SessionMeta holds metadata extracted from a session JSONL file.
@@ -171,7 +171,7 @@ func ParseSessionFile(path string) ([]models.Message, *SessionMeta, error) {
 }
 
 // ParseAuto detects the session source from path/content and dispatches to the
-// corresponding parser, returning messages normalized into yesmem models.
+// corresponding parser, returning messages normalized into nemons models.
 func ParseAuto(path string) ([]models.Message, *SessionMeta, error) {
 	if isCodexPath(path) {
 		return ParseCodexSession(path)

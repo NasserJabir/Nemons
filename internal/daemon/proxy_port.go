@@ -5,11 +5,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // proxyForwardPort extracts the TCP port a sandboxed agent has to reach on the
-// host loopback to talk to the yesmem proxy. ai-jail 2.x gives the sandbox its
+// host loopback to talk to the nemons proxy. ai-jail 2.x gives the sandbox its
 // own loopback, so without a forward a sandboxed claude/codex cannot reach the
 // proxy the host already points them at — 0.9.x shared the host loopback and
 // needed nothing.

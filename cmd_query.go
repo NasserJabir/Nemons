@@ -9,16 +9,16 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
-// runQuery executes a read-only SQL query against yesmem.db. Wraps
+// runQuery executes a read-only SQL query against nemons.db. Wraps
 // storage.QueryReadOnly which validates the query and uses a connection that
 // the SQLite driver opens with mode=ro and PRAGMA query_only=1.
 //
 // Usage:
 //
-//	yesmem query '<sql>' [--args '<json-array>'] [--format json|tsv]
+//	nemons query '<sql>' [--args '<json-array>'] [--format json|tsv]
 //
 // Default format is JSON: {"columns": [...], "rows": [[...], ...]}.
 // Use `--format objects` for an array of {col: val, ...} objects (matches
@@ -77,8 +77,8 @@ func runQuery(args []string) {
 		}
 	}
 
-	dataDir := yesmemDataDir()
-	dbPath := filepath.Join(dataDir, "yesmem.db")
+	dataDir := nemonsDataDir()
+	dbPath := filepath.Join(dataDir, "nemons.db")
 	store, err := storage.Open(dbPath)
 	if err != nil {
 		log.Fatalf("open store: %v", err)
@@ -102,11 +102,11 @@ func runQuery(args []string) {
 
 func queryUsage(msg string) {
 	if msg != "" {
-		fmt.Fprintln(os.Stderr, "yesmem query:", msg)
+		fmt.Fprintln(os.Stderr, "nemons query:", msg)
 	}
-	fmt.Fprintln(os.Stderr, "Usage: yesmem query '<sql>' [--args '<json-array>'] [--format json|objects|tsv]")
+	fmt.Fprintln(os.Stderr, "Usage: nemons query '<sql>' [--args '<json-array>'] [--format json|objects|tsv]")
 	fmt.Fprintln(os.Stderr, "  Only SELECT and WITH statements are accepted.")
-	fmt.Fprintln(os.Stderr, "  Example: yesmem query 'SELECT count(*) FROM learnings WHERE project = ?' --args '[\"yesmem\"]'")
+	fmt.Fprintln(os.Stderr, "  Example: nemons query 'SELECT count(*) FROM learnings WHERE project = ?' --args '[\"nemons\"]'")
 	if msg != "" {
 		os.Exit(2)
 	}
@@ -126,7 +126,7 @@ func emitJSON(cols []string, rows [][]any) {
 
 // emitObjects writes rows as a JSON array of {col: val, ...} objects, matching
 // the output shape of `sqlite3 -json`. This is the bordmittel-friendly format
-// for piping into `yesmem json` filters.
+// for piping into `nemons json` filters.
 func emitObjects(cols []string, rows [][]any) {
 	out := make([]map[string]any, len(rows))
 	for i, r := range rows {

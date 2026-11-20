@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/setup"
+	"github.com/NasserJabir/Nemons/internal/setup"
 )
 
 // YM-333 (Los 38o): the migration keeps the pre-notify unit, but a copy nobody
@@ -21,7 +21,7 @@ func TestSystemdRollbackHintNamesTheCopyOnlyWhenItExists(t *testing.T) {
 	if err := os.MkdirAll(unitDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	unit := filepath.Join(unitDir, "yesmem.service")
+	unit := filepath.Join(unitDir, "nemons.service")
 	backup := setup.UnitBackupPath(unit)
 	if err := os.WriteFile(backup, []byte("[Service]\nType=simple\n"), 0o644); err != nil {
 		t.Fatal(err)
@@ -48,7 +48,7 @@ func TestSystemdRollbackHintNamesTheGapItCannotClose(t *testing.T) {
 	if err := os.MkdirAll(unitDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	unit := filepath.Join(unitDir, "yesmem.service")
+	unit := filepath.Join(unitDir, "nemons.service")
 	if err := os.WriteFile(unit, []byte("[Service]\nType=notify\nWatchdogSec=90\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -67,7 +67,7 @@ func TestSystemdRollbackHintIsSilentForASimpleUnit(t *testing.T) {
 	if err := os.MkdirAll(unitDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(unitDir, "yesmem.service"), []byte("[Service]\nType=simple\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(unitDir, "nemons.service"), []byte("[Service]\nType=simple\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	if hint := systemdRollbackHint(home); hint != "" {

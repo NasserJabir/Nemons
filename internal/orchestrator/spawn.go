@@ -35,12 +35,12 @@ func BuildSpawnCommand(terminal, innerCmd, title string, innerArgs ...string) (b
 	case "Terminal":
 		return "open", append([]string{"-na", "Terminal", "--args", innerCmd}, innerArgs...)
 	case "tmux":
-		// Always targets a dedicated yesmem-agents session — works from any terminal,
+		// Always targets a dedicated nemons-agents session — works from any terminal,
 		// even when the caller is not running inside tmux. Creates session if it doesn't exist.
-		ensure := "tmux new-session -d -s yesmem-agents 2>/dev/null"
-		hook := "tmux set-hook -t yesmem-agents pane-exited 'select-layout tiled'"
-		split := "tmux split-window -t yesmem-agents -d " + shellQuote("bash -ic "+shellCmd)
-		layout := "tmux select-layout -t yesmem-agents tiled"
+		ensure := "tmux new-session -d -s nemons-agents 2>/dev/null"
+		hook := "tmux set-hook -t nemons-agents pane-exited 'select-layout tiled'"
+		split := "tmux split-window -t nemons-agents -d " + shellQuote("bash -ic "+shellCmd)
+		layout := "tmux select-layout -t nemons-agents tiled"
 		return "sh", []string{"-c", ensure + " ; " + hook + " ; " + split + " ; " + layout}
 	default:
 		return unknownFallback(innerCmd, innerArgs...)
@@ -93,7 +93,7 @@ func unknownFallback(innerCmd string, innerArgs ...string) (bin string, args []s
 }
 
 // BuildAttachCommand returns the command to open a terminal window attached to a tmux session.
-// Used to make the yesmem-agents session visible when no client is already attached.
+// Used to make the nemons-agents session visible when no client is already attached.
 func BuildAttachCommand(terminal, session string) (string, []string) {
 	attach := []string{"tmux", "attach", "-t", session}
 	switch terminal {

@@ -6,14 +6,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/carsteneu/yesmem/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/daemon"
 )
 
 func runCapStoreCLI(args []string) {
 	if len(args) < 3 {
-		fmt.Fprintln(os.Stderr, "Usage: yesmem cap-store <capability> <action> <table> [where] [args_json]")
+		fmt.Fprintln(os.Stderr, "Usage: nemons cap-store <capability> <action> <table> [where] [args_json]")
 		fmt.Fprintln(os.Stderr, "  Actions: query, upsert, delete")
-		fmt.Fprintln(os.Stderr, "  Example: yesmem cap-store telegram query config \"key = ?\" '[\"bot_token\"]'")
+		fmt.Fprintln(os.Stderr, "  Example: nemons cap-store telegram query config \"key = ?\" '[\"bot_token\"]'")
 		os.Exit(1)
 	}
 
@@ -49,7 +49,7 @@ func runCapStoreCLI(args []string) {
 	}
 
 	home, _ := os.UserHomeDir()
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	client, err := daemon.Dial(dataDir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "daemon: %v\n", err)

@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/verify/claimtypes"
+	"github.com/NasserJabir/Nemons/internal/verify/claimtypes"
 )
 
 // ParseReport turns a plaintext agent report into verifiable claims.

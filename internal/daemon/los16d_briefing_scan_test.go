@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // TestBriefingRefreshScanSurvivesOneUnreadableFingerprintLos16d (YM-372, Review-Fix

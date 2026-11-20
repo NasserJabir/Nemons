@@ -8,12 +8,12 @@ import "testing"
 // learnings of that path already carry the repository name.
 func TestLos25_CanonicalProjectCoversBothWorktreeLayouts(t *testing.T) {
 	cases := map[string]string{
-		"/home/tester/memory/yesmem":                                              "yesmem",
-		"/home/tester/memory/yesmem/.worktrees/yesloop-los-25":                    "yesmem",
-		"/home/tester/memory/yesmem/.claude/worktrees/feat+capability-memory":     "yesmem",
-		"/home/tester/memory/yesmem/.claude/worktrees/feat+capability-memory/sub": "yesmem",
+		"/home/tester/memory/nemons":                                              "nemons",
+		"/home/tester/memory/nemons/.worktrees/yesloop-los-25":                    "nemons",
+		"/home/tester/memory/nemons/.claude/worktrees/feat+capability-memory":     "nemons",
+		"/home/tester/memory/nemons/.claude/worktrees/feat+capability-memory/sub": "nemons",
 		"/var/www/html/ccm19/cookie-consent-management":                          "cookie-consent-management",
-		"yesmem": "yesmem",
+		"nemons": "nemons",
 	}
 	for input, want := range cases {
 		if got := CanonicalProject(input); got != want {

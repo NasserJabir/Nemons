@@ -11,9 +11,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/daemon"
-	"github.com/carsteneu/yesmem/internal/guard"
-	"github.com/carsteneu/yesmem/internal/hooks"
+	"github.com/NasserJabir/Nemons/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/guard"
+	"github.com/NasserJabir/Nemons/internal/hooks"
 )
 
 // TestGuardParityCLIAndRPC is the contract of the split: the Claude Code hook and the daemon RPC are two
@@ -23,8 +23,8 @@ func TestGuardParityCLIAndRPC(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 	t.Setenv("ANTHROPIC_API_KEY", "")
-	t.Setenv("YESMEM_GUARD_MODEL", "")
-	t.Setenv("YESMEM_GUARD_MODELS_URL", "http://127.0.0.1:1")
+	t.Setenv("NEMONS_GUARD_MODEL", "")
+	t.Setenv("NEMONS_GUARD_MODELS_URL", "http://127.0.0.1:1")
 
 	var mu sync.Mutex
 	var prompts []string
@@ -52,7 +52,7 @@ func TestGuardParityCLIAndRPC(t *testing.T) {
 	writeAt(t, filepath.Join(home, ".cache", "opencode", "models.json"),
 		`{"deepseek":{"api":"`+model.URL+`","npm":"@ai-sdk/openai-compatible","models":{"deepseek-v4-flash":{}}}}`)
 	writeAt(t, filepath.Join(home, ".local", "share", "opencode", "auth.json"), `{"deepseek":{"key":"sk-test"}}`)
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	writeAt(t, filepath.Join(dataDir, "config.yaml"), "extraction:\n  model: deepseek-v4-flash\n")
 	project := t.TempDir()
 	writeAt(t, filepath.Join(project, "RULES.md"), "1. Never auto-commit.\n2. Never commit secrets.\n25. No destructive commands.\n")

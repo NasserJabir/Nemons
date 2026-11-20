@@ -14,7 +14,7 @@ type AdapterConfig struct {
 func DefaultAdapters() AdapterConfig {
 	return AdapterConfig{
 		Direct: map[string]string{
-			"store": "mcp__yesmem__cap_store",
+			"store": "mcp__nemons__cap_store",
 		},
 		Dispatchers: map[string]map[string]string{
 			"web": {
@@ -103,21 +103,21 @@ func GenerateAdapterJS(cfg AdapterConfig, skipStore bool) string {
 // and calls store({...}), the wrapper auto-injects capability and
 // stringifies array args before forwarding to the underlying MCP tool.
 func WrapToolWithStore(body string, capName string) string {
-	wrapper := fmt.Sprintf("async(a)=>mcp__yesmem__cap_store({capability:%q,...a,args:Array.isArray(a.args)?JSON.stringify(a.args):a.args})", capName)
+	wrapper := fmt.Sprintf("async(a)=>mcp__nemons__cap_store({capability:%q,...a,args:Array.isArray(a.args)?JSON.stringify(a.args):a.args})", capName)
 	return fmt.Sprintf("((store)=>%s)(%s)", body, wrapper)
 }
 
 func GenerateAdapterBash() string {
-	return `if [ -z "${YESMEM_WORKER_IN-}" ]; then
-  coproc YESMEM_WORKER { yesmem worker; }
-  exec {YESMEM_WORKER_IN}>&${YESMEM_WORKER[1]}
-  exec {YESMEM_WORKER_OUT}<&${YESMEM_WORKER[0]}
-  exec {YESMEM_WORKER[1]}>&-
-  exec {YESMEM_WORKER[0]}<&-
+	return `if [ -z "${NEMONS_WORKER_IN-}" ]; then
+  coproc NEMONS_WORKER { nemons worker; }
+  exec {NEMONS_WORKER_IN}>&${NEMONS_WORKER[1]}
+  exec {NEMONS_WORKER_OUT}<&${NEMONS_WORKER[0]}
+  exec {NEMONS_WORKER[1]}>&-
+  exec {NEMONS_WORKER[0]}<&-
 fi
 store() {
-  printf '{"op":"store","params":%s}\n' "$1" >&"$YESMEM_WORKER_IN"
-  IFS= read -r _yr <&"$YESMEM_WORKER_OUT"
+  printf '{"op":"store","params":%s}\n' "$1" >&"$NEMONS_WORKER_IN"
+  IFS= read -r _yr <&"$NEMONS_WORKER_OUT"
   case "$_yr" in
     *'"ok":true'*)
       if [[ "$_yr" == *'"value":'* ]]; then
@@ -132,8 +132,8 @@ store() {
       ;;
   esac
 }
-yesmem() {
-  if [ "$1" = "json" ] && [ -n "${YESMEM_WORKER_IN-}" ]; then
+nemons() {
+  if [ "$1" = "json" ] && [ -n "${NEMONS_WORKER_IN-}" ]; then
     shift
     local LC_ALL=C
     local _ystdin _yslen _yargs _yfirst _ae _yh _yex _yol _yout
@@ -161,16 +161,16 @@ yesmem() {
     done
     _yargs="${_yargs}]"
     _yslen=${#_ystdin}
-    printf '{"op":"json_cli","args":%s,"stdin_len":%d}\n' "$_yargs" "$_yslen" >&"$YESMEM_WORKER_IN"
+    printf '{"op":"json_cli","args":%s,"stdin_len":%d}\n' "$_yargs" "$_yslen" >&"$NEMONS_WORKER_IN"
     if [ "$_yslen" -gt 0 ]; then
-      printf '%s' "$_ystdin" >&"$YESMEM_WORKER_IN"
+      printf '%s' "$_ystdin" >&"$NEMONS_WORKER_IN"
     fi
-    IFS= read -r _yh <&"$YESMEM_WORKER_OUT"
+    IFS= read -r _yh <&"$NEMONS_WORKER_OUT"
     case "$_yh" in
       *'"ok":false'*)
         _yerr=${_yh#*'"error":"'}
         _yerr=${_yerr%%\"*}
-        printf 'yesmem json: %s\n' "$_yerr" >&2
+        printf 'nemons json: %s\n' "$_yerr" >&2
         return 2
         ;;
     esac
@@ -181,16 +181,16 @@ yesmem() {
     _yol=${_yol%%,*}
     _yol=${_yol%%\}*}
     if [ "${_yol:-0}" -gt 0 ]; then
-      IFS= read -N "$_yol" -r _yout <&"$YESMEM_WORKER_OUT"
+      IFS= read -N "$_yol" -r _yout <&"$NEMONS_WORKER_OUT"
       printf '%s' "$_yout"
     fi
     return "${_yex:-0}"
   fi
-  command yesmem "$@"
+  command nemons "$@"
 }
 llm() {
-    _body=$(yesmem json -n --arg model "${1:-}" --arg system "${2:-}" --arg prompt "${3:-}" --arg session "${4:-}" --arg tools "${5:-}" 'if $tools == "tools" then {model:$model,system:$system,prompt:$prompt,session:$session,tools:true} else {model:$model,system:$system,prompt:$prompt,session:$session} end')
-    yesmem llm-complete "$_body"
+    _body=$(nemons json -n --arg model "${1:-}" --arg system "${2:-}" --arg prompt "${3:-}" --arg session "${4:-}" --arg tools "${5:-}" 'if $tools == "tools" then {model:$model,system:$system,prompt:$prompt,session:$session,tools:true} else {model:$model,system:$system,prompt:$prompt,session:$session} end')
+    nemons llm-complete "$_body"
     return $?
   }
 `
@@ -212,11 +212,11 @@ func UsesGenericAdapters(script string) bool {
 }
 
 // UsesStoreAdapter returns true when script contains a store() or
-// mcp__yesmem__cap_store() callsite, covering both generic and provider
+// mcp__nemons__cap_store() callsite, covering both generic and provider
 // forms. Used to guard WrapToolWithStore — web()/file() adapters do
 // not need a store closure.
 func UsesStoreAdapter(script string) bool {
-	return containsCallsite(script, "store") || containsCallsite(script, "mcp__yesmem__cap_store")
+	return containsCallsite(script, "store") || containsCallsite(script, "mcp__nemons__cap_store")
 }
 
 func containsCallsite(script, name string) bool {

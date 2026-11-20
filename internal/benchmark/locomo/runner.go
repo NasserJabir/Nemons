@@ -11,11 +11,11 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/carsteneu/yesmem/internal/benchmark"
-	"github.com/carsteneu/yesmem/internal/embedding"
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/benchmark"
+	"github.com/NasserJabir/Nemons/internal/embedding"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // Runner orchestrates the full LoCoMo benchmark pipeline: Ingest -> Extract -> Embed -> Query -> Judge -> Report.

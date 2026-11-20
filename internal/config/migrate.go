@@ -51,13 +51,13 @@ const opencodeDBSnippet = `
 
 const modelFeaturesBlock = `
   # --- Per-Model Feature Gates ---
-  # Control which yesmem behavioral features are active per model/provider.
+  # Control which nemons behavioral features are active per model/provider.
   # Keys are model name prefixes matched case-insensitively (longest wins).
   # Models not listed fall back to feature_defaults.
   #
   # Gate reference:
   #   skill_eval               = Inject [skill-eval] block — checks which skills apply
-  #   briefing                 = Inject yesmem briefing at session start
+  #   briefing                 = Inject nemons briefing at session start
   #   rules_reminder           = Periodic reminder of project rules/guidelines
   #   plan_checkpoint          = Inject plan checkpoint reminders
   #   think_reminder           = Inject hybrid_search() hint (check memory before assuming)

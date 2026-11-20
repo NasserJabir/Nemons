@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 type ScheduledJob struct {
@@ -23,7 +23,7 @@ type ScheduledJob struct {
 	CapName    string `json:"cap_name,omitempty"`
 	ScriptName string `json:"script_name,omitempty"`
 	// Project is the absolute path the job was created from; bashSandboxConfig
-	// hands it to the run as YESMEM_PROJECT (YM-281).
+	// hands it to the run as NEMONS_PROJECT (YM-281).
 	Project         string         `json:"project,omitempty"`
 	AutoCorrect     bool           `json:"auto_correct"`
 	AllowedPorts    string         `json:"allowed_ports,omitempty"`

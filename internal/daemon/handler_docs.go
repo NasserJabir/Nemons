@@ -14,10 +14,10 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/ingest"
-	"github.com/carsteneu/yesmem/internal/repo"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/ingest"
+	"github.com/NasserJabir/Nemons/internal/repo"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 var embedDocChunksMu sync.Mutex
@@ -903,7 +903,7 @@ func isNonBehavioralLine(line string) bool {
 		return true
 	}
 	// Lines that are just a command name + description (CLI reference patterns)
-	// e.g. "  build          Build binary → ./yesmem"
+	// e.g. "  build          Build binary → ./nemons"
 	if len(line) > 2 && line[0] == ' ' && strings.Contains(line, "  ") {
 		parts := strings.Fields(line)
 		if len(parts) == 2 && !strings.ContainsAny(parts[0], ".-()") {

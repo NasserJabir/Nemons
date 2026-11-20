@@ -10,8 +10,8 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/carsteneu/yesmem/internal/embedding"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/embedding"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // LocalSearcher provides hybrid search (BM25 + Vector + RRF) directly against a store.

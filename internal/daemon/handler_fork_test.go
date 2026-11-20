@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/textutil"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/textutil"
 )
 
 func TestHandleForkExtractLearnings(t *testing.T) {
@@ -64,7 +64,7 @@ func TestHandleForkExtractLearnings_PreservesTaskType(t *testing.T) {
 	h, s := mustHandler(t)
 
 	learnings := []map[string]any{
-		{"content": "Cap: Telegram polling; yesmem telegram poll", "category": "unfinished", "task_type": "cap_idea"},
+		{"content": "Cap: Telegram polling; nemons telegram poll", "category": "unfinished", "task_type": "cap_idea"},
 	}
 	learningsJSON, _ := json.Marshal(learnings)
 
@@ -905,7 +905,7 @@ func TestForkExtractLearnings_WithLineage(t *testing.T) {
 	resp := h.handleForkExtractLearnings(map[string]any{
 		"learnings":       learnings,
 		"session_id":      "lineage-test",
-		"project":         "yesmem",
+		"project":         "nemons",
 		"source_msg_from": float64(5),
 		"source_msg_to":   float64(30),
 	})
@@ -913,7 +913,7 @@ func TestForkExtractLearnings_WithLineage(t *testing.T) {
 		t.Fatal(resp.Error)
 	}
 	// Verify the learning was saved with lineage
-	all, err := s.GetActiveLearnings("decision", "yesmem", "", "", 0)
+	all, err := s.GetActiveLearnings("decision", "nemons", "", "", 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -940,7 +940,7 @@ func TestForkExtractLearnings_RecordsCoverage(t *testing.T) {
 	h.handleForkExtractLearnings(map[string]any{
 		"learnings":       learnings,
 		"session_id":      "coverage-test",
-		"project":         "yesmem",
+		"project":         "nemons",
 		"source_msg_from": float64(0),
 		"source_msg_to":   float64(25),
 	})
@@ -965,13 +965,13 @@ func jsonQuote(s string) string {
 func TestForkExtractLearningsAttributesProject(t *testing.T) {
 	h, s := mustHandler(t)
 	if _, err := s.InsertLearning(&models.Learning{
-		Category: "gotcha", Content: "seed " + attrYesmem, Project: attrYesmem,
+		Category: "gotcha", Content: "seed " + attrNemons, Project: attrNemons,
 		Source: "test", CreatedAt: time.Now(),
 	}); err != nil {
 		t.Fatal(err)
 	}
 
-	content := "touched " + attrYesmem + "/internal/daemon and " + attrYesmem + "/internal/proxy"
+	content := "touched " + attrNemons + "/internal/daemon and " + attrNemons + "/internal/proxy"
 	resp := h.Handle(Request{Method: "fork_extract_learnings", Params: map[string]any{
 		"learnings":  `[{"content":` + jsonQuote(content) + `,"category":"gotcha"}]`,
 		"project":    attrOpenencode,
@@ -989,13 +989,13 @@ func TestForkExtractLearningsAttributesProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("get: %v", err)
 	}
-	if full.Project != attrYesmem {
-		t.Errorf("Project = %q, want %q", full.Project, attrYesmem)
+	if full.Project != attrNemons {
+		t.Errorf("Project = %q, want %q", full.Project, attrNemons)
 	}
 	if full.ProjectSource != "content" {
 		t.Errorf("ProjectSource = %q, want content", full.ProjectSource)
 	}
-	if full.CanonicalProject != models.CanonicalProject(attrYesmem) {
+	if full.CanonicalProject != models.CanonicalProject(attrNemons) {
 		t.Errorf("CanonicalProject = %q", full.CanonicalProject)
 	}
 }

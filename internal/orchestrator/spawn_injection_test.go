@@ -33,8 +33,8 @@ func TestBuildShellCmd_TitleCannotInjectCommands(t *testing.T) {
 // A harmless title must keep producing exactly the old escape sequence, so the
 // fix does not silently change the window title format.
 func TestBuildShellCmd_PlainTitleUnchanged(t *testing.T) {
-	cmd := buildShellCmd("true", nil, "yesmem-task-a #7")
-	if !strings.Contains(cmd, `echo -ne '\033]0;yesmem-task-a #7\007';`) {
+	cmd := buildShellCmd("true", nil, "nemons-task-a #7")
+	if !strings.Contains(cmd, `echo -ne '\033]0;nemons-task-a #7\007';`) {
 		t.Fatalf("plain title changed shape: %s", cmd)
 	}
 }
@@ -45,7 +45,7 @@ func TestBuildShellCmd_PlainTitleUnchanged(t *testing.T) {
 // without a single control character in the value (YM-416, cold review finding).
 // The backslash has to reach the terminal as a backslash.
 func TestBuildShellCmd_TitleBackslashEscapesStayLiteral(t *testing.T) {
-	title := `yesmem-x\033]2;FORGED\007 #7`
+	title := `nemons-x\033]2;FORGED\007 #7`
 
 	out, err := exec.Command("bash", "-c", buildShellCmd("true", nil, title)).CombinedOutput()
 	if err != nil {

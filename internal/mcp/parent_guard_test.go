@@ -172,7 +172,7 @@ func TestServeStdioArmsParentWatch(t *testing.T) {
 	}
 	exited := make(chan int, 1)
 	exitProcess = func(code int) { exited <- code }
-	server := mcpserver.NewMCPServer("yesmem-test", "0", mcpserver.WithToolCapabilities(false))
+	server := mcpserver.NewMCPServer("nemons-test", "0", mcpserver.WithToolCapabilities(false))
 	var served *mcpserver.MCPServer
 	serveStdio = func(s *mcpserver.MCPServer, _ ...mcpserver.StdioOption) error {
 		served = s

@@ -59,7 +59,7 @@ Classify each finding by whether the **vulnerable lines are added by this diff (
 | **MODIFIED** (existing function touched) | Fix introduced issues | Fix introduced issues | Fix introduced issues; pre-existing = document "OUT OF SCOPE, Learning #TBD" |
 | **Docs/config only** | n/a — skip entire review | n/a | n/a |
 
-Pre-existing issues in surrounding code (not introduced by this diff) are **OUT OF SCOPE** — document them with a Learning reference (`yesmem_remember`) so they surface later, but do not fix them here (avoids scope creep).
+Pre-existing issues in surrounding code (not introduced by this diff) are **OUT OF SCOPE** — document them with a Learning reference (`nemons_remember`) so they surface later, but do not fix them here (avoids scope creep).
 
 ### Severity Definitions (for describing findings)
 

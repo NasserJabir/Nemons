@@ -4,24 +4,24 @@ import "embed"
 
 // BundledOpencodePluginV2 contains the v2 server plugin sources (opencode 2.x
 // hook API, Plugin.define). Installed to
-// ~/.config/opencode/plugins/opencode-yesmem/, a directory opencode v2
+// ~/.config/opencode/plugins/opencode-nemons/, a directory opencode v2
 // discovers on its own; configured file targets are dropped there.
 //
-//go:embed opencode-yesmem-v2/*.ts
+//go:embed opencode-nemons-v2/*.ts
 var BundledOpencodePluginV2 embed.FS
 
 // WindowPlugin contains the v2 opencode TUI plugin that registers which
 // session a terminal window shows (register_window), so spawned agents open
 // on the caller's desktop. Installed to
-// ~/.config/opencode/plugins/yesmem-window/, where opencode auto-discovers
+// ~/.config/opencode/plugins/nemons-window/, where opencode auto-discovers
 // and hot-reloads it into every running TUI.
 //
-//go:embed yesmem-window/tui.tsx
+//go:embed nemons-window/tui.tsx
 var WindowPlugin embed.FS
 
 // AgentThemes contains the opencode TUI theme family: one shared dark base with
-// one accent per agent type (yesmem-dark for the orchestrator, yesmem-loop for
-// yesloop, yesmem-research for yesresearch, yesmem-subresearch for its
+// one accent per agent type (nemons-dark for the orchestrator, nemons-loop for
+// yesloop, nemons-research for yesresearch, nemons-subresearch for its
 // sub-agents). Installed to ~/.config/opencode/themes/ during setup, where
 // opencode discovers theme files for every TUI.
 //

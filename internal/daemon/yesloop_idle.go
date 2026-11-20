@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/opencode"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/opencode"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // --- State machine for yesloop agent idle detection ---

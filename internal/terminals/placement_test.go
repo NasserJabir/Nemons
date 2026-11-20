@@ -64,7 +64,7 @@ const callerWindow = "0x04c00004 11 1626101 chieftp32 OC | # Conversation Title"
 
 // agentWindow is the window of the freshly spawned agent terminal, which the
 // window manager put on the focused desktop 0.
-const agentWindow = "0x07770004 0 555001 chieftp32 yesmem-task-a #7"
+const agentWindow = "0x07770004 0 555001 chieftp32 nemons-task-a #7"
 
 // callerChain ends on 1626101, the pid owning callerWindow.
 var callerChain = map[int]int{900: 750, 750: 1626101, 1626101: 1}

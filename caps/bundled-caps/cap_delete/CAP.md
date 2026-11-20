@@ -11,7 +11,7 @@ auto_active: true
 
 Completely remove a saved capability from the databases. Two stores are involved:
 
-- **yesmem.db** — the `learnings` rows for the cap (its own row plus the
+- **nemons.db** — the `learnings` rows for the cap (its own row plus the
   supersede chain and any staged proposal rows), their FK-cascade children
   (`learning_entities`, `learning_actions`, `learning_keywords`,
   `learning_anticipated_queries`, `learning_cluster_scores`), the
@@ -37,7 +37,7 @@ transaction ends with `SELECT '__OK__'`, which is only reached if `COMMIT` ran.
   error with a bare "exit code N"; leaving stderr alone keeps the reason.
 - a REPL whose `sh()` returns stdout instead of throwing never sees that throw,
   so a missing `__OK__` is also treated as a failure.
-- the cap-store stage is wrapped in try/catch: if it throws after the yesmem.db
+- the cap-store stage is wrapped in try/catch: if it throws after the nemons.db
   half has committed, the handler still returns `{error, detail, partial}`
   instead of letting the throw escape with no report.
 
@@ -73,8 +73,8 @@ async ({cap_name}) => {
   }
   cap_name = cap_name.toLowerCase();
   const capsDir = (await sh('echo $HOME')).trim() + '/.claude/caps';
-  const dir = (await sh('echo $HOME')).trim() + '/.claude/yesmem';
-  const ydb = dir + '/yesmem.db';
+  const dir = (await sh('echo $HOME')).trim() + '/.claude/nemons';
+  const ydb = dir + '/nemons.db';
   const capDbs = [dir + '/caps.db', dir + '/capabilities.db'];
 
   const isFile = async (p) => (await sh('[ -f "' + p + '" ] && echo yes || echo no')).trim() === 'yes';
@@ -107,7 +107,7 @@ async ({cap_name}) => {
     const idsRaw = await sh('sqlite3 -bail "' + ydb + '" "SELECT id FROM learnings WHERE substr(content, 1, ' + (cap_name.length + 2) + ') = \'' + cap_name + ' —\' AND category IN (\'cap\', \'capability\', \'cap_proposed\', \'cap_proposed_accepted\', \'cap_proposed_rejected\');"');
     ids = idsRaw.split('\n').map(s => s.trim()).filter(s => /^\d+$/.test(s)).map(Number);
   } else {
-    notes.push('yesmem.db not found — only the cap store was cleaned');
+    notes.push('nemons.db not found — only the cap store was cleaned');
   }
 
   if (ids.length) {
@@ -127,7 +127,7 @@ async ({cap_name}) => {
     if (present.includes('learnings_fts')) yStmts.push('DELETE FROM learnings_fts WHERE rowid IN ' + idsSql + ';');
 
     const yerr = await runTx(ydb, yStmts);
-    if (yerr) return {error: 'yesmem.db tx failed', detail: yerr};
+    if (yerr) return {error: 'nemons.db tx failed', detail: yerr};
   } else if (notes.length === 0) {
     notes.push('no learnings row matched — only the cap store was cleaned');
   }

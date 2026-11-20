@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // CanonicalProjectGroup is one project after its worktree copies have been
@@ -380,7 +380,7 @@ func (s *Store) ResolveProjectShort(projectDir string) string {
 	}
 
 	// The basename match is exact, like ResolveProjectShortStrict: the substring
-	// match routed "yesmem" into every checkout whose path contained the name
+	// match routed "nemons" into every checkout whose path contained the name
 	// (YM-300). The literal is escaped: "_" and "%" are LIKE wildcards, so
 	// "pro_ect" matched a project called "proXect" (YM-295).
 	//
@@ -519,7 +519,7 @@ func escapeLikeLiteral(s string) string {
 // resolveByCWD returns the candidate that best matches cwd: exact match wins,
 // otherwise the longest path-ancestor (to prefer nested projects like worktrees).
 // Path-ancestor match requires a trailing "/" after the candidate to avoid false
-// positives like /home/user/code/yes matching /home/user/code/yesmem.
+// positives like /home/user/code/yes matching /home/user/code/nemons.
 // Returns "" if no candidate matches.
 func resolveByCWD(candidates []string, cwd string) string {
 	var best string
@@ -721,7 +721,7 @@ func fmtTime(t time.Time) string {
 	return t.Format(time.RFC3339)
 }
 
-// ParseTimestamp decodes the two timestamp layouts yesmem stores: RFC3339 (written
+// ParseTimestamp decodes the two timestamp layouts nemons stores: RFC3339 (written
 // by fmtTime, carrying the writer's UTC offset) and the SQLite CURRENT_TIMESTAMP
 // default "2006-01-02 15:04:05" (UTC). Callers that compare against time.Now()
 // need this: a string comparison is wrong as soon as the offsets differ.
@@ -729,7 +729,7 @@ func ParseTimestamp(s string) time.Time {
 	return parseTime(s)
 }
 
-// parseTime parses the two timestamp layouts yesmem stores: RFC3339 (written by
+// parseTime parses the two timestamp layouts nemons stores: RFC3339 (written by
 // fmtTime) and the SQLite CURRENT_TIMESTAMP default "2006-01-02 15:04:05" (UTC)
 // used by knowledge_gaps. Aggregates such as MAX(reviewed_at) lose the column's
 // declared type, so the driver hands those values back as raw SQLite text.

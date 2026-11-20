@@ -3,7 +3,7 @@ package storage
 import (
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func TestFloat32BlobRoundtrip(t *testing.T) {
@@ -99,7 +99,7 @@ func TestQueryClusterCRUD(t *testing.T) {
 
 	// Insert
 	id, err := s.SaveQueryCluster(QueryCluster{
-		Project:        "yesmem",
+		Project:        "nemons",
 		CentroidVector: []float32{0.5, 0.5, 0.0},
 		Label:          "test cluster",
 		QueryCount:     10,
@@ -112,7 +112,7 @@ func TestQueryClusterCRUD(t *testing.T) {
 	}
 
 	// Get
-	clusters, err := s.GetQueryClusters("yesmem")
+	clusters, err := s.GetQueryClusters("nemons")
 	if err != nil {
 		t.Fatalf("get clusters: %v", err)
 	}
@@ -137,7 +137,7 @@ func TestQueryClusterCRUD(t *testing.T) {
 	if err != nil {
 		t.Fatalf("update cluster: %v", err)
 	}
-	clusters, _ = s.GetQueryClusters("yesmem")
+	clusters, _ = s.GetQueryClusters("nemons")
 	if clusters[0].QueryCount != 20 {
 		t.Errorf("expected updated query_count 20, got %d", clusters[0].QueryCount)
 	}
@@ -153,9 +153,9 @@ func TestQueryLogAndClustering(t *testing.T) {
 	s := mustOpen(t)
 
 	// Insert query logs
-	s.InsertQueryLog("yesmem", "test query 1", []float32{1, 0, 0}, []string{"101", "102"})
-	s.InsertQueryLog("yesmem", "test query 2", []float32{0, 1, 0}, []string{"103"})
-	s.InsertQueryLog("yesmem", "test query 3", []float32{0.9, 0.1, 0}, []string{"101"})
+	s.InsertQueryLog("nemons", "test query 1", []float32{1, 0, 0}, []string{"101", "102"})
+	s.InsertQueryLog("nemons", "test query 2", []float32{0, 1, 0}, []string{"103"})
+	s.InsertQueryLog("nemons", "test query 3", []float32{0.9, 0.1, 0}, []string{"101"})
 
 	// All should be unclustered
 	unclustered, err := s.GetUnclusteredQueries(100)
@@ -179,7 +179,7 @@ func TestQueryLogAndClustering(t *testing.T) {
 
 	// Assign to cluster
 	clusterID, _ := s.SaveQueryCluster(QueryCluster{
-		Project:        "yesmem",
+		Project:        "nemons",
 		CentroidVector: []float32{1, 0, 0},
 		Label:          "cluster A",
 		QueryCount:     1,
@@ -198,7 +198,7 @@ func TestClusterScores(t *testing.T) {
 
 	// Create a cluster first (FK constraint)
 	clusterID, _ := s.SaveQueryCluster(QueryCluster{
-		Project:        "yesmem",
+		Project:        "nemons",
 		CentroidVector: []float32{1, 0, 0},
 		Label:          "test",
 		QueryCount:     1,
@@ -248,9 +248,9 @@ func TestPurgeOldQueryLogs(t *testing.T) {
 	s := mustOpen(t)
 
 	// Insert a query and cluster it
-	s.InsertQueryLog("yesmem", "old query", []float32{1, 0, 0}, nil)
+	s.InsertQueryLog("nemons", "old query", []float32{1, 0, 0}, nil)
 	clusterID, _ := s.SaveQueryCluster(QueryCluster{
-		Project: "yesmem", CentroidVector: []float32{1, 0, 0}, QueryCount: 1,
+		Project: "nemons", CentroidVector: []float32{1, 0, 0}, QueryCount: 1,
 	})
 
 	unclustered, _ := s.GetUnclusteredQueries(100)
@@ -263,7 +263,7 @@ func TestPurgeOldQueryLogs(t *testing.T) {
 	s.DB().Exec("UPDATE query_log SET created_at = datetime('now', '-60 days') WHERE cluster_id IS NOT NULL")
 
 	// Insert an unclustered query
-	s.InsertQueryLog("yesmem", "new unclustered", []float32{0, 1, 0}, nil)
+	s.InsertQueryLog("nemons", "new unclustered", []float32{0, 1, 0}, nil)
 
 	// Purge with 30 days should delete old clustered, keep unclustered
 	purged, err := s.PurgeOldQueryLogs(30)
@@ -288,7 +288,7 @@ func TestClusterScores_NonInjectionSignalsDoNotCountAsInject(t *testing.T) {
 	s := mustOpen(t)
 
 	clusterID, _ := s.SaveQueryCluster(QueryCluster{
-		Project:        "yesmem",
+		Project:        "nemons",
 		CentroidVector: []float32{1, 0, 0},
 		Label:          "test",
 		QueryCount:     1,
@@ -319,7 +319,7 @@ func TestClusterScores_UnknownFieldIsAnError(t *testing.T) {
 	s := mustOpen(t)
 
 	clusterID, _ := s.SaveQueryCluster(QueryCluster{
-		Project: "yesmem", CentroidVector: []float32{1, 0, 0}, QueryCount: 1,
+		Project: "nemons", CentroidVector: []float32{1, 0, 0}, QueryCount: 1,
 	})
 	if err := s.IncrementClusterScore(203, clusterID, "usee"); err == nil {
 		t.Error("expected an error for an unknown cluster score field")
@@ -330,9 +330,9 @@ func TestGetRecentClusterForLearnings(t *testing.T) {
 	s := mustOpen(t)
 
 	// Setup: query log with cluster assignment
-	s.InsertQueryLog("yesmem", "test query", []float32{1, 0, 0}, []string{"101", "102"})
+	s.InsertQueryLog("nemons", "test query", []float32{1, 0, 0}, []string{"101", "102"})
 	clusterID, _ := s.SaveQueryCluster(QueryCluster{
-		Project: "yesmem", CentroidVector: []float32{1, 0, 0}, QueryCount: 1,
+		Project: "nemons", CentroidVector: []float32{1, 0, 0}, QueryCount: 1,
 	})
 	unclustered, _ := s.GetUnclusteredQueries(100)
 	s.AssignQueryToCluster(unclustered[0].ID, clusterID)
@@ -359,9 +359,9 @@ func TestGetRecentClusterForLearnings_ExactIDMatch(t *testing.T) {
 	s := mustOpen(t)
 
 	// An older query that only injected learning 1012 …
-	s.InsertQueryLog("yesmem", "foreign id", []float32{1, 0, 0}, []string{"1012"})
+	s.InsertQueryLog("nemons", "foreign id", []float32{1, 0, 0}, []string{"1012"})
 	foreignCluster, _ := s.SaveQueryCluster(QueryCluster{
-		Project: "yesmem", CentroidVector: []float32{1, 0, 0}, QueryCount: 1,
+		Project: "nemons", CentroidVector: []float32{1, 0, 0}, QueryCount: 1,
 	})
 	unclustered, _ := s.GetUnclusteredQueries(100)
 	s.AssignQueryToCluster(unclustered[0].ID, foreignCluster)
@@ -373,9 +373,9 @@ func TestGetRecentClusterForLearnings_ExactIDMatch(t *testing.T) {
 	}
 
 	// A query that really injected 12 answers for it.
-	s.InsertQueryLog("yesmem", "own id", []float32{1, 0, 0}, []string{"12"})
+	s.InsertQueryLog("nemons", "own id", []float32{1, 0, 0}, []string{"12"})
 	ownCluster, _ := s.SaveQueryCluster(QueryCluster{
-		Project: "yesmem", CentroidVector: []float32{1, 0, 0}, QueryCount: 1,
+		Project: "nemons", CentroidVector: []float32{1, 0, 0}, QueryCount: 1,
 	})
 	unclustered, _ = s.GetUnclusteredQueries(100)
 	s.AssignQueryToCluster(unclustered[0].ID, ownCluster)

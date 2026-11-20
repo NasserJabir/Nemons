@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/capfile"
+	"github.com/NasserJabir/Nemons/internal/capfile"
 )
 
 // YM-359 (OPS-88, key 3): the export branch repaired the mode of an existing

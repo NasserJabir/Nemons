@@ -6,13 +6,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // noSuiteDir is a throwaway directory for a check that never runs a command.
 func noSuiteDir(t *testing.T) string {
 	t.Helper()
-	parent, err := filepath.Abs(filepath.Join("..", "..", ".yesmem", "tmp", "mutation"))
+	parent, err := filepath.Abs(filepath.Join("..", "..", ".nemons", "tmp", "mutation"))
 	if err != nil {
 		t.Fatalf("abs: %v", err)
 	}

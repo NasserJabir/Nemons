@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 const systemPrompt = `You are a technical editor. You condense learnings from a software project into a compact operations reference.`

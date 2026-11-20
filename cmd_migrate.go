@@ -9,23 +9,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/archive"
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/archive"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/storage"
 
 	_ "modernc.org/sqlite"
 )
 
 func runMigrateProject() {
 	if len(os.Args) < 4 {
-		fmt.Fprintln(os.Stderr, "Usage: yesmem migrate-project <from> <to> [--no-backup]")
+		fmt.Fprintln(os.Stderr, "Usage: nemons migrate-project <from> <to> [--no-backup]")
 		fmt.Fprintln(os.Stderr, "")
 		fmt.Fprintln(os.Stderr, "Renames all project references in the database.")
 		fmt.Fprintln(os.Stderr, "Accepts short names (memory) or full paths (/home/user/memory).")
 		fmt.Fprintln(os.Stderr, "Creates a backup before migrating (unless --no-backup).")
 		fmt.Fprintln(os.Stderr, "")
-		fmt.Fprintln(os.Stderr, "Example: yesmem migrate-project memory yesmem")
-		fmt.Fprintln(os.Stderr, "Example: yesmem migrate-project /home/user/old-project /home/user/new-project")
+		fmt.Fprintln(os.Stderr, "Example: nemons migrate-project memory nemons")
+		fmt.Fprintln(os.Stderr, "Example: nemons migrate-project /home/user/old-project /home/user/new-project")
 		os.Exit(1)
 	}
 
@@ -48,8 +48,8 @@ func runMigrateProject() {
 		os.Exit(1)
 	}
 
-	dataDir := yesmemDataDir()
-	dbPath := filepath.Join(dataDir, "yesmem.db")
+	dataDir := nemonsDataDir()
+	dbPath := filepath.Join(dataDir, "nemons.db")
 
 	// Resolve full paths and short names from input.
 	// If input contains '/', treat as full path → derive short name.
@@ -113,7 +113,7 @@ func runMigrateProject() {
 			log.Fatalf("create backup dir: %v", err)
 		}
 		now := time.Now().Format("20060102-150405")
-		dest := filepath.Join(backupDir, fmt.Sprintf("yesmem-%s.db", now))
+		dest := filepath.Join(backupDir, fmt.Sprintf("nemons-%s.db", now))
 
 		db, err := sql.Open("sqlite", dbPath)
 		if err != nil {

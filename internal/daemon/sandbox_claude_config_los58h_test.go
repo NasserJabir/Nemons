@@ -99,7 +99,7 @@ func TestLos58hClaudeConfigIsMaskedWhenTheCwdBindWouldShadowIt(t *testing.T) {
 // The same case, second half: YM-428 (OPS-104) took the mask branch away from this
 // shape. A work dir that is the home makes ai-jail bind the whole home read-write
 // over the sandbox, which shadows not only this file's map but also the maps of the
-// yesmem CLI and the job socket — and those two cannot be masked, the run needs
+// nemons CLI and the job socket — and those two cannot be masked, the run needs
 // them. So the run is refused before it starts instead of run with a mask. The
 // branch above (claudeConfigFlags) still renders the mask for a caller that builds
 // a Sandbox directly; through the handler the refusal comes first.

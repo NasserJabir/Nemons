@@ -625,7 +625,7 @@ func (s *Store) AgentFinalizeExit(id string, expectedPID int, fields map[string]
 // (neither list_agents nor get_agent return it). With it the statement is also
 // bound to that owner, so a caller cannot take over a row it did not name
 // (YM-356). It is an integrity guard, not a security boundary: the same value
-// also reaches the spawned child as its session identity (YESMEM_SESSION_ID /
+// also reaches the spawned child as its session identity (NEMONS_SESSION_ID /
 // --session-id), so a same-uid process can read it from /proc/<pid>/environ. What
 // it stops is a blind or wrong-row bind, not a local process that is willing to
 // inspect the agent it is targeting (cold review 5.4).

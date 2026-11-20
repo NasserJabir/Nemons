@@ -8,14 +8,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // profileRepo is a throwaway project root under the worktree's own temp space.
 // Nothing here writes to /tmp.
 func profileRepo(t *testing.T, name string) string {
 	t.Helper()
-	parent, err := filepath.Abs(filepath.Join("..", "..", ".yesmem", "tmp", "profiles"))
+	parent, err := filepath.Abs(filepath.Join("..", "..", ".nemons", "tmp", "profiles"))
 	if err != nil {
 		t.Fatalf("abs: %v", err)
 	}
@@ -248,7 +248,7 @@ func TestAProfileThatIsASymlinkIsRefused(t *testing.T) {
 	if err := os.WriteFile(target, []byte("languages:\n  - name: ruby\n    source_extensions: [\".rb\"]\n"), 0o644); err != nil {
 		t.Fatalf("write target: %v", err)
 	}
-	if err := os.MkdirAll(filepath.Join(repo, ".yesmem"), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Join(repo, ".nemons"), 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 	if err := os.Symlink(target, filepath.Join(repo, ProfilePath)); err != nil {
@@ -264,18 +264,18 @@ func TestAProfileThatIsASymlinkIsRefused(t *testing.T) {
 	}
 }
 
-// The write must not follow a committed symlink: .yesmem may be a link to any
+// The write must not follow a committed symlink: .nemons may be a link to any
 // directory the operator can write, and a profile named verify.yaml would then
 // be created outside the repository.
 func TestWriteProfileFileRefusesASymlinkedDirectory(t *testing.T) {
 	repo := profileRepo(t, "symlink")
 	outside := profileRepo(t, "symlink-outside")
-	if err := os.Symlink(outside, filepath.Join(repo, ".yesmem")); err != nil {
+	if err := os.Symlink(outside, filepath.Join(repo, ".nemons")); err != nil {
 		t.Fatalf("symlink: %v", err)
 	}
 
 	if _, err := WriteProfileFile(repo, DefaultLanguages()); err == nil {
-		t.Fatal("WriteProfileFile wrote through a symlinked .yesmem")
+		t.Fatal("WriteProfileFile wrote through a symlinked .nemons")
 	}
 	if _, err := os.Stat(filepath.Join(outside, "verify.yaml")); !errors.Is(err, os.ErrNotExist) {
 		t.Fatal("the profile was created outside the repository")
@@ -305,7 +305,7 @@ func TestWriteProfileFileRoundTrips(t *testing.T) {
 		TestCommand:        "npm test",
 		CoverageCommand:    "npm test -- --coverage",
 		CoverageFormat:     "cobertura",
-		CoverageArtifact:   ".yesmem-coverage.xml",
+		CoverageArtifact:   ".nemons-coverage.xml",
 		BuildErrorPatterns: []string{`(?m)^SyntaxError:`},
 		SandboxReadOnly:    []string{"/opt/node-cache"},
 		SandboxEnv:         map[string]string{"NODE_OPTIONS": "--no-warnings"},

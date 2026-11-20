@@ -18,8 +18,8 @@ import (
 //	opencode.jsonc → opencode.json → config.json
 //
 // Falls back to opencode.jsonc (opencode's preferred format for fresh
-// installs) when none exist. yesmem MUST write to the same file opencode
-// reads, otherwise yesmem's provider blocks, MCP config, and model defaults
+// installs) when none exist. nemons MUST write to the same file opencode
+// reads, otherwise nemons's provider blocks, MCP config, and model defaults
 // are silently ignored. This was the root cause of the "LLM call failed:
 // opencode error: exit status 1" bug on fresh opencode installs where only
 // opencode.jsonc existed.

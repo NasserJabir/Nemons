@@ -9,13 +9,13 @@ import (
 
 func TestMaybeSuppressSuggestion_FirstFireRecordsAndEmits(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "cd.db")
-	d := GuardDecision{Decision: "SUGGEST", Suggestion: "yesmem-docs: use search_code_index"}
+	d := GuardDecision{Decision: "SUGGEST", Suggestion: "nemons-docs: use search_code_index"}
 	now := time.Unix(1700000000, 0)
 	suppress := maybeSuppressSuggestion(d, path, 10*time.Minute, now)
 	if suppress {
 		t.Error("first fire should not be suppressed")
 	}
-	got := readCooldownTS(t, path, "yesmem-docs")
+	got := readCooldownTS(t, path, "nemons-docs")
 	if got != now.Unix() {
 		t.Errorf("expected cooldown recorded at %d, got %d", now.Unix(), got)
 	}
@@ -23,7 +23,7 @@ func TestMaybeSuppressSuggestion_FirstFireRecordsAndEmits(t *testing.T) {
 
 func TestMaybeSuppressSuggestion_RepeatWithinTTLSuppresses(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "cd.db")
-	d := GuardDecision{Decision: "SUGGEST", Suggestion: "yesmem-docs: foo"}
+	d := GuardDecision{Decision: "SUGGEST", Suggestion: "nemons-docs: foo"}
 	now := time.Unix(1700000000, 0)
 	maybeSuppressSuggestion(d, path, 10*time.Minute, now)
 
@@ -32,14 +32,14 @@ func TestMaybeSuppressSuggestion_RepeatWithinTTLSuppresses(t *testing.T) {
 	if !suppress {
 		t.Error("repeat within TTL should be suppressed")
 	}
-	if got := readCooldownTS(t, path, "yesmem-docs"); got != now.Unix() {
+	if got := readCooldownTS(t, path, "nemons-docs"); got != now.Unix() {
 		t.Errorf("ts should NOT advance on suppression: got %d want %d", got, now.Unix())
 	}
 }
 
 func TestMaybeSuppressSuggestion_RepeatAfterTTLEmits(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "cd.db")
-	d := GuardDecision{Decision: "SUGGEST", Suggestion: "yesmem-docs: foo"}
+	d := GuardDecision{Decision: "SUGGEST", Suggestion: "nemons-docs: foo"}
 	now := time.Unix(1700000000, 0)
 	maybeSuppressSuggestion(d, path, 10*time.Minute, now)
 
@@ -48,7 +48,7 @@ func TestMaybeSuppressSuggestion_RepeatAfterTTLEmits(t *testing.T) {
 	if suppress {
 		t.Error("repeat after TTL expiry should emit")
 	}
-	if got := readCooldownTS(t, path, "yesmem-docs"); got != later.Unix() {
+	if got := readCooldownTS(t, path, "nemons-docs"); got != later.Unix() {
 		t.Errorf("ts should advance to later fire: got %d want %d", got, later.Unix())
 	}
 }
@@ -56,7 +56,7 @@ func TestMaybeSuppressSuggestion_RepeatAfterTTLEmits(t *testing.T) {
 func TestMaybeSuppressSuggestion_DifferentSkillsIndependent(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "cd.db")
 	now := time.Unix(1700000000, 0)
-	maybeSuppressSuggestion(GuardDecision{Decision: "SUGGEST", Suggestion: "yesmem-docs: a"}, path, 10*time.Minute, now)
+	maybeSuppressSuggestion(GuardDecision{Decision: "SUGGEST", Suggestion: "nemons-docs: a"}, path, 10*time.Minute, now)
 	suppress := maybeSuppressSuggestion(GuardDecision{Decision: "SUGGEST", Suggestion: "test-driven-development: b"}, path, 10*time.Minute, now)
 	if suppress {
 		t.Error("different skill should not be suppressed")
@@ -66,7 +66,7 @@ func TestMaybeSuppressSuggestion_DifferentSkillsIndependent(t *testing.T) {
 func TestMaybeSuppressSuggestion_NonSuggestPassesThrough(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "cd.db")
 	for _, dec := range []string{"PASS", "BLOCK", ""} {
-		d := GuardDecision{Decision: dec, Suggestion: "yesmem-docs: foo"}
+		d := GuardDecision{Decision: dec, Suggestion: "nemons-docs: foo"}
 		if maybeSuppressSuggestion(d, path, 10*time.Minute, time.Now()) {
 			t.Errorf("%q decision should not be cooldown-checked", dec)
 		}
@@ -84,15 +84,15 @@ func TestMaybeSuppressSuggestion_EmptySuggestionPassesThrough(t *testing.T) {
 func TestMaybeSuppressSuggestion_SkillExtractionTrims(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "cd.db")
 	now := time.Unix(1700000000, 0)
-	maybeSuppressSuggestion(GuardDecision{Decision: "SUGGEST", Suggestion: "  yesmem-docs  : with leading spaces"}, path, 10*time.Minute, now)
-	if readCooldownTS(t, path, "yesmem-docs") != now.Unix() {
+	maybeSuppressSuggestion(GuardDecision{Decision: "SUGGEST", Suggestion: "  nemons-docs  : with leading spaces"}, path, 10*time.Minute, now)
+	if readCooldownTS(t, path, "nemons-docs") != now.Unix() {
 		t.Error("skill should be normalised (trimmed) before storage")
 	}
 }
 
 func TestMaybeSuppressSuggestion_UnwritableDBPathFailsOpen(t *testing.T) {
 	bad := filepath.Join(t.TempDir(), "missing-dir", "cd.db")
-	d := GuardDecision{Decision: "SUGGEST", Suggestion: "yesmem-docs: foo"}
+	d := GuardDecision{Decision: "SUGGEST", Suggestion: "nemons-docs: foo"}
 	if maybeSuppressSuggestion(d, bad, 10*time.Minute, time.Now()) {
 		t.Error("DB open failure should not suppress (fail-open, never block guard)")
 	}
@@ -120,7 +120,7 @@ func readCooldownTS(t *testing.T, dbPath, skill string) int64 {
 
 func TestExtractSkillName(t *testing.T) {
 	cases := map[string]string{
-		"yesmem-docs: bla":       "yesmem-docs",
+		"nemons-docs: bla":       "nemons-docs",
 		"  tdd  : foo":           "tdd",
 		"singleword":             "singleword",
 		"": "",

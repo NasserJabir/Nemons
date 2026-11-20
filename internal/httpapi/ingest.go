@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/parser"
+	"github.com/NasserJabir/Nemons/internal/parser"
 )
 
 // IngestRequest is the input for POST /api/ingest.

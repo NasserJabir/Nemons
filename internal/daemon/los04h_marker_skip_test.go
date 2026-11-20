@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/codescan"
-	"github.com/carsteneu/yesmem/internal/wikidir"
+	"github.com/NasserJabir/Nemons/internal/codescan"
+	"github.com/NasserJabir/Nemons/internal/wikidir"
 )
 
 // A failed marker write leaves the ownership of the directory unproven, and the

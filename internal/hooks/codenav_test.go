@@ -127,8 +127,8 @@ func TestParseNavCommand_PipedGrep(t *testing.T) {
 	}
 }
 
-func TestSuggestYesmemTool_Grep(t *testing.T) {
-	s := SuggestYesmemTool("grep", "internal/proxy/proxy.go", "yesmem")
+func TestSuggestNemonsTool_Grep(t *testing.T) {
+	s := SuggestNemonsTool("grep", "internal/proxy/proxy.go", "nemons")
 	if s == "" {
 		t.Fatal("should return suggestion for grep")
 	}
@@ -138,13 +138,13 @@ func TestSuggestYesmemTool_Grep(t *testing.T) {
 	if !contains(s, "proxy.go") {
 		t.Errorf("grep suggestion should include filename, got: %s", s)
 	}
-	if !contains(s, "yesmem") {
+	if !contains(s, "nemons") {
 		t.Errorf("grep suggestion should include project, got: %s", s)
 	}
 }
 
-func TestSuggestYesmemTool_Sed(t *testing.T) {
-	s := SuggestYesmemTool("sed", "internal/proxy/proxy.go", "yesmem")
+func TestSuggestNemonsTool_Sed(t *testing.T) {
+	s := SuggestNemonsTool("sed", "internal/proxy/proxy.go", "nemons")
 	if !contains(s, "get_code_snippet") {
 		t.Errorf("sed suggestion should mention get_code_snippet, got: %s", s)
 	}
@@ -153,8 +153,8 @@ func TestSuggestYesmemTool_Sed(t *testing.T) {
 	}
 }
 
-func TestSuggestYesmemTool_Cat(t *testing.T) {
-	s := SuggestYesmemTool("cat", "internal/proxy/proxy.go", "yesmem")
+func TestSuggestNemonsTool_Cat(t *testing.T) {
+	s := SuggestNemonsTool("cat", "internal/proxy/proxy.go", "nemons")
 	if !contains(s, "get_file_symbols") {
 		t.Errorf("cat suggestion should mention get_file_symbols, got: %s", s)
 	}

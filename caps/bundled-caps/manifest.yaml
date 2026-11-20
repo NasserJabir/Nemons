@@ -20,19 +20,19 @@
 # in <caps_dir>/manifest.yaml; the value here records what this file is.
 caps:
   - name: adapter_e2e_test
-    derived_from_hash: 7daf23113f7bd4b00f9e28abdadd46b9dd678b71a971e4a5e72667ff05b6a12f
+    derived_from_hash: 30d199d8d5e2d716296267fc5017c3f1c793cad705980188824ffdade7dff878
     revision: 0
   - name: cap_collect
-    derived_from_hash: a9fde357c76a00fb62ec884bed9a1da6738549a842a749b6c4e09b8e2b375bb7
+    derived_from_hash: 0ee8da9e7610e90deb457a812454e59c40596377b657529e3102aa675a2e0819
     revision: 0
   - name: cap_delete
-    derived_from_hash: b55b44369afbbd9e33b26a04f818dcb8013543bf372bc30a83aa4bc6b6bc7be5
+    derived_from_hash: 914ea2cd89ddd8ab7fd09062ee97e9ce75ce65320d20807bf3a3e8aeb4998766
     revision: 0
   - name: cap_save_analysis
-    derived_from_hash: 55f0f47fd423cc92c15961cec01242c14730295fb523b8ebe4044f30d5ff47ab
+    derived_from_hash: c7d4b1894b21b686f6c69b5d40e48549bca9a2e4bd5933ef9360f646a9c8269e
     revision: 0
   - name: cap_search
-    derived_from_hash: 85d9e035eb772aa29fbdab4755b33aeb0e93ae090abec5223d799c55b71a2d33
+    derived_from_hash: e831480c34807f34e5225023482524b9f8fc2afe27f5c8f371d5d8e94affb0a2
     revision: 0
   - name: changelog_check
     derived_from_hash: aa8834629a6f3bcd686704ea3ca17456dab439061dcc8dce8ea0fa6524857966
@@ -41,17 +41,17 @@ caps:
     derived_from_hash: 9bc44ed660cd17fa977bad5589c26566b212833320f1f7b8d3e7b2ebb82ce088
     revision: 0
   - name: deploy
-    derived_from_hash: 97d7895a9ed132d4855b0289cc79b680aa6017fa52840bb348be7fc78663e666
+    derived_from_hash: 9802a6bf6daacbacdb79c7a285960e38743bdf45ed4339deffc38ddcf3573216
     revision: 0
   - name: proxy_health
-    derived_from_hash: 3805d8cbecef2160cbfd0d808735649fdd1f089e5c0f0e824a7cacf8e236d1c1
+    derived_from_hash: 1a2f8fb91aa9e5f4f60619af97789b5c8893131eb1693d67b7155b360319ff3a
     revision: 0
   - name: reddit
-    derived_from_hash: 7edf92551c10b6b0e90d0a79ee11d2f7664048bdca5c1c17f834f6bcbba908ae
+    derived_from_hash: a4e76aa786b6b21f9ad3fdef25c2dc829acbe44374408cc61366320930e52e8b
     revision: 0
   - name: rocketchat
-    derived_from_hash: 7f600b9aa1ebe09c496dd33e2fd1dbd2ec8854238d236b6efc61ba08c89ae1d8
+    derived_from_hash: 0dc479a74bef4f26846d986ab8b93fa15d1e24e81b933727c1b5e3ebb6598f6b
     revision: 0
   - name: telegram
-    derived_from_hash: 989bf5ceb7af6ba3a260be4929f68671d03afbfd440882d28cb3d968308bc072
+    derived_from_hash: f3d5f8c5390e5b8072af9efbfb143ad521fbde64bdbca5a9acb597f3722228e1
     revision: 0

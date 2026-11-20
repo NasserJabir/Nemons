@@ -41,7 +41,7 @@ var mirrorScanExtensions = map[string]bool{
 // noisier, never blinder, because the scan itself still runs before a sync.
 func mirrorSkipped(rel string) bool {
 	skipDirs := []string{
-		".git/", ".worktrees/", ".yesmem/", ".claude/", ".codex/",
+		".git/", ".worktrees/", ".nemons/", ".claude/", ".codex/",
 		"yesdocs/", "research/", "docs/", "archiv/", "logs/",
 		"gopath/", "go-path/", "go-cache/", ".cache/", "node_modules/",
 		"plugins/opencode-sidebar/", "cmd/embedtest/",

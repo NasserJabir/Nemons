@@ -61,7 +61,7 @@ func addProc(t *testing.T, root string, pid, ppid int, cmdline []string, exe, co
 	}
 }
 
-// buildProcFixture lays out a /proc-like tree: five yesmem-mcp helpers (orphan,
+// buildProcFixture lays out a /proc-like tree: five nemons-mcp helpers (orphan,
 // stale, ok, adopted by the reaper, lost parent) plus processes that must not be
 // listed.
 func buildProcFixture(t *testing.T) string {
@@ -69,8 +69,8 @@ func buildProcFixture(t *testing.T) string {
 	root := t.TempDir()
 	writeFixtureFile(t, filepath.Join(root, "stat"), fmt.Sprintf("cpu  1 2 3 4\nbtime %d\n", fixtureBtime))
 
-	const yesmem = "/opt/yesmem/bin/yesmem"
-	mcpArgs := []string{yesmem, "mcp"}
+	const nemons = "/opt/nemons/bin/nemons"
+	mcpArgs := []string{nemons, "mcp"}
 
 	// Live parent processes. 107 is the system process manager that adopts
 	// orphans, so a helper parented by it lost its client; 108 is a healthy
@@ -83,44 +83,44 @@ func buildProcFixture(t *testing.T) string {
 	writeFixtureFile(t, filepath.Join(root, strconv.Itoa(fixtureParentReaper), "comm"), fixtureParentSystemd+"\n")
 	writeFixtureFile(t, filepath.Join(root, strconv.Itoa(fixtureParentLive), "comm"), fixtureParentOpencode+"\n")
 
-	addProc(t, root, fixtureHelperOrphan, 1, mcpArgs, yesmem, "yesmem")
-	addProc(t, root, fixtureHelperStale, 99, mcpArgs, yesmem+" (deleted)", "yesmem (dev)")
-	addProc(t, root, fixtureHelperOk, 105, mcpArgs, yesmem, "yesmem")
-	addProc(t, root, fixtureHelperReaped, fixtureParentReaper, mcpArgs, yesmem, "yesmem")
-	addProc(t, root, fixtureHelperClient, fixtureParentLive, mcpArgs, yesmem, "yesmem")
+	addProc(t, root, fixtureHelperOrphan, 1, mcpArgs, nemons, "nemons")
+	addProc(t, root, fixtureHelperStale, 99, mcpArgs, nemons+" (deleted)", "nemons (dev)")
+	addProc(t, root, fixtureHelperOk, 105, mcpArgs, nemons, "nemons")
+	addProc(t, root, fixtureHelperReaped, fixtureParentReaper, mcpArgs, nemons, "nemons")
+	addProc(t, root, fixtureHelperClient, fixtureParentLive, mcpArgs, nemons, "nemons")
 	// Parent 410 is not in the tree — the helper lost it.
-	addProc(t, root, fixtureHelperLost, 410, mcpArgs, yesmem, "yesmem")
+	addProc(t, root, fixtureHelperLost, 410, mcpArgs, nemons, "nemons")
 
-	// Ignored: other clients' processes and non-mcp yesmem commands.
+	// Ignored: other clients' processes and non-mcp nemons commands.
 	addProc(t, root, 200, 1, []string{"/usr/bin/opencode", "serve", "--service"}, "/usr/bin/opencode", "opencode")
-	addProc(t, root, 201, 1, []string{yesmem, "daemon"}, yesmem, "yesmem")
-	addProc(t, root, 202, 1, []string{yesmem, "status"}, yesmem, "yesmem")
-	// Ignored: "mcp" as a grep argument next to a yesmem path.
-	addProc(t, root, 203, 1, []string{"grep", "-r", "mcp", "/workspaces/yesmem"}, "/usr/bin/grep", "grep")
-	// Ignored: "mcp" as an argument of another yesmem subcommand.
-	addProc(t, root, 204, 1, []string{yesmem, "search", "mcp"}, yesmem, "yesmem")
+	addProc(t, root, 201, 1, []string{nemons, "daemon"}, nemons, "nemons")
+	addProc(t, root, 202, 1, []string{nemons, "status"}, nemons, "nemons")
+	// Ignored: "mcp" as a grep argument next to a nemons path.
+	addProc(t, root, 203, 1, []string{"grep", "-r", "mcp", "/workspaces/nemons"}, "/usr/bin/grep", "grep")
+	// Ignored: "mcp" as an argument of another nemons subcommand.
+	addProc(t, root, 204, 1, []string{nemons, "search", "mcp"}, nemons, "nemons")
 	return root
 }
 
 // TestIsMCPHelperArgs covers the argv anchor. main.go dispatches exclusively on
-// os.Args[1], so a helper is exactly "yesmem mcp" — accepting "mcp" at any
-// position listed "yesmem search mcp" as a helper, and the status section then
+// os.Args[1], so a helper is exactly "nemons mcp" — accepting "mcp" at any
+// position listed "nemons search mcp" as a helper, and the status section then
 // reports such a row as a possibly orphaned helper.
 func TestIsMCPHelperArgs(t *testing.T) {
-	const yesmem = "/opt/yesmem/bin/yesmem"
+	const nemons = "/opt/nemons/bin/nemons"
 	cases := []struct {
 		name string
 		args []string
 		want bool
 	}{
-		{"mcp as first argument", []string{yesmem, "mcp"}, true},
-		{"mcp with extra arguments", []string{yesmem, "mcp", "--verbose"}, true},
-		{"mcp as a later argument", []string{yesmem, "search", "mcp"}, false},
-		{"mcp as a search query", []string{yesmem, "search", "mcp", "helper"}, false},
-		{"daemon", []string{yesmem, "daemon"}, false},
-		{"status", []string{yesmem, "status"}, false},
-		{"no arguments", []string{yesmem}, false},
-		{"foreign executable", []string{"/usr/bin/grep", "-r", "mcp", "/workspaces/yesmem"}, false},
+		{"mcp as first argument", []string{nemons, "mcp"}, true},
+		{"mcp with extra arguments", []string{nemons, "mcp", "--verbose"}, true},
+		{"mcp as a later argument", []string{nemons, "search", "mcp"}, false},
+		{"mcp as a search query", []string{nemons, "search", "mcp", "helper"}, false},
+		{"daemon", []string{nemons, "daemon"}, false},
+		{"status", []string{nemons, "status"}, false},
+		{"no arguments", []string{nemons}, false},
+		{"foreign executable", []string{"/usr/bin/grep", "-r", "mcp", "/workspaces/nemons"}, false},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -215,9 +215,9 @@ func TestScanMCPHelpersBoundsCmdlineRead(t *testing.T) {
 		t.Fatalf("mkdir: %v", err)
 	}
 	pad := strings.Repeat("x", maxCmdlineBytes+100)
-	writeFixtureFile(t, filepath.Join(dir, "cmdline"), "/opt/yesmem/bin/yesmem\x00"+pad+"\x00mcp\x00")
-	writeFixtureFile(t, filepath.Join(dir, "stat"), procStatLine(401, "yesmem", 1, 0))
-	if err := os.Symlink("/opt/yesmem/bin/yesmem", filepath.Join(dir, "exe")); err != nil {
+	writeFixtureFile(t, filepath.Join(dir, "cmdline"), "/opt/nemons/bin/nemons\x00"+pad+"\x00mcp\x00")
+	writeFixtureFile(t, filepath.Join(dir, "stat"), procStatLine(401, "nemons", 1, 0))
+	if err := os.Symlink("/opt/nemons/bin/nemons", filepath.Join(dir, "exe")); err != nil {
 		t.Fatalf("symlink: %v", err)
 	}
 

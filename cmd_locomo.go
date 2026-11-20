@@ -9,13 +9,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/benchmark"
-	"github.com/carsteneu/yesmem/internal/benchmark/locomo"
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/daemon"
-	"github.com/carsteneu/yesmem/internal/embedding"
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/benchmark"
+	"github.com/NasserJabir/Nemons/internal/benchmark/locomo"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/embedding"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 func runLocomoBench() {
@@ -42,7 +42,7 @@ func runLocomoBench() {
 func runLocomoFull() {
 	fs := flag.NewFlagSet("locomo-bench run", flag.ExitOnError)
 	dataFile := fs.String("data", "", "path to LoCoMo JSON dataset file (required)")
-	dbPath := fs.String("db", "", "benchmark database path (default: ~/.claude/yesmem/bench/locomo.db)")
+	dbPath := fs.String("db", "", "benchmark database path (default: ~/.claude/nemons/bench/locomo.db)")
 	runs := fs.Int("runs", 1, "number of benchmark runs for statistical stability")
 	evalLLM := fs.String("eval-llm", "haiku", "LLM for answering queries (default: haiku)")
 	judgeLLMFlag := fs.String("judge-llm", "", "LLM for judging answers (default: same as --eval-llm)")
@@ -228,7 +228,7 @@ func runLocomoFull() {
 func runLocomoIngest() {
 	fs := flag.NewFlagSet("locomo-bench ingest", flag.ExitOnError)
 	dataFile := fs.String("data", "", "path to LoCoMo JSON dataset file (required)")
-	dbPath := fs.String("db", "", "benchmark database path (default: ~/.claude/yesmem/bench/locomo.db)")
+	dbPath := fs.String("db", "", "benchmark database path (default: ~/.claude/nemons/bench/locomo.db)")
 	fs.Parse(os.Args[3:])
 
 	if *dataFile == "" {
@@ -279,7 +279,7 @@ func runLocomoIngest() {
 }
 
 func defaultBenchDB() string {
-	dir := filepath.Join(yesmemDataDir(), "bench")
+	dir := filepath.Join(nemonsDataDir(), "bench")
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		log.Fatalf("create bench dir: %v", err)
 	}
@@ -291,7 +291,7 @@ func defaultBenchDB() string {
 func createBenchLLM(name string) benchmark.LLMClient {
 	if name == "" {
 		// Default: use configured provider + model
-		dataDir := yesmemDataDir()
+		dataDir := nemonsDataDir()
 		cfg, _ := config.Load(filepath.Join(dataDir, "config.yaml"))
 		if cfg == nil {
 			cfg = config.Default()
@@ -315,7 +315,7 @@ func createBenchLLM(name string) benchmark.LLMClient {
 	}
 
 	// Anthropic model by name
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 	cfg, _ := config.Load(filepath.Join(dataDir, "config.yaml"))
 	if cfg == nil {
 		cfg = config.Default()
@@ -333,7 +333,7 @@ func createBenchLLM(name string) benchmark.LLMClient {
 // createExtractor builds a SessionExtractor from config + API key.
 // If extractModel is non-empty, it overrides the config model (both passes use same model).
 func createExtractor(store *storage.Store, extractModel string) extraction.SessionExtractor {
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 	cfg, _ := config.Load(filepath.Join(dataDir, "config.yaml"))
 	if cfg == nil {
 		cfg = config.Default()
@@ -383,7 +383,7 @@ func requireEnv(key string) string {
 }
 
 func printLocomoUsage() {
-	fmt.Fprintln(os.Stderr, "Usage: yesmem locomo-bench <subcommand> [flags]")
+	fmt.Fprintln(os.Stderr, "Usage: nemons locomo-bench <subcommand> [flags]")
 	fmt.Fprintln(os.Stderr)
 	fmt.Fprintln(os.Stderr, "Subcommands:")
 	fmt.Fprintln(os.Stderr, "  run      Run full benchmark pipeline (ingest + extract + query + judge + report)")
@@ -395,7 +395,7 @@ func printLocomoUsage() {
 	fmt.Fprintln(os.Stderr)
 	fmt.Fprintln(os.Stderr, "Flags for 'run':")
 	fmt.Fprintln(os.Stderr, "  --data <path>       Path to LoCoMo JSON dataset file (required)")
-	fmt.Fprintln(os.Stderr, "  --db <path>         Benchmark database path (default: ~/.claude/yesmem/bench/locomo.db)")
+	fmt.Fprintln(os.Stderr, "  --db <path>         Benchmark database path (default: ~/.claude/nemons/bench/locomo.db)")
 	fmt.Fprintln(os.Stderr, "  --runs <N>          Number of runs for statistical stability (default: 1)")
 	fmt.Fprintln(os.Stderr, "  --eval-llm <model>  LLM for answering queries (default: haiku)")
 	fmt.Fprintln(os.Stderr, "  --judge-llm <model> LLM for judging answers (default: same as --eval-llm)")

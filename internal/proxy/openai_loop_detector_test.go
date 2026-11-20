@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // TestOpenAIPipeline_LoopDetectionFires ensures CheckLoopAndFormat runs on the
@@ -248,9 +248,9 @@ func hasLoopWarningInSystem(req map[string]any) bool {
 	for _, b := range blocks {
 		bm, _ := b.(map[string]any)
 		text, _ := bm["text"].(string)
-		if strings.Contains(text, "yesmem-loop-warning") ||
+		if strings.Contains(text, "nemons-loop-warning") ||
 			strings.Contains(text, "[loop-warning]") ||
-			strings.Contains(text, "[YesMem Loop Detection]") {
+			strings.Contains(text, "[Nemons Loop Detection]") {
 			return true
 		}
 	}
@@ -313,7 +313,7 @@ func TestInjectTimestamps_PlanCheckpointAlongsideLoopWarning(t *testing.T) {
 	ts := NewTimestampStore()
 	ts.Store("t1", 1, &TimestampMeta{
 		Timestamp:      "Sa 2026-07-04 12:00:00",
-		LoopWarning:    "[YesMem Loop Detection] looping",
+		LoopWarning:    "[Nemons Loop Detection] looping",
 		PlanCheckpoint: "[Plan Checkpoint] Update[/Plan Checkpoint]",
 	})
 

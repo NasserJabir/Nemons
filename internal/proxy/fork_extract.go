@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/briefing"
+	"github.com/NasserJabir/Nemons/internal/briefing"
 )
 
 // ExtractionResult holds the parsed output from the extract_and_evaluate fork.
@@ -203,7 +203,7 @@ func extractAndEvaluatePrompt(ctx ForkContext) string {
 	sb.WriteString("  {\n")
 	sb.WriteString("    \"category\": \"unfinished\",\n")
 	sb.WriteString("    \"task_type\": \"cap_idea\",\n")
-	sb.WriteString("    \"content\": \"Cap: Telegram getUpdates polling with offset persistence; yesmem telegram poll [--offset N]\"\n")
+	sb.WriteString("    \"content\": \"Cap: Telegram getUpdates polling with offset persistence; nemons telegram poll [--offset N]\"\n")
 	sb.WriteString("  }\n\n")
 	sb.WriteString("Be conservative. If unsure, skip — empty emission is a valid answer. Do NOT\n")
 	sb.WriteString("emit cap_idea entries for one-off exploration; only for workflows you'd expect\n")

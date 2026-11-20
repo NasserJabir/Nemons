@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func TestCalcAbsenceHours(t *testing.T) {
@@ -201,8 +201,8 @@ func TestRenderOpenWork_CapIdeasSurviveReminderMode(t *testing.T) {
 	s := DefaultStrings()
 	g := &Generator{strings: s}
 	items := []models.Learning{
-		{ID: 42, Content: "Cap: Telegram polling; yesmem telegram poll", TaskType: "cap_idea", MatchCount: 4, Importance: 1},
-		{ID: 43, Content: "Cap: One-off idea; yesmem one", TaskType: "cap_idea", MatchCount: 2, Importance: 5},
+		{ID: 42, Content: "Cap: Telegram polling; nemons telegram poll", TaskType: "cap_idea", MatchCount: 4, Importance: 1},
+		{ID: 43, Content: "Cap: One-off idea; nemons one", TaskType: "cap_idea", MatchCount: 2, Importance: 5},
 		{ID: 44, Content: "Regular low-priority task", TaskType: "task", MatchCount: 0, Importance: 1},
 	}
 

@@ -1,13 +1,13 @@
 ---
 name: subagent-driven-development
-description: Use when executing implementation plans with independent tasks in the current session - dispatches visible YesMem swarm agents per task with two-stage review
+description: Use when executing implementation plans with independent tasks in the current session - dispatches visible Nemons swarm agents per task with two-stage review
 ---
 
 # Swarm-Driven Development
 
-Execute plans by dispatching visible YesMem swarm agents per task, with two-stage review (spec compliance, then code quality) after each.
+Execute plans by dispatching visible Nemons swarm agents per task, with two-stage review (spec compliance, then code quality) after each.
 
-**Overrides** `superpowers:subagent-driven-development` — uses YesMem swarm (`spawn_agent`, `scratchpad`, `send_to`) instead of invisible Claude Code `Agent` tool. All agents run in separate visible terminals.
+**Overrides** `superpowers:subagent-driven-development` — uses Nemons swarm (`spawn_agent`, `scratchpad`, `send_to`) instead of invisible Claude Code `Agent` tool. All agents run in separate visible terminals.
 
 ## When to Use
 

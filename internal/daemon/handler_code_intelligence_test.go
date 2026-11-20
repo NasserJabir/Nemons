@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/codescan"
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/codescan"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // newTestCodeGraph creates a small graph for handler tests.

@@ -10,7 +10,7 @@ import (
 // das Archiv aus cfg.DataDir (daemon.go:235), die Vorlage versprach aber einen
 // konfigurierbaren Pfad. ArchiveDir ist der Leser; die Entscheidung gehoert hierher
 // und nicht an die Aufrufstelle, weil ein leerer Wert und der Loader-Default
-// verschiedene Dinge sind: der Default ist auf ~/.claude/yesmem verankert, auch
+// verschiedene Dinge sind: der Default ist auf ~/.claude/nemons verankert, auch
 // wenn der Daemon gegen ein anderes Datenverzeichnis laeuft.
 func TestArchiveDirResolvesConfiguredPath_Los11l(t *testing.T) {
 	home := t.TempDir()
@@ -35,7 +35,7 @@ func TestArchiveDirResolvesConfiguredPath_Los11l(t *testing.T) {
 		{"empty paths.archive falls back to data dir", &Config{}, dataDir, filepath.Join(dataDir, "archive")},
 		{"configured paths.archive wins", configured, dataDir, custom},
 		{"loader default is not a configuration", loaded, dataDir, filepath.Join(dataDir, "archive")},
-		{"loader default under the default data dir stays", loaded, filepath.Join(home, ".claude", "yesmem"), filepath.Join(home, ".claude", "yesmem", "archive")},
+		{"loader default under the default data dir stays", loaded, filepath.Join(home, ".claude", "nemons"), filepath.Join(home, ".claude", "nemons", "archive")},
 		{"relative value has no anchor", &Config{Paths: PathsConfig{Archive: "archive"}}, dataDir, filepath.Join(dataDir, "archive")},
 	}
 	for _, tc := range cases {
@@ -53,7 +53,7 @@ func TestArchiveDirWithoutHomeFallsBack_Los11l(t *testing.T) {
 	dataDir := filepath.Join(t.TempDir(), "data")
 
 	path := filepath.Join(t.TempDir(), "config.yaml")
-	if err := os.WriteFile(path, []byte("paths:\n  archive: ~/.claude/yesmem/archive\n"), 0o600); err != nil {
+	if err := os.WriteFile(path, []byte("paths:\n  archive: ~/.claude/nemons/archive\n"), 0o600); err != nil {
 		t.Fatalf("write config: %v", err)
 	}
 	cfg, err := Load(path)
@@ -80,7 +80,7 @@ func TestArchiveDirSeesLoadedConfigValue_Los11l(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
-	if got := cfg.ArchiveDir(filepath.Join(home, ".claude", "yesmem")); got != custom {
+	if got := cfg.ArchiveDir(filepath.Join(home, ".claude", "nemons")); got != custom {
 		t.Errorf("ArchiveDir = %q, want the configured %q", got, custom)
 	}
 }

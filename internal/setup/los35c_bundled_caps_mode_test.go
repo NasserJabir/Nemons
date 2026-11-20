@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/carsteneu/yesmem/caps"
+	"github.com/NasserJabir/Nemons/caps"
 )
 
 // YM-346/OPS-85, key 4b: capfile.WriteFile learned to write owner-only, but the

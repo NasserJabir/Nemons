@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // TestSameProjectForSupersedeLos11e pins the ownership check of the forced
@@ -20,15 +20,15 @@ func TestSameProjectForSupersedeLos11e(t *testing.T) {
 		project       string
 		want          bool
 	}{
-		{"same short name", "yesmem", "yesmem", true},
-		{"short name and path", "/home/tester/memory/yesmem", "yesmem", true},
-		{"path and short name", "yesmem", "/home/tester/memory/yesmem", true},
-		{"worktree path", "/home/tester/memory/yesmem/.worktrees/x", "/home/tester/memory/yesmem", true},
-		{"different projects", "/other/project", "yesmem", false},
-		{"basename collision", "/a/yesmem", "/b/yesmem", false},
+		{"same short name", "nemons", "nemons", true},
+		{"short name and path", "/home/tester/memory/nemons", "nemons", true},
+		{"path and short name", "nemons", "/home/tester/memory/nemons", true},
+		{"worktree path", "/home/tester/memory/nemons/.worktrees/x", "/home/tester/memory/nemons", true},
+		{"different projects", "/other/project", "nemons", false},
+		{"basename collision", "/a/nemons", "/b/nemons", false},
 		{"both empty", "", "", false},
-		{"target empty", "", "yesmem", false},
-		{"caller empty", "yesmem", "", false},
+		{"target empty", "", "nemons", false},
+		{"caller empty", "nemons", "", false},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -48,7 +48,7 @@ func TestJobSocketRefusesForceSupersedeLos11e(t *testing.T) {
 
 	capID, err := s.InsertLearning(&models.Learning{
 		Category: "cap", Content: "cap row the scheduler would run",
-		Project: "yesmem", Confidence: 1.0, CreatedAt: time.Now(),
+		Project: "nemons", Confidence: 1.0, CreatedAt: time.Now(),
 		ModelUsed: "test", Source: "llm_extracted",
 	})
 	if err != nil {
@@ -56,7 +56,7 @@ func TestJobSocketRefusesForceSupersedeLos11e(t *testing.T) {
 	}
 	noteID, err := s.InsertLearning(&models.Learning{
 		Category: "gotcha", Content: "a job's own note",
-		Project: "yesmem", Confidence: 1.0, CreatedAt: time.Now(),
+		Project: "nemons", Confidence: 1.0, CreatedAt: time.Now(),
 		ModelUsed: "test", Source: "llm_extracted",
 	})
 	if err != nil {
@@ -64,7 +64,7 @@ func TestJobSocketRefusesForceSupersedeLos11e(t *testing.T) {
 	}
 
 	forced := h.handleJobSocket(Request{Method: "remember", Params: map[string]any{
-		"text": "job overwrites memory", "category": "gotcha", "project": "yesmem",
+		"text": "job overwrites memory", "category": "gotcha", "project": "nemons",
 		"supersedes": float64(noteID), "force_supersede": true, "supersede_reason": "trust me",
 	}})
 	if forced.Error == "" {
@@ -72,7 +72,7 @@ func TestJobSocketRefusesForceSupersedeLos11e(t *testing.T) {
 	}
 
 	capTarget := h.handleJobSocket(Request{Method: "remember", Params: map[string]any{
-		"text": "retire the cap", "category": "gotcha", "project": "yesmem",
+		"text": "retire the cap", "category": "gotcha", "project": "nemons",
 		"supersedes": float64(capID),
 	}})
 	if capTarget.Error == "" {
@@ -88,7 +88,7 @@ func TestJobSocketRefusesForceSupersedeLos11e(t *testing.T) {
 
 	// The guard is narrow: an ordinary supersede of a non-cap row still works.
 	ordinary := h.handleJobSocket(Request{Method: "remember", Params: map[string]any{
-		"text": "job corrects its own note", "category": "gotcha", "project": "yesmem",
+		"text": "job corrects its own note", "category": "gotcha", "project": "nemons",
 		"supersedes": float64(noteID),
 	}})
 	if ordinary.Error != "" {
@@ -109,7 +109,7 @@ func TestHandleRememberForceSupersedeSanitizesReasonLos11e(t *testing.T) {
 		Method: "remember",
 		Params: map[string]any{
 			"text": "Sandbox bietet Run statt BuildSandboxedCommand", "category": "gotcha",
-			"project": "yesmem", "supersedes": float64(oldID),
+			"project": "nemons", "supersedes": float64(oldID),
 			"force_supersede": true, "supersede_reason": reason,
 		},
 	})

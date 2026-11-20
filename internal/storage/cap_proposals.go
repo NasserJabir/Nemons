@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // UpdateLearningCategoryAndContent flips a learning's category and rewrites

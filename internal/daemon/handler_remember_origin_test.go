@@ -13,7 +13,7 @@ func TestHandleRemember_StoresExplicitOrigin(t *testing.T) {
 		Params: map[string]any{
 			"text":     "Expliziter Origin-Wert soll gespeichert werden",
 			"category": "decision",
-			"project":  "yesmem",
+			"project":  "nemons",
 			"origin":   "user_override",
 		},
 	})
@@ -49,7 +49,7 @@ func TestHandleRemember_DefaultsOriginToUser(t *testing.T) {
 		Params: map[string]any{
 			"text":     "Ohne Origin-Param soll user als Default gesetzt werden",
 			"category": "decision",
-			"project":  "yesmem",
+			"project":  "nemons",
 		},
 	})
 

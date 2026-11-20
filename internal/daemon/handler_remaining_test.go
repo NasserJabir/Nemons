@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // --- handleResolveProject ---
@@ -133,7 +133,7 @@ func TestHandle_GetLearningsSince_Via_Dispatch(t *testing.T) {
 	since := time.Now().Add(-1 * time.Hour).Format(time.RFC3339)
 	resp := h.Handle(Request{
 		Method: "get_learnings_since",
-		Params: map[string]any{"since": since, "project": "yesmem"},
+		Params: map[string]any{"since": since, "project": "nemons"},
 	})
 	if resp.Error != "" {
 		t.Fatalf("dispatch error: %s", resp.Error)

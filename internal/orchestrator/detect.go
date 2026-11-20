@@ -84,7 +84,7 @@ type SpawnMode int
 
 const (
 	SpawnModeStandard SpawnMode = iota // separate terminal windows (current behavior)
-	SpawnModeTmux                      // tmux split-window panes in dedicated yesmem-agents session
+	SpawnModeTmux                      // tmux split-window panes in dedicated nemons-agents session
 )
 
 // isTmuxAvailable returns true when tmux is installed and available in PATH.

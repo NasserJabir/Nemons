@@ -10,7 +10,7 @@ import (
 // liveE2EEnv opts into the read-only acceptance run against the developer's
 // RUNNING opencode services. Off by default: unit tests must never depend on
 // (or disturb) a live installation.
-const liveE2EEnv = "YESMEM_LIVE_OPENCODE_E2E"
+const liveE2EEnv = "NEMONS_LIVE_OPENCODE_E2E"
 
 // liveCases are the acceptance fixtures of 2026-10-15: the workdir and section
 // of yesloop agent-20261015-12 (whose session id capture was failing, the
@@ -29,7 +29,7 @@ var liveCases = []struct {
 	},
 	{
 		name:    "this loop's own worktree",
-		workDir: "/home/tester/memory/yesmem/.worktrees/yesloop-v2-session-capture",
+		workDir: "/home/tester/memory/nemons/.worktrees/yesloop-v2-session-capture",
 		section: "yesloop-v2-session-capture",
 		wantID:  "ses_ebfd8cc9affe1NblyqKv6uBBU0",
 	},

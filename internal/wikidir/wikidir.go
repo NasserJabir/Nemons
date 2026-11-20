@@ -2,11 +2,11 @@
 // wiki lives on disk.
 //
 // Layout: <root>/<short>/, where <root> is <dataDir>/wiki and <short> is the
-// project's basename ("/home/tester/memory/yesmem" → "yesmem"). The writer
-// (wiki-tick, `yesmem wiki-render`) and every reader (code-map header,
-// [yesmem-wiki-first] directive, docs) resolve through this package. When they
-// disagreed, renders landed in wiki/home/tester/memory/yesmem/ while every
-// reader kept pointing at a stale wiki/yesmem/ (YM-6 / DEV-DT28).
+// project's basename ("/home/tester/memory/nemons" → "nemons"). The writer
+// (wiki-tick, `nemons wiki-render`) and every reader (code-map header,
+// [nemons-wiki-first] directive, docs) resolve through this package. When they
+// disagreed, renders landed in wiki/home/tester/memory/nemons/ while every
+// reader kept pointing at a stale wiki/nemons/ (YM-6 / DEV-DT28).
 //
 // Collisions: two live projects can share a basename (three checkouts named
 // "cookie-consent-management", #80175). The plain basename belongs to the
@@ -29,19 +29,19 @@ import (
 )
 
 const (
-	// RootName is the wiki directory inside the yesmem data dir.
+	// RootName is the wiki directory inside the nemons data dir.
 	RootName = "wiki"
 	// MarkerFile names the file recording which project owns a wiki directory.
 	MarkerFile = ".project"
 	// DisplayRoot is the wiki root as it appears in prompts and documentation.
-	DisplayRoot = "~/.claude/yesmem/wiki"
+	DisplayRoot = "~/.claude/nemons/wiki"
 
 	// maxCollisionProbes bounds the search for a free directory name when even
 	// the collision name is taken.
 	maxCollisionProbes = 20
 )
 
-// Root returns the wiki root inside a yesmem data dir.
+// Root returns the wiki root inside a nemons data dir.
 func Root(dataDir string) string { return filepath.Join(dataDir, RootName) }
 
 // ShortName returns the wiki directory name for a project identifier: the

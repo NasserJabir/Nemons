@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/repo"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/repo"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // PlanItem is one step of a structured plan. Status reuses the four values

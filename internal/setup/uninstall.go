@@ -13,8 +13,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/skills"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/skills"
 )
 
 // UserHome resolves the home directory every install, update and status path is
@@ -65,7 +65,7 @@ func uninstallPreviewLines() []string {
 	opencodeCommands, _ := bundledOpencodeCommandNames()
 	lines := []string{
 		"",
-		"  YesMem Uninstall",
+		"  Nemons Uninstall",
 		"  ================",
 		"",
 		"  This will remove:",
@@ -77,12 +77,12 @@ func uninstallPreviewLines() []string {
 		"  ✓ cleanupPeriodDays setting",
 		"  ✓ autoCompactEnabled (restore previous value)",
 		"  ✓ ANTHROPIC_BASE_URL from settings.json env + shell profiles",
-		"  ✓ Hook script (~/.claude/hooks/yesmem-briefing.sh)",
+		"  ✓ Hook script (~/.claude/hooks/nemons-briefing.sh)",
 		"  ✓ .mcp.json entries",
 		"  ✓ Codex provider + MCP entries in ~/.codex/config.toml",
-		"  ✓ Codex instructions (~/.codex/instructions/yesmem.md)",
+		"  ✓ Codex instructions (~/.codex/instructions/nemons.md)",
 		"  ✓ Opencode plugins under ~/" + filepath.ToSlash(opencodePluginsRelDir) + "/ (" + strings.Join(opencodePluginDirEntries, ", ") + ")",
-		"  ✓ Opencode themes yesmem installed under ~/.config/opencode/" + ThemeDir + "/",
+		"  ✓ Opencode themes nemons installed under ~/.config/opencode/" + ThemeDir + "/",
 		"  ✓ Opencode v1 plugin source, while the opencode config is rewritable (~/" + filepath.ToSlash(filepath.Dir(v1PluginPersistentRelPath)) + ")",
 		"  ✓ Opencode settings (provider, MCP, compaction in opencode.json)",
 		"  ✓ Bundled commands under ~/.claude/commands/ (" + strings.Join(bundledCommandNames(), ", ") + ")",
@@ -94,10 +94,10 @@ func uninstallPreviewLines() []string {
 	} else if runtime.GOOS == "darwin" {
 		lines = append(lines, "  ✓ launchd plists (daemon + proxy)")
 	}
-	return append(lines, "  ✓ yesmem binary", "")
+	return append(lines, "  ✓ nemons binary", "")
 }
 
-// Uninstall removes all YesMem registrations and optionally data.
+// Uninstall removes all Nemons registrations and optionally data.
 func Uninstall() error {
 	home, err := UserHome()
 	if err != nil {
@@ -108,7 +108,7 @@ func Uninstall() error {
 		fmt.Println(line)
 	}
 
-	deleteData := promptYesNo("Also delete all data (~/.claude/yesmem/)?", false)
+	deleteData := promptYesNo("Also delete all data (~/.claude/nemons/)?", false)
 	fmt.Println()
 
 	if !promptYesNo("Proceed with uninstall?", false) {
@@ -119,10 +119,10 @@ func Uninstall() error {
 
 	// Kill daemon + proxy
 	fmt.Print("  Stopping daemon... ")
-	exec.Command("pkill", "-f", "yesmem daemon").Run()
+	exec.Command("pkill", "-f", "nemons daemon").Run()
 	fmt.Println("✓")
 	fmt.Print("  Stopping proxy... ")
-	exec.Command("pkill", "-f", "yesmem proxy").Run()
+	exec.Command("pkill", "-f", "nemons proxy").Run()
 	fmt.Println("✓")
 
 	// Remove from settings.json
@@ -135,15 +135,15 @@ func Uninstall() error {
 
 	// Remove hook script
 	fmt.Print("  Removing hook script... ")
-	os.Remove(filepath.Join(home, ".claude", "hooks", "yesmem-briefing.sh"))
+	os.Remove(filepath.Join(home, ".claude", "hooks", "nemons-briefing.sh"))
 	fmt.Println("✓")
 
-	// Remove bundled commands installed by YesMem
+	// Remove bundled commands installed by Nemons
 	fmt.Print("  Removing bundled commands... ")
 	removeBundledCommands(home)
 	fmt.Println("✓")
 
-	// Remove bundled skills installed by YesMem. A same-named directory of the
+	// Remove bundled skills installed by Nemons. A same-named directory of the
 	// user's own is kept, and the run names it: a silent skip looks like a
 	// forgotten sweep.
 	fmt.Print("  Removing bundled skills... ")
@@ -157,7 +157,7 @@ func Uninstall() error {
 		fmt.Printf("  Kept %s (content differs from the bundled skill)\n", dir)
 	}
 
-	// Remove bundled opencode commands installed by YesMem
+	// Remove bundled opencode commands installed by Nemons
 	fmt.Print("  Removing bundled opencode commands... ")
 	if err := removeBundledOpencodeCommands(home); err != nil {
 		fmt.Printf("⚠ %v\n", err)
@@ -172,7 +172,7 @@ func Uninstall() error {
 
 	// Remove MCP from ~/.claude.json + restore primaryApiKey
 	fmt.Print("  Cleaning claude.json... ")
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	restorePrimaryApiKeyFromState(dataDir, home)
 	if err := cleanClaudeJSON(home); err != nil {
 		fmt.Printf("⚠ %v\n", err)
@@ -194,12 +194,12 @@ func Uninstall() error {
 		fmt.Println("✓")
 	}
 
-	// Remove yesmem permissions from project-local settings.local.json files
+	// Remove nemons permissions from project-local settings.local.json files
 	fmt.Print("  Cleaning project settings... ")
 	cleanProjectLocalSettings(home)
 	fmt.Println("✓")
 
-	// Remove YesMem auto-generated section from project MEMORY.md files
+	// Remove Nemons auto-generated section from project MEMORY.md files
 	fmt.Print("  Cleaning project memory files... ")
 	cleanProjectMemoryFiles(claudeProjectsDirFromConfig(dataDir))
 	fmt.Println("✓")
@@ -215,7 +215,7 @@ func Uninstall() error {
 	// Remove systemd/launchd
 	if runtime.GOOS == "linux" {
 		fmt.Print("  Removing systemd services... ")
-		for _, svc := range []string{"yesmem", "yesmem-proxy"} {
+		for _, svc := range []string{"nemons", "nemons-proxy"} {
 			exec.Command("systemctl", "--user", "stop", svc).Run()
 			exec.Command("systemctl", "--user", "disable", svc).Run()
 			os.Remove(filepath.Join(home, ".config", "systemd", "user", svc+".service"))
@@ -224,7 +224,7 @@ func Uninstall() error {
 		fmt.Println("✓")
 	} else if runtime.GOOS == "darwin" {
 		fmt.Print("  Removing launchd plists... ")
-		for _, name := range []string{"com.yesmem.daemon", "com.yesmem.proxy"} {
+		for _, name := range []string{"com.nemons.daemon", "com.nemons.proxy"} {
 			plist := filepath.Join(home, "Library", "LaunchAgents", name+".plist")
 			exec.Command("launchctl", "unload", plist).Run()
 			os.Remove(plist)
@@ -287,7 +287,7 @@ func Uninstall() error {
 
 	fmt.Println()
 	fmt.Println("  ══════════════════════════════════════")
-	fmt.Println("  YesMem uninstalled.")
+	fmt.Println("  Nemons uninstalled.")
 	if !deleteData {
 		fmt.Printf("  Data preserved at %s\n", dataDir)
 		fmt.Println("  Run with data deletion to fully remove.")
@@ -298,7 +298,7 @@ func Uninstall() error {
 	return nil
 }
 
-// binaryLinkDirs are the user-writable directories a yesmem link can sit in.
+// binaryLinkDirs are the user-writable directories a nemons link can sit in.
 // System directories are not swept: removing a link there needs root, and the
 // uninstall does not claim to.
 var binaryLinkDirs = []string{
@@ -309,7 +309,7 @@ var binaryLinkDirs = []string{
 
 // removeStaleBinaryLinks removes symlinks in the user's bin directories that
 // point at the binary this run deleted. os.Executable reports the resolved
-// target, so a link the user invokes yesmem through is invisible to the removal
+// target, so a link the user invokes nemons through is invisible to the removal
 // above and stays behind as a PATH entry that exists but cannot start (YM-350).
 // A link to anything else, and a regular file of the same name, are left alone.
 func removeStaleBinaryLinks(home, target string) {
@@ -347,20 +347,20 @@ func removeStaleBinaryLinks(home, target string) {
 
 // cleanSettingsJSON removes every trace of the install from settings.json.
 func cleanSettingsJSON(home string) error {
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	settings, err := readSettingsJSON(home)
 	if err != nil {
 		return err
 	}
 
-	// The path yesmem registered for its MCP server is the path it wrote into
+	// The path nemons registered for its MCP server is the path it wrote into
 	// every hook command. It identifies our handlers even when the binary name
-	// does not carry the word "yesmem" — read before the entry is deleted below.
-	installBinary := yesmemBinaryFromSettings(settings)
+	// does not carry the word "nemons" — read before the entry is deleted below.
+	installBinary := nemonsBinaryFromSettings(settings)
 
-	// Remove mcpServers.yesmem
+	// Remove mcpServers.nemons
 	if mcp, ok := settings["mcpServers"].(map[string]any); ok {
-		delete(mcp, "yesmem")
+		delete(mcp, "nemons")
 		if len(mcp) == 0 {
 			delete(settings, "mcpServers")
 		}
@@ -391,33 +391,33 @@ func cleanSettingsJSON(home string) error {
 	// Replace proxy URL: bypass bridge for API-key users, remove for OAuth users
 	removeProxyEnvVar(settings)
 
-	// Remove yesmem MCP permissions
+	// Remove nemons MCP permissions
 	cleanMCPPermissions(settings)
 
-	// Remove statusLine if it's yesmem's
+	// Remove statusLine if it's nemons's
 	cleanStatusLine(settings, installBinary)
 
-	// Remove SessionStart hook entries containing yesmem
+	// Remove SessionStart hook entries containing nemons
 	if hooks, ok := settings["hooks"].(map[string]any); ok {
-		removeYesmemHook(hooks, "SessionStart", installBinary)
-		removeYesmemHook(hooks, "SessionEnd", installBinary)
-		removeYesmemFromCommand(hooks, "UserPromptSubmit", installBinary)
-		removeYesmemHook(hooks, "PreToolUse", installBinary)
-		removeYesmemHook(hooks, "PostToolUseFailure", installBinary)
-		removeYesmemHook(hooks, "PostToolUse", installBinary)
+		removeNemonsHook(hooks, "SessionStart", installBinary)
+		removeNemonsHook(hooks, "SessionEnd", installBinary)
+		removeNemonsFromCommand(hooks, "UserPromptSubmit", installBinary)
+		removeNemonsHook(hooks, "PreToolUse", installBinary)
+		removeNemonsHook(hooks, "PostToolUseFailure", installBinary)
+		removeNemonsHook(hooks, "PostToolUse", installBinary)
 	}
 
 	return writeSettingsJSON(home, settings)
 }
 
-// yesmemBinaryFromSettings returns the binary path yesmem registered for its MCP
+// nemonsBinaryFromSettings returns the binary path nemons registered for its MCP
 // server. Every path that writes a hook writes it as that path plus a subcommand.
-func yesmemBinaryFromSettings(settings map[string]any) string {
+func nemonsBinaryFromSettings(settings map[string]any) string {
 	mcp, ok := settings["mcpServers"].(map[string]any)
 	if !ok {
 		return ""
 	}
-	entry, ok := mcp["yesmem"].(map[string]any)
+	entry, ok := mcp["nemons"].(map[string]any)
 	if !ok {
 		return ""
 	}
@@ -483,15 +483,15 @@ func restorePrimaryApiKeyFromState(dataDir, home string) {
 	if err != nil {
 		return
 	}
-	// The key goes back into a file that predates yesmem, so the mode literal
+	// The key goes back into a file that predates nemons, so the mode literal
 	// alone would keep whatever Claude Code left behind.
 	if err := writeSecretFile(path, out); err != nil {
 		fmt.Printf("  warning: could not tighten claude.json: %v\n", err)
 	}
 }
 
-// removeYesmemHook removes entire hook entries that reference yesmem.
-func removeYesmemHook(hooks map[string]any, hookName, binaryPath string) {
+// removeNemonsHook removes entire hook entries that reference nemons.
+func removeNemonsHook(hooks map[string]any, hookName, binaryPath string) {
 	entries, ok := hooks[hookName].([]any)
 	if !ok {
 		return
@@ -504,13 +504,13 @@ func removeYesmemHook(hooks map[string]any, hookName, binaryPath string) {
 			filtered = append(filtered, entry)
 			continue
 		}
-		isYesmem := false
+		isNemons := false
 		for _, h := range toHookSlice(m["hooks"]) {
-			if cmd, ok := h["command"].(string); ok && isYesmemHandler(cmd, "", binaryPath) {
-				isYesmem = true
+			if cmd, ok := h["command"].(string); ok && isNemonsHandler(cmd, "", binaryPath) {
+				isNemons = true
 			}
 		}
-		if !isYesmem {
+		if !isNemons {
 			filtered = append(filtered, entry)
 		}
 	}
@@ -522,8 +522,8 @@ func removeYesmemHook(hooks map[string]any, hookName, binaryPath string) {
 	}
 }
 
-// removeYesmemFromCommand removes yesmem from chained commands ("; yesmem micro-reminder").
-func removeYesmemFromCommand(hooks map[string]any, hookName, binaryPath string) {
+// removeNemonsFromCommand removes nemons from chained commands ("; nemons micro-reminder").
+func removeNemonsFromCommand(hooks map[string]any, hookName, binaryPath string) {
 	entries, ok := hooks[hookName].([]any)
 	if !ok {
 		return
@@ -543,12 +543,12 @@ func removeYesmemFromCommand(hooks map[string]any, hookName, binaryPath string) 
 				hooksList = append(hooksList, h)
 				continue
 			}
-			// Remove the yesmem segments from a command chain. A handler that
-			// consisted only of yesmem — idle-tick registers as its own entry —
+			// Remove the nemons segments from a command chain. A handler that
+			// consisted only of nemons — idle-tick registers as its own entry —
 			// is dropped instead of being left with an empty command.
 			var cleaned []string
 			for _, p := range strings.Split(cmd, ";") {
-				if !invokesYesmem(strings.TrimSpace(p), binaryPath) {
+				if !invokesNemons(strings.TrimSpace(p), binaryPath) {
 					cleaned = append(cleaned, p)
 				}
 			}
@@ -586,15 +586,15 @@ func cleanMCPJSON(path string) {
 	if !ok {
 		return
 	}
-	if _, had := mcp["yesmem"]; !had {
+	if _, had := mcp["nemons"]; !had {
 		return
 	}
-	delete(mcp, "yesmem")
+	delete(mcp, "nemons")
 	if len(mcp) == 0 {
 		delete(cfg, "mcpServers")
 	}
 	// The file is shared: it can carry other servers and other top-level keys
-	// (project entries among them). Removing it as soon as the yesmem server is
+	// (project entries among them). Removing it as soon as the nemons server is
 	// gone deleted foreign configuration with it, so it goes only when nothing
 	// else is left.
 	if len(cfg) == 0 {
@@ -606,14 +606,14 @@ func cleanMCPJSON(path string) {
 		log.Printf("uninstall: marshal %s: %v", path, err)
 		return
 	}
-	// A write that fails leaves the yesmem server in the file while the run
+	// A write that fails leaves the nemons server in the file while the run
 	// reports a cleaned config, so it is named at least.
 	if err := os.WriteFile(path, out, 0644); err != nil {
 		log.Printf("uninstall: write %s: %v", path, err)
 	}
 }
 
-// cleanClaudeJSON removes the yesmem MCP entry from ~/.claude.json.
+// cleanClaudeJSON removes the nemons MCP entry from ~/.claude.json.
 func cleanClaudeJSON(home string) error {
 	path := filepath.Join(home, ".claude.json")
 	data, err := os.ReadFile(path)
@@ -629,15 +629,15 @@ func cleanClaudeJSON(home string) error {
 	}
 	mcpServers, ok := config["mcpServers"].(map[string]any)
 	if ok {
-		delete(mcpServers, "yesmem")
+		delete(mcpServers, "nemons")
 		if len(mcpServers) == 0 {
 			delete(config, "mcpServers")
 		}
 	}
-	// Remove yesmem skill usage entries
+	// Remove nemons skill usage entries
 	if skillUsage, ok := config["skillUsage"].(map[string]any); ok {
 		for k := range skillUsage {
-			if isYesmemSkillUsageKey(k) {
+			if isNemonsSkillUsageKey(k) {
 				delete(skillUsage, k)
 			}
 		}
@@ -649,49 +649,49 @@ func cleanClaudeJSON(home string) error {
 	if err != nil {
 		return err
 	}
-	// The file predates yesmem on most installs, so the mode literal alone would
+	// The file predates nemons on most installs, so the mode literal alone would
 	// keep whatever Claude Code left behind.
 	return writeSecretFile(path, out)
 }
 
-// yesmemSkillUsageNames holds the skill names yesmem installs, read once from
+// nemonsSkillUsageNames holds the skill names nemons installs, read once from
 // the embedded bundle. skillUsage is keyed by skill name, so ownership is a
-// name match: a substring test on "yesmem" deleted a user's own
-// my-yesmem-helper and missed every yesmem skill that carries no prefix
+// name match: a substring test on "nemons" deleted a user's own
+// my-nemons-helper and missed every nemons skill that carries no prefix
 // (yesloop, reddit, security-review).
 var (
-	yesmemSkillUsageOnce  sync.Once
-	yesmemSkillUsageNames map[string]bool
+	nemonsSkillUsageOnce  sync.Once
+	nemonsSkillUsageNames map[string]bool
 )
 
-func isYesmemSkillUsageKey(key string) bool {
-	yesmemSkillUsageOnce.Do(func() {
-		yesmemSkillUsageNames = map[string]bool{}
+func isNemonsSkillUsageKey(key string) bool {
+	nemonsSkillUsageOnce.Do(func() {
+		nemonsSkillUsageNames = map[string]bool{}
 		entries, err := skills.BundledSkills.ReadDir("bundled-skills")
 		if err != nil {
 			return
 		}
 		for _, e := range entries {
 			if e.IsDir() {
-				yesmemSkillUsageNames[e.Name()] = true
+				nemonsSkillUsageNames[e.Name()] = true
 			}
 		}
 	})
-	if yesmemSkillUsageNames[key] {
+	if nemonsSkillUsageNames[key] {
 		return true
 	}
 	// A cap-backed skill records usage per tool, so the reddit skill writes
 	// reddit_fetch and reddit_search rather than its directory name.
-	if i := strings.IndexByte(key, '_'); i > 0 && yesmemSkillUsageNames[key[:i]] {
+	if i := strings.IndexByte(key, '_'); i > 0 && nemonsSkillUsageNames[key[:i]] {
 		return true
 	}
-	// Skills an older yesmem shipped are gone from the bundle, but their usage
+	// Skills an older nemons shipped are gone from the bundle, but their usage
 	// rows are still ours; the family has carried this prefix throughout.
-	return strings.HasPrefix(key, "yesmem-")
+	return strings.HasPrefix(key, "nemons-")
 }
 
 // removeProxyFromShellProfiles removes the ANTHROPIC_BASE_URL export lines
-// and YesMem PATH entries that were added during install.
+// and Nemons PATH entries that were added during install.
 func removeProxyFromShellProfiles(home string) error {
 	for _, rcFile := range []string{".bashrc", ".zshrc", ".profile"} {
 		rcPath := filepath.Join(home, rcFile)
@@ -700,7 +700,7 @@ func removeProxyFromShellProfiles(home string) error {
 			continue
 		}
 		content := string(data)
-		if !strings.Contains(content, "ANTHROPIC_BASE_URL") && !strings.Contains(content, "# YesMem binary") {
+		if !strings.Contains(content, "ANTHROPIC_BASE_URL") && !strings.Contains(content, "# Nemons binary") {
 			continue
 		}
 		lines := strings.Split(content, "\n")
@@ -708,7 +708,7 @@ func removeProxyFromShellProfiles(home string) error {
 		for i := 0; i < len(lines); i++ {
 			trimmed := strings.TrimSpace(lines[i])
 			// Skip the proxy comment line and the export line
-			if trimmed == "# YesMem infinite-thread proxy" {
+			if trimmed == "# Nemons infinite-thread proxy" {
 				// Also skip the next line if it's the export
 				if i+1 < len(lines) && strings.Contains(lines[i+1], "ANTHROPIC_BASE_URL") {
 					i++
@@ -720,7 +720,7 @@ func removeProxyFromShellProfiles(home string) error {
 				continue
 			}
 			// Skip the PATH comment line and the export line
-			if trimmed == "# YesMem binary" {
+			if trimmed == "# Nemons binary" {
 				if i+1 < len(lines) && strings.Contains(lines[i+1], "export PATH=") {
 					i++
 				}
@@ -751,7 +751,7 @@ func isPlainEntryName(name string) bool {
 	return name == filepath.Base(name)
 }
 
-// bundledCommandNames lists the command files yesmem installs into
+// bundledCommandNames lists the command files nemons installs into
 // ~/.claude/commands. The announcement and the deletion read the same list, so
 // the text cannot fall behind what the sweep removes.
 func bundledCommandNames() []string {
@@ -769,7 +769,7 @@ func bundledCommandNames() []string {
 	return names
 }
 
-// bundledSkillNames lists the skill directories yesmem installs into
+// bundledSkillNames lists the skill directories nemons installs into
 // ~/.claude/skills, read from the same bundle InstallBundledSkills copies.
 func bundledSkillNames() []string {
 	entries, err := skills.BundledSkills.ReadDir("bundled-skills")
@@ -786,7 +786,7 @@ func bundledSkillNames() []string {
 	return names
 }
 
-// removeBundledCommands removes YesMem-installed skill files from ~/.claude/commands/.
+// removeBundledCommands removes Nemons-installed skill files from ~/.claude/commands/.
 // Only removes files that match names in the embedded skills directory.
 func removeBundledCommands(home string) {
 	cmdDir := filepath.Join(home, ".claude", "commands")
@@ -795,7 +795,7 @@ func removeBundledCommands(home string) {
 	}
 }
 
-// removeBundledSkills removes YesMem-installed skill directories from ~/.claude/skills/
+// removeBundledSkills removes Nemons-installed skill directories from ~/.claude/skills/
 // and returns the ones it kept. A directory of the same name is removed only when
 // it holds exactly the bundled files: the directory is shared with the user, and
 // an uninstall used to delete a skill of their own that happened to carry a
@@ -880,7 +880,7 @@ func skillDirIsBundledCopy(name, dir string) (bool, error) {
 // the bundle carries.
 var opencodeCommandsRelDir = filepath.Join(".config", "opencode", "commands")
 
-// bundledOpencodeCommandNames lists the command files yesmem installs into
+// bundledOpencodeCommandNames lists the command files nemons installs into
 // ~/.config/opencode/commands, read from the bundle InstallOpencodeCommands
 // copies. It covers every non-directory entry the installer writes, and refuses
 // a name that is not a plain base name: these names are handed to os.Remove.
@@ -902,7 +902,7 @@ func bundledOpencodeCommandNames() ([]string, error) {
 	return names, nil
 }
 
-// removeBundledOpencodeCommands removes the opencode commands YesMem installed
+// removeBundledOpencodeCommands removes the opencode commands Nemons installed
 // from ~/.config/opencode/commands/. A command of the user's own that sits in
 // the same directory is not named by the bundle and stays.
 //
@@ -929,7 +929,7 @@ func removeBundledOpencodeCommands(home string) error {
 	return errors.Join(errs...)
 }
 
-// mcpToolNames lists all yesmem MCP tool names for permission cleanup.
+// mcpToolNames lists all nemons MCP tool names for permission cleanup.
 var mcpToolNames = []string{
 	"search", "deep_search", "hybrid_search", "remember", "reopen", "resolve", "resolve_by_text",
 	"get_learnings", "get_session", "get_compacted_stubs", "get_project_profile",
@@ -945,7 +945,7 @@ var mcpToolNames = []string{
 	"query_facts", "relate_learnings",
 }
 
-// cleanMCPPermissions removes all mcp__yesmem__* entries from permissions.allow.
+// cleanMCPPermissions removes all mcp__nemons__* entries from permissions.allow.
 func cleanMCPPermissions(settings map[string]any) {
 	perms, ok := settings["permissions"].(map[string]any)
 	if !ok {
@@ -958,26 +958,26 @@ func cleanMCPPermissions(settings map[string]any) {
 	cleaned := make([]any, 0)
 	for _, v := range allow {
 		s, ok := v.(string)
-		if !ok || !strings.HasPrefix(s, "mcp__yesmem__") {
+		if !ok || !strings.HasPrefix(s, "mcp__nemons__") {
 			cleaned = append(cleaned, v)
 		}
 	}
 	perms["allow"] = cleaned
 }
 
-// cleanStatusLine removes the statusLine entry if it belongs to yesmem.
+// cleanStatusLine removes the statusLine entry if it belongs to nemons.
 func cleanStatusLine(settings map[string]any, binaryPath string) {
 	sl, ok := settings["statusLine"].(map[string]any)
 	if !ok {
 		return
 	}
 	cmd, _ := sl["command"].(string)
-	if isYesmemHandler(cmd, "", binaryPath) {
+	if isNemonsHandler(cmd, "", binaryPath) {
 		delete(settings, "statusLine")
 	}
 }
 
-// cleanProjectLocalSettings removes mcp__yesmem__* from permissions.allow
+// cleanProjectLocalSettings removes mcp__nemons__* from permissions.allow
 // in each project's .claude/settings.local.json file.
 func cleanProjectLocalSettings(home string) {
 	data, err := os.ReadFile(filepath.Join(home, ".claude.json"))
@@ -1013,7 +1013,7 @@ func cleanProjectLocalSettings(home string) {
 		var cleaned []any
 		for _, v := range allow {
 			s, ok := v.(string)
-			if !ok || !strings.HasPrefix(s, "mcp__yesmem__") {
+			if !ok || !strings.HasPrefix(s, "mcp__nemons__") {
 				cleaned = append(cleaned, v)
 			}
 		}
@@ -1029,9 +1029,9 @@ func cleanProjectLocalSettings(home string) {
 	}
 }
 
-const yesmemMemoryMarker = "# --- YesMem Auto-Generated"
+const nemonsMemoryMarker = "# --- Nemons Auto-Generated"
 
-// cleanProjectMemoryFiles removes the YesMem auto-generated section from each
+// cleanProjectMemoryFiles removes the Nemons auto-generated section from each
 // project's MEMORY.md below projectsDir.
 func cleanProjectMemoryFiles(projectsDir string) {
 	entries, err := os.ReadDir(projectsDir)
@@ -1048,7 +1048,7 @@ func cleanProjectMemoryFiles(projectsDir string) {
 			continue
 		}
 		content := string(data)
-		idx := strings.Index(content, yesmemMemoryMarker)
+		idx := strings.Index(content, nemonsMemoryMarker)
 		if idx < 0 {
 			continue
 		}

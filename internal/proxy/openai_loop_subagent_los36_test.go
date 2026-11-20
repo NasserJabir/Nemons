@@ -5,7 +5,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // los36LoopingOpenAIRequest is an identical Edit→Bash cycle in OpenAI format.

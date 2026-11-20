@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // los57bDerivedTurn is a user turn WITHOUT any session header, so the thread id
@@ -20,7 +20,7 @@ const los57bLargeText = "the quick brown fox jumps over the lazy dog. "
 // is deterministic, so the derived thread id is the same for caller and handler.
 func los57bDerivedBody(padding int) string {
 	return `{"model":"claude-opus-4-6","stream":false,"thinking":{"type":"adaptive"},` +
-		`"system":[{"type":"text","text":"Primary working directory: /home/tester/memory/yesmem"}],` +
+		`"system":[{"type":"text","text":"Primary working directory: /home/tester/memory/nemons"}],` +
 		`"messages":[{"role":"user","content":"start the task"},` +
 		`{"role":"assistant","content":"on it"},` +
 		`{"role":"user","content":"` + strings.Repeat(los57bLargeText, padding) + `"}]}`

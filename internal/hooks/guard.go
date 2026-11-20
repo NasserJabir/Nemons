@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/guard"
-	"github.com/carsteneu/yesmem/internal/setup"
+	"github.com/NasserJabir/Nemons/internal/guard"
+	"github.com/NasserJabir/Nemons/internal/setup"
 )
 
 // suggestCooldownTTL is the minimum time between identical SUGGESTs for the

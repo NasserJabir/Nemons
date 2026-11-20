@@ -152,13 +152,13 @@ func TestLos56c_SkillTrackerKeepsFrequentlyUsedThreads(t *testing.T) {
 	}
 
 	const longLived = "los56c-long-lived"
-	s.syncSkillActivations(skillMsgs, "/home/tester/memory/yesmem", longLived)
+	s.syncSkillActivations(skillMsgs, "/home/tester/memory/nemons", longLived)
 
 	// The same thread keeps working (every turn re-detects its active skill),
 	// while 300 one-shot threads appear around it.
 	for i := 0; i < 300; i++ {
-		s.syncSkillActivations(skillMsgs, "/home/tester/memory/yesmem", longLived)
-		s.syncSkillActivations(skillMsgs, "/home/tester/memory/yesmem", skillThreadForTest(i))
+		s.syncSkillActivations(skillMsgs, "/home/tester/memory/nemons", longLived)
+		s.syncSkillActivations(skillMsgs, "/home/tester/memory/nemons", skillThreadForTest(i))
 	}
 
 	if !s.skillTracker.isActive(longLived, "yesloop") {

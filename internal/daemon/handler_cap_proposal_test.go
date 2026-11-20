@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func seedCapProposed(t *testing.T, h *Handler, capName, proposedBash string) int64 {
@@ -63,7 +63,7 @@ func seedCapProposed(t *testing.T, h *Handler, capName, proposedBash string) int
 
 func TestCapProposalDecide_AcceptUpdatesActiveCap(t *testing.T) {
 	h, _ := mustHandler(t)
-	seedCap(t, h, "demo", "yesmem", "echo old\nexit 0\n", []string{"demo"})
+	seedCap(t, h, "demo", "nemons", "echo old\nexit 0\n", []string{"demo"})
 	propID := seedCapProposed(t, h, "demo", "echo new\nexit 0\n")
 
 	resp := h.Handle(Request{
@@ -111,7 +111,7 @@ func TestCapProposalDecide_AcceptUpdatesActiveCap(t *testing.T) {
 
 func TestCapProposalDecide_RejectKeepsActiveCap(t *testing.T) {
 	h, _ := mustHandler(t)
-	seedCap(t, h, "demo", "yesmem", "echo old\nexit 0\n", []string{"demo"})
+	seedCap(t, h, "demo", "nemons", "echo old\nexit 0\n", []string{"demo"})
 	propID := seedCapProposed(t, h, "demo", "echo rewrite\nexit 0\n")
 
 	resp := h.Handle(Request{
@@ -156,7 +156,7 @@ func TestCapProposalDecide_RejectKeepsActiveCap(t *testing.T) {
 
 func TestCapProposalDecide_RefusesAlreadyDecided(t *testing.T) {
 	h, _ := mustHandler(t)
-	seedCap(t, h, "demo", "yesmem", "echo old\nexit 0\n", []string{"demo"})
+	seedCap(t, h, "demo", "nemons", "echo old\nexit 0\n", []string{"demo"})
 	propID := seedCapProposed(t, h, "demo", "echo rewrite\nexit 0\n")
 
 	first := h.Handle(Request{
@@ -197,7 +197,7 @@ func TestCapProposalDecide_AcceptPreservesBundleMetadata(t *testing.T) {
 			"name":        "bundle_cap",
 			"description": "multi-script bundle",
 			"scripts":     scriptsJSON,
-			"project":     "yesmem",
+			"project":     "nemons",
 			"tags":        []any{"bundle", "demo"},
 			"auto_active": false,
 			"_from_disk":  true,
@@ -220,7 +220,7 @@ func TestCapProposalDecide_AcceptPreservesBundleMetadata(t *testing.T) {
 		t.Fatalf("accept failed: %s", resp.Error)
 	}
 
-	caps, err := h.store.GetActiveLearnings("cap", "yesmem", "", "", 0)
+	caps, err := h.store.GetActiveLearnings("cap", "nemons", "", "", 0)
 	if err != nil {
 		t.Fatalf("read caps: %v", err)
 	}
@@ -235,8 +235,8 @@ func TestCapProposalDecide_AcceptPreservesBundleMetadata(t *testing.T) {
 	if active == nil {
 		t.Fatalf("bundle_cap not found among active caps after accept")
 	}
-	if active.Project != "yesmem" {
-		t.Errorf("project lost on accept: %q, want yesmem", active.Project)
+	if active.Project != "nemons" {
+		t.Errorf("project lost on accept: %q, want nemons", active.Project)
 	}
 
 	meta, err := ParseCapMeta(active.Context)
@@ -271,8 +271,8 @@ func TestCapProposalDecide_AcceptPreservesBundleMetadata(t *testing.T) {
 
 func TestListCapProposals_DefaultsToPending(t *testing.T) {
 	h, _ := mustHandler(t)
-	seedCap(t, h, "alpha", "yesmem", "echo a\n", []string{"alpha"})
-	seedCap(t, h, "beta", "yesmem", "echo b\n", []string{"beta"})
+	seedCap(t, h, "alpha", "nemons", "echo a\n", []string{"alpha"})
+	seedCap(t, h, "beta", "nemons", "echo b\n", []string{"beta"})
 	pendingID := seedCapProposed(t, h, "alpha", "echo a2\n")
 	rejectedID := seedCapProposed(t, h, "beta", "echo b2\n")
 
@@ -311,7 +311,7 @@ func TestListCapProposals_DefaultsToPending(t *testing.T) {
 // remains the canonical record of the firing.
 func TestCapProposalDecide_AcceptDoesNotDoubleCountInBudget(t *testing.T) {
 	h, _ := mustHandler(t)
-	seedCap(t, h, "demo", "yesmem", "echo old\nexit 0\n", []string{"demo"})
+	seedCap(t, h, "demo", "nemons", "echo old\nexit 0\n", []string{"demo"})
 	propID := seedCapProposed(t, h, "demo", "echo new\nexit 0\n")
 
 	resp := h.Handle(Request{
@@ -353,14 +353,14 @@ func TestCapProposalDecide_AcceptTargetsScriptByName(t *testing.T) {
 			"name":        "tg_bundle",
 			"description": "two bash handlers",
 			"scripts":     scriptsJSON,
-			"project":     "yesmem",
+			"project":     "nemons",
 		},
 	})
 	if saveResp.Error != "" {
 		t.Fatalf("seed save_cap: %s", saveResp.Error)
 	}
 
-	caps, err := h.store.GetActiveLearnings("cap", "yesmem", "", "", 0)
+	caps, err := h.store.GetActiveLearnings("cap", "nemons", "", "", 0)
 	if err != nil {
 		t.Fatalf("get active: %v", err)
 	}
@@ -391,7 +391,7 @@ func TestCapProposalDecide_AcceptTargetsScriptByName(t *testing.T) {
 		Content:     "tg_bundle proposal",
 		Category:    "cap_proposed",
 		Source:      "auto_correct_proposal",
-		Project:     "yesmem",
+		Project:     "nemons",
 		Confidence:  1.0,
 		Context:     propCtx,
 		TriggerRule: "cap_proposed:tg_bundle",
@@ -414,7 +414,7 @@ func TestCapProposalDecide_AcceptTargetsScriptByName(t *testing.T) {
 		t.Fatalf("accept: %s", resp.Error)
 	}
 
-	caps, err = h.store.GetActiveLearnings("cap", "yesmem", "", "", 0)
+	caps, err = h.store.GetActiveLearnings("cap", "nemons", "", "", 0)
 	if err != nil {
 		t.Fatalf("re-read active caps: %v", err)
 	}

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func TestFindLearningsByEntityMatch_Basic(t *testing.T) {
@@ -13,7 +13,7 @@ func TestFindLearningsByEntityMatch_Basic(t *testing.T) {
 	l := &models.Learning{
 		Content:   "proxy config requires restart after change",
 		Category:  "gotcha",
-		Project:   "yesmem",
+		Project:   "nemons",
 		CreatedAt: time.Now(),
 		Source:    "test",
 		ModelUsed: "test",
@@ -27,7 +27,7 @@ func TestFindLearningsByEntityMatch_Basic(t *testing.T) {
 		t.Fatal("expected non-zero id")
 	}
 
-	results, err := s.FindLearningsByEntityMatch([]string{"proxy.go"}, "yesmem")
+	results, err := s.FindLearningsByEntityMatch([]string{"proxy.go"}, "nemons")
 	if err != nil {
 		t.Fatalf("FindLearningsByEntityMatch: %v", err)
 	}
@@ -48,7 +48,7 @@ func TestFindLearningsByEntityMatch_NoMatch(t *testing.T) {
 	l := &models.Learning{
 		Content:   "daemon handles reconnection gracefully",
 		Category:  "pattern",
-		Project:   "yesmem",
+		Project:   "nemons",
 		CreatedAt: time.Now(),
 		Source:    "test",
 		ModelUsed: "test",
@@ -59,7 +59,7 @@ func TestFindLearningsByEntityMatch_NoMatch(t *testing.T) {
 		t.Fatalf("insert learning: %v", err)
 	}
 
-	results, err := s.FindLearningsByEntityMatch([]string{"proxy.go"}, "yesmem")
+	results, err := s.FindLearningsByEntityMatch([]string{"proxy.go"}, "nemons")
 	if err != nil {
 		t.Fatalf("FindLearningsByEntityMatch: %v", err)
 	}
@@ -74,7 +74,7 @@ func TestFindLearningsByEntityMatch_SupersededExcluded(t *testing.T) {
 	l := &models.Learning{
 		Content:   "old proxy pattern no longer valid",
 		Category:  "gotcha",
-		Project:   "yesmem",
+		Project:   "nemons",
 		CreatedAt: time.Now(),
 		Source:    "test",
 		ModelUsed: "test",
@@ -90,7 +90,7 @@ func TestFindLearningsByEntityMatch_SupersededExcluded(t *testing.T) {
 		t.Fatalf("resolve learning: %v", err)
 	}
 
-	results, err := s.FindLearningsByEntityMatch([]string{"proxy.go"}, "yesmem")
+	results, err := s.FindLearningsByEntityMatch([]string{"proxy.go"}, "nemons")
 	if err != nil {
 		t.Fatalf("FindLearningsByEntityMatch: %v", err)
 	}
@@ -103,9 +103,9 @@ func TestFindLearningsByEntityMatch_ProjectScope(t *testing.T) {
 	s := mustOpen(t)
 
 	l1 := &models.Learning{
-		Content:   "proxy config for yesmem project",
+		Content:   "proxy config for nemons project",
 		Category:  "gotcha",
-		Project:   "yesmem",
+		Project:   "nemons",
 		CreatedAt: time.Now(),
 		Source:    "test",
 		ModelUsed: "test",
@@ -130,15 +130,15 @@ func TestFindLearningsByEntityMatch_ProjectScope(t *testing.T) {
 		t.Fatalf("insert learning 2: %v", err)
 	}
 
-	results, err := s.FindLearningsByEntityMatch([]string{"proxy.go"}, "yesmem")
+	results, err := s.FindLearningsByEntityMatch([]string{"proxy.go"}, "nemons")
 	if err != nil {
 		t.Fatalf("FindLearningsByEntityMatch: %v", err)
 	}
 	if len(results) != 1 {
-		t.Fatalf("expected 1 result scoped to yesmem, got %d", len(results))
+		t.Fatalf("expected 1 result scoped to nemons, got %d", len(results))
 	}
-	if results[0].Project != "yesmem" {
-		t.Errorf("expected project 'yesmem', got %q", results[0].Project)
+	if results[0].Project != "nemons" {
+		t.Errorf("expected project 'nemons', got %q", results[0].Project)
 	}
 }
 
@@ -148,7 +148,7 @@ func TestFindLearningsByEntityMatch_MultipleEntities(t *testing.T) {
 	l1 := &models.Learning{
 		Content:   "proxy needs careful error handling",
 		Category:  "gotcha",
-		Project:   "yesmem",
+		Project:   "nemons",
 		CreatedAt: time.Now(),
 		Source:    "test",
 		ModelUsed: "test",
@@ -162,7 +162,7 @@ func TestFindLearningsByEntityMatch_MultipleEntities(t *testing.T) {
 	l2 := &models.Learning{
 		Content:   "handler routes must validate input",
 		Category:  "pattern",
-		Project:   "yesmem",
+		Project:   "nemons",
 		CreatedAt: time.Now(),
 		Source:    "test",
 		ModelUsed: "test",
@@ -173,7 +173,7 @@ func TestFindLearningsByEntityMatch_MultipleEntities(t *testing.T) {
 		t.Fatalf("insert learning 2: %v", err)
 	}
 
-	results, err := s.FindLearningsByEntityMatch([]string{"proxy.go", "handler.go"}, "yesmem")
+	results, err := s.FindLearningsByEntityMatch([]string{"proxy.go", "handler.go"}, "nemons")
 	if err != nil {
 		t.Fatalf("FindLearningsByEntityMatch: %v", err)
 	}
@@ -200,7 +200,7 @@ func TestFindLearningsByEntityMatch_MultipleEntities(t *testing.T) {
 func TestFindLearningsByEntityMatch_EmptyInput(t *testing.T) {
 	s := mustOpen(t)
 
-	results, err := s.FindLearningsByEntityMatch([]string{}, "yesmem")
+	results, err := s.FindLearningsByEntityMatch([]string{}, "nemons")
 	if err != nil {
 		t.Fatalf("expected nil error for empty input, got %v", err)
 	}

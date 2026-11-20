@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // ── YM-319 (Los 77): Cap-Katalog, REPL-Hinweis, Profilwahl ──────────────────
@@ -151,7 +151,7 @@ func TestLos56fOpenAIParityInjectsExecuteCapCatalog(t *testing.T) {
 	if !strings.Contains(sent, "execute_cap") {
 		t.Error("the parity path must name execute_cap for the opencode catalog")
 	}
-	if strings.Contains(sent, "mcp__yesmem__activate_cap") {
+	if strings.Contains(sent, "mcp__nemons__activate_cap") {
 		t.Error("the parity path must not carry the Claude REPL bootstrap")
 	}
 	if !strings.Contains(sent, "reddit_fetch") {

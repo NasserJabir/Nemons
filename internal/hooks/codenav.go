@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/codescan"
+	"github.com/NasserJabir/Nemons/internal/codescan"
 )
 
 var navTools = map[string]bool{
@@ -360,11 +360,11 @@ func ParseREPLNavCommands(code string) []string {
 	return cmds
 }
 
-// SuggestYesmemTool returns a concrete yesmem MCP tool call to use
+// SuggestNemonsTool returns a concrete nemons MCP tool call to use
 // instead of the given shell navigation tool on the given file. The values are
 // sanitized: the advice is a quoted pseudo-call, and a repository can hold a file
 // whose name closes that quote.
-func SuggestYesmemTool(navTool, filePath, project string) string {
+func SuggestNemonsTool(navTool, filePath, project string) string {
 	filePath = messageSafe(filePath)
 	project = messageSafe(project)
 	switch navTool {
@@ -468,10 +468,10 @@ func CheckCodeNav(cmd, cwd, project, sessionID string, isIndexed func(string, st
 	}
 	safeFile := messageSafe(target.File)
 	safeProject := messageSafe(project)
-	reason = fmt.Sprintf("BLOCKED: Use yesmem MCP tools instead of shell navigation for indexed file %s\n"+
+	reason = fmt.Sprintf("BLOCKED: Use nemons MCP tools instead of shell navigation for indexed file %s\n"+
 		"  → %s\n"+
 		"  Call sites of a function: search_code(\"<symbol>(\", \"%s\") returns them with file and line.",
-		safeFile, SuggestYesmemTool(target.Tool, target.File, project), safeProject)
+		safeFile, SuggestNemonsTool(target.Tool, target.File, project), safeProject)
 	if sessionID != "" {
 		reason += fmt.Sprintf("\n  If you need this shell command anyway: dismiss_code_nav(session_id=\"%s\") lifts the block for this session.",
 			messageSafe(sessionID))
@@ -488,9 +488,9 @@ func NavHint(cmd, cwd, project string, isIndexed func(string, string) bool) (hin
 	if !hit {
 		return "", false
 	}
-	return fmt.Sprintf("HINT: yesmem has code-navigation tools for indexed file %s (code_nav_mode: nudge)\n"+
+	return fmt.Sprintf("HINT: nemons has code-navigation tools for indexed file %s (code_nav_mode: nudge)\n"+
 		"  → %s",
-		messageSafe(target.File), SuggestYesmemTool(target.Tool, target.File, project)), true
+		messageSafe(target.File), SuggestNemonsTool(target.Tool, target.File, project)), true
 }
 
 // firstIndexedTarget returns the first navigation target of cmd that the index

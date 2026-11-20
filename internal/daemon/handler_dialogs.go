@@ -14,8 +14,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/channeltext"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/channeltext"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // resolveSessionID extracts session ID from params, falls back to pidMap lookup, then activeSessionID.
@@ -179,7 +179,7 @@ func (h *Handler) resolveActiveSessionFallback(params map[string]any) string {
 // callerPIDIsAgent reports whether the caller PID can stand for the caller,
 // i.e. whether it belongs to a running agent the daemon spawned.
 //
-// In the v1 layout the `yesmem mcp` child of an agent's TUI carries that TUI's
+// In the v1 layout the `nemons mcp` child of an agent's TUI carries that TUI's
 // PID as its parent, so _caller_pid identifies the caller. Under opencode v2 the
 // child belongs to the shared `opencode serve --service` process instead, and
 // the plugin registers that one PID once per session — every registration
@@ -212,7 +212,7 @@ func (h *Handler) callerPIDIsAgent(params map[string]any) bool {
 // read from its own environment must not be trusted for this call.
 //
 // opencode v2 hosts every session in one `opencode serve --service` process, so
-// the `yesmem mcp` children inherit that process's environment and report the
+// the `nemons mcp` children inherit that process's environment and report the
 // id of whichever session was created last — never the caller's. The MCP layer
 // marks such an id with _session_id_source="env" (see internal/mcp).
 //
@@ -236,7 +236,7 @@ func (h *Handler) envDerivedSessionUntrusted(params map[string]any) bool {
 // agentByCallerCWD resolves the calling opencode v2 agent from the working
 // directory the MCP layer reports in _cwd.
 // It exists because the PID path cannot work for opencode v2: the TUI no longer
-// spawns the `yesmem mcp` child, the shared `opencode serve --service` process
+// spawns the `nemons mcp` child, the shared `opencode serve --service` process
 // does. So the child's PPID — and with it _caller_pid — is the same service PID
 // for every session that service hosts, while agents.pid holds the TUI PID
 // (verified 2026-10-15 via ps --ppid and /proc/<mcp-pid>/environ). The child's
@@ -553,7 +553,7 @@ func (h *Handler) channelInboxSession(params map[string]any) (string, error) {
 // an agent's own process among them, is refused.
 func peerIsProxy(pid int) bool {
 	argv := strings.Split(procCmdline(pid), "\x00")
-	if len(argv) < 2 || !strings.Contains(argv[0], "yesmem") {
+	if len(argv) < 2 || !strings.Contains(argv[0], "nemons") {
 		return false
 	}
 	return containsString(argv[1:], "proxy")
@@ -879,7 +879,7 @@ func (h *Handler) handleRegisterWindow(params map[string]any) Response {
 // the working directory for an opencode v2 session hosted by the shared service
 // (agentByVerifiedCallerCWD — the peer must really run there), and finally the MCP
 // client's own report — accepted because the peer is an MCP-shaped process (argv[1]
-// is "mcp" and /proc/<pid>/exe carries yesmem), which proves the form, not the
+// is "mcp" and /proc/<pid>/exe carries nemons), which proves the form, not the
 // identity: a same-UID process can copy the binary under that name. A
 // session id that arrives from any other peer is not evidence: any client of the
 // same-UID socket can put any value under any key, an empty key included. With no
@@ -897,7 +897,7 @@ func (h *Handler) broadcastSender(params map[string]any) (string, error) {
 		return agent.SessionID, nil
 	}
 	// The MCP client reports the session it serves, and that report is the one
-	// self-declaration accepted — because the peer is the yesmem MCP process itself.
+	// self-declaration accepted — because the peer is the nemons MCP process itself.
 	// Be honest about what that proves: argv shows that an MCP server sits on this
 	// socket, not that the value belongs to its client. Same reading as peerIsProxy
 	// (argv is a routing label, not a credential); a same-UID process can still
@@ -923,14 +923,14 @@ func (h *Handler) broadcastSender(params map[string]any) (string, error) {
 	return "", errors.New("sender could not be established: the broadcast has no proven session, and only the job socket may name one")
 }
 
-// peerIsMCPClient reports whether a pid belongs to a yesmem MCP server process —
+// peerIsMCPClient reports whether a pid belongs to a nemons MCP server process —
 // the child the MCP tool calls go through. The executable is read from
 // /proc/<pid>/exe, not from argv: argv[0] is free text, so a process could call
-// itself "yesmem mcp" without being it (security review, YM-271). The "mcp" argument
+// itself "nemons mcp" without being it (security review, YM-271). The "mcp" argument
 // is still required, anchored on argv[1] like setup.isMCPHelperArgs.
 func peerIsMCPClient(pid int) bool {
 	exe, err := readProcExe(pid)
-	if err != nil || !strings.Contains(filepath.Base(exe), "yesmem") {
+	if err != nil || !strings.Contains(filepath.Base(exe), "nemons") {
 		return false
 	}
 	argv := strings.Split(procCmdline(pid), "\x00")
@@ -960,7 +960,7 @@ func (h *Handler) agentByVerifiedCallerCWD(params map[string]any) *storage.Agent
 }
 
 // readProcExe reads the executable a pid really runs. A var so a test can declare
-// its own process an MCP client without a yesmem binary on disk.
+// its own process an MCP client without a nemons binary on disk.
 var readProcExe = func(pid int) (string, error) {
 	return os.Readlink(fmt.Sprintf("%s/%d/exe", procRoot, pid))
 }

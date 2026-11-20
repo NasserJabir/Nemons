@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/codescan"
+	"github.com/NasserJabir/Nemons/internal/codescan"
 )
 
 func insertScanPruneSession(t *testing.T, s *Store, projectPath string) {

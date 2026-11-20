@@ -22,16 +22,16 @@ import (
 // then the store() polyfill, then the handler code. journalctl, nc and store are
 // stubs on PATH and in the script, so no journal, socket or database is read.
 
-const los38nProxyLogHealthy = `Okt 18 15:00:00 host yesmem-proxy[1]: [keepalive] ping tid=a1b2 cache_write=512
-Okt 18 15:00:05 host yesmem-proxy[1]: cache: 1234 in / 900 cached (73% hit)
-Okt 18 15:05:00 host yesmem-proxy[1]: fork extract_and_evaluate: 1200 in / 600 cached / 300 out
-Okt 18 15:05:00 host yesmem-proxy[1]: [fork] result: 3 learnings, 1 evaluations
+const los38nProxyLogHealthy = `Okt 18 15:00:00 host nemons-proxy[1]: [keepalive] ping tid=a1b2 cache_write=512
+Okt 18 15:00:05 host nemons-proxy[1]: cache: 1234 in / 900 cached (73% hit)
+Okt 18 15:05:00 host nemons-proxy[1]: fork extract_and_evaluate: 1200 in / 600 cached / 300 out
+Okt 18 15:05:00 host nemons-proxy[1]: [fork] result: 3 learnings, 1 evaluations
 `
 
-const los38nDaemonLogQuiet = `Okt 18 15:00:00 host yesmem[1]: scheduler: bash job "proxy-health-check" completed
+const los38nDaemonLogQuiet = `Okt 18 15:00:00 host nemons[1]: scheduler: bash job "proxy-health-check" completed
 `
 
-const los38nProxyLogCritical = `Okt 18 15:10:00 host yesmem-proxy[1]: upstream error: overload
+const los38nProxyLogCritical = `Okt 18 15:10:00 host nemons-proxy[1]: upstream error: overload
 `
 
 type los38nResult struct {
@@ -75,8 +75,8 @@ func los38nRunHandler(t *testing.T, proxyLog, daemonLog string, env map[string]s
 	}
 	writeStub(t, filepath.Join(bin, "journalctl"), `#!/bin/sh
 case "$*" in
-  *yesmem-proxy*) cat "$LOS38N_PROXY_LOG" ;;
-  *yesmem*) cat "$LOS38N_DAEMON_LOG" ;;
+  *nemons-proxy*) cat "$LOS38N_PROXY_LOG" ;;
+  *nemons*) cat "$LOS38N_DAEMON_LOG" ;;
 esac
 exit 0
 `)
@@ -113,8 +113,8 @@ exit 0
 		"PATH="+bin+":"+os.Getenv("PATH"),
 		// A temp HOME keeps the default socket path away from the real install.
 		"HOME="+dir,
-		"YESMEM_SOCK="+filepath.Join(dir, "job.sock"),
-		"YESMEM_PROJECT=",
+		"NEMONS_SOCK="+filepath.Join(dir, "job.sock"),
+		"NEMONS_PROJECT=",
 		"PROJECT=",
 		// The scheduled job passes no arguments, so HOURS falls back to one in
 		// the handler itself; setting it empty keeps an ambient value out.
@@ -206,7 +206,7 @@ func TestLos38nProxyHealthBashReachesStoreUnderSetE(t *testing.T) {
 			daemonLog: los38nDaemonLogQuiet,
 			env: map[string]string{
 				"ALERT":           "true",
-				"YESMEM_PROJECT":  "/tmp/los38n-project",
+				"NEMONS_PROJECT":  "/tmp/los38n-project",
 				"LOS38N_NC_REPLY": `{"result":{"status":"broadcast_sent"}}`,
 			},
 			wantState:     "critical",

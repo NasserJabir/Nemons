@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // CheckCommit re-derives a [COMMIT: <hash>] claim.

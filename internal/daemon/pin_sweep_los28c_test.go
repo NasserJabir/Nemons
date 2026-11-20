@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // YM-280 (COG-C24): only the Claude Code SessionEnd hook calls ClearSessionPins,
@@ -14,7 +14,7 @@ import (
 // age instead. A negative maxAge puts the cutoff in the future, so a pin written
 // just now counts as expired — the immediate sweep is what this test proves.
 func TestStartSessionPinSweepPurgesExpiredPins(t *testing.T) {
-	s, err := storage.Open(filepath.Join(t.TempDir(), "yesmem.db"))
+	s, err := storage.Open(filepath.Join(t.TempDir(), "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}

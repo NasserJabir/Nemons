@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/codescan"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/codescan"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // YM-431 finding 1: RunCheck returned at its no-gotcha gate before the code-nav
@@ -38,7 +38,7 @@ func TestLos59eCodeNavBlocksInProjectWithoutActiveGotchas(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(dir, ".git"), 0o755); err != nil {
 		t.Fatalf("create git dir: %v", err)
 	}
-	store, err := storage.Open(filepath.Join(dir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -52,7 +52,7 @@ func TestLos59eCodeNavBlocksInProjectWithoutActiveGotchas(t *testing.T) {
 	store.Close()
 
 	// Harness precondition: this project really carries no gotcha.
-	check, err := storage.Open(filepath.Join(dir, "yesmem.db"))
+	check, err := storage.Open(filepath.Join(dir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("reopen store: %v", err)
 	}

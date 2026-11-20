@@ -12,14 +12,14 @@ import (
 // YM-428 (OPS-104): ai-jail binds the run's cwd read-write AFTER the caller's
 // mounts. A work dir that is the home or an ancestor of it therefore shadows every
 // read-only map inside it, and those maps are the whole reason a cap run gets them:
-// the yesmem CLI the store()/llm() polyfills call and the restricted job socket.
+// the nemons CLI the store()/llm() polyfills call and the restricted job socket.
 // Los 58h closed the same shadowing for ~/.claude.json and mapped instead of
 // masking; the CLI and the socket cannot be masked (the run needs them), so the
 // run is refused instead.
 func TestLos59cCoveringWorkDirIsRefused(t *testing.T) {
 	home := isolateHome(t)
 	ancestor := filepath.Dir(home)
-	inside := filepath.Join(home, "yesmem-run", "workdir", "cap:probe")
+	inside := filepath.Join(home, "nemons-run", "workdir", "cap:probe")
 	if err := os.MkdirAll(inside, 0o700); err != nil {
 		t.Fatalf("create %s: %v", inside, err)
 	}
@@ -93,7 +93,7 @@ func TestLos59cCoveringWorkDirIsRefused(t *testing.T) {
 // the shape every job has. Refusing those would take the sandbox off every run.
 func TestLos59cNonCoveringWorkDirStillRuns(t *testing.T) {
 	home := isolateHome(t)
-	inside := filepath.Join(home, "yesmem-run", "workdir", "cap:probe")
+	inside := filepath.Join(home, "nemons-run", "workdir", "cap:probe")
 	if err := os.MkdirAll(inside, 0o700); err != nil {
 		t.Fatalf("create %s: %v", inside, err)
 	}

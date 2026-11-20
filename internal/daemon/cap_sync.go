@@ -10,9 +10,9 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/carsteneu/yesmem/internal/capfile"
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/textutil"
+	"github.com/NasserJabir/Nemons/internal/capfile"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/textutil"
 )
 
 // CapFileToParams flattens a parsed CAP.md into the param map expected by
@@ -276,7 +276,7 @@ func SyncCapsFromDisk(h *Handler, userDir, projectDir string) {
 	// the file's values, which would make every comparison below vacuous.
 	stored := storedScriptSandboxes(h)
 	for _, cf := range caps {
-		// A cap yesmem no longer ships is not imported: its CAP.md survives on
+		// A cap nemons no longer ships is not imported: its CAP.md survives on
 		// existing installations, and importing it would put the retired cap back
 		// into the catalog at every daemon start (YM-181, YM-197).
 		if capfile.IsRetiredCap(cf.Name) {

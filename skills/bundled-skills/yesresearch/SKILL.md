@@ -19,13 +19,13 @@ Orchestrator (this session, light)
   │
   ├─ READ master-plan (##  headings = clusters)
   ├─ DECOMPOSE into 5-8 file groups
-  ├─ DISPATCH yesmem_spawn_agent × ≤6 (opencode TUI agents)
+  ├─ DISPATCH nemons_spawn_agent × ≤6 (opencode TUI agents)
   ├─ MONITOR list_agents + scratchpad polling
   ├─ INTEGRATE cross-links + INDEX.md + citation audit
-  ├─ DAEMON-VERIFY yesmem verify-claims, verdict accepted
+  ├─ DAEMON-VERIFY nemons verify-claims, verdict accepted
   └─ DELIVER commit + DONE
             │
-            ▼ yesmem_spawn_agent (TUI; 12h and 6 concurrent are orchestrator conventions, not daemon limits)
+            ▼ nemons_spawn_agent (TUI; 12h and 6 concurrent are orchestrator conventions, not daemon limits)
             │
    Bereichs-Agent (full TUI, autonomous)
      ├─ CONTEXT read master plan + cluster files
@@ -35,7 +35,7 @@ Orchestrator (this session, light)
      │         bash+curl+pdftotext for PDFs
      ├─ VERIFY min 2 sources/file, every claim cited
      ├─ COMMIT write files to worktree
-     ├─ DAEMON-VERIFY yesmem verify-claims, verdict accepted
+     ├─ DAEMON-VERIFY nemons verify-claims, verdict accepted
      └─ DELIVER scratchpad DONE + send_to orchestrator
 ```
 
@@ -50,8 +50,8 @@ Setup steps (user's interactive session):
 2. Write master plan to `<worktree>/yesdocs/<topic>/PLAN.md` (or pass existing path)
 3. **Detect model & backend:** Read `~/.config/opencode/opencode.json` → extract `model` key (e.g. `deepseek/deepseek-reasoner`). If absent, detect from opencode's default (first entry in models.json). Backend defaults to `"opencode"` — override via scratchpad briefing `backend: claude|codex|opencode` or master plan frontmatter. Both model and backend are passed to ALL spawns (Orchestrator + Bereichs-Agents).
 4. Write Orchestrator briefing to scratchpad section `yesresearch-<topic-slug>-orchestrator`: worktree path, master plan path, output target, hard constraints, **resolved model**, **mode (fresh-create or update)**. The briefing MUST start with the skill-read mandate: `YOU ARE A YESRESEARCH-ORCHESTRATOR. MANDATORY - YOU MUST READ THE YESRESEARCH SKILL AND YOU MUST FOLLOW THE INSTRUCTIONS IN THIS SKILL.` The spawned Orchestrator has NOT auto-loaded this skill — the mandate prefix is mandatory.
-5. Spawn Orchestrator: `yesmem_spawn_agent(project="<project>", section="yesresearch-<topic-slug>-orchestrator", backend="<resolved-backend>", work_dir="<worktree-path>", model="<resolved-model>")`
-6. Wait 15s, then relay kick: `yesmem_relay_agent(to="<orchestrator-id>", content="Read scratchpad section yesresearch-<topic-slug>-orchestrator AND load the yesresearch skill (skill tool or ~/.claude/skills/yesresearch/SKILL.md). MANDATORY - YOU MUST READ THE YESRESEARCH SKILL AND YOU MUST FOLLOW THE INSTRUCTIONS IN THIS SKILL. Begin Orchestrator Phase 1 READ.")` — backup if PTY is slow
+5. Spawn Orchestrator: `nemons_spawn_agent(project="<project>", section="yesresearch-<topic-slug>-orchestrator", backend="<resolved-backend>", work_dir="<worktree-path>", model="<resolved-model>")`
+6. Wait 15s, then relay kick: `nemons_relay_agent(to="<orchestrator-id>", content="Read scratchpad section yesresearch-<topic-slug>-orchestrator AND load the yesresearch skill (skill tool or ~/.claude/skills/yesresearch/SKILL.md). MANDATORY - YOU MUST READ THE YESRESEARCH SKILL AND YOU MUST FOLLOW THE INSTRUCTIONS IN THIS SKILL. Begin Orchestrator Phase 1 READ.")` — backup if PTY is slow
 7. User's session polls `list_agents` + `scratchpad_read` until Orchestrator reports DONE.
 
 **Only run inline if:** the user EXPLICITLY says `--inline`. There is NO trivial-task exception — "< 5 min" is not a license to skip the worktree and orchestrator pipeline.
@@ -120,13 +120,13 @@ Master plan frontmatter is the single source of truth for per-topic configuratio
 
 ## max_runtime
 
-The daemon's `max_runtime` is a **global config value**, not a spawn parameter: `yesmem_spawn_agent` does not accept it, and a call that passes it is silently ignored. It bounds every agent equally (`config.yaml`, or `set_config("agents.max_runtime", "2h")`; a new value takes effect on the next daemon start, there is no hot reload). Empty means the daemon default of 48h. For a per-agent ceiling at spawn time use `token_budget` or `max_turns`. To end one research agent early, relay it to wrap up and stop it.
+The daemon's `max_runtime` is a **global config value**, not a spawn parameter: `nemons_spawn_agent` does not accept it, and a call that passes it is silently ignored. It bounds every agent equally (`config.yaml`, or `set_config("agents.max_runtime", "2h")`; a new value takes effect on the next daemon start, there is no hot reload). Empty means the daemon default of 48h. For a per-agent ceiling at spawn time use `token_budget` or `max_turns`. To end one research agent early, relay it to wrap up and stop it.
 
 The `2h` per Bereichs-Agent below is an **orchestrator convention**, not an enforced limit: it defines when the orchestrator expects a cluster to be done and how long it waits before intervening. An agent that needs longer gets a relay to continue. The absolute ceiling this skill asks the orchestrator to enforce is `12h` per agent (dispatch a fresh batch beyond that), independent of the daemon's global limit.
 
 ## Orchestrator Contract (what to prescribe vs. delegate)
 
-**The Orchestrator is itself a spawned agent** — invoked via `/yesresearch <topic>`, it spawns itself as a TUI agent via yesmem_spawn_agent and that agent runs the 6-phase pipeline below. The user's interactive session only creates the worktree + scratchpad + spawns the Orchestrator agent. From there the Orchestrator owns all downstream work.
+**The Orchestrator is itself a spawned agent** — invoked via `/yesresearch <topic>`, it spawns itself as a TUI agent via nemons_spawn_agent and that agent runs the 6-phase pipeline below. The user's interactive session only creates the worktree + scratchpad + spawns the Orchestrator agent. From there the Orchestrator owns all downstream work.
 
 **Prescribe (orchestrator's job):**
 - **Skill-Read-Mandate** — The Orchestrator briefing AND every Bereichs-Agent section MUST start with the skill-read mandate: `YOU ARE A YESRESEARCH-... MANDATORY - YOU MUST READ THE YESRESEARCH SKILL AND YOU MUST FOLLOW THE INSTRUCTIONS IN THIS SKILL.` Spawned agents have NOT auto-loaded this skill; without the mandate they work without pipeline context. Path fallbacks: platform skill tool, `~/.claude/skills/yesresearch/SKILL.md`, or `<repo-root>/skills/bundled-skills/yesresearch/SKILL.md`.
@@ -145,7 +145,7 @@ The `2h` per Bereichs-Agent below is an **orchestrator convention**, not an enfo
 
 ## Temp file discipline
 
-NEVER write to `/tmp/` or `~/.claude/yesmem/tmp/` in autonomous operations. Use `<worktree>/.yesmem/tmp/` instead. `mkdir -p .yesmem/tmp` at session start.
+NEVER write to `/tmp/` or `~/.claude/nemons/tmp/` in autonomous operations. Use `<worktree>/.nemons/tmp/` instead. `mkdir -p .nemons/tmp` at session start.
 
 ## Concurrency: File Locking & Git Mutex
 
@@ -155,7 +155,7 @@ Multiple Bereichs-Agents share one worktree. Without coordination, two failure c
 
 **MANDATORY before any Edit on existing file:**
 ```bash
-LOCKDIR=".yesmem/locks"
+LOCKDIR=".nemons/locks"
 mkdir -p "$LOCKDIR"
 LOCKFILE="$LOCKDIR/<file-slug>.lock"
 
@@ -185,7 +185,7 @@ rm -f "$LOCKFILE"
 
 This guarantees: **1 file → 1 writer at a time**, even if multiple Bereichs-Agents target the same file (e.g. UPDATE MODE: Agent A does `add_visuals`, Agent B does `refresh_sources` on same file). Second writer waits, then sees A's changes, then builds on them.
 
-**Lock dir cleanup:** Orchestrator in DELIVER removes stale locks (>2h old) from `.yesmem/locks/`.
+**Lock dir cleanup:** Orchestrator in DELIVER removes stale locks (>2h old) from `.nemons/locks/`.
 
 ### Git index mutex (commit serialization)
 
@@ -193,7 +193,7 @@ Git's `index.lock` lives at `.git/worktrees/<name>/index.lock` — shared across
 
 **Commit mutex (MANDATORY for all Bereichs-Agents):**
 ```bash
-GIT_LOCK=".yesmem/locks/git-commit.lock"
+GIT_LOCK=".nemons/locks/git-commit.lock"
 
 acquire_git_lock() {
   for i in $(seq 1 120); do
@@ -244,13 +244,13 @@ Write the merged frontmatter back via Read+Edit. One pass over all files in INTE
 
 ## Temp file discipline (original)
 
-NEVER write to `/tmp/` or `~/.claude/yesmem/tmp/` in autonomous operations. Use `<worktree>/.yesmem/tmp/` instead. `mkdir -p .yesmem/tmp` at session start.
+NEVER write to `/tmp/` or `~/.claude/nemons/tmp/` in autonomous operations. Use `<worktree>/.nemons/tmp/` instead. `mkdir -p .nemons/tmp` at session start.
 
 ## Execution Modes
 
-**tui-agent** (DEFAULT) — Bereichs-Agents spawned via yesmem_spawn_agent → gnome-terminal, visible, non-blocking.
+**tui-agent** (DEFAULT) — Bereichs-Agents spawned via nemons_spawn_agent → gnome-terminal, visible, non-blocking.
 **inline** — User explicitly requested inline. Run in current context.
-**scheduled** — User asked for recurring research. Use yesmem_schedule.
+**scheduled** — User asked for recurring research. Use nemons_schedule.
 
 ## Definition of DONE
 
@@ -326,7 +326,7 @@ Regeln:
   einer grünen Suite, die es nicht gibt.
 
 Der Daemon prüft den Bericht nicht mehr selbst. Er liest ein Urteil, das vor der
-DONE-Meldung entstand: `yesmem verify-claims` mit `--profile yesloop-done --policy
+DONE-Meldung entstand: `nemons verify-claims` mit `--profile yesloop-done --policy
 yesloop-done --strict` (Section, Report-Session und Plan-Thread wie in der yesloop-Skill).
 Exit 0 heißt `accepted`, dann setzt du das DONE ab; Exit 1 heißt `blocked`, dann
 korrigierst du und prüfst erneut. Ein DONE ohne frisches Urteil blockt der Daemon als
@@ -360,7 +360,7 @@ Bereichs-Agent DONE-claims fail the gate when ANY of these deterministic checks 
 | W4 | INDEX.md Mermaid ≥3 edges | grep `-` or `=` connections in Mermaid block, count ≥3 | Dispatch fix |
 | W5 | BIBLIOGRAPHY.md exists | `ls 99-sources/bibliography.md` exit 0 | Generate from scratch |
 | W6 | Bibliography in UPDATE MODE preserves existing entries | git diff old vs new bibliography — old entries must all be present | Re-do read-merge-write |
-| W7 | No broken git index.lock files in worktree | `ls .yesmem/locks/*.lock` empty after DELIVER | Manual cleanup |
+| W7 | No broken git index.lock files in worktree | `ls .nemons/locks/*.lock` empty after DELIVER | Manual cleanup |
 | W8 | Frontmatter Union applied (UPDATE MODE) | spot-check: tags from prior version preserved in ≥80% of files | Re-do INTEGRATE frontmatter-merge |
 | W9 | No concurrent Bereichs-Agents exceeded cap | `list_agents(project)` and count the rows with `status == "running"` client-side (the tool takes only `project`); historical max ≤ cap | Log warning |
 | W10 | All Bereichs-Agent scratchpad DONE blocks complete | Each has `### Phase 1` through `### Phase 7` + all `**Status:** COMPLETE` | Re-dispatch incomplete Bereichs-Agents |
@@ -371,7 +371,7 @@ Bereichs-Agent DONE-claims fail the gate when ANY of these deterministic checks 
 |---|---|---|---|
 | O1 | Orchestrator plan persisted | `get_plan()` returns non-empty with mode flag | Restore from scratchpad |
 | O2 | All clusters either DONE or explicitly aborted | plan state shows terminal status per cluster | Dispatch missing |
-| O3 | No orphan locks >2h old | `find .yesmem/locks -mmin +120` empty | Cleanup |
+| O3 | No orphan locks >2h old | `find .nemons/locks -mmin +120` empty | Cleanup |
 | O4 | send_to caller_session sent | scratchpad has `send_to orchestrator:` line | Send |
 
 ### Rejection Protocol
@@ -508,10 +508,10 @@ update_agent_status(phase="Phase 3/7 DISPATCH")
   - Batch 2: clusters cap+1..2*cap → spawn after Batch 1 complete
   - Continue until all clusters processed
   - Rationale: avoid >cap concurrent agents, but allow large topic decompositions
-- Per batch: `yesmem_spawn_agent` × N. Backend: `<resolved-backend>` (from scratchpad briefing). work_dir: shared worktree.
+- Per batch: `nemons_spawn_agent` × N. Backend: `<resolved-backend>` (from scratchpad briefing). work_dir: shared worktree.
 - **Model:** use resolved model from Phase 2 (scratchpad briefing carries it).
 - Wait 15s after each spawn for TUI load.
-- **Relay kick** within 30s: `yesmem_relay_agent(to="<agent-id>", content="Read scratchpad section <section> AND load the yesresearch skill (skill tool or ~/.claude/skills/yesresearch/SKILL.md). MANDATORY - YOU MUST READ THE YESRESEARCH SKILL AND YOU MUST FOLLOW THE INSTRUCTIONS IN THIS SKILL. Your agent id: <agent-id>. At Phase 1 start, rename your session to '[<agent-id>] <session title from briefing>'. Mode: FRESH|UPDATE. Begin Phase 1 CONTEXT.")` — backup if PTY is slow
+- **Relay kick** within 30s: `nemons_relay_agent(to="<agent-id>", content="Read scratchpad section <section> AND load the yesresearch skill (skill tool or ~/.claude/skills/yesresearch/SKILL.md). MANDATORY - YOU MUST READ THE YESRESEARCH SKILL AND YOU MUST FOLLOW THE INSTRUCTIONS IN THIS SKILL. Your agent id: <agent-id>. At Phase 1 start, rename your session to '[<agent-id>] <session title from briefing>'. Mode: FRESH|UPDATE. Begin Phase 1 CONTEXT.")` — backup if PTY is slow
 - Log agent IDs in orchestrator scratchpad.
 
 ### Phase 4/7: MONITOR
@@ -597,7 +597,7 @@ leaves the worktree before its report has a verdict.
 - Write the report section `yesresearch-<topic-slug>-orchestrator-verify` in the shape the
   yesloop skill prescribes (commit, branch, tests run, files in scope, evidence, plan).
 - Run the pre-check on it:
-  `yesmem verify-claims --repo <worktree> --project <project> --section <orchestrator-section>-verify --profile yesloop-done --policy yesloop-done --strict`
+  `nemons verify-claims --repo <worktree> --project <project> --section <orchestrator-section>-verify --profile yesloop-done --policy yesloop-done --strict`
 - Exit 0 means `accepted`: record `**Vorab-Prüfung:** ... accepted` in this block and go to
   Phase 7. Exit 1 means `blocked`. The class decides: `refuted` and `defect` send you back
   into INTEGRATE or a cluster, `environment`, `limit` and `error` belong to the
@@ -766,13 +766,13 @@ update_agent_status(phase="Phase 6/7 DAEMON-VERIFY")
 
 ### Phase 6: DAEMON-VERIFY
 **Status:** COMPLETE
-**Vorab-Prüfung:** yesmem verify-claims -> exit 0 (accepted)
+**Vorab-Prüfung:** nemons verify-claims -> exit 0 (accepted)
 **Findings:** none | <what the run said and what you did about it>
 ```
 
 - Write the report section `<your-section>-verify` first (commit, branch, files in scope,
   citations) and run:
-  `yesmem verify-claims --repo <worktree> --project <project> --section <your-section>-verify --profile yesloop-done --policy yesloop-done --strict`
+  `nemons verify-claims --repo <worktree> --project <project> --section <your-section>-verify --profile yesloop-done --policy yesloop-done --strict`
 - Exit 0 means `accepted` and opens Phase 7. Exit 1 means `blocked`; `refuted` or `defect`
   send you back into VERIFY or EXECUTE, `environment`, `limit` and `error` go to the
   orchestrator. A DONE without a fresh accepted verdict is withheld by the daemon, and the
@@ -872,9 +872,9 @@ Rule of thumb: **if the source has a visual element (chart, diagram, screenshot,
 **PDFs → image:**
 ```bash
 # Download PDF
-curl -sL "<url>" -o .yesmem/tmp/source.pdf
+curl -sL "<url>" -o .nemons/tmp/source.pdf
 # Extract specific page as PNG (requires poppler-utils)
-pdftoppm -png -f <page> -l <page> -r 150 .yesmem/tmp/source.pdf assets/<file>-<source>-p<page>
+pdftoppm -png -f <page> -l <page> -r 150 .nemons/tmp/source.pdf assets/<file>-<source>-p<page>
 ```
 
 **Website → screenshot (Fallback-Kaskade):**
@@ -944,7 +944,7 @@ Captions are mandatory under each image: source attribution + brief context. The
 
 If a source URL is likely to disappear (paywalled blog, fast-moving vendor page), also capture via Wayback Machine:
 ```bash
-curl -sL "https://web.archive.org/web/2/<url>" -o .yesmem/tmp/wayback.html
+curl -sL "https://web.archive.org/web/2/<url>" -o .nemons/tmp/wayback.html
 # Extract image URLs from wayback HTML, download to assets/
 ```
 
@@ -997,7 +997,7 @@ graph LR
   end
   subgraph "MCP-Server"
     G[Agent] -->|MCP tool calls| H[(Memory MCP Server)]
-    H --> I[claude-mem, YesMem]
+    H --> I[claude-mem, Nemons]
   end
 ```
 ````
@@ -1106,7 +1106,7 @@ Frontmatter is the single source of truth for status, navigation, and searchabil
 | Situation | Action |
 |---|---|
 | Bereichs-Agent crashed (PID dead) | Orchestrator respawns with identical task, scratchpad section preserved. Max 3 respawns. |
-| Socket collision on spawn | `rm -f ~/.claude/yesmem/agent-<id>.sock` before respawn  |
+| Socket collision on spawn | `rm -f ~/.claude/nemons/agent-<id>.sock` before respawn  |
 | Stalled agent (`stream_active==false` from `get_agent` AND no activity >20min AND `subagent_streams==0`) | `relay_agent` kick: "Status check — current phase? Blockers?" Wait 10 min. If still flat, respawn. |
 | `stopped: max_runtime exceeded` but PID alive | Rare false positive: the limit only stops a row whose PID holds no verified process. Relay to continue; `max_runtime` is a global config, so raising it affects every agent. |
 | webfetch 403 / timeout | Subagent documents, tries Wayback/Google cache. If all fail: file marked `partial`, proceed. |
@@ -1166,9 +1166,9 @@ Apply to consequential claims only: file counts, citation completeness, commit s
 
 ## Orchestrator Crash Recovery
 
-If the Orchestrator agent itself crashes (daemon restart, OOM, manual kill), the run is recoverable because state lives in yesmem, not in volatile context.
+If the Orchestrator agent itself crashes (daemon restart, OOM, manual kill), the run is recoverable because state lives in nemons, not in volatile context.
 
-**On Orchestrator respawn (via `yesmem_resume_agent`):**
+**On Orchestrator respawn (via `nemons_resume_agent`):**
 1. `get_plan()` — restore phase + cluster list + mode flag
 2. `scratchpad_read(project, "yesresearch-<topic-slug>-orchestrator")` — restore detailed state
 3. `list_agents(project)` and keep the rows with `status == "running"`; the tool takes only `project` — check which Bereichs-Agents are still alive
@@ -1265,7 +1265,7 @@ Orchestrator updates this after every phase transition + every batch completion.
 
 ### Phase 6: DAEMON-VERIFY
 **Status:** COMPLETE
-**Vorab-Prüfung:** yesmem verify-claims -> exit 0 (accepted)
+**Vorab-Prüfung:** nemons verify-claims -> exit 0 (accepted)
 **Findings:** none
 
 ### Phase 7: DELIVER

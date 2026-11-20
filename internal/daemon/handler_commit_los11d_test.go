@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // YM-260 (Los 11d): the v2 plugin sends the raw commit message. Before this
@@ -18,8 +18,8 @@ import (
 func insertDaemonTask(t *testing.T, s *storage.Store, content string) int64 {
 	t.Helper()
 	id, err := s.InsertLearning(&models.Learning{
-		Category: "unfinished", Content: content, Project: "/home/tester/memory/yesmem",
-		CanonicalProject: "yesmem", Confidence: 1.0, CreatedAt: time.Now(), ModelUsed: "test",
+		Category: "unfinished", Content: content, Project: "/home/tester/memory/nemons",
+		CanonicalProject: "nemons", Confidence: 1.0, CreatedAt: time.Now(), ModelUsed: "test",
 	})
 	if err != nil {
 		t.Fatalf("insert task: %v", err)
@@ -47,7 +47,7 @@ func TestHandleResolveByCommit_Los11d_LiveCaseStaysOpen(t *testing.T) {
 	h, s := mustHandler(t)
 	wrongID := insertDaemonTask(t, s, "Scheduled job proxy-health-check (sched-proxy-health-check-54806) was triggered on 2026-05-11 but the session ends after cap activation")
 
-	out := resolveByCommitResult(t, h, "Los 11: Proxy Rules-Cache und Injektionszähler", "yesmem")
+	out := resolveByCommitResult(t, h, "Los 11: Proxy Rules-Cache und Injektionszähler", "nemons")
 	if out["resolved"] != false {
 		t.Fatalf("live case must not resolve, got %+v", out)
 	}
@@ -70,7 +70,7 @@ func TestHandleResolveByCommit_Los11d_ResolvesTheNamedTask(t *testing.T) {
 	insertDaemonTask(t, s, "Scheduled job proxy-health-check (sched-proxy-health-check-54806) was triggered on 2026-05-11 but the session ends after cap activation")
 	targetID := insertDaemonTask(t, s, "Los 11: Proxy Rules-Cache und Injektionszähler reparieren (YM-260)")
 
-	out := resolveByCommitResult(t, h, "fix(hooks): graded resolver (YM-260)", "yesmem")
+	out := resolveByCommitResult(t, h, "fix(hooks): graded resolver (YM-260)", "nemons")
 	if out["resolved"] != true {
 		t.Fatalf("expected a resolution, got %+v", out)
 	}
@@ -84,7 +84,7 @@ func TestHandleResolveByCommit_Los11d_AnchorsOnTheLearningID(t *testing.T) {
 	targetID := insertDaemonTask(t, s, "Rebuild the proxy cache ruleset")
 	insertDaemonTask(t, s, "document the release notes")
 
-	out := resolveByCommitResult(t, h, "chore: rebuild cache ruleset (#"+strconv.FormatInt(targetID, 10)+")", "yesmem")
+	out := resolveByCommitResult(t, h, "chore: rebuild cache ruleset (#"+strconv.FormatInt(targetID, 10)+")", "nemons")
 	if out["resolved"] != true {
 		t.Fatalf("expected the named learning to resolve, got %+v", out)
 	}

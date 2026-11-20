@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // los44aMessagesInstall builds an installation whose messages.db holds one text
@@ -18,11 +18,11 @@ func los44aMessagesInstall(t *testing.T) string {
 	t.Helper()
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	if err := os.MkdirAll(dataDir, 0o700); err != nil {
 		t.Fatalf("mkdir data dir: %v", err)
 	}
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("create schema: %v", err)
 	}

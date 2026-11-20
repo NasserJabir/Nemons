@@ -215,7 +215,7 @@ func TestForkEndToEnd_MockedAPI(t *testing.T) {
 		CacheReadTokens:   50000,
 		LastExtractedIdx:  0,
 		InjectedIDs:       map[int64]string{42: "briefing"},
-		Project:           "yesmem",
+		Project:           "nemons",
 	}
 
 	// Gate should pass (CacheReadTokens > 0)

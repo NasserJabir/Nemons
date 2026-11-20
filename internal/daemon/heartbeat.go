@@ -16,8 +16,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/orchestrator"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/orchestrator"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // startAgentHeartbeat runs a goroutine that polls for unread channel messages
@@ -1118,7 +1118,7 @@ func (h *Handler) attemptRestart() {
 		// Relaunch through the same code a spawn uses. It builds the PTY bridge
 		// in-process — only the bridge owner can know the backend PID — and binds
 		// the row to it via bindAgentProcess, then opens the display console.
-		// This path used to launch `yesmem agent-tty ... --resume` directly,
+		// This path used to launch `nemons agent-tty ... --resume` directly,
 		// which is a console client: it dials a socket that nobody was serving,
 		// so no backend was started at all, and the PID recorded here was the
 		// terminal emulator's. resume=true reuses the stored session and skips

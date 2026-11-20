@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func TestOpenAndClose(t *testing.T) {
@@ -30,7 +30,7 @@ func TestOpenSQLiteBusyTimeout(t *testing.T) {
 
 func TestProxyStateUsesRuntimeDB(t *testing.T) {
 	dir := t.TempDir()
-	dbPath := filepath.Join(dir, "yesmem.db")
+	dbPath := filepath.Join(dir, "nemons.db")
 
 	s, err := Open(dbPath)
 	if err != nil {
@@ -454,7 +454,7 @@ func TestSyncFTSIncludesTriggerRule(t *testing.T) {
 		Category:    "gotcha",
 		Content:     "Reddit gibt 403. Workaround: curl mit User-Agent",
 		TriggerRule: "webfetch www.reddit.com unable fetch",
-		Project:     "yesmem",
+		Project:     "nemons",
 		Confidence:  1.0,
 		CreatedAt:   time.Now(),
 		ModelUsed:   "test",
@@ -587,7 +587,7 @@ func TestListProjects(t *testing.T) {
 func TestGetRecentNarratives(t *testing.T) {
 	s := mustOpen(t)
 
-	// Insert 4 narratives for "yesmem" project
+	// Insert 4 narratives for "nemons" project
 	for i, content := range []string{
 		"Session 1: Setup gebaut",
 		"Session 2: Dedup implementiert",
@@ -597,7 +597,7 @@ func TestGetRecentNarratives(t *testing.T) {
 		s.InsertLearning(&models.Learning{
 			Category:  "narrative",
 			Content:   content,
-			Project:   "yesmem",
+			Project:   "nemons",
 			SessionID: fmt.Sprintf("s%d", i+1),
 			CreatedAt: time.Now().Add(-time.Duration(4-i) * time.Hour),
 			ModelUsed: "haiku",
@@ -614,8 +614,8 @@ func TestGetRecentNarratives(t *testing.T) {
 		ModelUsed: "haiku",
 	})
 
-	// Should return newest 3 for yesmem
-	narratives, err := s.GetRecentNarratives("yesmem", 3)
+	// Should return newest 3 for nemons
+	narratives, err := s.GetRecentNarratives("nemons", 3)
 	if err != nil {
 		t.Fatalf("get narratives: %v", err)
 	}

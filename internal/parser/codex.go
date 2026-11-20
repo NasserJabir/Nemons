@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 type codexLine struct {
@@ -135,7 +135,7 @@ func (s *codexSink) consume(raw []byte) {
 
 // ParseCodexSession parses Codex JSONL event streams from ~/.codex/sessions.
 // It normalizes user/assistant messages, function calls, outputs, and reasoning
-// into yesmem's generic session/message model.
+// into nemons's generic session/message model.
 func ParseCodexSession(path string) ([]models.Message, *SessionMeta, error) {
 	sink := newCodexSink(0)
 	if _, err := scanSession(path, 0, true, sink); err != nil {

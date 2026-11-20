@@ -74,7 +74,7 @@ schema: {"type":"object","properties":{"text":{"type":"string"}}}
 ### telegram_poll
 kind: handler
 
-` + "```bash\nyesmem cap-store telegram upsert config '{\"id\":\"x\"}'\n```" + `
+` + "```bash\nnemons cap-store telegram upsert config '{\"id\":\"x\"}'\n```" + `
 
 ### telegram_reply
 kind: handler

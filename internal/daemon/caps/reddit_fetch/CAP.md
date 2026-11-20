@@ -16,7 +16,7 @@ Fetch Reddit posts
 ## Script
 
 ```bash
-curl -s -A "YesMem/1.0" "$URL.json"
+curl -s -A "Nemons/1.0" "$URL.json"
 ```
 
 ## Database

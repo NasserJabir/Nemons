@@ -15,7 +15,7 @@ import (
 // other paths of this output family (YM-366, escaped from YM-332).
 func TestRunArchiveSessions_QuotesTheArchiveDirectory(t *testing.T) {
 	home := filepath.Join(t.TempDir(), "home\nwarn: forged archive line")
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	if err := os.MkdirAll(dataDir, 0o700); err != nil {
 		t.Fatal(err)
 	}
@@ -29,7 +29,7 @@ func TestRunArchiveSessions_QuotesTheArchiveDirectory(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	os.Args = []string{"yesmem", "archive-sessions", "--dry-run"}
+	os.Args = []string{"nemons", "archive-sessions", "--dry-run"}
 	os.Stdout = writer
 	runArchiveSessions()
 	if err := writer.Close(); err != nil {

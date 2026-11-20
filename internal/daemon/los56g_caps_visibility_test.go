@@ -47,8 +47,8 @@ func TestLos56gWorktreeBoundCapIsVisibleFromTheMainCheckout(t *testing.T) {
 // them apart, so deleting that half of the rule makes this test fail.
 func TestLos56gWorktreeBoundCapStaysForeignInAnotherRepository(t *testing.T) {
 	h, _ := mustHandler(t)
-	ownMain := filepath.Join(t.TempDir(), "a", "yesmem")
-	otherMain := filepath.Join(t.TempDir(), "b", "yesmem")
+	ownMain := filepath.Join(t.TempDir(), "a", "nemons")
+	otherMain := filepath.Join(t.TempDir(), "b", "nemons")
 	for _, root := range []string{ownMain, otherMain} {
 		if err := os.MkdirAll(filepath.Join(root, ".git"), 0o755); err != nil {
 			t.Fatalf("mkdir repo: %v", err)

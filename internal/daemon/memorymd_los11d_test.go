@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/archive"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/archive"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // YM-261 (Los 11d): Handler.OnMutation is declared as the post-mutation side
@@ -59,8 +59,8 @@ func TestWireMutationHook_Los11d_RegeneratesMemoryMD(t *testing.T) {
 	for {
 		data, err := os.ReadFile(memFile)
 		if err == nil {
-			if !strings.Contains(string(data), yesmemMarker) {
-				t.Fatalf("MEMORY.md missing the yesmem marker: %q", string(data))
+			if !strings.Contains(string(data), nemonsMarker) {
+				t.Fatalf("MEMORY.md missing the nemons marker: %q", string(data))
 			}
 			return
 		}

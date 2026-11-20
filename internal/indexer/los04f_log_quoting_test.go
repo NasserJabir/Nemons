@@ -9,9 +9,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/archive"
-	"github.com/carsteneu/yesmem/internal/bloom"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/archive"
+	"github.com/NasserJabir/Nemons/internal/bloom"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // los04fForgedName is a session file name an agent harness can produce: the

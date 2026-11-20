@@ -247,11 +247,11 @@ func (s *Server) resolveSystemTemplate(model string) []byte {
 
 // projectSystemPromptPath returns the project-local system prompt template path.
 func projectSystemPromptPath(projectDir string) string {
-	return filepath.Join(projectDir, ".yesmem", "SYSTEM.md")
+	return filepath.Join(projectDir, ".nemons", "SYSTEM.md")
 }
 
 // resolveSystemTemplateForDir selects the appropriate template for a model,
-// preferring a project-local .yesmem/SYSTEM.md override when present.
+// preferring a project-local .nemons/SYSTEM.md override when present.
 func (s *Server) resolveSystemTemplateForDir(projectDir, model string) []byte {
 	if projectDir != "" {
 		if tpl := loadSystemPromptFromPath(projectSystemPromptPath(projectDir)); tpl != nil {

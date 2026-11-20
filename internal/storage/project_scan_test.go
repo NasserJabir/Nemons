@@ -42,13 +42,13 @@ func TestProjectScan_SaveAndLoad(t *testing.T) {
 func TestProjectScan_Upsert(t *testing.T) {
 	s := mustOpen(t)
 
-	scan1 := &ProjectScanRow{Project: "yesmem", ScanJSON: `{"v":1}`, GitHead: "aaa", CbmMtime: 100}
-	scan2 := &ProjectScanRow{Project: "yesmem", ScanJSON: `{"v":2}`, GitHead: "bbb", CbmMtime: 200}
+	scan1 := &ProjectScanRow{Project: "nemons", ScanJSON: `{"v":1}`, GitHead: "aaa", CbmMtime: 100}
+	scan2 := &ProjectScanRow{Project: "nemons", ScanJSON: `{"v":2}`, GitHead: "bbb", CbmMtime: 200}
 
 	s.SaveProjectScan(scan1)
 	s.SaveProjectScan(scan2)
 
-	got, _ := s.GetProjectScan("yesmem")
+	got, _ := s.GetProjectScan("nemons")
 	if got.GitHead != "bbb" {
 		t.Errorf("expected upsert to bbb, got %q", got.GitHead)
 	}

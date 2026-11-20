@@ -107,7 +107,7 @@ func relateTestLearning(t *testing.T, h *Handler, text string) int64 {
 	t.Helper()
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{"text": text, "category": "pattern", "project": "yesmem"},
+		Params: map[string]any{"text": text, "category": "pattern", "project": "nemons"},
 	})
 	if resp.Error != "" {
 		t.Fatalf("remember %q: %s", text, resp.Error)

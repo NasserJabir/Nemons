@@ -58,15 +58,15 @@ SKILL.md is deliberately kept simple (name + description in frontmatter). That s
 
 ### 4. Provider-agnostic adapter layer
 
-Caps use generic functions (`cap_store`, `blob_put`) instead of provider-specific MCP tools. Each provider (yesmem, others) registers its own adapters:
+Caps use generic functions (`cap_store`, `blob_put`) instead of provider-specific MCP tools. Each provider (nemons, others) registers its own adapters:
 
 ```
 Cap code:     await cap_store({capability: "mein_tool", action: "upsert", ...})
                      │
          ┌───────────┼───────────┐
          ▼           ▼           ▼
-    yesmem-Adapter  Provider-X  Fallback
-    → mcp__yesmem__ → mcp__x__  → in-memory
+    nemons-Adapter  Provider-X  Fallback
+    → mcp__nemons__ → mcp__x__  → in-memory
       cap_store       store       (session-only)
 ```
 
@@ -75,9 +75,9 @@ This pattern requires an interchange format that declares `requires` dependencie
 ## Decision
 
 - **Interchange format:** `CAP.md` in `~/.claude/caps/<name>/CAP.md`
-- **Runtime persistence:** yesmem DB (learnings, category='cap')
+- **Runtime persistence:** nemons DB (learnings, category='cap')
 - **Discovery:** Proxy-injected `<caps-available>` catalogue, not skill listing
-- **Activation:** `mcp__yesmem__activate_cap` MCP tool + `eval(result.code)` in the REPL
+- **Activation:** `mcp__nemons__activate_cap` MCP tool + `eval(result.code)` in the REPL
 - **Portability:** Generic adapter layer (`cap_store`, `blob_put`) with provider mapping
 
 ## References

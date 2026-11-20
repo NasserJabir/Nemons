@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // Regression tests for Los 26a (YM-236, YM-237, YM-238, YM-129, YM-143).
@@ -35,13 +35,13 @@ func TestLos26a_FrozenPrefixNotInvalidatedByRawHistory(t *testing.T) {
 	s := los26aSawtoothServer(700000, nil)
 
 	// Live 17.10.2026 09:47: raw history 717k, combined payload 30k.
-	if s.frozenPrefixExpired(1, "yesmem", los26aThread, "claude-opus-4-6", 717000, 16000, 0, 14000) {
+	if s.frozenPrefixExpired(1, "nemons", los26aThread, "claude-opus-4-6", 717000, 16000, 0, 14000) {
 		t.Fatal("frozen prefix expired although the combined payload (30k) is far below the 700k threshold")
 	}
 
 	// Counter-check: when the combined payload itself crosses the threshold the
 	// prefix must still be rebuilt.
-	if !s.frozenPrefixExpired(2, "yesmem", los26aThread, "claude-opus-4-6", 30000, 600000, 100000, 14000) {
+	if !s.frozenPrefixExpired(2, "nemons", los26aThread, "claude-opus-4-6", 30000, 600000, 100000, 14000) {
 		t.Fatal("frozen prefix kept although the combined payload (714k) exceeds the 700k threshold")
 	}
 }

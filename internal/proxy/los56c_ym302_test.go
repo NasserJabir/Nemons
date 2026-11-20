@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 	"gopkg.in/yaml.v3"
 )
 
@@ -42,7 +42,7 @@ func los56cPatternSuggestServer(t *testing.T, prompt *config.ProxyConfig) (*Serv
 // los56cTurnSequenceBody carries one closed assistant turn with a tool_use, so
 // computeTurnHashFromMessages has something to hash.
 const los56cTurnSequenceBody = `{"model":"claude-opus-4-6","stream":false,"thinking":{"type":"adaptive"},` +
-	`"system":[{"type":"text","text":"Primary working directory: /home/tester/memory/yesmem"}],` +
+	`"system":[{"type":"text","text":"Primary working directory: /home/tester/memory/nemons"}],` +
 	`"messages":[` +
 	`{"role":"user","content":"run the tests"},` +
 	`{"role":"assistant","content":[{"type":"tool_use","id":"tu1","name":"Bash","input":{"command":"go test ./..."}}]},` +

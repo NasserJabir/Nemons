@@ -14,7 +14,7 @@ import (
 	"testing"
 )
 
-// YM-360 (Los 38w): `yesmem migrate-messages` opened the live database for
+// YM-360 (Los 38w): `nemons migrate-messages` opened the live database for
 // writing, deleted every message, VACUUMed in place and removed the bleve index
 // without ever asking whether a daemon or another connection was using the file.
 //
@@ -22,8 +22,8 @@ import (
 // contract is an exit code and because a DB lock has to be held by a second
 // process to mean anything.
 const (
-	los38wHelperEnv   = "YESMEM_LOS38W_HELPER"
-	los38wArgsEnv     = "YESMEM_LOS38W_ARGS"
+	los38wHelperEnv   = "NEMONS_LOS38W_HELPER"
+	los38wArgsEnv     = "NEMONS_LOS38W_ARGS"
 	los38wMessageRows = 3
 	los38wBulkRows    = 30000
 )
@@ -65,7 +65,7 @@ func TestLos38wRefusesWhenDaemonSocketAnswers(t *testing.T) {
 	if code := los38wRunCommand(t, home, ""); code == 0 {
 		t.Error("exit code 0 while a daemon answers on the socket; want a refusal")
 	}
-	if got := los38wMessageCount(t, filepath.Join(dataDir, "yesmem.db")); got != los38wMessageRows {
+	if got := los38wMessageCount(t, filepath.Join(dataDir, "nemons.db")); got != los38wMessageRows {
 		t.Errorf("source messages = %d, want %d: a live installation must not be touched", got, los38wMessageRows)
 	}
 	if _, err := os.Stat(filepath.Join(dataDir, "messages.db")); err == nil {
@@ -75,7 +75,7 @@ func TestLos38wRefusesWhenDaemonSocketAnswers(t *testing.T) {
 
 func TestLos38wRefusesWhenSourceDatabaseIsLocked(t *testing.T) {
 	home, dataDir := los38wInstallation(t)
-	mainDB := filepath.Join(dataDir, "yesmem.db")
+	mainDB := filepath.Join(dataDir, "nemons.db")
 
 	ctx := context.Background()
 	holder, err := sql.Open("sqlite", mainDB)
@@ -126,7 +126,7 @@ func TestLos38wForceMigratesDespiteRunningDaemon(t *testing.T) {
 	if got := los38wMessageCount(t, filepath.Join(dataDir, "messages.db")); got != los38wMessageRows {
 		t.Errorf("target messages = %d, want %d", got, los38wMessageRows)
 	}
-	if got := los38wMessageCount(t, filepath.Join(dataDir, "yesmem.db")); got != 0 {
+	if got := los38wMessageCount(t, filepath.Join(dataDir, "nemons.db")); got != 0 {
 		t.Errorf("source messages = %d after a completed migration, want 0", got)
 	}
 }
@@ -151,7 +151,7 @@ func TestLos38wKeepsSourceWhenTargetIsAlreadyPopulated(t *testing.T) {
 	}
 	// No copy ran, so nothing may be deleted: the source still holds the only
 	// complete set of messages.
-	if got := los38wMessageCount(t, filepath.Join(dataDir, "yesmem.db")); got != los38wMessageRows {
+	if got := los38wMessageCount(t, filepath.Join(dataDir, "nemons.db")); got != los38wMessageRows {
 		t.Errorf("source messages = %d, want %d: a skipped copy must not delete the source", got, los38wMessageRows)
 	}
 	if _, err := os.Stat(bleveDir); err != nil {
@@ -161,7 +161,7 @@ func TestLos38wKeepsSourceWhenTargetIsAlreadyPopulated(t *testing.T) {
 
 func TestLos38wMigratesAndSwapsSourceAtomically(t *testing.T) {
 	home, dataDir := los38wInstallation(t)
-	mainDB := filepath.Join(dataDir, "yesmem.db")
+	mainDB := filepath.Join(dataDir, "nemons.db")
 
 	before, err := os.Stat(mainDB)
 	if err != nil {
@@ -222,7 +222,7 @@ func TestLos38wMigratesAndSwapsSourceAtomically(t *testing.T) {
 // run must not create the database it would otherwise open.
 func TestLos38wNoOpWithoutDatabase(t *testing.T) {
 	home := t.TempDir()
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	if err := os.MkdirAll(dataDir, 0o700); err != nil {
 		t.Fatalf("mkdir data dir: %v", err)
 	}
@@ -230,8 +230,8 @@ func TestLos38wNoOpWithoutDatabase(t *testing.T) {
 	if code := los38wRunCommand(t, home, ""); code != 0 {
 		t.Errorf("exit code %d without a database, want 0", code)
 	}
-	if _, err := os.Stat(filepath.Join(dataDir, "yesmem.db")); err == nil {
-		t.Error("yesmem.db was created by a run that had nothing to migrate")
+	if _, err := os.Stat(filepath.Join(dataDir, "nemons.db")); err == nil {
+		t.Error("nemons.db was created by a run that had nothing to migrate")
 	}
 }
 
@@ -245,7 +245,7 @@ func TestLos38wReportsInterruptedCopy(t *testing.T) {
 	if code := los38wRunCommand(t, home, ""); code == 0 {
 		t.Error("exit code 0 although the target holds 1 of 3 messages; want a failure")
 	}
-	if got := los38wMessageCount(t, filepath.Join(dataDir, "yesmem.db")); got != los38wMessageRows {
+	if got := los38wMessageCount(t, filepath.Join(dataDir, "nemons.db")); got != los38wMessageRows {
 		t.Errorf("source messages = %d, want %d: the source is the only complete set", got, los38wMessageRows)
 	}
 }
@@ -255,7 +255,7 @@ func TestLos38wReportsInterruptedCopy(t *testing.T) {
 // keeps 0640 (not 0600) so the assertion fails under any permissive umask.
 func TestLos38wKeepsDatabaseOwnerOnly(t *testing.T) {
 	home, dataDir := los38wInstallation(t)
-	mainDB := filepath.Join(dataDir, "yesmem.db")
+	mainDB := filepath.Join(dataDir, "nemons.db")
 	if err := os.Chmod(mainDB, 0o640); err != nil {
 		t.Fatalf("harden source: %v", err)
 	}
@@ -285,10 +285,10 @@ func TestLos38wKeepsDatabaseOwnerOnly(t *testing.T) {
 	}
 }
 
-// TestLos38wIgnoresYESMEM_SOCK: the guard must not be switchable off by an
-// environment variable. IsDaemonRunning follows YESMEM_SOCK, so a stale value
+// TestLos38wIgnoresNEMONS_SOCK: the guard must not be switchable off by an
+// environment variable. IsDaemonRunning follows NEMONS_SOCK, so a stale value
 // would have reported "no daemon" while one was answering.
-func TestLos38wIgnoresYESMEM_SOCK(t *testing.T) {
+func TestLos38wIgnoresNEMONS_SOCK(t *testing.T) {
 	home, dataDir := los38wInstallation(t)
 	ln, err := net.Listen("unix", filepath.Join(dataDir, "daemon.sock"))
 	if err != nil {
@@ -297,10 +297,10 @@ func TestLos38wIgnoresYESMEM_SOCK(t *testing.T) {
 	defer ln.Close()
 
 	stale := filepath.Join(t.TempDir(), "stale.sock")
-	if code := los38wRunCommand(t, home, "", "YESMEM_SOCK="+stale); code == 0 {
-		t.Error("exit code 0 with a bogus YESMEM_SOCK although the real socket answers")
+	if code := los38wRunCommand(t, home, "", "NEMONS_SOCK="+stale); code == 0 {
+		t.Error("exit code 0 with a bogus NEMONS_SOCK although the real socket answers")
 	}
-	if got := los38wMessageCount(t, filepath.Join(dataDir, "yesmem.db")); got != los38wMessageRows {
+	if got := los38wMessageCount(t, filepath.Join(dataDir, "nemons.db")); got != los38wMessageRows {
 		t.Errorf("source messages = %d, want %d", got, los38wMessageRows)
 	}
 }
@@ -312,7 +312,7 @@ func TestLos38wIgnoresYESMEM_SOCK(t *testing.T) {
 // still running.
 func TestLos38wRefusesWhenSourceChangesDuringCopy(t *testing.T) {
 	home, dataDir := los38wInstallation(t)
-	mainDB := filepath.Join(dataDir, "yesmem.db")
+	mainDB := filepath.Join(dataDir, "nemons.db")
 	los38wSeedBulk(t, mainDB, los38wBulkRows)
 
 	cmd := exec.Command(os.Args[0], "-test.run=^TestLos38wMigrateCommand$")
@@ -415,18 +415,18 @@ func los38wFTSRowCount(t *testing.T, path string) int64 {
 func los38wInstallation(t *testing.T) (home, dataDir string) {
 	t.Helper()
 	// macOS caps a unix socket path at 104 bytes, and t.TempDir() under
-	// /var/folders/... plus .claude/yesmem/daemon.sock exceeds it, so the bind
+	// /var/folders/... plus .claude/nemons/daemon.sock exceeds it, so the bind
 	// fails with "invalid argument" before the test can prove anything.
 	home, err := os.MkdirTemp("", "ym38w")
 	if err != nil {
 		t.Fatalf("create home: %v", err)
 	}
 	t.Cleanup(func() { os.RemoveAll(home) })
-	dataDir = filepath.Join(home, ".claude", "yesmem")
+	dataDir = filepath.Join(home, ".claude", "nemons")
 	if err := os.MkdirAll(dataDir, 0o700); err != nil {
 		t.Fatalf("mkdir data dir: %v", err)
 	}
-	los38wSeedMessages(t, filepath.Join(dataDir, "yesmem.db"))
+	los38wSeedMessages(t, filepath.Join(dataDir, "nemons.db"))
 	return home, dataDir
 }
 
@@ -545,7 +545,7 @@ func los38wCleanEnv() []string {
 	for _, kv := range os.Environ() {
 		key, _, _ := strings.Cut(kv, "=")
 		switch key {
-		case "HOME", "YESMEM_SOCK", "YESMEM_DATA_DIR", los38wHelperEnv, los38wArgsEnv:
+		case "HOME", "NEMONS_SOCK", "NEMONS_DATA_DIR", los38wHelperEnv, los38wArgsEnv:
 			continue
 		}
 		out = append(out, kv)

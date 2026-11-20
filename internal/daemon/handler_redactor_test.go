@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/sanitize"
+	"github.com/NasserJabir/Nemons/internal/sanitize"
 )
 
 func TestHandler_RedactorWiringPassthrough(t *testing.T) {

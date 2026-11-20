@@ -12,10 +12,10 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/carsteneu/yesmem/internal/codescan"
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/wikidir"
-	"github.com/carsteneu/yesmem/internal/wikirender"
+	"github.com/NasserJabir/Nemons/internal/codescan"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/wikidir"
+	"github.com/NasserJabir/Nemons/internal/wikirender"
 )
 
 const wikiTickInterval = 5 * time.Minute
@@ -47,7 +47,7 @@ func startWikiTicker(ctx context.Context, store *storage.Store) {
 		ticker := time.NewTicker(wikiTickInterval)
 		defer ticker.Stop()
 		home, _ := os.UserHomeDir()
-		outRoot := wikidir.Root(filepath.Join(home, ".claude", "yesmem"))
+		outRoot := wikidir.Root(filepath.Join(home, ".claude", "nemons"))
 		runWikiOnce(ctx, store, outRoot, scanner)
 		for {
 			select {

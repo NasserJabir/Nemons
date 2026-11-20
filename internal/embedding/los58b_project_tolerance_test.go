@@ -8,7 +8,7 @@ import "testing"
 // so a worktree belongs to its repository while a different repository with the same
 // basename does not.
 func TestLos58bProjectFilterSeparatesTheThreeStates(t *testing.T) {
-	const repo = "/home/tester/memory/yesmem"
+	const repo = "/home/tester/memory/nemons"
 	const worktree = repo + "/.worktrees/yesloop-los-58b"
 	tests := []struct {
 		name      string
@@ -17,11 +17,11 @@ func TestLos58bProjectFilterSeparatesTheThreeStates(t *testing.T) {
 		want      bool
 	}{
 		{"unassigned row stays discoverable everywhere", "", repo, true},
-		{"legacy row resolves by its basename", "yesmem", "/home/tester/projects/yesmem", true},
-		{"legacy row does not resolve to another name", "yesmem", "/home/tester/projects/other", false},
+		{"legacy row resolves by its basename", "nemons", "/home/tester/projects/nemons", true},
+		{"legacy row does not resolve to another name", "nemons", "/home/tester/projects/other", false},
 		{"path row matches its own project", repo, repo, true},
-		{"path row of another repo with the same basename", repo, "/home/tester/projects/yesmem", false},
-		{"path row vs a bare-name request", repo, "yesmem", true},
+		{"path row of another repo with the same basename", repo, "/home/tester/projects/nemons", false},
+		{"path row vs a bare-name request", repo, "nemons", true},
 		{"repository row is visible from its worktree", repo, worktree, true},
 		{"worktree row is visible from the repository", worktree, repo, true},
 	}

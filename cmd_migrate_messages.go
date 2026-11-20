@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/daemon"
 
 	"modernc.org/sqlite"
 )
@@ -21,14 +21,14 @@ import (
 // start while anything else uses that file. --force is the deliberate exception
 // (audit 16.10.2026, YM-360).
 func runMigrateMessages() {
-	if err := migrateMessages(yesmemDataDir(), hasFlag(os.Args[2:], "--force"), os.Stdout); err != nil {
+	if err := migrateMessages(nemonsDataDir(), hasFlag(os.Args[2:], "--force"), os.Stdout); err != nil {
 		fmt.Fprintf(os.Stderr, "migrate-messages: %v\n", err)
 		os.Exit(1)
 	}
 }
 
 func migrateMessages(dataDir string, force bool, out io.Writer) error {
-	mainDB := filepath.Join(dataDir, "yesmem.db")
+	mainDB := filepath.Join(dataDir, "nemons.db")
 	messagesDB := filepath.Join(dataDir, "messages.db")
 
 	fmt.Fprintf(out, "Migrating messages from %s to %s\n", mainDB, messagesDB)
@@ -505,7 +505,7 @@ func finishLeftoverCleanup(dataDir, messagesDB string, force bool, out io.Writer
 	if err := target.QueryRow("SELECT COUNT(*) FROM messages").Scan(&targetRows); err != nil || targetRows == 0 {
 		return nil
 	}
-	if err := requireExclusiveAccess(dataDir, []string{filepath.Join(dataDir, "yesmem.db"), messagesDB}, force); err != nil {
+	if err := requireExclusiveAccess(dataDir, []string{filepath.Join(dataDir, "nemons.db"), messagesDB}, force); err != nil {
 		return fmt.Errorf("before removing the bleve index: %w", err)
 	}
 	fmt.Fprintf(out, "Removing leftover Bleve index (%s)... ", bleveDir)
@@ -522,7 +522,7 @@ func requireExclusiveAccess(dataDir string, paths []string, force bool) error {
 	if force {
 		return nil
 	}
-	// Not daemon.IsDaemonRunning: that follows YESMEM_SOCK, so a stale value would
+	// Not daemon.IsDaemonRunning: that follows NEMONS_SOCK, so a stale value would
 	// silently disable the one guard this command depends on.
 	if daemonStillAnswers(daemon.SocketPath(dataDir)) {
 		return fmt.Errorf("a daemon answers on %s: stop it first, or pass --force to migrate anyway", daemon.SocketPath(dataDir))

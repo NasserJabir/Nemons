@@ -38,7 +38,7 @@ func los32eRunBash(t *testing.T, proxyLog, daemonLog string) los32eResult {
 	}
 	writeStub(t, filepath.Join(bin, "journalctl"), `#!/bin/sh
 case "$*" in
-  *yesmem-proxy*) cat "$LOS32E_PROXY_LOG" ;;
+  *nemons-proxy*) cat "$LOS32E_PROXY_LOG" ;;
   *) cat "$LOS32E_DAEMON_LOG" ;;
 esac
 exit 0
@@ -73,8 +73,8 @@ exit 0
 	cmd := exec.Command("bash", script)
 	cmd.Env = append(os.Environ(),
 		"PATH="+bin+":"+os.Getenv("PATH"),
-		"YESMEM_SOCK="+filepath.Join(dir, "job.sock"),
-		"YESMEM_PROJECT=/home/tester/memory/yesmem",
+		"NEMONS_SOCK="+filepath.Join(dir, "job.sock"),
+		"NEMONS_PROJECT=/home/tester/memory/nemons",
 		"ALERT=true",
 		"HOURS=1",
 		"LOS32E_PROXY_LOG="+proxyPath,
@@ -105,7 +105,7 @@ exit 0
 
 // los32eProxyLine wraps a payload in the proxy's real log envelope.
 func los32eProxyLine(payload string) string {
-	return fmt.Sprintf("Oct 17 18:00:00 host yesmem-proxy[42]: 2026/10/17 18:00:00 %s\n", payload)
+	return fmt.Sprintf("Oct 17 18:00:00 host nemons-proxy[42]: 2026/10/17 18:00:00 %s\n", payload)
 }
 
 // los32eResponseLines repeats a line often enough that a counter which matches
@@ -223,8 +223,8 @@ func TestLos32eHealthCountsRestartLines(t *testing.T) {
 func TestLos32eHealthIgnoresEmptyScheduledRuns(t *testing.T) {
 	var daemonLog strings.Builder
 	for i := 0; i < 231; i++ {
-		daemonLog.WriteString("Oct 17 18:00:00 host yesmem[42]: 2026/10/17 18:00:00 [scheduler] bash job sched-rocketchat-poll-74211 OK (0 bytes)\n")
-		daemonLog.WriteString("Oct 17 18:00:00 host yesmem[42]: 2026/10/17 18:00:00 [scheduler] bash job sched-rocketchat-reply-74526 OK (0 bytes)\n")
+		daemonLog.WriteString("Oct 17 18:00:00 host nemons[42]: 2026/10/17 18:00:00 [scheduler] bash job sched-rocketchat-poll-74211 OK (0 bytes)\n")
+		daemonLog.WriteString("Oct 17 18:00:00 host nemons[42]: 2026/10/17 18:00:00 [scheduler] bash job sched-rocketchat-reply-74526 OK (0 bytes)\n")
 	}
 	proxyLog := los32eProxyLine(`[keepalive] ping tid=abc cache_read=1 cache_write=42 out=3 remaining=1 mode=5m`)
 
@@ -320,11 +320,11 @@ func TestLos32eHealthIgnoresStatusDigitsInsideAThreadID(t *testing.T) {
 // pinned here.
 func TestLos32eHealthCountsDaemonTimeouts(t *testing.T) {
 	for name, line := range map[string]string{
-		"daemon error":       `doc-context: daemon error: query hybrid_search: read unix /run/yesmem.sock: i/o timeout`,
-		"coding-query error": `doc-context: coding-query search error: read unix /run/yesmem.sock: i/o timeout`,
-		"read body error":    `[req 5] read body error: read unix /run/yesmem.sock: i/o timeout`,
-		"body read error":    `[req 5 tid=x] read error: read unix /run/yesmem.sock: i/o timeout`,
-		"write error":        `[req 5] write error: write unix /run/yesmem.sock: i/o timeout`,
+		"daemon error":       `doc-context: daemon error: query hybrid_search: read unix /run/nemons.sock: i/o timeout`,
+		"coding-query error": `doc-context: coding-query search error: read unix /run/nemons.sock: i/o timeout`,
+		"read body error":    `[req 5] read body error: read unix /run/nemons.sock: i/o timeout`,
+		"body read error":    `[req 5 tid=x] read error: read unix /run/nemons.sock: i/o timeout`,
+		"write error":        `[req 5] write error: write unix /run/nemons.sock: i/o timeout`,
 	} {
 		proxyLog := los32eResponseLines(line, 4) + los32eProxyLine(`[keepalive] ping tid=abc cache_read=1 cache_write=2 out=3 remaining=1 mode=5m`)
 
@@ -410,10 +410,10 @@ func TestLos32eHealthCountsFailedScheduledRuns(t *testing.T) {
 	// The real window mixes both: hundreds of successful silent runs and one
 	// failure. Only the failure may raise the alarm.
 	for i := 0; i < 231; i++ {
-		daemonLog.WriteString("Oct 17 18:00:00 host yesmem[42]: 2026/10/17 18:00:00 [scheduler] bash job sched-rocketchat-poll-74211 OK (0 bytes)\n")
-		daemonLog.WriteString("Oct 17 18:00:00 host yesmem[42]: 2026/10/17 18:00:00 [scheduler] bash job sched-rocketchat-reply-74526 OK (0 bytes)\n")
+		daemonLog.WriteString("Oct 17 18:00:00 host nemons[42]: 2026/10/17 18:00:00 [scheduler] bash job sched-rocketchat-poll-74211 OK (0 bytes)\n")
+		daemonLog.WriteString("Oct 17 18:00:00 host nemons[42]: 2026/10/17 18:00:00 [scheduler] bash job sched-rocketchat-reply-74526 OK (0 bytes)\n")
 	}
-	daemonLog.WriteString("Oct 17 18:00:00 host yesmem[42]: 2026/10/17 18:00:00 [scheduler] bash job sched-rocketchat-poll-74211 FAILED (exit=1): exit status 1\n")
+	daemonLog.WriteString("Oct 17 18:00:00 host nemons[42]: 2026/10/17 18:00:00 [scheduler] bash job sched-rocketchat-poll-74211 FAILED (exit=1): exit status 1\n")
 	proxyLog := los32eProxyLine(`[keepalive] ping tid=abc cache_read=1 cache_write=42 out=3 remaining=1 mode=5m`)
 
 	res := los32eRunBash(t, proxyLog, daemonLog.String())

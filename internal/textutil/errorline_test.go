@@ -14,7 +14,7 @@ import (
 // A filesystem error carries its path raw: os.PathError prints the path between
 // op and reason, so a path with a newline ends the log line (YM-332).
 func TestErrorLineQuotesThePathOfAPathError(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "home\nwarn: forged line", "yesmem.db")
+	path := filepath.Join(t.TempDir(), "home\nwarn: forged line", "nemons.db")
 	err := &os.PathError{Op: "open", Path: path, Err: os.ErrPermission}
 
 	got := ErrorLine(err)

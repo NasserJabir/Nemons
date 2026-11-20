@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 const capScriptV1 = `[{"name":"run","runtime":"bash","sandbox":"none","schema":"{\"type\":\"object\"}","body":"echo v1"}]`

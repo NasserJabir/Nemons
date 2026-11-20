@@ -7,7 +7,7 @@ import (
 
 // YM-381 (Los 11l): die Vorlage lieferte paths.bleve_index mit, aber kein
 // Produktionspfad liest den Wert. Die Suche laeuft seit der FTS5-Umstellung in
-// SQLite (storage/messages.go:238), "yesmem migrate" raeumt das alte
+// SQLite (storage/messages.go:238), "nemons migrate" raeumt das alte
 // bleve-index-Verzeichnis sogar weg (cmd_migrate_messages.go). Ein Knopf ohne
 // Leser ist ein Versprechen ohne Deckung, deshalb faellt der Schluessel aus der
 // Vorlage. paths.db und paths.archive bleiben: beide haben Leser.

@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 func captureStdout(t *testing.T, fn func()) string {
@@ -96,18 +96,18 @@ func TestCostRowsConvertTokenBuckets(t *testing.T) {
 	}
 }
 
-// `yesmem cost` is the only spend overview the CLI exposes. It grouped just the
+// `nemons cost` is the only spend overview the CLI exposes. It grouped just the
 // extract and quality buckets, so the proxy_* and fork_* buckets — which carry the
 // bulk of the token volume — never showed up.
 func TestRunCostShowsProxyAndForkBuckets(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	if err := os.MkdirAll(dataDir, 0o755); err != nil {
 		t.Fatalf("mkdir data dir: %v", err)
 	}
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -134,18 +134,18 @@ func TestRunCostShowsProxyAndForkBuckets(t *testing.T) {
 	}
 }
 
-// YM-229: `yesmem export` opened the store writable, so a pure read ran the
-// schema migrations and created runtime.db/messages.db next to yesmem.db. Like
-// `yesmem cost` since YM-95 it has to open read-only.
+// YM-229: `nemons export` opened the store writable, so a pure read ran the
+// schema migrations and created runtime.db/messages.db next to nemons.db. Like
+// `nemons cost` since YM-95 it has to open read-only.
 func TestRunExportOpensDatabaseReadOnly(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	if err := os.MkdirAll(dataDir, 0o755); err != nil {
 		t.Fatalf("mkdir data dir: %v", err)
 	}
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -170,7 +170,7 @@ func TestRunExportOpensDatabaseReadOnly(t *testing.T) {
 
 	outPath := filepath.Join(t.TempDir(), "export.json")
 	oldArgs := os.Args
-	os.Args = []string{"yesmem", "export", outPath}
+	os.Args = []string{"nemons", "export", outPath}
 	t.Cleanup(func() { os.Args = oldArgs })
 
 	out := captureStdout(t, runExport)
@@ -195,11 +195,11 @@ func TestRunImportDistrustFlagDowngradesSource(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	if err := os.MkdirAll(dataDir, 0o755); err != nil {
 		t.Fatalf("mkdir data dir: %v", err)
 	}
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -215,7 +215,7 @@ func TestRunImportDistrustFlagDowngradesSource(t *testing.T) {
 	}
 
 	oldArgs := os.Args
-	os.Args = []string{"yesmem", "import", importPath, "--distrust-file-sources"}
+	os.Args = []string{"nemons", "import", importPath, "--distrust-file-sources"}
 	t.Cleanup(func() { os.Args = oldArgs })
 
 	out := captureStdout(t, runImport)
@@ -223,7 +223,7 @@ func TestRunImportDistrustFlagDowngradesSource(t *testing.T) {
 		t.Errorf("import output does not report the distrust flag: %q", out)
 	}
 
-	ro, err := storage.OpenReadOnly(filepath.Join(dataDir, "yesmem.db"))
+	ro, err := storage.OpenReadOnly(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("reopen store: %v", err)
 	}

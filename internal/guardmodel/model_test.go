@@ -38,11 +38,11 @@ func tempHome(t *testing.T) string {
 	t.Helper()
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	t.Setenv("YESMEM_GUARD_MODELS_URL", "")
-	t.Setenv("YESMEM_GUARD_MODEL", "")
-	t.Setenv("YESMEM_GUARD_URL", "")
-	t.Setenv("YESMEM_GUARD_KEY", "")
-	t.Setenv("YESMEM_GUARD_NPM", "")
+	t.Setenv("NEMONS_GUARD_MODELS_URL", "")
+	t.Setenv("NEMONS_GUARD_MODEL", "")
+	t.Setenv("NEMONS_GUARD_URL", "")
+	t.Setenv("NEMONS_GUARD_KEY", "")
+	t.Setenv("NEMONS_GUARD_NPM", "")
 	t.Setenv("ANTHROPIC_API_KEY", "")
 	return home
 }
@@ -64,7 +64,7 @@ func TestHaikusNewestFirst(t *testing.T) {
 		haiku("claude-haiku-5-5", "2026-10-07T18:00:00Z"),
 		haiku("claude-sonnet-5", "2026-10-08T00:00:00Z"),
 	)
-	t.Setenv("YESMEM_GUARD_MODELS_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_MODELS_URL", server.URL)
 
 	got := Haikus("sk-ant-test", "https://api.anthropic.com", home)
 
@@ -83,7 +83,7 @@ func TestHaikusNewestFirst(t *testing.T) {
 func TestHaikusAreCachedFor24Hours(t *testing.T) {
 	home := tempHome(t)
 	server, calls := modelList(t, haiku("claude-haiku-5-5", "2026-10-07T18:00:00Z"))
-	t.Setenv("YESMEM_GUARD_MODELS_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_MODELS_URL", server.URL)
 
 	Haikus("sk-ant-test", "https://api.anthropic.com", home)
 	Haikus("sk-ant-test", "https://api.anthropic.com", home)
@@ -118,7 +118,7 @@ func TestHaikusAreCachedFor24Hours(t *testing.T) {
 func TestHaikusRefetchWhenCacheIsStale(t *testing.T) {
 	home := tempHome(t)
 	server, calls := modelList(t, haiku("claude-haiku-5-5", "2026-10-07T18:00:00Z"))
-	t.Setenv("YESMEM_GUARD_MODELS_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_MODELS_URL", server.URL)
 	stale := time.Now().Add(-25 * time.Hour).UTC().Format(time.RFC3339)
 	writeFileT(t, CachePath(home), `{"fetched_at":"`+stale+`","models":["claude-haiku-1"]}`)
 
@@ -140,7 +140,7 @@ func TestHaikusCacheAFailureAsEmpty(t *testing.T) {
 		http.Error(w, `{"error":"overloaded"}`, http.StatusInternalServerError)
 	}))
 	t.Cleanup(server.Close)
-	t.Setenv("YESMEM_GUARD_MODELS_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_MODELS_URL", server.URL)
 
 	if got := Haikus("sk-ant-test", "https://api.anthropic.com", home); len(got) != 0 {
 		t.Fatalf("haikus = %v, want none", got)
@@ -168,7 +168,7 @@ func TestHaikusDoNotFollowARedirect(t *testing.T) {
 		http.Redirect(w, r, target.URL, http.StatusTemporaryRedirect)
 	}))
 	t.Cleanup(redirect.Close)
-	t.Setenv("YESMEM_GUARD_MODELS_URL", redirect.URL)
+	t.Setenv("NEMONS_GUARD_MODELS_URL", redirect.URL)
 
 	if got := Haikus("sk-ant-test", "https://api.anthropic.com", home); len(got) != 0 {
 		t.Fatalf("haikus = %v, want none from a redirect", got)
@@ -181,7 +181,7 @@ func TestHaikusDoNotFollowARedirect(t *testing.T) {
 func TestResolveModelFollowsTheChain(t *testing.T) {
 	server, calls := modelList(t, haiku("claude-haiku-5-5", "2026-10-07T18:00:00Z"))
 	home := tempHome(t)
-	t.Setenv("YESMEM_GUARD_MODELS_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_MODELS_URL", server.URL)
 	registry := Registry{"anthropic": {
 		API:    "https://api.anthropic.com",
 		NPM:    AnthropicNPM,
@@ -189,7 +189,7 @@ func TestResolveModelFollowsTheChain(t *testing.T) {
 	}}
 
 	t.Run("env wins and asks nothing", func(t *testing.T) {
-		t.Setenv("YESMEM_GUARD_MODEL", "claude-haiku-9")
+		t.Setenv("NEMONS_GUARD_MODEL", "claude-haiku-9")
 		model, fallbacks, source := ResolveModel("", "sk-ant-test", "https://api.anthropic.com", registry, home)
 		if model != "claude-haiku-9" || source != SourceEnv || len(fallbacks) != 0 {
 			t.Fatalf("model=%s fallbacks=%v source=%s, want the env model", model, fallbacks, source)
@@ -217,7 +217,7 @@ func TestResolveModelFollowsTheChain(t *testing.T) {
 	})
 
 	t.Run("without a reachable list the registry decides", func(t *testing.T) {
-		t.Setenv("YESMEM_GUARD_MODELS_URL", "http://127.0.0.1:1")
+		t.Setenv("NEMONS_GUARD_MODELS_URL", "http://127.0.0.1:1")
 		other := t.TempDir()
 		t.Setenv("HOME", other)
 		model, _, source := ResolveModel("", "sk-ant-test", "https://api.anthropic.com", registry, other)
@@ -227,7 +227,7 @@ func TestResolveModelFollowsTheChain(t *testing.T) {
 	})
 
 	t.Run("with nothing at all the constant holds", func(t *testing.T) {
-		t.Setenv("YESMEM_GUARD_MODELS_URL", "http://127.0.0.1:1")
+		t.Setenv("NEMONS_GUARD_MODELS_URL", "http://127.0.0.1:1")
 		other := t.TempDir()
 		model, _, source := ResolveModel("", "sk-ant-test", "https://api.anthropic.com", Registry{}, other)
 		if model != FallbackModel || source != SourceFallback {

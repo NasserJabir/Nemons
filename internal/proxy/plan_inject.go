@@ -323,13 +323,13 @@ func planNudgeText(name string) string {
 
 // planToolBaseName strips the transport-specific MCP qualification so the same
 // tool is recognized on every backend. Qualified forms seen in the wild:
-// mcp__yesmem__set_plan (Claude Code), yesmem_set_plan (opencode,
-// plugins/opencode-yesmem-v2/context.ts) and tools.yesmem.set_plan (opencode
+// mcp__nemons__set_plan (Claude Code), nemons_set_plan (opencode,
+// plugins/opencode-nemons-v2/context.ts) and tools.nemons.set_plan (opencode
 // Code Mode, where the call sits inside an execute tool). The other prefixes are
 // accepted defensively; a bare name passes through unchanged.
 func planToolBaseName(name string) string {
 	n := strings.ToLower(strings.TrimSpace(name))
-	for _, prefix := range []string{"mcp__yesmem__", "mcp_yesmem_", "tools.yesmem.", "yesmem_", "yesmem."} {
+	for _, prefix := range []string{"mcp__nemons__", "mcp_nemons_", "tools.nemons.", "nemons_", "nemons."} {
 		if strings.HasPrefix(n, prefix) {
 			return strings.TrimPrefix(n, prefix)
 		}

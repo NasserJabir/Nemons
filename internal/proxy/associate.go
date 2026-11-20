@@ -11,9 +11,9 @@ import (
 	"unicode"
 
 	"github.com/bbalet/stopwords"
-	"github.com/carsteneu/yesmem/internal/briefing"
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/briefing"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 const associativeScoreThreshold = 38 // 0-100 scale: primary threshold for strong matches (was 45)
@@ -33,7 +33,7 @@ const associativeProjectBoost = 2.0  // bonus for matching project (0-100 scale)
 func (s *Server) findAssociativeContextFor(userQuery, currentProject, threadID string, messages []any) string {
 	searchQuery := userQuery
 
-	// Resolve project name once (handles renames like "memory" → "yesmem").
+	// Resolve project name once (handles renames like "memory" → "nemons").
 	// projectDir keeps the absolute path: the resolve below replaces
 	// currentProject with the short form, which is ambiguous on the wire.
 	projectDir := currentProject
@@ -385,10 +385,10 @@ func (s *Server) findAssociativeContextFor(userQuery, currentProject, threadID s
 	}
 
 	if contradictionWarning != "" {
-		return fmt.Sprintf("[yesmem associative context]\n%s\n%s\n%s\n[/yesmem context]",
+		return fmt.Sprintf("[nemons associative context]\n%s\n%s\n%s\n[/nemons context]",
 			strings.Join(lines, "\n"), contradictionWarning, InlineReflectionHint)
 	}
-	return fmt.Sprintf("[yesmem associative context]\n%s\n%s\n[/yesmem context]",
+	return fmt.Sprintf("[nemons associative context]\n%s\n%s\n[/nemons context]",
 		strings.Join(lines, "\n"), InlineReflectionHint)
 }
 
@@ -793,7 +793,7 @@ func formatDocResult(source, version, heading, content string) string {
 		return ""
 	}
 	var sb strings.Builder
-	sb.WriteString("[yesmem doc context]\n")
+	sb.WriteString("[nemons doc context]\n")
 	label := source
 	if version != "" {
 		label += " " + version
@@ -802,7 +802,7 @@ func formatDocResult(source, version, heading, content string) string {
 		label += " > " + heading
 	}
 	fmt.Fprintf(&sb, "Quelle: %s\n%s\n", label, content)
-	sb.WriteString("[/yesmem doc context]")
+	sb.WriteString("[/nemons doc context]")
 	return sb.String()
 }
 

@@ -11,7 +11,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // los55bStagnationTracked reports whether the stagnation guard keeps bookkeeping
@@ -616,7 +616,7 @@ func TestLos55bListAgentsKeepsTheNonSecretRowFields(t *testing.T) {
 	if err := s.AgentCreate(storage.Agent{
 		ID: "los55b-fields", Project: "los55b-project", Section: "fields",
 		SessionID: "sess-los55b-secret", Status: "running", Backend: "opencode",
-		Model: "zai/glm-5.2", Theme: "yesmem-loop", ProxyThreadID: "thread-abc",
+		Model: "zai/glm-5.2", Theme: "nemons-loop", ProxyThreadID: "thread-abc",
 		CreatedAt: time.Now().Format(time.RFC3339),
 	}); err != nil {
 		t.Fatalf("AgentCreate: %v", err)
@@ -647,7 +647,7 @@ func TestLos55bListAgentsKeepsTheNonSecretRowFields(t *testing.T) {
 		}
 		want := map[string]string{
 			"model":           "zai/glm-5.2",
-			"theme":           "yesmem-loop",
+			"theme":           "nemons-loop",
 			"proxy_thread_id": "thread-abc",
 		}
 		for field, value := range want {

@@ -108,7 +108,7 @@ func Restore(dataDir string) error {
 		return err
 	}
 	if len(snap.Windows) == 0 {
-		fmt.Println("Kein Terminal-Snapshot vorhanden — erst 'yesmem save-terminals' ausführen (bei offenen Fenstern).")
+		fmt.Println("Kein Terminal-Snapshot vorhanden — erst 'nemons save-terminals' ausführen (bei offenen Fenstern).")
 		return nil
 	}
 	before := windowIDs()

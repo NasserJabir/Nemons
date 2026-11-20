@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // handleCheckCitations walks every cited row in a project through the

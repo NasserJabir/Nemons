@@ -585,11 +585,11 @@ func describeCacheHolder(path string, holder map[string]any) string {
 func cacheTrimPriority(path string, holder map[string]any) int {
 	text, _ := holder["text"].(string)
 	switch {
-	case strings.Contains(text, "[yesmem-briefing]"):
+	case strings.Contains(text, "[nemons-briefing]"):
 		return 0
 	case strings.HasPrefix(path, "tools["):
 		return 1
-	case strings.Contains(text, "[yesmem-"):
+	case strings.Contains(text, "[nemons-"):
 		return 2
 	case strings.HasPrefix(path, "system["):
 		return 3

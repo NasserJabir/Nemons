@@ -8,14 +8,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/verify/claimtypes"
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/claimtypes"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // initRepo is a throwaway project root under the worktree's own temp space.
 func initRepo(t *testing.T, name string) string {
 	t.Helper()
-	parent, err := filepath.Abs(filepath.Join("..", "..", ".yesmem", "tmp", "inits"))
+	parent, err := filepath.Abs(filepath.Join("..", "..", ".nemons", "tmp", "inits"))
 	if err != nil {
 		t.Fatalf("abs: %v", err)
 	}
@@ -199,7 +199,7 @@ func TestInitWritesOnlyAfterAPassingProof(t *testing.T) {
 	var proofs int
 	result, err := InitProfile(InitOptions{
 		Repo:   repo,
-		TmpDir: filepath.Join(repo, ".yesmem", "tmp"),
+		TmpDir: filepath.Join(repo, ".nemons", "tmp"),
 		Prove: func(language engine.Language) InitProof {
 			proofs++
 			return InitProof{Command: language.TestCommand, Exit: 0, Sandboxed: true, Output: "ok  example.com/project"}

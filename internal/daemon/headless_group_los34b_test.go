@@ -62,20 +62,20 @@ func TestHeadlessDeadlineKillsTheProcessGroup(t *testing.T) {
 	}
 }
 
-// The headless run starts claude, which starts the yesmem MCP server. That child
-// dials YESMEM_SOCK, so the value has to reach the run: without it every MCP call
+// The headless run starts claude, which starts the nemons MCP server. That child
+// dials NEMONS_SOCK, so the value has to reach the run: without it every MCP call
 // inside the sandbox would look for a socket the sandbox does not mount.
 func TestHeadlessRunGetsTheSocketPathInItsEnvironment(t *testing.T) {
 	los34bShortenHeadlessTimeout(t, 10*time.Second)
 
 	var stdout, stderr bytes.Buffer
-	err := runHeadlessCommand("bash", []string{"-c", `printf %s "$YESMEM_SOCK"`}, "", t.TempDir(),
-		[]string{"YESMEM_SOCK=/run/yesmem/job.sock"}, &stdout, &stderr)
+	err := runHeadlessCommand("bash", []string{"-c", `printf %s "$NEMONS_SOCK"`}, "", t.TempDir(),
+		[]string{"NEMONS_SOCK=/run/nemons/job.sock"}, &stdout, &stderr)
 	if err != nil {
 		t.Fatalf("run: %v (stderr %q)", err, stderr.String())
 	}
-	if got := strings.TrimSpace(stdout.String()); got != "/run/yesmem/job.sock" {
-		t.Fatalf("headless run saw YESMEM_SOCK=%q", got)
+	if got := strings.TrimSpace(stdout.String()); got != "/run/nemons/job.sock" {
+		t.Fatalf("headless run saw NEMONS_SOCK=%q", got)
 	}
 }
 

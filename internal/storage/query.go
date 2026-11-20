@@ -10,7 +10,7 @@ import (
 
 var allowedReadPrefixRE = regexp.MustCompile(`(?i)^\s*(select|with)\b`)
 
-// QueryReadOnly executes a read-only SQL query against yesmem.db. The query is
+// QueryReadOnly executes a read-only SQL query against nemons.db. The query is
 // validated to start with SELECT or WITH and rejected if it contains additional
 // statements after a semicolon. When initialized against a file-backed
 // database, the underlying connection is opened with mode=ro so the SQLite

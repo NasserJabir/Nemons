@@ -8,8 +8,8 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/carsteneu/yesmem/internal/capfile"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/capfile"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 const (

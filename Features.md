@@ -1,9 +1,9 @@
-# YesMem — Features
+# Nemons — Features
 
 > Long-term memory system for Claude Code.
 > Not memory FOR an agent, but memory AS agent.
 
-YesMem adds permanent memory, self-configuring routing, and multi-agent orchestration to Claude Code, OpenCode, and Codex. Works with API keys and subscription plans.
+Nemons adds permanent memory, self-configuring routing, and multi-agent orchestration to Claude Code, OpenCode, and Codex. Works with API keys and subscription plans.
 
 ---
 
@@ -18,7 +18,7 @@ LLM Client  ──→  Proxy (:9099)  ──→  Upstream API
     MCP Tools   Hooks    Scheduled Agents
 ```
 
-- **Proxy:** HTTP middleware. Context collapsing (Sawtooth), prompt cache optimization, system prompt rewrite, provider auto-discovery. Optional — YesMem works without it in MCP-only mode.
+- **Proxy:** HTTP middleware. Context collapsing (Sawtooth), prompt cache optimization, system prompt rewrite, provider auto-discovery. Optional — Nemons works without it in MCP-only mode.
 - **Daemon:** Persistent backend. SQLite for structured data, vector store for semantic search. Single process, local-first, zero cloud.
 - **MCP Server:** Thin stdio interface for Claude Code. All 67 memory tools exposed.
 - **Hooks:** Event-driven Claude Code integration (SessionStart, PreToolUse, PostToolUseFailure, UserPromptSubmit).
@@ -137,7 +137,7 @@ LLM Client  ──→  Proxy (:9099)  ──→  Upstream API
 
 ## Differentiators
 
-- **Not a wrapper — a layer.** YesMem sits between your LLM and its context, not around it. The proxy modifies the conversation stream in-flight.
+- **Not a wrapper — a layer.** Nemons sits between your LLM and its context, not around it. The proxy modifies the conversation stream in-flight.
 - **Local-first, zero cloud.** Everything runs on your machine. SQLite + vector store. No accounts, no telemetry.
 - **Self-cleaning knowledge.** Outdated facts auto-decay. Loop-contaminated sessions auto-quarantine.
 - **Multi-model.** Claude, DeepSeek, OpenAI, Mistral — one pipeline, one memory system.

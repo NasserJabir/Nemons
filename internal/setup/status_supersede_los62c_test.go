@@ -5,11 +5,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // TestLos62c_StatusUsesSharedSupersedeStats pins finding 3 of YM-445. The status
-// surface carried its own query (`superseded_by > 0`) while `yesmem stats`
+// surface carried its own query (`superseded_by > 0`) while `nemons stats`
 // printed LearningStats.SupersededCount, so the two commands reported the same
 // quantity with different numbers and different words. The definition lives in
 // storage now; status must read it from there instead of counting the column
@@ -36,7 +36,7 @@ func TestLos62c_StatusUsesSharedSupersedeStats(t *testing.T) {
 
 // TestLos62c_SupersedeSummaryLineMatchesStats pins the rendering to the shared
 // struct: every number in the line is a field of LearningStats, so the line and
-// `yesmem stats` cannot disagree while the struct is the only source.
+// `nemons stats` cannot disagree while the struct is the only source.
 func TestLos62c_SupersedeSummaryLineMatchesStats(t *testing.T) {
 	st := &storage.LearningStats{
 		SupersededCount:         6,

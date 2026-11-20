@@ -105,7 +105,7 @@ fragt alle Kennungen dieser Zeile, und ein fremder Thread wird nicht befragt).
 `report_session` (Vorgabe: die aufrufende Sitzung) bestimmt, wovon die Evidenz-IDs
 abstammen müssen.
 
-Als Unterkommando für die Hand: `yesmem verify-claims --repo <pfad> --report <datei|->`
+Als Unterkommando für die Hand: `nemons verify-claims --repo <pfad> --report <datei|->`
 oder `--project <p> --section <s>`, dazu `--base`, `--head`, `--profile`, `--policy`,
 `--budget`, `--strict` und `--json`. Der Exit-Code ist das Urteil: 0 angenommen, 1
 geblockt, 2 Bedien- oder Transportfehler. Die drei Fälle stehen unten zum Nachlaufen.
@@ -166,20 +166,20 @@ printf '[COMMIT: %s]\n[BRANCH: lokal-nie-gepusht]\n' "$head" > unpushed.txt
 Dann je Fall ein Aufruf. Der Exit-Code ist das Urteil, nicht der Transport:
 
 ```bash
-yesmem verify-claims --repo "$repo" --report honest.txt     # 0: accepted
-yesmem verify-claims --repo "$repo" --report faked.txt      # 1: blocked (refuted)
-yesmem verify-claims --repo "$repo" --report unpushed.txt   # 1: blocked, Klasse je Fall
+nemons verify-claims --repo "$repo" --report honest.txt     # 0: accepted
+nemons verify-claims --repo "$repo" --report faked.txt      # 1: blocked (refuted)
+nemons verify-claims --repo "$repo" --report unpushed.txt   # 1: blocked, Klasse je Fall
 ```
 
 Ohne CLI geht derselbe Aufruf als JSON-Zeile an den Socket. Eine Zeile hin, eine
-Antwortzeile zurück (`plugins/opencode-yesmem-v2/rpc.ts`, `internal/daemon/socket.go`):
+Antwortzeile zurück (`plugins/opencode-nemons-v2/rpc.ts`, `internal/daemon/socket.go`):
 
 ```bash
 python3 -c 'import socket,json,sys
 s=socket.socket(socket.AF_UNIX); s.connect(sys.argv[1])
 f=s.makefile("rwb")
 f.write((json.dumps({"method":"verify_claims","params":{"repo":sys.argv[2],"report":open(sys.argv[3]).read()}})+"\n").encode())
-f.flush(); print(f.readline().decode())' ~/.claude/yesmem/daemon.sock "$repo" honest.txt
+f.flush(); print(f.readline().decode())' ~/.claude/nemons/daemon.sock "$repo" honest.txt
 ```
 
 Was am 02.11.2026 gegen den ausgerollten Stand herauskam:
@@ -280,7 +280,7 @@ Stelle der Festplatte beschrieben wird. Ein Symlink wird vor der Prüfung aufgel
 fehlender Cache wird angelegt, und ein vorhandener, aber nicht beschreibbarer Cache bleibt
 eine Umgebungslücke.
 
-Die Vorgabe deckt Go (`go test ./...`, `go-cover`, `.yesmem-cover.out`), PHP (PHPUnit,
+Die Vorgabe deckt Go (`go test ./...`, `go-cover`, `.nemons-cover.out`), PHP (PHPUnit,
 `cobertura`) und Python (pytest, `cobertura`) ab. Jeder Eintrag nennt Testdateimuster
 und Build-Fehlermuster, weil ohne sie eine Testdatei mutiert und ein Build-Fehler als
 getöteter Mutant gezählt würde, was der eine Fehler ist, den ein Qualitätsanspruch nie
@@ -289,7 +289,7 @@ machen darf.
 ### Der Testbefehl des Projekts
 
 Ein Projekt, dessen Suite kein eingebauter Eintrag kennt, sagt es selbst: steht unter
-`.yesmem/verify.yaml` ein `test_command`, ist genau dieser Befehl für `tests_green` und
+`.nemons/verify.yaml` ein `test_command`, ist genau dieser Befehl für `tests_green` und
 `tests_exit` zugelassen, und genau der `coverage_command` für `coverage_delta`. Exakt
 heißt Token für Token: `make integration` erlaubt nicht `make integration --all`, und
 nichts wird gemustert. Alles andere bleibt so streng wie ohne Profil, und ein
@@ -340,7 +340,7 @@ und die Session, gegen die die Evidenz geprüft wurde. Was das Gate dabei tut:
 - Ein frisches abgelehntes Urteil blockt mit den Befunden des Laufs. Die Befunde sind die
   des Laufs: das Gate rechnet nichts nach.
 - Fehlt ein Urteil oder ist es veraltet, blockt das Gate sofort als Defekt und druckt den
-  vollständigen `yesmem verify-claims`-Befehl. Der Grund der Veraltung steht dabei: Text
+  vollständigen `nemons verify-claims`-Befehl. Der Grund der Veraltung steht dabei: Text
   geändert, HEAD gewandert, Branch gewechselt, uncommittete Reste aufgetaucht, Plan
   geändert, Session gewechselt.
 - Ein Urteil, das unter einem schwächeren Regelsatz entstand (etwa ohne

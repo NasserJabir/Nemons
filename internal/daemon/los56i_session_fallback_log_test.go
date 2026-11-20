@@ -9,7 +9,7 @@ import (
 
 // YM-307 [PLG-F27] Teil 1 (Los 56i): der Fallback auf die zuletzt registrierte
 // Session bleibt bestehen — ein Abweisen traefe Aufrufer ohne
-// YESMEM_SESSION_ID und braeche mehr, als der Befund wiegt. Er darf aber nicht
+// NEMONS_SESSION_ID und braeche mehr, als der Befund wiegt. Er darf aber nicht
 // still passieren: die Zeile nennt den geratenen Wert und den fehlenden
 // Identitaetstraeger, damit der Fall im Betrieb auffindbar ist.
 func TestLos56i_GuessedSessionIsLoggedWithItsMissingIdentity(t *testing.T) {

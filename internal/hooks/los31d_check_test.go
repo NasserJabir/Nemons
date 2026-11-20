@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // los31dChildDataDirEnv marks the child process runCheckBlocking starts.
@@ -75,7 +75,7 @@ func TestLos31DMultiEditSeesTheSettingsGuard(t *testing.T) {
 		ToolInput: json.RawMessage(`{"file_path":"` + filepath.Join(home, ".claude", "settings.json") +
 			`","edits":[{"old_string":"a","new_string":"b"}]}`),
 	})
-	if !strings.Contains(out, "yesmem setup") {
+	if !strings.Contains(out, "nemons setup") {
 		t.Errorf("MultiEdit of the settings file must warn, got: %q", out)
 	}
 }
@@ -90,10 +90,10 @@ func TestLos31DMultiEditBlocksTheGeneratedOpsFile(t *testing.T) {
 	out, code := runCheckBlocking(t, dir, HookInput{
 		ToolName:  "MultiEdit",
 		CWD:       home,
-		ToolInput: json.RawMessage(`{"file_path":"` + filepath.Join(home, ".claude", "yesmem-ops.md") + `","edits":[]}`),
+		ToolInput: json.RawMessage(`{"file_path":"` + filepath.Join(home, ".claude", "nemons-ops.md") + `","edits":[]}`),
 	})
 	if code != 2 {
-		t.Errorf("MultiEdit of yesmem-ops.md must be blocked, exit = %d, out = %q", code, out)
+		t.Errorf("MultiEdit of nemons-ops.md must be blocked, exit = %d, out = %q", code, out)
 	}
 	if !strings.Contains(out, `"decision":"block"`) {
 		t.Errorf("expected a block decision for the generated ops file, got: %q", out)
@@ -138,7 +138,7 @@ func TestLos31DBashWritePathsOfTheProtectedFiles(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 	settings := filepath.Join(home, ".claude", "settings.json")
-	ops := filepath.Join(home, ".claude", "yesmem-ops.md")
+	ops := filepath.Join(home, ".claude", "nemons-ops.md")
 
 	blocked := []struct{ name, command string }{
 		{"redirect with a separate operator", `echo '{}' > ` + settings},
@@ -155,7 +155,7 @@ func TestLos31DBashWritePathsOfTheProtectedFiles(t *testing.T) {
 		{"move into its directory", `mv /x/settings.json ` + filepath.Join(home, ".claude") + `/`},
 		{"behind sudo", `sudo cp /x/other.json ` + settings},
 		{"behind sudo with a value flag", `sudo -u root cp /x/other.json ` + settings},
-		{"behind env with an assignment", `env YESMEM=1 cp /x/other.json ` + settings},
+		{"behind env with an assignment", `env NEMONS=1 cp /x/other.json ` + settings},
 		{"behind env ignoring the environment", `env -i cp /x/other.json ` + settings},
 		{"behind timeout", `timeout 30 cp /x/other.json ` + settings},
 		{"behind timeout with a unit", `timeout 30s cp /x/other.json ` + settings},
@@ -194,7 +194,7 @@ func TestLos31DBashWritePathsOfTheProtectedFiles(t *testing.T) {
 			CWD:       home,
 			ToolInput: json.RawMessage(`{"command":` + quoteJSON(`sed -i 's/"a":1/"a":2/' `+settings) + `}`),
 		})
-		if !strings.Contains(out, "yesmem setup") {
+		if !strings.Contains(out, "nemons setup") {
 			t.Errorf("an in-place edit of the settings file must warn, got: %q", out)
 		}
 	})
@@ -207,7 +207,7 @@ func TestLos31DBashWritePathsOfTheProtectedFiles(t *testing.T) {
 		{"a read with a module flag", `perl -MList::Util -e 'print 1' ` + settings},
 		{"a read behind sudo", `sudo cat ` + settings},
 		{"a message naming a write verb", `echo mv ` + settings},
-		{"a same-named file moved within a directory", `mv /x/yesmem-ops.md /x/build/other.md`},
+		{"a same-named file moved within a directory", `mv /x/nemons-ops.md /x/build/other.md`},
 	}
 	for _, tt := range notAWrite {
 		t.Run(tt.name, func(t *testing.T) {
@@ -222,7 +222,7 @@ func TestLos31DBashWritePathsOfTheProtectedFiles(t *testing.T) {
 			if code != 0 {
 				t.Errorf("%q does not write the file and must not exit %d, out = %q", tt.command, code, out)
 			}
-			if strings.Contains(out, "yesmem setup") || strings.Contains(out, `"decision"`) {
+			if strings.Contains(out, "nemons setup") || strings.Contains(out, `"decision"`) {
 				t.Errorf("%q does not write the file and must stay silent, got: %q", tt.command, out)
 			}
 		})
@@ -249,8 +249,8 @@ func TestLos31DTildeKeywordsMatchAbsoluteKeywords(t *testing.T) {
 	t.Setenv("HOME", "/home/los31d")
 	home := "/home/los31d"
 
-	tilde := extractKeywords("rm -rf ~/.claude/yesmem")
-	absolute := extractKeywords("rm -rf " + home + "/.claude/yesmem")
+	tilde := extractKeywords("rm -rf ~/.claude/nemons")
+	absolute := extractKeywords("rm -rf " + home + "/.claude/nemons")
 	if len(tilde) == 0 || len(absolute) == 0 {
 		t.Fatalf("harness precondition: empty keyword set, tilde=%v absolute=%v", tilde, absolute)
 	}
@@ -277,7 +277,7 @@ func TestLos31DTildeAndAbsoluteHomeReachTheSameVerdict(t *testing.T) {
 	t.Setenv("HOME", "/home/los31d")
 	home := "/home/los31d"
 	dir := openTempStore(t, func(s *storage.Store) {
-		id := insertGotcha(t, s, "rm -rf "+home+"/.claude/yesmem loescht alle Learnings", "hook_auto_learned", "bash")
+		id := insertGotcha(t, s, "rm -rf "+home+"/.claude/nemons loescht alle Learnings", "hook_auto_learned", "bash")
 		for i := 0; i < blockThreshold; i++ {
 			if err := s.IncrementFailCounts([]int64{id}); err != nil {
 				t.Fatalf("escalate fail count: %v", err)
@@ -288,7 +288,7 @@ func TestLos31DTildeAndAbsoluteHomeReachTheSameVerdict(t *testing.T) {
 	absoluteOut, absoluteCode := runCheckBlocking(t, dir, HookInput{
 		ToolName:  "Bash",
 		CWD:       home,
-		ToolInput: json.RawMessage(`{"command":` + quoteJSON("rm -rf "+home+"/.claude/yesmem") + `}`),
+		ToolInput: json.RawMessage(`{"command":` + quoteJSON("rm -rf "+home+"/.claude/nemons") + `}`),
 	})
 	if !strings.Contains(absoluteOut, "loescht alle Learnings") {
 		t.Fatalf("harness precondition: the absolute form did not reach the gotcha, exit = %d, out = %q", absoluteCode, absoluteOut)
@@ -297,7 +297,7 @@ func TestLos31DTildeAndAbsoluteHomeReachTheSameVerdict(t *testing.T) {
 	tildeOut, tildeCode := runCheckBlocking(t, dir, HookInput{
 		ToolName:  "Bash",
 		CWD:       home,
-		ToolInput: json.RawMessage(`{"command":` + quoteJSON("rm -rf ~/.claude/yesmem") + `}`),
+		ToolInput: json.RawMessage(`{"command":` + quoteJSON("rm -rf ~/.claude/nemons") + `}`),
 	})
 
 	// The absolute form is the reference the finding names ("blocks"), so the test
@@ -329,7 +329,7 @@ func TestLos31DReplDoesNotConsumeSaveCount(t *testing.T) {
 
 	saveCount := func() int {
 		t.Helper()
-		store, err := storage.Open(filepath.Join(dir, "yesmem.db"))
+		store, err := storage.Open(filepath.Join(dir, "nemons.db"))
 		if err != nil {
 			t.Fatalf("reopen store: %v", err)
 		}

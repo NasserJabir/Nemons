@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // CheckDiffScope re-derives a "Files in scope: a, b" claim.

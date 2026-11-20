@@ -8,13 +8,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // profileRepoDir is a throwaway project root under the worktree's own temp space.
 func profileRepoDir(t *testing.T, name string) string {
 	t.Helper()
-	parent, err := filepath.Abs(filepath.Join("..", "..", ".yesmem", "tmp", "verifyprofiles"))
+	parent, err := filepath.Abs(filepath.Join("..", "..", ".nemons", "tmp", "verifyprofiles"))
 	if err != nil {
 		t.Fatalf("abs: %v", err)
 	}
@@ -80,10 +80,10 @@ func TestTheProjectProfileReachesTheClaims(t *testing.T) {
 		map[string]string{"lib/impl.rb": "limit = 2\n"},
 		map[string]string{"lib/impl.rb": "limit = 1\n"},
 	)
-	if err := os.MkdirAll(filepath.Join(repo, ".yesmem"), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Join(repo, ".nemons"), 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(repo, ".yesmem", "verify.yaml"),
+	if err := os.WriteFile(filepath.Join(repo, ".nemons", "verify.yaml"),
 		[]byte("languages:\n  - name: ruby\n    source_extensions: [\".rb\"]\n"), 0o644); err != nil {
 		t.Fatalf("write profile: %v", err)
 	}
@@ -123,10 +123,10 @@ func TestTheProjectProfileReachesTheClaims(t *testing.T) {
 // profile nobody chose.
 func TestASchemaErrorBlocksTheRun(t *testing.T) {
 	repo := t.TempDir()
-	if err := os.MkdirAll(filepath.Join(repo, ".yesmem"), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Join(repo, ".nemons"), 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(repo, ".yesmem", "verify.yaml"),
+	if err := os.WriteFile(filepath.Join(repo, ".nemons", "verify.yaml"),
 		[]byte("languages:\n  - name: go\n    test_commnd: go test ./...\n"), 0o644); err != nil {
 		t.Fatalf("write profile: %v", err)
 	}
@@ -150,7 +150,7 @@ func TestASchemaErrorBlocksTheRun(t *testing.T) {
 		t.Fatalf("status = %s class = %q (%s), want a defect",
 			verdict.Status, verdict.Class, verdict.Reason)
 	}
-	if !strings.Contains(verdict.Reason, ".yesmem/verify.yaml") {
+	if !strings.Contains(verdict.Reason, ".nemons/verify.yaml") {
 		t.Errorf("reason does not name the profile file: %q", verdict.Reason)
 	}
 }

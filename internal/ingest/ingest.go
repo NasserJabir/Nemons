@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // Config holds the ingest pipeline configuration.
@@ -627,7 +627,7 @@ func sweepRemovedDocuments(store *storage.Store, sourceID int64, present map[str
 				// can outlive its file: an empty pass stamps last_sync, so only a
 				// document that reappears or an explicit remove-docs resolves it.
 				if !hintedRetention {
-					log.Printf("  note: %q stays in the index although this pass saw no documents — an anchor beside this tree has rows keyed elsewhere; 'yesmem remove-docs --name <source>' removes it explicitly", rel)
+					log.Printf("  note: %q stays in the index although this pass saw no documents — an anchor beside this tree has rows keyed elsewhere; 'nemons remove-docs --name <source>' removes it explicitly", rel)
 					hintedRetention = true
 				}
 				continue

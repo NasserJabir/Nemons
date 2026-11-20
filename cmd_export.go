@@ -9,19 +9,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 func runExport() {
-	path := "yesmem-export.json"
+	path := "nemons-export.json"
 	if len(os.Args) > 2 {
 		path = os.Args[2]
 	}
 
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 	// Export only reads. storage.Open would create the runtime/messages siblings
 	// and run the schema migrations, so a backup command changed the live DB.
-	store, err := storage.OpenReadOnly(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.OpenReadOnly(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		log.Fatalf("open store: %v", err)
 	}
@@ -35,9 +35,9 @@ func runExport() {
 	fmt.Printf("Exported %d learnings to %q\n", exported, path)
 }
 
-const importUsage = "Usage: yesmem import <file.json> [--distrust-file-sources]"
+const importUsage = "Usage: nemons import <file.json> [--distrust-file-sources]"
 
-// parseImportArgs splits `yesmem import` arguments into the file path and the
+// parseImportArgs splits `nemons import` arguments into the file path and the
 // distrust switch, in either order. Anything else is an error and not a silent
 // no-op: an unrecognised switch (--distrust-file-sourcesX, the =true form) would
 // otherwise leave the file's own provenance claim intact, and a second path
@@ -69,8 +69,8 @@ func runImport() {
 		os.Exit(1)
 	}
 
-	dataDir := yesmemDataDir()
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	dataDir := nemonsDataDir()
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		log.Fatalf("open store: %v", err)
 	}
@@ -132,7 +132,7 @@ func costRows(store *storage.Store, days []string, llmCalls map[string]int) ([]c
 }
 
 func runCost() {
-	store, err := storage.OpenReadOnly(filepath.Join(yesmemDataDir(), "yesmem.db"))
+	store, err := storage.OpenReadOnly(filepath.Join(nemonsDataDir(), "nemons.db"))
 	if err != nil {
 		log.Fatalf("open db: %v", err)
 	}

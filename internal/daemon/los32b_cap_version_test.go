@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/capfile"
+	"github.com/NasserJabir/Nemons/internal/capfile"
 )
 
 // los32bWriteDiskCapFile lays a CAP.md into dir/<name>/CAP.md, as the bundle install

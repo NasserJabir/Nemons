@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // TestDocIngest_RemovingADocumentIsAllOrNothingLos56h covers YM-395: the tree sweep
@@ -16,7 +16,7 @@ import (
 // the next sweep can repair.
 func TestDocIngest_RemovingADocumentIsAllOrNothingLos56h(t *testing.T) {
 	dir := t.TempDir()
-	dbPath := filepath.Join(dir, "yesmem.db")
+	dbPath := filepath.Join(dir, "nemons.db")
 	store, err := storage.Open(dbPath)
 	if err != nil {
 		t.Fatalf("open store: %v", err)

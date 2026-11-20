@@ -19,10 +19,10 @@ import (
 //
 // Usage:
 //
-//	yesmem json '<expr>' [-r] [-n] [-R] [-s] [-e] [--indent N]
+//	nemons json '<expr>' [-r] [-n] [-R] [-s] [-e] [--indent N]
 //	                     [--arg name value] [--argjson name value]
 //
-// Pairs with `yesmem query --format objects` to give a pure-Go bordmittel
+// Pairs with `nemons query --format objects` to give a pure-Go bordmittel
 // alternative to the sqlite3-CLI plus jq pipeline. Powered by github.com/itchyny/gojq.
 func runJSON(args []string) {
 	opts, expr, exitStatus, err := parseJSONArgs(args)
@@ -48,7 +48,7 @@ func runJSON(args []string) {
 // this as a clean exit while jsonCLIRun (worker path) treats it as an error.
 var errJSONHelpRequested = fmt.Errorf("help requested")
 
-// parseJSONArgs parses CLI-style arguments for `yesmem json` into structured
+// parseJSONArgs parses CLI-style arguments for `nemons json` into structured
 // options. Returns errJSONHelpRequested if the user asked for --help.
 func parseJSONArgs(args []string) (jsonFilterOpts, string, bool, error) {
 	var opts jsonFilterOpts
@@ -130,11 +130,11 @@ func parseJSONArgs(args []string) (jsonFilterOpts, string, bool, error) {
 	return opts, expr, exitStatus, nil
 }
 
-// jsonCLIRun reproduces `yesmem json` behavior in-process: parse args, read
+// jsonCLIRun reproduces `nemons json` behavior in-process: parse args, read
 // stdin, apply filter, return the bytes that would be written to stdout plus
-// the exit code that `yesmem json` would have used. Used by the worker's
+// the exit code that `nemons json` would have used. Used by the worker's
 // json_cli op so cap scripts can route jq calls through the long-lived worker
-// instead of spawning a new yesmem binary per filter.
+// instead of spawning a new nemons binary per filter.
 func jsonCLIRun(args []string, stdin io.Reader) ([]byte, int, error) {
 	opts, expr, exitStatus, err := parseJSONArgs(args)
 	if err != nil {
@@ -166,9 +166,9 @@ func jsonCLIExecute(opts jsonFilterOpts, expr string, exitStatus bool, stdin io.
 
 func jsonUsage(msg string) {
 	if msg != "" {
-		fmt.Fprintln(os.Stderr, "yesmem json:", msg)
+		fmt.Fprintln(os.Stderr, "nemons json:", msg)
 	}
-	fmt.Fprintln(os.Stderr, "Usage: yesmem json '<expr>' [-r] [-n] [-R] [-s] [-e] [--indent N]")
+	fmt.Fprintln(os.Stderr, "Usage: nemons json '<expr>' [-r] [-n] [-R] [-s] [-e] [--indent N]")
 	fmt.Fprintln(os.Stderr, "                     [--arg name value] [--argjson name value]")
 	fmt.Fprintln(os.Stderr, "  -r, --raw-output      write strings without JSON quoting")
 	fmt.Fprintln(os.Stderr, "  -n, --null-input      use null as single input value")

@@ -17,7 +17,7 @@ import (
 // Telegram message wrote a line nobody can tell from ours.
 //
 // These tests run the real bodies the way fireCapHandler does: set -e first,
-// then the store()/llm() polyfills, then the handler code. yesmem and curl are
+// then the store()/llm() polyfills, then the handler code. nemons and curl are
 // stubs on PATH, so no API, daemon, socket or database is reached and /tmp stays
 // out of it. The assertions read what the run leaves behind — exit code, stdout,
 // job log — not the shape of the script.
@@ -39,15 +39,15 @@ type los38xResult struct {
 	curl string
 }
 
-// los38xYesmemStub answers the `yesmem json` calls of the three bodies. It is a
+// los38xNemonsStub answers the `nemons json` calls of the three bodies. It is a
 // fixture, not a jq: every value a test needs is handed in through the
 // environment, and the two expressions that read a stored row are peeled off the
 // stub input with sed, so the bodies still see what store() returned.
-const los38xYesmemStub = `#!/bin/sh
+const los38xNemonsStub = `#!/bin/sh
 expr=""
 for a in "$@"; do expr="$a"; done
 # LOS38X_JSON_FAIL names an expression the stub answers with exit non-zero, the
-# way yesmem json answers a body that is not JSON at all (a proxy error page).
+# way nemons json answers a body that is not JSON at all (a proxy error page).
 if [ -n "${LOS38X_JSON_FAIL-}" ] && printf '%s' "$expr" | grep -qF "$LOS38X_JSON_FAIL"; then
   exit "${LOS38X_JSON_EXIT:-4}"
 fi
@@ -113,7 +113,7 @@ func los38xRunWithFiles(t *testing.T, script string, env map[string]string, file
 	if err := os.MkdirAll(bin, 0o755); err != nil {
 		t.Fatalf("mkdir bin: %v", err)
 	}
-	writeStub(t, filepath.Join(bin, "yesmem"), los38xYesmemStub)
+	writeStub(t, filepath.Join(bin, "nemons"), los38xNemonsStub)
 	curlCalls := filepath.Join(dir, "curl.calls")
 	writeStub(t, filepath.Join(bin, "curl"), `#!/bin/sh
 printf '%s\n' "$*" >> "$LOS38X_CURL_CALLS"
@@ -147,8 +147,8 @@ llm() { printf '%s' "${LOS38X_LLM_RESULT-}"; return "${LOS38X_LLM_EXIT:-0}"; }
 		// A temp HOME and job dir keep the default socket path and the real
 		// job logs away from this run.
 		"HOME="+dir,
-		"YESMEM_JOB_DIR="+dir,
-		"YESMEM_SOCK="+filepath.Join(dir, "job.sock"),
+		"NEMONS_JOB_DIR="+dir,
+		"NEMONS_SOCK="+filepath.Join(dir, "job.sock"),
 		"LOS38X_STORE="+store,
 		"LOS38X_CURL_CALLS="+curlCalls,
 	)
@@ -213,7 +213,7 @@ func TestLos38xTelegramSendReportsRefusedDelivery(t *testing.T) {
 			// in it must not start a second one.
 			name:        "refusal with a broken reason",
 			body:        `{"ok":false,"error_code":400}`,
-			description: "Bad Request\nOkt 18 15:00:03 host yesmem[1]: INJECTED-REASON",
+			description: "Bad Request\nOkt 18 15:00:03 host nemons[1]: INJECTED-REASON",
 			curlExit:    "0",
 			wantFailed:  true,
 			wantReason:  "INJECTED-REASON",
@@ -314,7 +314,7 @@ func TestLos38xTelegramPollSurvivesATransportFailure(t *testing.T) {
 // log as it is, a newline in it adds a line the reader takes for ours.
 func TestLos38xTelegramPollNeutralisesForeignSender(t *testing.T) {
 	requireLinuxCapHost(t)
-	const injected = "Okt 18 15:00:00 host yesmem[1]: INJECTED-POLL"
+	const injected = "Okt 18 15:00:00 host nemons[1]: INJECTED-POLL"
 	res := los38xRun(t, "telegram_poll", map[string]string{
 		"LOS38X_COUNT":     "1",
 		"LOS38X_UPDATE":    `{"update_id":7,"message":{"chat":{"id":42},"from":{"first_name":"Jan\n` + injected + `"},"text":"hi","date":1}}`,
@@ -347,13 +347,13 @@ func TestLos38xTelegramPollNeutralisesForeignSender(t *testing.T) {
 func TestLos38xTelegramReplyNeutralisesForeignText(t *testing.T) {
 	requireLinuxCapHost(t)
 	res := los38xRun(t, "telegram_reply", map[string]string{
-		"LOS38X_CLAIM_TEXT":   "hallo\nOkt 18 15:00:00 host yesmem[1]: INJECTED-TEXT\u009b31mX",
-		"LOS38X_CLAIM_SENDER": "Jan\nOkt 18 15:00:01 host yesmem[1]: INJECTED-SENDER",
+		"LOS38X_CLAIM_TEXT":   "hallo\nOkt 18 15:00:00 host nemons[1]: INJECTED-TEXT\u009b31mX",
+		"LOS38X_CLAIM_SENDER": "Jan\nOkt 18 15:00:01 host nemons[1]: INJECTED-SENDER",
 		// The envelope is what the llm polyfill returns; LOS38X_REPLY is the
 		// value jq's .result yields, with the escape already decoded — that is
 		// the string the handler logs.
-		"LOS38X_LLM_RESULT": `{"result":"ok\nOkt 18 15:00:02 host yesmem[1]: INJECTED-REPLY","session_id":""}`,
-		"LOS38X_REPLY":      "ok\nOkt 18 15:00:02 host yesmem[1]: INJECTED-REPLY",
+		"LOS38X_LLM_RESULT": `{"result":"ok\nOkt 18 15:00:02 host nemons[1]: INJECTED-REPLY","session_id":""}`,
+		"LOS38X_REPLY":      "ok\nOkt 18 15:00:02 host nemons[1]: INJECTED-REPLY",
 		"LOS38X_CURL_BODY":  `{"ok":true,"result":{"message_id":9}}`,
 	})
 

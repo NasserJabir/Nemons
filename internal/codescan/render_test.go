@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/wikidir"
+	"github.com/NasserJabir/Nemons/internal/wikidir"
 )
 
 func TestRenderCodeMap_Tiny_FullContent(t *testing.T) {
@@ -90,10 +90,10 @@ func TestRenderCodeMap_Medium_PackagesWithSignatures(t *testing.T) {
 }
 
 func TestRenderCodeMap_Large_SpecEbene1(t *testing.T) {
-	// Build a scan result matching yesmem-like project
+	// Build a scan result matching nemons-like project
 	result := &ScanResult{
 		Tier:    TierLarge,
-		RootDir: "/home/user/project/yesmem",
+		RootDir: "/home/user/project/nemons",
 		Stats:   ProjectStats{FileCount: 247},
 		Packages: []PackageInfo{
 			{Name: "internal/proxy", FileCount: 65, Description: "HTTP proxy, context pipeline, cache management",
@@ -666,10 +666,10 @@ func TestRenderLarge_NoKeyFilesNoChangeCouplingNoActiveZones(t *testing.T) {
 
 // hermeticWikiHome points HOME at a fresh temp dir so the wiki-link header
 // resolves its project name against an empty wiki root. Without it the render
-// reads the developer's real ~/.claude/yesmem/wiki, and a project whose basename
+// reads the developer's real ~/.claude/nemons/wiki, and a project whose basename
 // is already claimed there renders into the collision directory instead — which
 // is how these tests went red on a machine whose deploy had written
-// wiki/yesmem/.project (YM-208).
+// wiki/nemons/.project (YM-208).
 func hermeticWikiHome(t *testing.T) string {
 	t.Helper()
 	dir := t.TempDir()
@@ -683,7 +683,7 @@ func hermeticWikiHome(t *testing.T) string {
 func TestRenderLarge_IncludesWikiLink(t *testing.T) {
 	hermeticWikiHome(t)
 	result := &ScanResult{
-		RootDir: "/tmp/yesmem",
+		RootDir: "/tmp/nemons",
 		Stats:   ProjectStats{FileCount: 700},
 		Packages: []PackageInfo{
 			{Name: "internal/proxy", FileCount: 130},
@@ -693,11 +693,11 @@ func TestRenderLarge_IncludesWikiLink(t *testing.T) {
 	out := renderLarge(result, nil, nil)
 	for _, expect := range []string{
 		"Full code map:",
-		"~/.claude/yesmem/wiki/yesmem/",
+		"~/.claude/nemons/wiki/nemons/",
 		"BEFORE",
 		"check its wiki page",
 		"search_code_index",
-		"`/tmp/yesmem`",
+		"`/tmp/nemons`",
 	} {
 		if !strings.Contains(out, expect) {
 			t.Errorf("missing %q in renderLarge output:\n%s", expect, out)
@@ -709,7 +709,7 @@ func TestRenderMedium_IncludesWikiLink(t *testing.T) {
 	hermeticWikiHome(t)
 	result := &ScanResult{
 		Tier:    TierMedium,
-		RootDir: "/tmp/yesmem",
+		RootDir: "/tmp/nemons",
 		Stats:   ProjectStats{FileCount: 150},
 		Packages: []PackageInfo{
 			{Name: "internal/proxy", FileCount: 60, Description: "HTTP proxy",
@@ -721,7 +721,7 @@ func TestRenderMedium_IncludesWikiLink(t *testing.T) {
 	out := RenderCodeMap(result, nil)
 	for _, expect := range []string{
 		"Full code map:",
-		"~/.claude/yesmem/wiki/yesmem/",
+		"~/.claude/nemons/wiki/nemons/",
 		"BEFORE",
 		"check its wiki page",
 	} {
@@ -747,7 +747,7 @@ func TestRenderSmall_IncludesWikiLink(t *testing.T) {
 	out := RenderCodeMap(result, nil)
 	for _, expect := range []string{
 		"Full code map:",
-		"~/.claude/yesmem/wiki/yessmall/",
+		"~/.claude/nemons/wiki/yessmall/",
 		"BEFORE",
 	} {
 		if !strings.Contains(out, expect) {
@@ -775,7 +775,7 @@ func TestRenderTiny_IncludesWikiLink(t *testing.T) {
 	out := RenderCodeMap(result, nil)
 	for _, expect := range []string{
 		"Full code map:",
-		"~/.claude/yesmem/wiki/yestiny/",
+		"~/.claude/nemons/wiki/yestiny/",
 		"BEFORE",
 	} {
 		if !strings.Contains(out, expect) {
@@ -790,16 +790,16 @@ func TestRenderTiny_IncludesWikiLink(t *testing.T) {
 // would emit the collision name instead.
 func TestRenderWikiLink_ResolvesAgainstTheTestHome(t *testing.T) {
 	home := hermeticWikiHome(t)
-	root := filepath.Join(home, ".claude", "yesmem", "wiki")
-	if err := wikidir.WriteMarker(filepath.Join(root, "yesmem"), "/tmp/yesmem"); err != nil {
+	root := filepath.Join(home, ".claude", "nemons", "wiki")
+	if err := wikidir.WriteMarker(filepath.Join(root, "nemons"), "/tmp/nemons"); err != nil {
 		t.Fatal(err)
 	}
 
-	out := renderWikiLink("/tmp/yesmem")
-	if !strings.Contains(out, "wiki/yesmem/") {
+	out := renderWikiLink("/tmp/nemons")
+	if !strings.Contains(out, "wiki/nemons/") {
 		t.Errorf("render must follow the HOME wiki root, got: %q", out)
 	}
-	if strings.Contains(out, "wiki/yesmem-") {
+	if strings.Contains(out, "wiki/nemons-") {
 		t.Errorf("render fell back to a foreign wiki root, got: %q", out)
 	}
 }
@@ -809,14 +809,14 @@ func TestRenderWikiLink_ResolvesAgainstTheTestHome(t *testing.T) {
 // to say so instead of reusing the plain directory name.
 func TestRenderWikiLink_CollidingHomeYieldsTheCollisionName(t *testing.T) {
 	home := hermeticWikiHome(t)
-	root := filepath.Join(home, ".claude", "yesmem", "wiki")
-	if err := wikidir.WriteMarker(filepath.Join(root, "yesmem"), "/somewhere/else/yesmem"); err != nil {
+	root := filepath.Join(home, ".claude", "nemons", "wiki")
+	if err := wikidir.WriteMarker(filepath.Join(root, "nemons"), "/somewhere/else/nemons"); err != nil {
 		t.Fatal(err)
 	}
 
-	out := renderWikiLink("/tmp/yesmem")
-	want := "wiki/" + filepath.Base(wikidir.Dir(root, "/tmp/yesmem")) + "/"
-	if want == "wiki/yesmem/" {
+	out := renderWikiLink("/tmp/nemons")
+	want := "wiki/" + filepath.Base(wikidir.Dir(root, "/tmp/nemons")) + "/"
+	if want == "wiki/nemons/" {
 		t.Fatalf("test setup did not produce a collision directory: %q", want)
 	}
 	if !strings.Contains(out, want) {

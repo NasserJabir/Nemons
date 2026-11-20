@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/daemon"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/textutil"
+	"github.com/NasserJabir/Nemons/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/textutil"
 )
 
 // seedCapLearning stores a cap row the way an older version left it on disk:
@@ -62,7 +62,7 @@ func activeCapNames(t *testing.T, store *storage.Store) map[string]bool {
 
 // YM-181 [LIVE-8] und YM-197 [DEV-DT33] (Los 56i): das Cap-Learning von
 // wiki_export (#65743) ist auf der Live-Installation aktiv, obwohl das Cap aus
-// dem Bundle entfernt wurde und die Pipeline in "yesmem wiki-render" liegt. Der
+// dem Bundle entfernt wurde und die Pipeline in "nemons wiki-render" liegt. Der
 // Migrationslauf muss es ausmustern, sonst bleibt es im Katalog und als dritter
 // Wiki-Schreiber erreichbar.
 func TestLos56i_MigrationRetiresTheObsoleteCap(t *testing.T) {

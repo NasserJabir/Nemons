@@ -6,14 +6,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 func mustOpenHooksDB(t *testing.T) *storage.Store {
 	t.Helper()
 	tmpDir := t.TempDir()
-	s, err := storage.Open(filepath.Join(tmpDir, "yesmem.db"))
+	s, err := storage.Open(filepath.Join(tmpDir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -29,7 +29,7 @@ func TestResolveMatchingTask_IgnoresCrossProject(t *testing.T) {
 		Project: "/home/testuser/projects/myproject", Confidence: 1.0, CreatedAt: time.Now(), ModelUsed: "haiku",
 	})
 
-	msg := resolveMatchingTask(store, "fix autoRestore API calls", "/home/testuser/projects/yesmem")
+	msg := resolveMatchingTask(store, "fix autoRestore API calls", "/home/testuser/projects/nemons")
 	if msg != "" {
 		t.Errorf("cross-project item was resolved: %s", msg)
 	}
@@ -42,13 +42,13 @@ func TestResolveMatchingTask_ResolvesSameProject(t *testing.T) {
 
 	id, err := store.InsertLearning(&models.Learning{
 		Category: "unfinished", Content: "fix autoRestore.js API calls",
-		Project: "/home/testuser/projects/yesmem", Confidence: 1.0, CreatedAt: time.Now(), ModelUsed: "haiku",
+		Project: "/home/testuser/projects/nemons", Confidence: 1.0, CreatedAt: time.Now(), ModelUsed: "haiku",
 	})
 	if err != nil {
 		t.Fatalf("insert: %v", err)
 	}
 
-	msg := resolveMatchingTask(store, "fix autoRestore API calls (#"+strconv.FormatInt(id, 10)+")", "/home/testuser/projects/yesmem")
+	msg := resolveMatchingTask(store, "fix autoRestore API calls (#"+strconv.FormatInt(id, 10)+")", "/home/testuser/projects/nemons")
 	if msg == "" {
 		t.Error("same-project item was not resolved")
 	}

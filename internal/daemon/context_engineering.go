@@ -13,8 +13,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/textutil"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/textutil"
 )
 
 // contextPackCuratedCategories is the curation list: the knowledge categories

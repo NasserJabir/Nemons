@@ -5,17 +5,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // TestIsDialogInjection_CurrentChannelFormat pins YM-74 (part b): the channel
-// transport moved to a <channel source="yesmem-dialog"> wrapper whose messages
+// transport moved to a <channel source="nemons-dialog"> wrapper whose messages
 // read "📨 Von <sender> [<type>]:", and neither marker was recognised. Dialog and
 // broadcast traffic therefore went into the extraction as if the user had written
 // it, diluting the learnings with agent chatter.
 func TestIsDialogInjection_CurrentChannelFormat(t *testing.T) {
 	cases := map[string]string{
-		"anthropic and openai path wrapper": "<channel source=\"yesmem-dialog\">\nSESSION_ID: ses_x\n📨 Von agent-1 [command]:\nhello\n</channel>",
+		"anthropic and openai path wrapper": "<channel source=\"nemons-dialog\">\nSESSION_ID: ses_x\n📨 Von agent-1 [command]:\nhello\n</channel>",
 		"opencode api push":                 "📨 Von agent-20261017-08 [status]:\nDONE: section complete",
 		"broadcast channel line":            "📨 Von opencode [decision]:\nsandbox profile decided",
 	}
@@ -46,7 +46,7 @@ func TestPreFilterMessages_DropsCurrentChannelInjection(t *testing.T) {
 	msgs := []models.Message{
 		{Role: "user", MessageType: "text", Content: "Implementiere X", Timestamp: time.Now()},
 		{Role: "assistant", MessageType: "text", Content: "Mache ich.", Timestamp: time.Now()},
-		{Role: "user", MessageType: "text", Content: "<channel source=\"yesmem-dialog\">\n📨 Von agent-1 [command]:\nstatus?\n</channel>", Timestamp: time.Now()},
+		{Role: "user", MessageType: "text", Content: "<channel source=\"nemons-dialog\">\n📨 Von agent-1 [command]:\nstatus?\n</channel>", Timestamp: time.Now()},
 		{Role: "assistant", MessageType: "text", Content: "Alles laeuft.", Timestamp: time.Now()},
 		{Role: "user", MessageType: "text", Content: "Danke, weiter.", Timestamp: time.Now()},
 	}

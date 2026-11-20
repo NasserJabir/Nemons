@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func TestDefault(t *testing.T) {
@@ -1039,7 +1039,7 @@ func TestCoerceValue(t *testing.T) {
 }
 
 func TestDiagnosticsPprofDefaultsOff(t *testing.T) {
-	t.Setenv("YESMEM_PPROF", "")
+	t.Setenv("NEMONS_PPROF", "")
 	cfg := Default()
 	if cfg.Diagnostics.Pprof {
 		t.Error("diagnostics.pprof should default to false")
@@ -1053,7 +1053,7 @@ func TestDiagnosticsPprofDefaultsOff(t *testing.T) {
 }
 
 func TestPprofEnabledFromConfig(t *testing.T) {
-	t.Setenv("YESMEM_PPROF", "")
+	t.Setenv("NEMONS_PPROF", "")
 	dir := t.TempDir()
 	cfgFile := filepath.Join(dir, "config.yaml")
 	os.WriteFile(cfgFile, []byte("diagnostics:\n  pprof: true\n  pprof_listen: \"127.0.0.1:7072\"\n"), 0644)
@@ -1071,7 +1071,7 @@ func TestPprofEnabledFromConfig(t *testing.T) {
 }
 
 func TestDiagnosticsAbsentKeepsDefaults(t *testing.T) {
-	t.Setenv("YESMEM_PPROF", "")
+	t.Setenv("NEMONS_PPROF", "")
 	dir := t.TempDir()
 	cfgFile := filepath.Join(dir, "config.yaml")
 	os.WriteFile(cfgFile, []byte("extraction:\n  model: opus\n"), 0644)
@@ -1095,18 +1095,18 @@ func TestDiagnosticsAbsentKeepsDefaults(t *testing.T) {
 
 func TestPprofEnabledEnvOverride(t *testing.T) {
 	// Env forces ON even when the config is off.
-	t.Setenv("YESMEM_PPROF", "1")
+	t.Setenv("NEMONS_PPROF", "1")
 	off := Default()
 	if !off.Diagnostics.PprofEnabled() {
-		t.Error("YESMEM_PPROF=1 should enable pprof even when config is false")
+		t.Error("NEMONS_PPROF=1 should enable pprof even when config is false")
 	}
 
 	// Env forces OFF even when the config is on.
-	t.Setenv("YESMEM_PPROF", "false")
+	t.Setenv("NEMONS_PPROF", "false")
 	on := Default()
 	on.Diagnostics.Pprof = true
 	if on.Diagnostics.PprofEnabled() {
-		t.Error("YESMEM_PPROF=false should disable pprof even when config is true")
+		t.Error("NEMONS_PPROF=false should disable pprof even when config is true")
 	}
 }
 

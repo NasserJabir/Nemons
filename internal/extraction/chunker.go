@@ -6,21 +6,21 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // Noise patterns to strip from text messages before extraction.
 var noisePatterns = []*regexp.Regexp{
 	// <system-reminder>...</system-reminder> — Claude Code hook injections, skill checks
 	regexp.MustCompile(`(?s)<system-reminder>.*?</system-reminder>`),
-	// [yesmem-briefing]...[/yesmem-briefing] — session briefing block
-	regexp.MustCompile(`(?s)\[yesmem-briefing\].*?\[/yesmem-briefing\]`),
-	// [yesmem associative context]...[/yesmem context] — associative injections
-	regexp.MustCompile(`(?s)\[yesmem associative context\].*?\[/yesmem context\]`),
+	// [nemons-briefing]...[/nemons-briefing] — session briefing block
+	regexp.MustCompile(`(?s)\[nemons-briefing\].*?\[/nemons-briefing\]`),
+	// [nemons associative context]...[/nemons context] — associative injections
+	regexp.MustCompile(`(?s)\[nemons associative context\].*?\[/nemons context\]`),
 	// [self-prime]...(to end of line or next block)
 	regexp.MustCompile(`(?s)\[self-prime\]\n?\[Self-Prime[^\]]*\]:[^\n]*(?:\n[^\[]*)*`),
-	// [yesmem-context]...[/yesmem-context] or to end
-	regexp.MustCompile(`(?s)\[yesmem-context\].*?(?:\[/yesmem-context\]|$)`),
+	// [nemons-context]...[/nemons-context] or to end
+	regexp.MustCompile(`(?s)\[nemons-context\].*?(?:\[/nemons-context\]|$)`),
 	// [Metamemory: ...] blocks
 	regexp.MustCompile(`(?s)\[Metamemory:.*?(?:\n\n|\z)`),
 	// [task-reminder] lines
@@ -248,7 +248,7 @@ func PreFilterMessages(msgs []models.Message) []models.Message {
 
 // isDialogInjection detects dialog/broadcast system-reminder injections from think.go
 // and the channel transports. The current format wraps the injected turn in
-// <channel source="yesmem-dialog"> (proxy.go, openai_parity.go) and renders each
+// <channel source="nemons-dialog"> (proxy.go, openai_parity.go) and renders each
 // message as "📨 Von <sender> [<type>]:" (think.go, send_opencode.go); the older
 // markers below it predate that and are kept for transcripts written before it.
 //
@@ -256,7 +256,7 @@ func PreFilterMessages(msgs []models.Message) []models.Message {
 // also hit a user who quotes a channel line, and dropping that turn plus the reply
 // to it loses real context.
 func isDialogInjection(content string) bool {
-	if strings.Contains(content, `<channel source="yesmem-dialog">`) ||
+	if strings.Contains(content, `<channel source="nemons-dialog">`) ||
 		strings.Contains(content, "send_to(") ||
 		strings.Contains(content, "start_dialog(") ||
 		strings.Contains(content, "Dialog-Partner") ||

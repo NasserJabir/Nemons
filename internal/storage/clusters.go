@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // canonicalClusterKey normalises a project path or short name to the key under
@@ -474,9 +474,9 @@ func placeholdersFor(n int) string {
 // not harmless, it makes a key that comes back believe its clusters are current, so
 // they would never be rebuilt.
 //
-// The live set is read from yesmem.db and the keys from the store's proxy state
+// The live set is read from nemons.db and the keys from the store's proxy state
 // (runtime.db), unlike the row sweep which stays in one file. A read-only handle
-// cannot see runtime.db at all: it opens runtimeDB = yesmem.db, so this sweep is
+// cannot see runtime.db at all: it opens runtimeDB = nemons.db, so this sweep is
 // for the write path.
 func (s *Store) PruneOrphanClusterHashes(apply bool) ([]string, int64, error) {
 	withRows, err := s.clusterKeysWithRows()

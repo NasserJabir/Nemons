@@ -67,9 +67,9 @@ func TestStripReminders_ReplacesOldSkillCheck(t *testing.T) {
 	}
 }
 
-func TestStripReminders_ReplacesOldYesMem(t *testing.T) {
+func TestStripReminders_ReplacesOldNemons(t *testing.T) {
 	msgs := []any{
-		map[string]any{"role": "user", "content": "<system-reminder>\nPreToolUse:Edit hook additional context: YesMem Gotchas:\n- Deploy-Gotcha: yesmem proxy...\n- Briefing...\n</system-reminder>"},
+		map[string]any{"role": "user", "content": "<system-reminder>\nPreToolUse:Edit hook additional context: Nemons Gotchas:\n- Deploy-Gotcha: nemons proxy...\n- Briefing...\n</system-reminder>"},
 		map[string]any{"role": "assistant", "content": "ok"},
 		map[string]any{"role": "user", "content": "latest"},
 	}
@@ -78,15 +78,15 @@ func TestStripReminders_ReplacesOldYesMem(t *testing.T) {
 
 	content, _ := result[0].(map[string]any)["content"].(string)
 	if strings.Contains(content, "Deploy-Gotcha") {
-		t.Error("old yesmem gotchas should be stripped")
+		t.Error("old nemons gotchas should be stripped")
 	}
-	if !strings.Contains(content, "[yesmem-context]") {
+	if !strings.Contains(content, "[nemons-context]") {
 		t.Errorf("should be replaced with keyword, got: %s", content)
 	}
 }
 
 func TestStripReminders_KeepsRecentFileChange(t *testing.T) {
-	diff := "Note: /home/user/memory/yesmem/internal/proxy/proxy.go was modified, either by the user or by a linter.\nHere are the relevant changes (shown with line numbers):\n     1→package proxy\n     2→import (\n     3→    \"bytes\"\n"
+	diff := "Note: /home/user/memory/nemons/internal/proxy/proxy.go was modified, either by the user or by a linter.\nHere are the relevant changes (shown with line numbers):\n     1→package proxy\n     2→import (\n     3→    \"bytes\"\n"
 	msgs := []any{
 		map[string]any{"role": "user", "content": fmt.Sprintf("do it <system-reminder>\n%s\n</system-reminder>", diff)},
 		map[string]any{"role": "assistant", "content": "done"},
@@ -103,7 +103,7 @@ func TestStripReminders_KeepsRecentFileChange(t *testing.T) {
 }
 
 func TestStripReminders_SummarizesOldFileChange(t *testing.T) {
-	diff := "Note: /home/user/memory/yesmem/internal/proxy/proxy.go was modified, either by the user or by a linter. This change was intentional, so make sure to take it into account as you proceed (ie. don't revert it unless the user asks you to). Don't tell the user this, since they are already aware. Here are the relevant changes (shown with line numbers):\n     1→package proxy\n     2→import (\n     3→    \"bytes\"\n     95→\t\t\t\tResponseHeaderTimeout: 60 * time.Second,\n     96→\t\t\t},\n"
+	diff := "Note: /home/user/memory/nemons/internal/proxy/proxy.go was modified, either by the user or by a linter. This change was intentional, so make sure to take it into account as you proceed (ie. don't revert it unless the user asks you to). Don't tell the user this, since they are already aware. Here are the relevant changes (shown with line numbers):\n     1→package proxy\n     2→import (\n     3→    \"bytes\"\n     95→\t\t\t\tResponseHeaderTimeout: 60 * time.Second,\n     96→\t\t\t},\n"
 	msgs := los30PadTo([]any{
 		map[string]any{"role": "user", "content": fmt.Sprintf("fix it <system-reminder>\n%s\n</system-reminder>", diff)},
 	}, 19) // age of message 0 = (19-1)/2 = 9 turns → 3-10 → summary with line numbers
@@ -123,7 +123,7 @@ func TestStripReminders_SummarizesOldFileChange(t *testing.T) {
 }
 
 func TestStripReminders_VeryOldFileChange(t *testing.T) {
-	diff := "Note: /home/user/memory/yesmem/internal/proxy/proxy.go was modified, either by the user or by a linter. Here are the relevant changes (shown with line numbers):\n     1→package proxy\n     95→code\n"
+	diff := "Note: /home/user/memory/nemons/internal/proxy/proxy.go was modified, either by the user or by a linter. Here are the relevant changes (shown with line numbers):\n     1→package proxy\n     95→code\n"
 	msgs := los30PadTo([]any{
 		map[string]any{"role": "user", "content": fmt.Sprintf("<system-reminder>\n%s\n</system-reminder>", diff)},
 	}, 25) // age of message 0 = (25-1)/2 = 12 turns → > 10 → minimal
@@ -168,7 +168,7 @@ func TestStripReminders_RemovesOldTaskReminder(t *testing.T) {
 
 func TestStripReminders_MixedContent(t *testing.T) {
 	msgs := []any{
-		map[string]any{"role": "user", "content": "first part <system-reminder>\nMANDATORY SKILL ACTIVATION\n</system-reminder> middle <system-reminder>\nPreToolUse:Edit hook additional context: YesMem Gotchas:\n- gotcha1\n</system-reminder> last part"},
+		map[string]any{"role": "user", "content": "first part <system-reminder>\nMANDATORY SKILL ACTIVATION\n</system-reminder> middle <system-reminder>\nPreToolUse:Edit hook additional context: Nemons Gotchas:\n- gotcha1\n</system-reminder> last part"},
 		map[string]any{"role": "assistant", "content": "ok"},
 		map[string]any{"role": "user", "content": "latest"},
 	}

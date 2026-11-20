@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // openClawLine represents a single line in OpenClaw's JSONL format.
@@ -25,7 +25,7 @@ type openClawLine struct {
 }
 
 // ParseOpenClawSession parses an OpenClaw JSONL session file.
-// Returns messages in yesmem's internal format + session metadata.
+// Returns messages in nemons's internal format + session metadata.
 func ParseOpenClawSession(path string) ([]models.Message, *SessionMeta, error) {
 	f, err := os.Open(path)
 	if err != nil {

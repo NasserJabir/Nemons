@@ -228,7 +228,7 @@ func los61bRunAnthropic(t *testing.T, up *httptest.Server, model string) string 
 		"max_tokens": 16,
 		"thinking":   map[string]any{"type": "enabled"},
 		"system": []any{
-			map[string]any{"type": "text", "text": "Primary working directory: /home/tester/memory/yesmem"},
+			map[string]any{"type": "text", "text": "Primary working directory: /home/tester/memory/nemons"},
 		},
 		"messages": []any{
 			map[string]any{"role": "user", "content": "start the task"},

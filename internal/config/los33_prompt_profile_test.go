@@ -3,7 +3,7 @@ package config
 import (
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 	"gopkg.in/yaml.v3"
 )
 
@@ -150,7 +150,7 @@ func TestLos33EveryFlagFieldIsMergeable(t *testing.T) {
 
 // Review finding: an unknown boolean key in a layer (a typo, or a newer build's
 // flag) was recorded as named and then dereferenced against the flag table,
-// which panicked `yesmem config` and every save path.
+// which panicked `nemons config` and every save path.
 func TestLos33UnknownBoolKeySurvivesMarshal(t *testing.T) {
 	cfg := Default()
 	cfg.Proxy.ClaudePrompt = los33PromptLayer(t, "prompt_tool_prefs: true\nprompt_tool_pref: true\nenabled: true\n")

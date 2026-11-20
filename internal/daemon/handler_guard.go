@@ -3,7 +3,7 @@ package daemon
 import (
 	"encoding/json"
 
-	"github.com/carsteneu/yesmem/internal/guard"
+	"github.com/NasserJabir/Nemons/internal/guard"
 )
 
 // handleGuardCheck judges one tool call for a harness that is not Claude Code. The opencode plugin dials it:

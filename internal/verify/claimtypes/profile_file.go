@@ -12,7 +12,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // ProfilePath is where a project states its own verify profile, relative to the
@@ -23,7 +23,7 @@ import (
 // correct them: a field it names replaces the built-in one, and a field neither
 // side fills stays empty, which the claim that needs it reports as an
 // environment gap.
-const ProfilePath = ".yesmem/verify.yaml"
+const ProfilePath = ".nemons/verify.yaml"
 
 // MaxProfileBytes bounds the profile file. It is read on the verifier's single
 // slot before any claim runs, so an unbounded read would be an unbounded
@@ -171,7 +171,7 @@ func WriteProfileFile(repo string, languages []engine.Language) (string, error) 
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return "", fmt.Errorf("%s cannot be created: %v", ProfilePath, err)
 	}
-	// A committed .yesmem may be a symlink into any directory the operator can
+	// A committed .nemons may be a symlink into any directory the operator can
 	// write. Following it would create a file named verify.yaml outside the
 	// repository, so the parent has to resolve inside it.
 	if err := refuseSymlinkedParent(repo, dir); err != nil {

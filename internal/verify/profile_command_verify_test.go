@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // The project file has to reach the allowlist gate, not only the language data.
@@ -19,7 +19,7 @@ func TestTheProjectsTestCommandReachesTheClaim(t *testing.T) {
 	repo, _, head := profileRepo(t, "commandreaches",
 		map[string]string{"README": "one\n"},
 		map[string]string{
-			".yesmem/verify.yaml": "languages:\n  - name: go\n    test_command: sh ./run.sh\n",
+			".nemons/verify.yaml": "languages:\n  - name: go\n    test_command: sh ./run.sh\n",
 			"run.sh":              "#!/bin/sh\necho \"Ran 2 tests in 0.01s\"\nexit 0\n",
 		},
 	)
@@ -60,15 +60,15 @@ func TestAnUncommittedProfileCannotGrantACommand(t *testing.T) {
 	repo, _, head := profileRepo(t, "uncommittedprofile",
 		map[string]string{"README": "one\n"},
 		map[string]string{
-			".gitignore": ".yesmem/\n",
+			".gitignore": ".nemons/\n",
 			"run.sh":     "#!/bin/sh\necho \"Ran 2 tests in 0.01s\"\nexit 0\n",
 		},
 	)
-	// The usual shape: .yesmem is ignored, the file is written but never committed.
-	if err := os.MkdirAll(filepath.Join(repo, ".yesmem"), 0o755); err != nil {
+	// The usual shape: .nemons is ignored, the file is written but never committed.
+	if err := os.MkdirAll(filepath.Join(repo, ".nemons"), 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(repo, ".yesmem", "verify.yaml"),
+	if err := os.WriteFile(filepath.Join(repo, ".nemons", "verify.yaml"),
 		[]byte("languages:\n  - name: go\n    test_command: sh ./run.sh\n"), 0o644); err != nil {
 		t.Fatalf("write profile: %v", err)
 	}
@@ -90,7 +90,7 @@ func TestAnUncommittedProfileCannotGrantACommand(t *testing.T) {
 		t.Fatalf("kind = %q (%s), want the defect that names the uncommitted profile",
 			report.Decision.Kind, report.Decision.Reason)
 	}
-	if !strings.Contains(report.Decision.Reason, ".yesmem/verify.yaml") {
+	if !strings.Contains(report.Decision.Reason, ".nemons/verify.yaml") {
 		t.Errorf("reason = %q, want it to name the profile file", report.Decision.Reason)
 	}
 	for _, verdict := range report.Verdicts {
@@ -107,7 +107,7 @@ func TestTheProjectsCommandIsNotACommandFamily(t *testing.T) {
 	repo, _, head := profileRepo(t, "commandfamily",
 		map[string]string{"README": "one\n"},
 		map[string]string{
-			".yesmem/verify.yaml": "languages:\n  - name: go\n    test_command: sh ./run.sh\n",
+			".nemons/verify.yaml": "languages:\n  - name: go\n    test_command: sh ./run.sh\n",
 			"run.sh":              "#!/bin/sh\necho \"Ran 2 tests in 0.01s\"\nexit 0\n",
 		},
 	)
@@ -147,14 +147,14 @@ func TestTheProjectsCommandIsNotACommandFamily(t *testing.T) {
 func TestAProfileThatGrantsNothingNeedNotBeCommitted(t *testing.T) {
 	repo, _, head := profileRepo(t, "narrowprofile",
 		map[string]string{"README": "one\n"},
-		map[string]string{".gitignore": ".yesmem/\n"},
+		map[string]string{".gitignore": ".nemons/\n"},
 	)
 	// go test is already on the builtin allowlist by prefix: the file grants
 	// nothing, and it is not part of any commit.
-	if err := os.MkdirAll(filepath.Join(repo, ".yesmem"), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Join(repo, ".nemons"), 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(repo, ".yesmem", "verify.yaml"),
+	if err := os.WriteFile(filepath.Join(repo, ".nemons", "verify.yaml"),
 		[]byte("languages:\n  - name: go\n    test_command: go test ./...\n"), 0o644); err != nil {
 		t.Fatalf("write profile: %v", err)
 	}
@@ -181,13 +181,13 @@ func TestAModifiedProfileDoesNotGrantItsNewCommand(t *testing.T) {
 	repo, _, head := profileRepo(t, "modifiedprofile",
 		map[string]string{"README": "one\n"},
 		map[string]string{
-			".yesmem/verify.yaml": "languages:\n  - name: go\n    test_command: sh ./run.sh\n",
+			".nemons/verify.yaml": "languages:\n  - name: go\n    test_command: sh ./run.sh\n",
 			"run.sh":              "#!/bin/sh\necho \"Ran 2 tests in 0.01s\"\nexit 0\n",
 			"hijack.sh":           "#!/bin/sh\necho \"Ran 9 tests in 0.01s\"\nexit 0\n",
 		},
 	)
 	// The committed profile names run.sh; the working tree names hijack.sh.
-	if err := os.WriteFile(filepath.Join(repo, ".yesmem", "verify.yaml"),
+	if err := os.WriteFile(filepath.Join(repo, ".nemons", "verify.yaml"),
 		[]byte("languages:\n  - name: go\n    test_command: sh ./hijack.sh\n"), 0o644); err != nil {
 		t.Fatalf("rewrite profile: %v", err)
 	}
@@ -218,16 +218,16 @@ func TestAHiddenProfileEditDoesNotGrantItsCommand(t *testing.T) {
 	repo, _, head := profileRepo(t, "hiddenprofile",
 		map[string]string{"README": "one\n"},
 		map[string]string{
-			".yesmem/verify.yaml": "languages:\n  - name: go\n    test_command: sh ./run.sh\n",
+			".nemons/verify.yaml": "languages:\n  - name: go\n    test_command: sh ./run.sh\n",
 			"run.sh":              "#!/bin/sh\necho \"Ran 2 tests in 0.01s\"\nexit 0\n",
 			"hijack.sh":           "#!/bin/sh\necho \"Ran 9 tests in 0.01s\"\nexit 0\n",
 		},
 	)
 	if out, err := exec.Command("git", "-C", repo, "update-index", "--assume-unchanged",
-		".yesmem/verify.yaml").CombinedOutput(); err != nil {
+		".nemons/verify.yaml").CombinedOutput(); err != nil {
 		t.Fatalf("assume-unchanged: %v: %s", err, out)
 	}
-	if err := os.WriteFile(filepath.Join(repo, ".yesmem", "verify.yaml"),
+	if err := os.WriteFile(filepath.Join(repo, ".nemons", "verify.yaml"),
 		[]byte("languages:\n  - name: go\n    test_command: sh ./hijack.sh\n"), 0o644); err != nil {
 		t.Fatalf("rewrite profile: %v", err)
 	}
@@ -255,7 +255,7 @@ func TestAHiddenProfileEditDoesNotGrantItsCommand(t *testing.T) {
 		t.Fatalf("kind = %q (%s), want the defect that names the profile",
 			report.Decision.Kind, report.Decision.Reason)
 	}
-	if !strings.Contains(report.Decision.Reason, ".yesmem/verify.yaml") {
+	if !strings.Contains(report.Decision.Reason, ".nemons/verify.yaml") {
 		t.Errorf("reason = %q, want it to name the profile file", report.Decision.Reason)
 	}
 }

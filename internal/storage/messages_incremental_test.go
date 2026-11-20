@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func seedSessionMessages(t *testing.T, s *Store, sessionID string, bodies ...string) {
@@ -43,17 +43,17 @@ func seedSessionMessages(t *testing.T, s *Store, sessionID string, bodies ...str
 // with the session and quietly undoes the point of incremental indexing.
 func TestMessagesSessionSequenceIndexExists(t *testing.T) {
 	dir := t.TempDir()
-	s, err := Open(filepath.Join(dir, "yesmem.db"))
+	s, err := Open(filepath.Join(dir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
 	t.Cleanup(func() { s.Close() })
 
-	// Both handles: messages.db carries the real rows, yesmem.db mirrors the
+	// Both handles: messages.db carries the real rows, nemons.db mirrors the
 	// legacy schema and is kept in sync by convention.
 	for name, db := range map[string]*sql.DB{
 		"messages.db": s.messagesReaderDB(),
-		"yesmem.db":   s.readerDB(),
+		"nemons.db":   s.readerDB(),
 	} {
 		var got string
 		err := db.QueryRow(
@@ -236,7 +236,7 @@ func TestMessagesSequenceIndexIsUniqueAndLegacyDuplicatesPurged(t *testing.T) {
 	messagesPath := filepath.Join(dir, "messages.db")
 	seedLegacyMessagesDB(t, messagesPath)
 
-	s, err := Open(filepath.Join(dir, "yesmem.db"))
+	s, err := Open(filepath.Join(dir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -245,10 +245,10 @@ func TestMessagesSequenceIndexIsUniqueAndLegacyDuplicatesPurged(t *testing.T) {
 	if exists, unique := indexUniqueFlag(t, s.messagesReaderDB(), "messages", "idx_messages_session_seq"); !exists || !unique {
 		t.Errorf("messages.db: idx_messages_session_seq exists=%v unique=%v, want true/true", exists, unique)
 	}
-	// yesmem.db carries a legacy mirror of the messages table; it must not drift
+	// nemons.db carries a legacy mirror of the messages table; it must not drift
 	// from messages.db, or the two schemas disagree about the same invariant.
 	if exists, unique := indexUniqueFlag(t, s.readerDB(), "messages", "idx_messages_session_seq"); !exists || !unique {
-		t.Errorf("yesmem.db: idx_messages_session_seq exists=%v unique=%v, want true/true", exists, unique)
+		t.Errorf("nemons.db: idx_messages_session_seq exists=%v unique=%v, want true/true", exists, unique)
 	}
 
 	msgs, err := s.GetMessagesBySession("sess-dup")
@@ -351,7 +351,7 @@ func TestEnsureUniqueMessageSequenceUnderConcurrentCallers(t *testing.T) {
 		}
 	}
 
-	s, err := Open(filepath.Join(dir, "yesmem.db"))
+	s, err := Open(filepath.Join(dir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // The v0.65 backfill rewrites learnings.project from the authoritative session
@@ -40,7 +40,7 @@ func readProject(t *testing.T, s *Store) sql.NullString {
 
 // A session that is not in the sessions table must leave the project alone.
 func TestV065ProjectBackfillKeepsUnresolvedProject(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "yesmem.db")
+	path := filepath.Join(t.TempDir(), "nemons.db")
 	s, err := Open(path)
 	if err != nil {
 		t.Fatalf("open: %v", err)
@@ -65,7 +65,7 @@ func TestV065ProjectBackfillKeepsUnresolvedProject(t *testing.T) {
 // A matching session still backfills the full path; the guard must not switch
 // off the migration it protects.
 func TestV065ProjectBackfillStillResolvesMatchingSession(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "yesmem.db")
+	path := filepath.Join(t.TempDir(), "nemons.db")
 	s, err := Open(path)
 	if err != nil {
 		t.Fatalf("open: %v", err)
@@ -91,7 +91,7 @@ func TestV065ProjectBackfillStillResolvesMatchingSession(t *testing.T) {
 // A session whose project is itself a short name must not overwrite a project
 // with something that is not a path.
 func TestV065ProjectBackfillIgnoresNonPathSessionProject(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "yesmem.db")
+	path := filepath.Join(t.TempDir(), "nemons.db")
 	s, err := Open(path)
 	if err != nil {
 		t.Fatalf("open: %v", err)
@@ -122,7 +122,7 @@ func TestV065ProjectBackfillIgnoresNonPathSessionProject(t *testing.T) {
 // every row that still had an empty canonical — 1110 rows on the live database
 // when it was removed. This guards that it stays removed.
 func TestStoreOpenKeepsCanonicalProjectBasename(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "yesmem.db")
+	path := filepath.Join(t.TempDir(), "nemons.db")
 	s, err := Open(path)
 	if err != nil {
 		t.Fatalf("open: %v", err)

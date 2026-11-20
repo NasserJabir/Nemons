@@ -11,9 +11,9 @@ import (
 // is not a copy. Following it would write the unit's contents to whatever it points
 // at, so the migration has to refuse and leave the unit alone.
 func TestMigrateSystemdUnitsDoesNotWriteThroughASymlink(t *testing.T) {
-	stubMigrationSelf(t, "/home/u/.local/bin/yesmem")
+	stubMigrationSelf(t, "/home/u/.local/bin/nemons")
 	home := t.TempDir()
-	daemonPath := writeUnitFixture(t, home, "yesmem.service", legacyDaemonUnit)
+	daemonPath := writeUnitFixture(t, home, "nemons.service", legacyDaemonUnit)
 	target := filepath.Join(home, "elsewhere.conf")
 	if err := os.Symlink(target, UnitBackupPath(daemonPath)); err != nil {
 		t.Fatal(err)
@@ -33,9 +33,9 @@ func TestMigrateSystemdUnitsDoesNotWriteThroughASymlink(t *testing.T) {
 // TestKeepUnitBackupKeepsTheUnitsPermissions: a unit the operator hardened must not
 // become a world-readable copy just because it was backed up.
 func TestKeepUnitBackupKeepsTheUnitsPermissions(t *testing.T) {
-	stubMigrationSelf(t, "/home/u/.local/bin/yesmem")
+	stubMigrationSelf(t, "/home/u/.local/bin/nemons")
 	home := t.TempDir()
-	daemonPath := writeUnitFixture(t, home, "yesmem.service", legacyDaemonUnit)
+	daemonPath := writeUnitFixture(t, home, "nemons.service", legacyDaemonUnit)
 	if err := os.Chmod(daemonPath, 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -58,10 +58,10 @@ func TestKeepUnitBackupKeepsTheUnitsPermissions(t *testing.T) {
 // that could undo it is exactly the one that cannot start. The migration therefore
 // has to leave the pre-migration unit behind, once, so the way back is a copy.
 func TestMigrateSystemdUnitsKeepsThePrenotifyUnitForARollback(t *testing.T) {
-	stubMigrationSelf(t, "/home/u/.local/bin/yesmem")
+	stubMigrationSelf(t, "/home/u/.local/bin/nemons")
 	home := t.TempDir()
-	daemonPath := writeUnitFixture(t, home, "yesmem.service", legacyDaemonUnit)
-	writeUnitFixture(t, home, "yesmem-proxy.service", legacyProxyUnit)
+	daemonPath := writeUnitFixture(t, home, "nemons.service", legacyDaemonUnit)
+	writeUnitFixture(t, home, "nemons-proxy.service", legacyProxyUnit)
 
 	if _, err := MigrateSystemdUnits(home, t.TempDir()); err != nil {
 		t.Fatalf("MigrateSystemdUnits: %v", err)
@@ -90,9 +90,9 @@ func TestMigrateSystemdUnitsKeepsThePrenotifyUnitForARollback(t *testing.T) {
 // be written, the irreversible rewrite must not happen. A unit that changed without
 // a way back is worse than an unmigrated one.
 func TestMigrateSystemdUnitsRefusesToMigrateWithoutItsRollbackCopy(t *testing.T) {
-	stubMigrationSelf(t, "/home/u/.local/bin/yesmem")
+	stubMigrationSelf(t, "/home/u/.local/bin/nemons")
 	home := t.TempDir()
-	daemonPath := writeUnitFixture(t, home, "yesmem.service", legacyDaemonUnit)
+	daemonPath := writeUnitFixture(t, home, "nemons.service", legacyDaemonUnit)
 
 	// A directory where the copy would go: os.WriteFile fails, the unit must stay.
 	if err := os.MkdirAll(UnitBackupPath(daemonPath), 0o755); err != nil {
@@ -111,10 +111,10 @@ func TestMigrateSystemdUnitsRefusesToMigrateWithoutItsRollbackCopy(t *testing.T)
 // who sees a failing start looks there, not at the migration output of a run from
 // months ago.
 func TestMigrateSystemdUnitsNamesTheWayBack(t *testing.T) {
-	stubMigrationSelf(t, "/home/u/.local/bin/yesmem")
+	stubMigrationSelf(t, "/home/u/.local/bin/nemons")
 	home := t.TempDir()
-	daemonPath := writeUnitFixture(t, home, "yesmem.service", legacyDaemonUnit)
-	proxyPath := writeUnitFixture(t, home, "yesmem-proxy.service", legacyProxyUnit)
+	daemonPath := writeUnitFixture(t, home, "nemons.service", legacyDaemonUnit)
+	proxyPath := writeUnitFixture(t, home, "nemons-proxy.service", legacyProxyUnit)
 
 	if _, err := MigrateSystemdUnits(home, t.TempDir()); err != nil {
 		t.Fatalf("MigrateSystemdUnits: %v", err)

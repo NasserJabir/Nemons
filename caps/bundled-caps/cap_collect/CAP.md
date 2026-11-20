@@ -29,7 +29,7 @@ async ({cap, table, where, args, instruction, mode, model, max_tokens, max_rows}
   let rows = [], off = 0, total = 0;
   while (rows.length < cap_rows) {
     const pageLim = Math.min(100, cap_rows - rows.length);
-    const r = await mcp__yesmem__cap_store({capability: cap, action: 'query', table, where: where || '', args: argsJson, limit: pageLim, offset: off});
+    const r = await mcp__nemons__cap_store({capability: cap, action: 'query', table, where: where || '', args: argsJson, limit: pageLim, offset: off});
     const parsed = typeof r === 'string' ? JSON.parse(r) : r;
     if (!parsed?.rows?.length) break;
     rows.push(...parsed.rows);

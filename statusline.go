@@ -7,7 +7,7 @@ import (
 	"os/user"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/proxy"
+	"github.com/NasserJabir/Nemons/internal/proxy"
 )
 
 // statuslineInput is the JSON structure Claude Code sends to the statusline command.
@@ -99,7 +99,7 @@ func runStatusline() {
 		coldCost := float64(totalTok) * pricing.WriteRate / 1_000_000
 
 		// Read cache status from proxy status.json
-		dataDir := yesmemDataDir()
+		dataDir := nemonsDataDir()
 		statusPath := proxy.CacheStatusPath(dataDir, input.SessionID)
 		ttlStr, expiryCost := formatTTL(statusPath, tokK, coldCost)
 		sb.WriteString("\n")

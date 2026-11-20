@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/proxy"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/proxy"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // The daemon carried its own copy of the utilization arithmetic at two sites

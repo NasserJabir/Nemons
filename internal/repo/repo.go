@@ -72,7 +72,7 @@ func Root(dir string) string {
 //
 // Unlike Root it never walks up to an enclosing repository. Callers use it to
 // decide whether a doc source is a standalone checkout (the docs clones under
-// ~/.claude/yesmem/docs/<name>) or just a path inside the user's working repo
+// ~/.claude/nemons/docs/<name>) or just a path inside the user's working repo
 // (e.g. <repo>/CLAUDE.md). Pulling the latter would mean running git pull on
 // the repository a session is working in.
 //

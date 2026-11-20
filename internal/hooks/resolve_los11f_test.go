@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // YM-279 (Los 11f, aus Los 11d): the PostToolUse hook only looked at the command
@@ -111,7 +111,7 @@ func los11fRejectingCommit(t *testing.T, dir, message string) (stdout, stderr st
 func los11fPrepare(t *testing.T, project string) (dataDir string, taskID int64) {
 	t.Helper()
 	dataDir = t.TempDir()
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -148,7 +148,7 @@ func los11fRunCheck(t *testing.T, dataDir, cwd, command, stdout, stderr string) 
 // los11fResolved reports whether the task was resolved.
 func los11fResolved(t *testing.T, dataDir string, taskID int64) bool {
 	t.Helper()
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("reopen store: %v", err)
 	}

@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/daemon"
 )
 
 func runRelay() {
@@ -40,7 +40,7 @@ func runRelay() {
 		os.Exit(1)
 	}
 
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 
 	switch {
 	case *content != "":

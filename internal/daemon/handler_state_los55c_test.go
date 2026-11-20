@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // YM-268 [CFG-03] (Los 55c), Befund 5: set_config wies einen leeren Wert ab

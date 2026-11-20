@@ -8,7 +8,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/guardmodel"
+	"github.com/NasserJabir/Nemons/internal/guardmodel"
 )
 
 func resetCache() {

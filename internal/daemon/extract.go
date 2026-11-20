@@ -14,11 +14,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/ingest"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/ingest"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // cleanupFinishedShortSessionLearnings supersedes learnings of sessions that are
@@ -161,7 +161,7 @@ func runInitialExtraction(ext extraction.SessionExtractor, evoExt *extraction.Ex
 			bin, _ := os.Executable()
 			cmd := exec.Command(bin, "embed-learnings")
 			homeDir, _ := os.UserHomeDir()
-			logPath := filepath.Join(homeDir, ".claude", "yesmem", "logs", "embed.log")
+			logPath := filepath.Join(homeDir, ".claude", "nemons", "logs", "embed.log")
 			os.MkdirAll(filepath.Dir(logPath), 0755)
 			if logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644); err == nil {
 				cmd.Stdout = logFile
@@ -204,7 +204,7 @@ func runInitialExtraction(ext extraction.SessionExtractor, evoExt *extraction.Ex
 			bin, _ := os.Executable()
 			cmd := exec.Command("nice", "-n", "19", bin, "embed-learnings")
 			homeDir, _ := os.UserHomeDir()
-			logPath := filepath.Join(homeDir, ".claude", "yesmem", "logs", "embed.log")
+			logPath := filepath.Join(homeDir, ".claude", "nemons", "logs", "embed.log")
 			os.MkdirAll(filepath.Dir(logPath), 0755)
 			if logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644); err == nil {
 				cmd.Stdout = logFile
@@ -921,7 +921,7 @@ func runBatchExtraction(ext extraction.SessionExtractor, evoExt *extraction.Extr
 			bin, _ := os.Executable()
 			cmd := exec.Command(bin, "embed-learnings")
 			homeDir, _ := os.UserHomeDir()
-			logPath := filepath.Join(homeDir, ".claude", "yesmem", "logs", "embed.log")
+			logPath := filepath.Join(homeDir, ".claude", "nemons", "logs", "embed.log")
 			os.MkdirAll(filepath.Dir(logPath), 0755)
 			if logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644); err == nil {
 				cmd.Stdout = logFile

@@ -45,14 +45,14 @@ func TestAddPreToolUseGuardHook_UpgradesOutdatedMatcher(t *testing.T) {
 				"hooks": []any{
 					map[string]any{
 						"type":    "command",
-						"command": "/usr/local/bin/yesmem hook-guard",
+						"command": "/usr/local/bin/nemons hook-guard",
 					},
 				},
 			},
 		},
 	}
 
-	addPreToolUseGuardHook(hooks, "/usr/local/bin/yesmem")
+	addPreToolUseGuardHook(hooks, "/usr/local/bin/nemons")
 
 	entries, ok := hooks["PreToolUse"].([]any)
 	if !ok || len(entries) != 1 {
@@ -77,10 +77,10 @@ func TestRegisterMCPPermissions_Empty(t *testing.T) {
 		t.Fatal("permissions.allow not set")
 	}
 	if len(allow) != 1 {
-		t.Fatalf("expected 1 entry (mcp__yesmem__*), got %d: %v", len(allow), allow)
+		t.Fatalf("expected 1 entry (mcp__nemons__*), got %d: %v", len(allow), allow)
 	}
-	if allow[0] != "mcp__yesmem__*" {
-		t.Fatalf("expected mcp__yesmem__*, got %q", allow[0])
+	if allow[0] != "mcp__nemons__*" {
+		t.Fatalf("expected mcp__nemons__*, got %q", allow[0])
 	}
 }
 
@@ -95,20 +95,20 @@ func TestRegisterMCPPermissions_ExistingPermissions(t *testing.T) {
 	perms := settings["permissions"].(map[string]any)
 	allow := perms["allow"].([]any)
 	if len(allow) != 3 {
-		t.Fatalf("expected 3 entries (2 existing + mcp__yesmem__*), got %d: %v", len(allow), allow)
+		t.Fatalf("expected 3 entries (2 existing + mcp__nemons__*), got %d: %v", len(allow), allow)
 	}
 	if allow[0] != "Bash(git:*)" || allow[1] != "WebSearch" {
 		t.Fatalf("existing entries should be preserved at start: %v", allow[:2])
 	}
-	if allow[2] != "mcp__yesmem__*" {
-		t.Fatalf("expected mcp__yesmem__* as third entry, got %q", allow[2])
+	if allow[2] != "mcp__nemons__*" {
+		t.Fatalf("expected mcp__nemons__* as third entry, got %q", allow[2])
 	}
 }
 
 func TestRegisterMCPPermissions_AlreadyPresent(t *testing.T) {
 	settings := map[string]any{
 		"permissions": map[string]any{
-			"allow": []any{"Bash(git:*)", "mcp__yesmem__*"},
+			"allow": []any{"Bash(git:*)", "mcp__nemons__*"},
 		},
 	}
 	registerMCPPermissions(settings)
@@ -116,18 +116,18 @@ func TestRegisterMCPPermissions_AlreadyPresent(t *testing.T) {
 	allow := settings["permissions"].(map[string]any)["allow"].([]any)
 	count := 0
 	for _, v := range allow {
-		if v == "mcp__yesmem__*" {
+		if v == "mcp__nemons__*" {
 			count++
 		}
 	}
 	if count != 1 {
-		t.Fatalf("expected exactly 1 mcp__yesmem__*, got %d in %v", count, allow)
+		t.Fatalf("expected exactly 1 mcp__nemons__*, got %d in %v", count, allow)
 	}
 }
 
 func TestAddPostToolUseResolveHook_HasIfCondition(t *testing.T) {
 	hooks := map[string]any{}
-	addPostToolUseResolveHook(hooks, "/usr/bin/yesmem")
+	addPostToolUseResolveHook(hooks, "/usr/bin/nemons")
 
 	entries, ok := hooks["PostToolUse"].([]any)
 	if !ok || len(entries) != 1 {
@@ -155,13 +155,13 @@ func TestAddPostToolUseResolveHook_MigratesExistingWithoutIf(t *testing.T) {
 				"hooks": []any{
 					map[string]any{
 						"type":    "command",
-						"command": "/usr/bin/yesmem hook-resolve",
+						"command": "/usr/bin/nemons hook-resolve",
 					},
 				},
 			},
 		},
 	}
-	addPostToolUseResolveHook(hooks, "/usr/bin/yesmem")
+	addPostToolUseResolveHook(hooks, "/usr/bin/nemons")
 
 	entries := hooks["PostToolUse"].([]any)
 	if len(entries) != 1 {
@@ -187,13 +187,13 @@ func TestAddPostToolUseResolveHook_MovesGroupLevelIfToHandler(t *testing.T) {
 				"hooks": []any{
 					map[string]any{
 						"type":    "command",
-						"command": "/usr/bin/yesmem hook-resolve",
+						"command": "/usr/bin/nemons hook-resolve",
 					},
 				},
 			},
 		},
 	}
-	addPostToolUseResolveHook(hooks, "/usr/bin/yesmem")
+	addPostToolUseResolveHook(hooks, "/usr/bin/nemons")
 
 	entries := hooks["PostToolUse"].([]any)
 	if len(entries) != 1 {
@@ -223,10 +223,10 @@ func TestRegisterMCPPermissions_PermissionsWithoutAllow(t *testing.T) {
 		t.Fatal("permissions.allow not created")
 	}
 	if len(allow) != 1 {
-		t.Fatalf("expected 1 entry (mcp__yesmem__*), got %d: %v", len(allow), allow)
+		t.Fatalf("expected 1 entry (mcp__nemons__*), got %d: %v", len(allow), allow)
 	}
-	if allow[0] != "mcp__yesmem__*" {
-		t.Fatalf("expected mcp__yesmem__*, got %q", allow[0])
+	if allow[0] != "mcp__nemons__*" {
+		t.Fatalf("expected mcp__nemons__*, got %q", allow[0])
 	}
 	// defaultMode should be preserved
 	if perms["defaultMode"] != "default" {
@@ -236,7 +236,7 @@ func TestRegisterMCPPermissions_PermissionsWithoutAllow(t *testing.T) {
 
 func TestAddSessionStartHook_UsesBriefingHookCommand(t *testing.T) {
 	hooks := map[string]any{}
-	addSessionStartHook(hooks, "/usr/local/bin/yesmem")
+	addSessionStartHook(hooks, "/usr/local/bin/nemons")
 
 	entries, ok := hooks["SessionStart"].([]any)
 	if !ok || len(entries) == 0 {
@@ -244,7 +244,7 @@ func TestAddSessionStartHook_UsesBriefingHookCommand(t *testing.T) {
 	}
 	hookList := entries[0].(map[string]any)["hooks"].([]any)
 	cmd := hookList[0].(map[string]any)["command"].(string)
-	want := "/usr/local/bin/yesmem briefing-hook"
+	want := "/usr/local/bin/nemons briefing-hook"
 	if cmd != want {
 		t.Errorf("hook command = %q want %q", cmd, want)
 	}
@@ -256,17 +256,17 @@ func TestAddSessionStartHook_UpdatesExistingCommandToBriefingHook(t *testing.T) 
 			map[string]any{
 				"matcher": "startup|resume|clear|compact",
 				"hooks": []any{
-					map[string]any{"type": "command", "command": "/home/user/.claude/hooks/yesmem-briefing.sh"},
+					map[string]any{"type": "command", "command": "/home/user/.claude/hooks/nemons-briefing.sh"},
 				},
 			},
 		},
 	}
-	addSessionStartHook(hooks, "/usr/local/bin/yesmem")
+	addSessionStartHook(hooks, "/usr/local/bin/nemons")
 
 	entries := hooks["SessionStart"].([]any)
 	hookList := entries[0].(map[string]any)["hooks"].([]any)
 	cmd := hookList[0].(map[string]any)["command"].(string)
-	want := "/usr/local/bin/yesmem briefing-hook"
+	want := "/usr/local/bin/nemons briefing-hook"
 	if cmd != want {
 		t.Errorf("existing hook not updated: got %q want %q", cmd, want)
 	}
@@ -296,7 +296,7 @@ func TestSetPrimaryApiKeyInClaudeJSON_RemovesOAuthAccount(t *testing.T) {
 	}
 }
 
-// clearClaudeJSONAuth rewrites a file whose pre-yesmem version carried no strict
+// clearClaudeJSONAuth rewrites a file whose pre-nemons version carried no strict
 // mode: the chmod must not depend on the file being created by this call.
 func TestClearClaudeJSONAuth_TightensExistingFileMode(t *testing.T) {
 	if runtime.GOOS == "windows" {
@@ -331,7 +331,7 @@ func TestRegisterMCPInClaudeJSON_TightensExistingFileMode(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := registerMCPInClaudeJSON(home, "/usr/local/bin/yesmem"); err != nil {
+	if err := registerMCPInClaudeJSON(home, "/usr/local/bin/nemons"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -359,7 +359,7 @@ func TestRegisterMCPInClaudeJSON_TightensExistingBackup(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := registerMCPInClaudeJSON(home, "/usr/local/bin/yesmem"); err != nil {
+	if err := registerMCPInClaudeJSON(home, "/usr/local/bin/nemons"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -425,7 +425,7 @@ func TestClearClaudeJSONAuth_NoFileNoError(t *testing.T) {
 
 func TestRegisterStatusLine_SetsRefreshInterval(t *testing.T) {
 	settings := map[string]any{}
-	registerStatusLine(settings, "/usr/bin/yesmem")
+	registerStatusLine(settings, "/usr/bin/nemons")
 
 	sl, ok := settings["statusLine"].(map[string]any)
 	if !ok {
@@ -434,8 +434,8 @@ func TestRegisterStatusLine_SetsRefreshInterval(t *testing.T) {
 	if sl["type"] != "command" {
 		t.Fatalf("type = %v, want command", sl["type"])
 	}
-	if sl["command"] != "/usr/bin/yesmem statusline" {
-		t.Fatalf("command = %v, want '/usr/bin/yesmem statusline'", sl["command"])
+	if sl["command"] != "/usr/bin/nemons statusline" {
+		t.Fatalf("command = %v, want '/usr/bin/nemons statusline'", sl["command"])
 	}
 	ri, ok := sl["refreshInterval"].(int)
 	if !ok {
@@ -494,7 +494,7 @@ func TestSavePreInstallState_FileModeIs0600(t *testing.T) {
 	}
 }
 
-func TestSavePreInstallState_KeepsOriginalStateWhenYesmemAlreadyApplied(t *testing.T) {
+func TestSavePreInstallState_KeepsOriginalStateWhenNemonsAlreadyApplied(t *testing.T) {
 	home := t.TempDir()
 	dataDir := t.TempDir()
 
@@ -504,15 +504,15 @@ func TestSavePreInstallState_KeepsOriginalStateWhenYesmemAlreadyApplied(t *testi
 		"env":                map[string]any{"ANTHROPIC_API_KEY": "sk-original"},
 	}, home)
 
-	// Setup runs again: settings.json now carries yesmem's own modifications.
+	// Setup runs again: settings.json now carries nemons's own modifications.
 	savePreInstallState(dataDir, map[string]any{
 		"autoCompactEnabled": false,
 		"env": map[string]any{
-			"ANTHROPIC_API_KEY":  "sk-installed-by-yesmem",
+			"ANTHROPIC_API_KEY":  "sk-installed-by-nemons",
 			"ANTHROPIC_BASE_URL": "http://localhost:9099",
 		},
 		"mcpServers": map[string]any{
-			"yesmem": map[string]any{"command": "/usr/local/bin/yesmem"},
+			"nemons": map[string]any{"command": "/usr/local/bin/nemons"},
 		},
 	}, home)
 
@@ -530,10 +530,10 @@ func TestSavePreInstallState_KeepsOriginalStateWhenYesmemAlreadyApplied(t *testi
 
 func TestRegisterHooks_RegistersSessionEnd(t *testing.T) {
 	settings := map[string]any{}
-	registerHooks(settings, "/usr/local/bin/yesmem")
+	registerHooks(settings, "/usr/local/bin/nemons")
 	hooks := settings["hooks"].(map[string]any)
 
-	want := "/usr/local/bin/yesmem session-end"
+	want := "/usr/local/bin/nemons session-end"
 	if n := countContaining(hookCommands(hooks, "SessionEnd"), want); n != 1 {
 		t.Fatalf("SessionEnd registrations = %d, want 1 (commands: %v)", n, hookCommands(hooks, "SessionEnd"))
 	}
@@ -541,7 +541,7 @@ func TestRegisterHooks_RegistersSessionEnd(t *testing.T) {
 
 func TestRegisterHooks_RegistersIdleTick(t *testing.T) {
 	settings := map[string]any{}
-	registerHooks(settings, "/usr/local/bin/yesmem")
+	registerHooks(settings, "/usr/local/bin/nemons")
 	hooks := settings["hooks"].(map[string]any)
 
 	if n := countContaining(hookCommands(hooks, "UserPromptSubmit"), "idle-tick"); n != 1 {
@@ -551,8 +551,8 @@ func TestRegisterHooks_RegistersIdleTick(t *testing.T) {
 
 func TestRegisterHooks_IsIdempotent(t *testing.T) {
 	settings := map[string]any{}
-	registerHooks(settings, "/usr/local/bin/yesmem")
-	registerHooks(settings, "/usr/local/bin/yesmem")
+	registerHooks(settings, "/usr/local/bin/nemons")
+	registerHooks(settings, "/usr/local/bin/nemons")
 	hooks := settings["hooks"].(map[string]any)
 
 	for _, want := range []struct{ event, cmd string }{
@@ -578,13 +578,13 @@ func TestAddPreToolUseHook_RegistersWhenOnlyGuardPresent(t *testing.T) {
 			map[string]any{
 				"matcher": hookGuardMatcher,
 				"hooks": []any{
-					map[string]any{"type": "command", "command": "/usr/local/bin/yesmem hook-guard"},
+					map[string]any{"type": "command", "command": "/usr/local/bin/nemons hook-guard"},
 				},
 			},
 		},
 	}
 
-	addPreToolUseHook(hooks, "/usr/local/bin/yesmem")
+	addPreToolUseHook(hooks, "/usr/local/bin/nemons")
 
 	if n := countContaining(hookCommands(hooks, "PreToolUse"), "hook-check"); n != 1 {
 		t.Fatalf("hook-check registrations = %d, want 1 — a hook-guard entry must not count as hook-check (commands: %v)",
@@ -608,8 +608,8 @@ func TestAddPreToolUseHook_RegistersWhenOnlyGuardPresent(t *testing.T) {
 
 func TestAddPreToolUseHook_DoesNotDuplicateHookCheck(t *testing.T) {
 	hooks := map[string]any{}
-	addPreToolUseHook(hooks, "/usr/local/bin/yesmem")
-	addPreToolUseHook(hooks, "/usr/local/bin/yesmem")
+	addPreToolUseHook(hooks, "/usr/local/bin/nemons")
+	addPreToolUseHook(hooks, "/usr/local/bin/nemons")
 
 	if n := countContaining(hookCommands(hooks, "PreToolUse"), "hook-check"); n != 1 {
 		t.Fatalf("hook-check registrations = %d, want 1 (commands: %v)", n, hookCommands(hooks, "PreToolUse"))
@@ -626,7 +626,7 @@ func TestSavePreInstallState_TightensExistingFileMode(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Settings are untouched by yesmem, so the write path runs.
+	// Settings are untouched by nemons, so the write path runs.
 	savePreInstallState(dataDir, map[string]any{}, "")
 
 	info, err := os.Stat(path)
@@ -638,7 +638,7 @@ func TestSavePreInstallState_TightensExistingFileMode(t *testing.T) {
 	}
 }
 
-func TestSavePreInstallState_TightensExistingFileWhenYesmemApplied(t *testing.T) {
+func TestSavePreInstallState_TightensExistingFileWhenNemonsApplied(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("file modes are not meaningful on Windows")
 	}
@@ -648,8 +648,8 @@ func TestSavePreInstallState_TightensExistingFileWhenYesmemApplied(t *testing.T)
 		t.Fatal(err)
 	}
 
-	// yesmem is installed: the capture is skipped, but the file still has to be
-	// tightened — this is the path `yesmem setup` takes on every existing install.
+	// nemons is installed: the capture is skipped, but the file still has to be
+	// tightened — this is the path `nemons setup` takes on every existing install.
 	savePreInstallState(dataDir, map[string]any{
 		"env": map[string]any{"ANTHROPIC_BASE_URL": "http://localhost:9099"},
 	}, "")
@@ -665,7 +665,7 @@ func TestSavePreInstallState_TightensExistingFileWhenYesmemApplied(t *testing.T)
 
 func TestAddSessionEndHook_SetsTimeout(t *testing.T) {
 	hooks := map[string]any{}
-	addSessionEndHook(hooks, "/usr/local/bin/yesmem")
+	addSessionEndHook(hooks, "/usr/local/bin/nemons")
 
 	entry := hooks["SessionEnd"].([]any)[0].(map[string]any)
 	handler := toHookSlice(entry["hooks"])[0]
@@ -685,12 +685,12 @@ func TestAddSessionEndHook_RemovesStaleMatcher(t *testing.T) {
 			map[string]any{
 				"matcher": "clear|compact",
 				"hooks": []any{
-					map[string]any{"type": "command", "command": "/usr/local/bin/yesmem session-end"},
+					map[string]any{"type": "command", "command": "/usr/local/bin/nemons session-end"},
 				},
 			},
 		},
 	}
-	addSessionEndHook(hooks, "/usr/local/bin/yesmem")
+	addSessionEndHook(hooks, "/usr/local/bin/nemons")
 
 	entries := hooks["SessionEnd"].([]any)
 	if len(entries) != 1 {
@@ -715,14 +715,14 @@ func TestAddSessionEndHook_KeepsForeignHook(t *testing.T) {
 			},
 		},
 	}
-	addSessionEndHook(hooks, "/usr/local/bin/yesmem")
+	addSessionEndHook(hooks, "/usr/local/bin/nemons")
 
 	cmds := hookCommands(hooks, "SessionEnd")
 	if countContaining(cmds, foreign) != 1 {
 		t.Fatalf("foreign SessionEnd hook was clobbered: %v", cmds)
 	}
 	if n := countContaining(cmds, "session-end"); n != 2 {
-		t.Fatalf("expected foreign + yesmem hook, got %v", cmds)
+		t.Fatalf("expected foreign + nemons hook, got %v", cmds)
 	}
 }
 
@@ -731,12 +731,12 @@ func TestAddIdleTickHook_MigratesLegacyReminderFromMovedPath(t *testing.T) {
 		"UserPromptSubmit": []any{
 			map[string]any{
 				"hooks": []any{
-					map[string]any{"type": "command", "command": "/old/place/yesmem micro-reminder"},
+					map[string]any{"type": "command", "command": "/old/place/nemons micro-reminder"},
 				},
 			},
 		},
 	}
-	addIdleTickHook(hooks, "/usr/local/bin/yesmem")
+	addIdleTickHook(hooks, "/usr/local/bin/nemons")
 
 	cmds := hookCommands(hooks, "UserPromptSubmit")
 	if countContaining(cmds, "micro-reminder") != 0 {
@@ -758,7 +758,7 @@ func TestAddIdleTickHook_KeepsForeignHandlerSeparate(t *testing.T) {
 			},
 		},
 	}
-	addIdleTickHook(hooks, "/usr/local/bin/yesmem")
+	addIdleTickHook(hooks, "/usr/local/bin/nemons")
 
 	cmds := hookCommands(hooks, "UserPromptSubmit")
 	if countContaining(cmds, foreign) != 1 {
@@ -780,15 +780,15 @@ func TestAddPostToolUseResolveHook_UpdatesMovedBinaryPath(t *testing.T) {
 			map[string]any{
 				"matcher": "Bash",
 				"hooks": []any{
-					map[string]any{"type": "command", "command": "/old/bin/yesmem hook-resolve"},
+					map[string]any{"type": "command", "command": "/old/bin/nemons hook-resolve"},
 				},
 			},
 		},
 	}
-	addPostToolUseResolveHook(hooks, "/new/bin/yesmem")
+	addPostToolUseResolveHook(hooks, "/new/bin/nemons")
 
 	cmds := hookCommands(hooks, "PostToolUse")
-	if countContaining(cmds, "/new/bin/yesmem hook-resolve") != 1 {
+	if countContaining(cmds, "/new/bin/nemons hook-resolve") != 1 {
 		t.Fatalf("hook-resolve command not updated after the binary moved: %v", cmds)
 	}
 }
@@ -801,12 +801,12 @@ func TestAddSessionEndHook_KeepsForeignMatcherInSharedGroup(t *testing.T) {
 				"matcher": "clear",
 				"hooks": []any{
 					map[string]any{"type": "command", "command": foreign},
-					map[string]any{"type": "command", "command": "/usr/local/bin/yesmem session-end"},
+					map[string]any{"type": "command", "command": "/usr/local/bin/nemons session-end"},
 				},
 			},
 		},
 	}
-	addSessionEndHook(hooks, "/usr/local/bin/yesmem")
+	addSessionEndHook(hooks, "/usr/local/bin/nemons")
 
 	entry := hooks["SessionEnd"].([]any)[0].(map[string]any)
 	if entry["matcher"] != "clear" {
@@ -832,12 +832,12 @@ func TestAddIdleTickHook_KeepsForeignHandlerNamedLikeLegacy(t *testing.T) {
 			map[string]any{
 				"hooks": []any{
 					map[string]any{"type": "command", "command": foreign},
-					map[string]any{"type": "command", "command": "/usr/local/bin/yesmem micro-reminder"},
+					map[string]any{"type": "command", "command": "/usr/local/bin/nemons micro-reminder"},
 				},
 			},
 		},
 	}
-	addIdleTickHook(hooks, "/usr/local/bin/yesmem")
+	addIdleTickHook(hooks, "/usr/local/bin/nemons")
 
 	cmds := hookCommands(hooks, "UserPromptSubmit")
 	if countContaining(cmds, foreign) != 1 {
@@ -862,7 +862,7 @@ func TestAddIdleTickHook_LeavesForeignCommandByteIdentical(t *testing.T) {
 			},
 		},
 	}
-	addIdleTickHook(hooks, "/usr/local/bin/yesmem")
+	addIdleTickHook(hooks, "/usr/local/bin/nemons")
 
 	if countContaining(hookCommands(hooks, "UserPromptSubmit"), foreign) != 1 {
 		t.Fatalf("foreign command was reformatted: %v", hookCommands(hooks, "UserPromptSubmit"))
@@ -874,17 +874,17 @@ func TestAddIdleTickHook_DropsStaleLegacyWhenAlreadyRegistered(t *testing.T) {
 		"UserPromptSubmit": []any{
 			map[string]any{
 				"hooks": []any{
-					map[string]any{"type": "command", "command": "/usr/local/bin/yesmem idle-tick"},
+					map[string]any{"type": "command", "command": "/usr/local/bin/nemons idle-tick"},
 				},
 			},
 			map[string]any{
 				"hooks": []any{
-					map[string]any{"type": "command", "command": "/old/place/yesmem micro-reminder"},
+					map[string]any{"type": "command", "command": "/old/place/nemons micro-reminder"},
 				},
 			},
 		},
 	}
-	addIdleTickHook(hooks, "/usr/local/bin/yesmem")
+	addIdleTickHook(hooks, "/usr/local/bin/nemons")
 
 	cmds := hookCommands(hooks, "UserPromptSubmit")
 	if countContaining(cmds, "micro-reminder") != 0 {
@@ -979,8 +979,8 @@ func TestWriteSettingsJSON_TightensExistingFileMode(t *testing.T) {
 	}
 }
 
-func TestAddSessionStartHook_KeepsForeignHandlerNamedLikeYesmem(t *testing.T) {
-	foreign := "/home/user/bin/my-yesmem-notes.sh"
+func TestAddSessionStartHook_KeepsForeignHandlerNamedLikeNemons(t *testing.T) {
+	foreign := "/home/user/bin/my-nemons-notes.sh"
 	hooks := map[string]any{
 		"SessionStart": []any{
 			map[string]any{
@@ -991,7 +991,7 @@ func TestAddSessionStartHook_KeepsForeignHandlerNamedLikeYesmem(t *testing.T) {
 			},
 		},
 	}
-	addSessionStartHook(hooks, "/usr/local/bin/yesmem")
+	addSessionStartHook(hooks, "/usr/local/bin/nemons")
 
 	cmds := hookCommands(hooks, "SessionStart")
 	if countContaining(cmds, foreign) != 1 {
@@ -1013,19 +1013,19 @@ func TestAddIdleTickHook_RegistersDespiteForeignIdleTickName(t *testing.T) {
 			},
 		},
 	}
-	addIdleTickHook(hooks, "/usr/local/bin/yesmem")
+	addIdleTickHook(hooks, "/usr/local/bin/nemons")
 
 	cmds := hookCommands(hooks, "UserPromptSubmit")
 	if countContaining(cmds, foreign) != 1 {
 		t.Fatalf("foreign handler was rewritten: %v", cmds)
 	}
-	if countContaining(cmds, "/usr/local/bin/yesmem idle-tick") != 1 {
+	if countContaining(cmds, "/usr/local/bin/nemons idle-tick") != 1 {
 		t.Fatalf("idle-tick counted as registered because a foreign command mentions idle-tick: %v", cmds)
 	}
 }
 
-func TestAddIdleTickHook_KeepsForeignSegmentMentioningYesmem(t *testing.T) {
-	foreign := "/home/user/bin/my-yesmem-notes.sh micro-reminder"
+func TestAddIdleTickHook_KeepsForeignSegmentMentioningNemons(t *testing.T) {
+	foreign := "/home/user/bin/my-nemons-notes.sh micro-reminder"
 	hooks := map[string]any{
 		"UserPromptSubmit": []any{
 			map[string]any{
@@ -1035,7 +1035,7 @@ func TestAddIdleTickHook_KeepsForeignSegmentMentioningYesmem(t *testing.T) {
 			},
 		},
 	}
-	addIdleTickHook(hooks, "/usr/local/bin/yesmem")
+	addIdleTickHook(hooks, "/usr/local/bin/nemons")
 
 	cmds := hookCommands(hooks, "UserPromptSubmit")
 	if countContaining(cmds, foreign) != 1 {
@@ -1055,13 +1055,13 @@ func TestAddPreToolUseHook_RegistersDespiteForeignHookCheckName(t *testing.T) {
 			},
 		},
 	}
-	addPreToolUseHook(hooks, "/usr/local/bin/yesmem")
+	addPreToolUseHook(hooks, "/usr/local/bin/nemons")
 
 	cmds := hookCommands(hooks, "PreToolUse")
 	if countContaining(cmds, foreign) != 1 {
 		t.Fatalf("foreign PreToolUse handler was adopted: %v", cmds)
 	}
-	if countContaining(cmds, "/usr/local/bin/yesmem hook-check") != 1 {
+	if countContaining(cmds, "/usr/local/bin/nemons hook-check") != 1 {
 		t.Fatalf("hook-check counted as registered because a foreign command mentions it: %v", cmds)
 	}
 	if entry := hooks["PreToolUse"].([]any)[0].(map[string]any); entry["matcher"] != "Bash" {
@@ -1081,13 +1081,13 @@ func TestAddPreToolUseGuardHook_RegistersDespiteForeignHookGuardName(t *testing.
 			},
 		},
 	}
-	addPreToolUseGuardHook(hooks, "/usr/local/bin/yesmem")
+	addPreToolUseGuardHook(hooks, "/usr/local/bin/nemons")
 
 	cmds := hookCommands(hooks, "PreToolUse")
 	if countContaining(cmds, foreign) != 1 {
 		t.Fatalf("foreign PreToolUse handler was adopted: %v", cmds)
 	}
-	if countContaining(cmds, "/usr/local/bin/yesmem hook-guard") != 1 {
+	if countContaining(cmds, "/usr/local/bin/nemons hook-guard") != 1 {
 		t.Fatalf("hook-guard counted as registered because a foreign command mentions it: %v", cmds)
 	}
 	if entry := hooks["PreToolUse"].([]any)[0].(map[string]any); entry["matcher"] != "Bash" {
@@ -1107,13 +1107,13 @@ func TestAddPostToolUseFailureCombinedHook_RegistersDespiteForeignHookFailureNam
 			},
 		},
 	}
-	addPostToolUseFailureCombinedHook(hooks, "/usr/local/bin/yesmem")
+	addPostToolUseFailureCombinedHook(hooks, "/usr/local/bin/nemons")
 
 	cmds := hookCommands(hooks, "PostToolUseFailure")
 	if countContaining(cmds, foreign) != 1 {
 		t.Fatalf("foreign PostToolUseFailure handler was adopted: %v", cmds)
 	}
-	if countContaining(cmds, "/usr/local/bin/yesmem hook-failure") != 1 {
+	if countContaining(cmds, "/usr/local/bin/nemons hook-failure") != 1 {
 		t.Fatalf("hook-failure counted as registered because a foreign command mentions it: %v", cmds)
 	}
 }
@@ -1130,13 +1130,13 @@ func TestAddPostToolUseResolveHook_RegistersDespiteForeignHookResolveName(t *tes
 			},
 		},
 	}
-	addPostToolUseResolveHook(hooks, "/usr/local/bin/yesmem")
+	addPostToolUseResolveHook(hooks, "/usr/local/bin/nemons")
 
 	cmds := hookCommands(hooks, "PostToolUse")
 	if countContaining(cmds, foreign) != 1 {
 		t.Fatalf("foreign PostToolUse handler was adopted: %v", cmds)
 	}
-	if countContaining(cmds, "/usr/local/bin/yesmem hook-resolve") != 1 {
+	if countContaining(cmds, "/usr/local/bin/nemons hook-resolve") != 1 {
 		t.Fatalf("hook-resolve counted as registered because a foreign command mentions it: %v", cmds)
 	}
 }
@@ -1160,7 +1160,7 @@ func TestRemoveThinkHook_KeepsForeignHookThinkName(t *testing.T) {
 }
 
 func TestAddSessionStartHook_KeepsCodemapHook(t *testing.T) {
-	codemap := "/usr/local/bin/yesmem codemap-hook"
+	codemap := "/usr/local/bin/nemons codemap-hook"
 	hooks := map[string]any{
 		"SessionStart": []any{
 			map[string]any{
@@ -1171,7 +1171,7 @@ func TestAddSessionStartHook_KeepsCodemapHook(t *testing.T) {
 			},
 		},
 	}
-	addSessionStartHook(hooks, "/usr/local/bin/yesmem")
+	addSessionStartHook(hooks, "/usr/local/bin/nemons")
 
 	cmds := hookCommands(hooks, "SessionStart")
 	if countContaining(cmds, codemap) != 1 {
@@ -1188,12 +1188,12 @@ func TestAddIdleTickHook_KeepsForeignSegmentsWhenRetargeting(t *testing.T) {
 		"UserPromptSubmit": []any{
 			map[string]any{
 				"hooks": []any{
-					map[string]any{"type": "command", "command": foreign + "; /old/place/yesmem idle-tick"},
+					map[string]any{"type": "command", "command": foreign + "; /old/place/nemons idle-tick"},
 				},
 			},
 		},
 	}
-	addIdleTickHook(hooks, "/new/bin/yesmem")
+	addIdleTickHook(hooks, "/new/bin/nemons")
 
 	cmds := hookCommands(hooks, "UserPromptSubmit")
 	if len(cmds) != 1 {
@@ -1202,7 +1202,7 @@ func TestAddIdleTickHook_KeepsForeignSegmentsWhenRetargeting(t *testing.T) {
 	if countContaining(cmds, foreign) != 1 {
 		t.Fatalf("retargeting dropped the foreign segment of the chain: %v", cmds)
 	}
-	if countContaining(cmds, "/new/bin/yesmem idle-tick") != 1 {
+	if countContaining(cmds, "/new/bin/nemons idle-tick") != 1 {
 		t.Fatalf("idle-tick was not retargeted to the new binary: %v", cmds)
 	}
 }
@@ -1213,15 +1213,15 @@ func TestAddPreToolUseHook_KeepsHandlerArgumentsWhenRetargeting(t *testing.T) {
 			map[string]any{
 				"matcher": "Bash",
 				"hooks": []any{
-					map[string]any{"type": "command", "command": "/old/bin/yesmem hook-check --verbose"},
+					map[string]any{"type": "command", "command": "/old/bin/nemons hook-check --verbose"},
 				},
 			},
 		},
 	}
-	addPreToolUseHook(hooks, "/new/bin/yesmem")
+	addPreToolUseHook(hooks, "/new/bin/nemons")
 
 	cmds := hookCommands(hooks, "PreToolUse")
-	if countContaining(cmds, "/new/bin/yesmem hook-check --verbose") != 1 {
+	if countContaining(cmds, "/new/bin/nemons hook-check --verbose") != 1 {
 		t.Fatalf("retargeting dropped the handler's own arguments: %v", cmds)
 	}
 	if len(cmds) != 1 {
@@ -1236,18 +1236,18 @@ func TestAddSessionStartHook_KeepsForeignSegmentsWhenRetargeting(t *testing.T) {
 			map[string]any{
 				"matcher": "startup",
 				"hooks": []any{
-					map[string]any{"type": "command", "command": foreign + "; /old/place/yesmem briefing-hook"},
+					map[string]any{"type": "command", "command": foreign + "; /old/place/nemons briefing-hook"},
 				},
 			},
 		},
 	}
-	addSessionStartHook(hooks, "/new/bin/yesmem")
+	addSessionStartHook(hooks, "/new/bin/nemons")
 
 	cmds := hookCommands(hooks, "SessionStart")
 	if countContaining(cmds, foreign) != 1 {
 		t.Fatalf("retargeting dropped the foreign segment of the chain: %v", cmds)
 	}
-	if countContaining(cmds, "/new/bin/yesmem briefing-hook") != 1 {
+	if countContaining(cmds, "/new/bin/nemons briefing-hook") != 1 {
 		t.Fatalf("briefing-hook was not retargeted to the new binary: %v", cmds)
 	}
 }
@@ -1257,15 +1257,15 @@ func TestAddIdleTickHook_RepairsMovedBinaryPath(t *testing.T) {
 		"UserPromptSubmit": []any{
 			map[string]any{
 				"hooks": []any{
-					map[string]any{"type": "command", "command": "/old/place/yesmem idle-tick"},
+					map[string]any{"type": "command", "command": "/old/place/nemons idle-tick"},
 				},
 			},
 		},
 	}
-	addIdleTickHook(hooks, "/new/bin/yesmem")
+	addIdleTickHook(hooks, "/new/bin/nemons")
 
 	cmds := hookCommands(hooks, "UserPromptSubmit")
-	if countContaining(cmds, "/new/bin/yesmem idle-tick") != 1 {
+	if countContaining(cmds, "/new/bin/nemons idle-tick") != 1 {
 		t.Fatalf("idle-tick kept the dead path of a moved binary: %v", cmds)
 	}
 	if len(cmds) != 1 {
@@ -1274,7 +1274,7 @@ func TestAddIdleTickHook_RepairsMovedBinaryPath(t *testing.T) {
 }
 
 func TestAddIdleTickHook_IdempotentWithVerbInsideBinaryPath(t *testing.T) {
-	binaryPath := "/home/a idle-tick b/yesmem"
+	binaryPath := "/home/a idle-tick b/nemons"
 	hooks := map[string]any{}
 	addIdleTickHook(hooks, binaryPath)
 	addIdleTickHook(hooks, binaryPath)
@@ -1287,11 +1287,11 @@ func TestAddIdleTickHook_IdempotentWithVerbInsideBinaryPath(t *testing.T) {
 
 func TestAddSessionEndHook_RepairsMovedBinaryPath(t *testing.T) {
 	hooks := map[string]any{}
-	addSessionEndHook(hooks, "/old/bin/yesmem")
-	addSessionEndHook(hooks, "/new/bin/yesmem")
+	addSessionEndHook(hooks, "/old/bin/nemons")
+	addSessionEndHook(hooks, "/new/bin/nemons")
 
 	cmds := hookCommands(hooks, "SessionEnd")
-	if countContaining(cmds, "/new/bin/yesmem session-end") != 1 {
+	if countContaining(cmds, "/new/bin/nemons session-end") != 1 {
 		t.Fatalf("session-end kept the dead path of a moved binary: %v", cmds)
 	}
 	if len(cmds) != 1 {
@@ -1305,15 +1305,15 @@ func TestAddPreToolUseHook_RepairsMovedBinaryPath(t *testing.T) {
 			map[string]any{
 				"matcher": "Bash",
 				"hooks": []any{
-					map[string]any{"type": "command", "command": "/old/bin/yesmem hook-check"},
+					map[string]any{"type": "command", "command": "/old/bin/nemons hook-check"},
 				},
 			},
 		},
 	}
-	addPreToolUseHook(hooks, "/new/bin/yesmem")
+	addPreToolUseHook(hooks, "/new/bin/nemons")
 
 	cmds := hookCommands(hooks, "PreToolUse")
-	if countContaining(cmds, "/new/bin/yesmem hook-check") != 1 {
+	if countContaining(cmds, "/new/bin/nemons hook-check") != 1 {
 		t.Fatalf("hook-check kept the dead path of a moved binary: %v", cmds)
 	}
 	if len(cmds) != 1 {
@@ -1327,15 +1327,15 @@ func TestAddPreToolUseGuardHook_RepairsMovedBinaryPath(t *testing.T) {
 			map[string]any{
 				"matcher": hookGuardMatcher,
 				"hooks": []any{
-					map[string]any{"type": "command", "command": "/old/bin/yesmem hook-guard"},
+					map[string]any{"type": "command", "command": "/old/bin/nemons hook-guard"},
 				},
 			},
 		},
 	}
-	addPreToolUseGuardHook(hooks, "/new/bin/yesmem")
+	addPreToolUseGuardHook(hooks, "/new/bin/nemons")
 
 	cmds := hookCommands(hooks, "PreToolUse")
-	if countContaining(cmds, "/new/bin/yesmem hook-guard") != 1 {
+	if countContaining(cmds, "/new/bin/nemons hook-guard") != 1 {
 		t.Fatalf("hook-guard kept the dead path of a moved binary: %v", cmds)
 	}
 	if len(cmds) != 1 {
@@ -1349,15 +1349,15 @@ func TestAddPostToolUseFailureCombinedHook_RepairsMovedBinaryPath(t *testing.T) 
 			map[string]any{
 				"matcher": "Bash",
 				"hooks": []any{
-					map[string]any{"type": "command", "command": "/old/bin/yesmem hook-failure"},
+					map[string]any{"type": "command", "command": "/old/bin/nemons hook-failure"},
 				},
 			},
 		},
 	}
-	addPostToolUseFailureCombinedHook(hooks, "/new/bin/yesmem")
+	addPostToolUseFailureCombinedHook(hooks, "/new/bin/nemons")
 
 	cmds := hookCommands(hooks, "PostToolUseFailure")
-	if countContaining(cmds, "/new/bin/yesmem hook-failure") != 1 {
+	if countContaining(cmds, "/new/bin/nemons hook-failure") != 1 {
 		t.Fatalf("hook-failure kept the dead path of a moved binary: %v", cmds)
 	}
 	if len(cmds) != 1 {
@@ -1371,12 +1371,12 @@ func TestAddIdleTickHook_KeepsQuotedSemikolonInForeignSegment(t *testing.T) {
 		"UserPromptSubmit": []any{
 			map[string]any{
 				"hooks": []any{
-					map[string]any{"type": "command", "command": foreign + "; /old/place/yesmem micro-reminder"},
+					map[string]any{"type": "command", "command": foreign + "; /old/place/nemons micro-reminder"},
 				},
 			},
 		},
 	}
-	addIdleTickHook(hooks, "/usr/local/bin/yesmem")
+	addIdleTickHook(hooks, "/usr/local/bin/nemons")
 
 	cmds := hookCommands(hooks, "UserPromptSubmit")
 	if countContaining(cmds, foreign) != 1 {
@@ -1385,7 +1385,7 @@ func TestAddIdleTickHook_KeepsQuotedSemikolonInForeignSegment(t *testing.T) {
 }
 
 func TestAddIdleTickHook_IdempotentWithBinaryPathContainingSpaces(t *testing.T) {
-	binaryPath := "/home/a b/.local/bin/yesmem"
+	binaryPath := "/home/a b/.local/bin/nemons"
 	hooks := map[string]any{}
 	addIdleTickHook(hooks, binaryPath)
 	addIdleTickHook(hooks, binaryPath)

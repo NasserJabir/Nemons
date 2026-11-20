@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // YM-425: dismiss_code_nav answers {"status":"ok"}, so the next navigation must
@@ -25,13 +25,13 @@ func TestLos58aOneDismissLiftsTheCodeNavBlock(t *testing.T) {
 	const cmd = `grep -rn "CanonicalProject(" internal/`
 	indexed := func(project, path string) bool { return true }
 
-	if _, block := CheckCodeNav(cmd, "/proj", "yesmem", session, indexed, store.CodeNavDismissed(session)); !block {
+	if _, block := CheckCodeNav(cmd, "/proj", "nemons", session, indexed, store.CodeNavDismissed(session)); !block {
 		t.Fatal("the guard must block before any dismissal")
 	}
 	if err := store.DismissCodeNav(session); err != nil {
 		t.Fatalf("dismiss: %v", err)
 	}
-	if _, block := CheckCodeNav(cmd, "/proj", "yesmem", session, indexed, store.CodeNavDismissed(session)); block {
+	if _, block := CheckCodeNav(cmd, "/proj", "nemons", session, indexed, store.CodeNavDismissed(session)); block {
 		t.Fatal("dismiss_code_nav answered ok, so one call must lift the block")
 	}
 }
@@ -43,7 +43,7 @@ func TestLos58aBlockMessageNamesTheWorkingEscape(t *testing.T) {
 	reason, block := CheckCodeNav(
 		`grep -n "func Run" internal/proxy/proxy.go`,
 		"/proj",
-		"yesmem",
+		"nemons",
 		"session-123",
 		func(project, path string) bool { return true },
 		false,
@@ -71,7 +71,7 @@ func TestLos58aCheckCodeNavCDChainBlocks(t *testing.T) {
 	reason, block := CheckCodeNav(
 		`cd internal && grep -n Run hooks/check.go`,
 		"/proj",
-		"yesmem",
+		"nemons",
 		"session-123",
 		func(project, path string) bool {
 			probed = append(probed, path)
@@ -95,7 +95,7 @@ func TestLos58aNavTargetsFollowPushdPopd(t *testing.T) {
 	CheckCodeNav(
 		`pushd sub && cat a.go && popd && cat b.go`,
 		"/proj",
-		"yesmem",
+		"nemons",
 		"session-123",
 		func(project, path string) bool {
 			probed = append(probed, path)
@@ -124,7 +124,7 @@ func TestLos58aCheckCodeNavDirectoryOperandBlocks(t *testing.T) {
 	reason, block := CheckCodeNav(
 		`grep -rn "CanonicalProject(" internal/`,
 		"/proj",
-		"yesmem",
+		"nemons",
 		"session-123",
 		func(project, path string) bool { return path == "internal" || path == "internal/" },
 		false,
@@ -143,7 +143,7 @@ func TestLos58aCheckCodeNavFindBlocks(t *testing.T) {
 	_, block := CheckCodeNav(
 		`find internal/ -name "*.go"`,
 		"/proj",
-		"yesmem",
+		"nemons",
 		"session-123",
 		func(project, path string) bool { return path == "internal/" || path == "internal" },
 		false,
@@ -162,7 +162,7 @@ func TestLos58aCheckCodeNavBlocksEverySourceSuffix(t *testing.T) {
 		_, block := CheckCodeNav(
 			"cat "+file,
 			"/proj",
-			"yesmem",
+			"nemons",
 			"session-123",
 			func(project, path string) bool {
 				seen = path
@@ -188,7 +188,7 @@ func TestLos58aCheckCodeNavDirectoryFormsReachTheIndex(t *testing.T) {
 		{`grep -rn needle .github/workflows`, ".github/workflows"},
 	} {
 		probed := []string{}
-		CheckCodeNav(tc.cmd, "/proj", "yesmem", "session-123", func(project, path string) bool {
+		CheckCodeNav(tc.cmd, "/proj", "nemons", "session-123", func(project, path string) bool {
 			probed = append(probed, path)
 			return true
 		}, false)
@@ -206,7 +206,7 @@ func TestLos58aOutsideTargetDoesNotBlock(t *testing.T) {
 	_, block := CheckCodeNav(
 		`cd /elsewhere && cat x.go`,
 		"/proj",
-		"yesmem",
+		"nemons",
 		"session-123",
 		func(project, path string) bool {
 			probed = append(probed, path)
@@ -231,18 +231,18 @@ func TestLos58aCodeNavIndexerAnswersForDirectories(t *testing.T) {
 		t.Fatalf("open store: %v", err)
 	}
 	defer store.Close()
-	if err := store.PersistScan("yesmem", `{"Packages":[{"Files":[{"Path":"internal/hooks/check.go"}]}]}`, "head", 0); err != nil {
+	if err := store.PersistScan("nemons", `{"Packages":[{"Files":[{"Path":"internal/hooks/check.go"}]}]}`, "head", 0); err != nil {
 		t.Fatalf("persist scan: %v", err)
 	}
 	indexed := codeNavIndexer(store)
 
-	if !indexed("yesmem", "internal") {
+	if !indexed("nemons", "internal") {
 		t.Error("the hook's predicate must answer for a directory operand")
 	}
-	if !indexed("yesmem", "internal/hooks/check.go") {
+	if !indexed("nemons", "internal/hooks/check.go") {
 		t.Error("the hook's predicate must keep answering for files")
 	}
-	if indexed("yesmem", "docs") {
+	if indexed("nemons", "docs") {
 		t.Error("a directory without indexed files must not answer true")
 	}
 }
@@ -254,7 +254,7 @@ func TestLos58aBlockMessageStripsControlCharacters(t *testing.T) {
 	reason, block := CheckCodeNav(
 		"cat 'weird\"name\u2028.go'",
 		"/proj",
-		"yesmem",
+		"nemons",
 		"ses_1",
 		func(project, path string) bool { return true },
 		false,

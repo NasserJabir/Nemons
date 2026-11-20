@@ -13,23 +13,23 @@ class DeploymentRecovery(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             repo, home, tools = root / "repo", root / "home", root / "tools"
-            run = repo / ".yesmem/deploy/test"
-            data = home / ".claude/yesmem"
+            run = repo / ".nemons/deploy/test"
+            data = home / ".claude/nemons"
             for directory in [repo / "scripts", run, data, tools, home / ".local/bin"]:
                 directory.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(Path(__file__).with_name("deploy-safe.sh"), repo / "scripts/deploy-safe.sh")
-            db = sqlite3.connect(data / "yesmem.db")
+            db = sqlite3.connect(data / "nemons.db")
             db.execute("CREATE TABLE agents (status TEXT)")
             db.commit()
             db.close()
-            binary = home / ".local/bin/yesmem"
+            binary = home / ".local/bin/nemons"
             binary.write_text("#!/bin/sh\necho previous\n")
             binary.chmod(0o755)
             commands = {
                 "systemctl": 'printf "%s\\n" "$*" >> "$TEST_EVENTS"\n',
                 "rclone": 'printf "rclone %s\\n" "$1" >> "$TEST_EVENTS"\n'
                           'if [ "$1" = check ] && [ "$TEST_FAIL" = archive ]; then exit 23; fi\n',
-                "make": 'printf "#!/bin/sh\\necho new\\n" > "$HOME/.local/bin/yesmem"\n'
+                "make": 'printf "#!/bin/sh\\necho new\\n" > "$HOME/.local/bin/nemons"\n'
                         'if [ "$TEST_FAIL" = install ]; then exit 42; fi\n',
                 "curl": 'printf \'{"status":"ok"}\\n\'\n',
             }
@@ -43,7 +43,7 @@ class DeploymentRecovery(unittest.TestCase):
             result = subprocess.run(["bash", str(repo / "scripts/deploy-safe.sh"), "--worker",
                                      str(run), "test-remote:backups"], env=env, capture_output=True)
             return (result.returncode, events.read_text(), binary.read_text(),
-                    (run / "backup/yesmem.db").exists(), (run / "exit-code").read_text().strip(),
+                    (run / "backup/nemons.db").exists(), (run / "exit-code").read_text().strip(),
                     (run / "deploy.log").read_text())
 
     def test_failed_install_restores_binary_and_services(self):
@@ -51,7 +51,7 @@ class DeploymentRecovery(unittest.TestCase):
         self.assertEqual(code, 42, log)
         self.assertEqual(status, "42")
         self.assertIn("previous", binary)
-        self.assertIn("restart yesmem.service yesmem-proxy.service", events)
+        self.assertIn("restart nemons.service nemons-proxy.service", events)
         self.assertTrue(backup)
 
     def test_failed_archive_keeps_local_backup_and_new_binary(self):
@@ -59,7 +59,7 @@ class DeploymentRecovery(unittest.TestCase):
         self.assertEqual(code, 23, log)
         self.assertIn("new", binary)
         self.assertTrue(backup)
-        self.assertNotIn("restart yesmem.service yesmem-proxy.service", events)
+        self.assertNotIn("restart nemons.service nemons-proxy.service", events)
 
     def test_success_removes_only_verified_backup(self):
         code, events, binary, backup, status, log = self.run_worker("")

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 func TestAgentThemeKey(t *testing.T) {
@@ -17,7 +17,7 @@ func TestAgentThemeKey(t *testing.T) {
 		"orchestrator":              "orchestrator",
 		"":                          "",
 		"-leading-dash":             "",
-		"yesmem-dark":               "yesmem",
+		"nemons-dark":               "nemons",
 	}
 	for section, want := range tests {
 		if got := agentThemeKey(section); got != want {
@@ -35,10 +35,10 @@ func TestMergeAgentThemes(t *testing.T) {
 	if value, ok := merged["yesresearch"]; !ok || value != "" {
 		t.Errorf("an explicitly empty entry must disable the default, got %q (present=%v)", value, ok)
 	}
-	if merged["orchestrator"] != "yesmem-dark" {
+	if merged["orchestrator"] != "nemons-dark" {
 		t.Errorf("untouched default lost: orchestrator = %q", merged["orchestrator"])
 	}
-	if defaultAgentThemes["yesloop"] != "yesmem-loop" {
+	if defaultAgentThemes["yesloop"] != "nemons-loop" {
 		t.Error("mergeAgentThemes mutated the package default map")
 	}
 }
@@ -53,11 +53,11 @@ func TestResolveAgentTheme(t *testing.T) {
 	}{
 		{name: "explicit wins", explicit: "dracula", section: "yesloop-x", want: "dracula"},
 		{name: "explicit wins over a configured default", explicit: "dracula", section: "yesloop-x",
-			themes: map[string]string{"yesloop": "yesmem-loop"}, want: "dracula"},
-		{name: "yesloop section default", section: "yesloop-agent-themes", want: "yesmem-loop"},
-		{name: "yesresearch section default", section: "yesresearch-fusion", want: "yesmem-research"},
-		{name: "subresearch section default", section: "subresearch-materials", want: "yesmem-subresearch"},
-		{name: "orchestrator section default", section: "orchestrator", want: "yesmem-dark"},
+			themes: map[string]string{"yesloop": "nemons-loop"}, want: "dracula"},
+		{name: "yesloop section default", section: "yesloop-agent-themes", want: "nemons-loop"},
+		{name: "yesresearch section default", section: "yesresearch-fusion", want: "nemons-research"},
+		{name: "subresearch section default", section: "subresearch-materials", want: "nemons-subresearch"},
+		{name: "orchestrator section default", section: "orchestrator", want: "nemons-dark"},
 		{name: "unknown type gets no theme", section: "something-else"},
 		{name: "empty section gets no theme"},
 		{name: "configured map replaces the default for that type", section: "yesloop-x",
@@ -101,11 +101,11 @@ func TestThemeSpawnOverride(t *testing.T) {
 
 	t.Run("capable binary gets the flag", func(t *testing.T) {
 		stubHelpExec(t, func(string) (string, error) { return helpWithFlag, nil })
-		stubUserHome(t, "yesmem-loop")
+		stubUserHome(t, "nemons-loop")
 		h := &Handler{}
 		flags, env := h.themeSpawnOverride("opencode", "/usr/bin/opencode", "", "yesloop-x", nil)
-		if strings.Join(flags, " ") != "--theme yesmem-loop" {
-			t.Fatalf("flags = %v, want [--theme yesmem-loop]", flags)
+		if strings.Join(flags, " ") != "--theme nemons-loop" {
+			t.Fatalf("flags = %v, want [--theme nemons-loop]", flags)
 		}
 		if len(env) != 0 {
 			t.Fatalf("env = %v, want none when the flag is available", env)
@@ -114,7 +114,7 @@ func TestThemeSpawnOverride(t *testing.T) {
 
 	t.Run("incapable binary gets the env route", func(t *testing.T) {
 		stubHelpExec(t, func(string) (string, error) { return helpWithoutFlag, nil })
-		stubUserHome(t, "yesmem-loop")
+		stubUserHome(t, "nemons-loop")
 		h := &Handler{}
 		flags, env := h.themeSpawnOverride("opencode", "/usr/bin/opencode", "", "yesloop-x", nil)
 		if len(flags) != 0 {
@@ -132,15 +132,15 @@ func TestThemeSpawnOverride(t *testing.T) {
 		if err := json.Unmarshal([]byte(content), &parsed); err != nil {
 			t.Fatalf("env content %q is not JSON: %v", content, err)
 		}
-		if parsed.Theme.Name != "yesmem-loop" {
-			t.Errorf("env theme name = %q, want yesmem-loop", parsed.Theme.Name)
+		if parsed.Theme.Name != "nemons-loop" {
+			t.Errorf("env theme name = %q, want nemons-loop", parsed.Theme.Name)
 		}
 	})
 
 	t.Run("unreadable binary falls back to the env route", func(t *testing.T) {
 		stubHelpExec(t, func(string) (string, error) { return helpWithFlag, nil })
 		stubBinaryIdentity(t, func(string) (string, bool) { return "", false })
-		stubUserHome(t, "yesmem-loop")
+		stubUserHome(t, "nemons-loop")
 		h := &Handler{}
 		flags, env := h.themeSpawnOverride("opencode", "/usr/bin/opencode", "", "yesloop-x", nil)
 		if len(flags) != 0 || len(env) != 1 {
@@ -150,7 +150,7 @@ func TestThemeSpawnOverride(t *testing.T) {
 
 	t.Run("an operator-set config content wins", func(t *testing.T) {
 		stubHelpExec(t, func(string) (string, error) { return helpWithoutFlag, nil })
-		stubUserHome(t, "yesmem-loop")
+		stubUserHome(t, "nemons-loop")
 		h := &Handler{}
 		environ := []string{opencodeThemeEnvKey + `={"theme":{"name":"mine"},"diffs":{"wrap":"word"}}`}
 		flags, env := h.themeSpawnOverride("opencode", "/usr/bin/opencode", "", "yesloop-x", environ)
@@ -161,7 +161,7 @@ func TestThemeSpawnOverride(t *testing.T) {
 
 	t.Run("explicit param reaches the flag", func(t *testing.T) {
 		stubHelpExec(t, func(string) (string, error) { return helpWithFlag, nil })
-		stubUserHome(t, "yesmem-loop")
+		stubUserHome(t, "nemons-loop")
 		h := &Handler{}
 		flags, _ := h.themeSpawnOverride("opencode", "/usr/bin/opencode", "tokyonight", "yesloop-x", nil)
 		if strings.Join(flags, " ") != "--theme tokyonight" {
@@ -173,9 +173,9 @@ func TestThemeSpawnOverride(t *testing.T) {
 	// TUI ("Unrecognized flag"), so a bad config or MCP value must be dropped.
 	t.Run("a value that could be parsed as a flag is dropped", func(t *testing.T) {
 		stubHelpExec(t, func(string) (string, error) { return helpWithFlag, nil })
-		stubUserHome(t, "yesmem-loop")
+		stubUserHome(t, "nemons-loop")
 		h := &Handler{}
-		for _, bad := range []string{"--model", "-x", "yesmem-loop --model x", "yesmem-loop\n--model x", strings.Repeat("a", 65)} {
+		for _, bad := range []string{"--model", "-x", "nemons-loop --model x", "nemons-loop\n--model x", strings.Repeat("a", 65)} {
 			if bad == "" {
 				continue
 			}
@@ -192,7 +192,7 @@ func TestThemeSpawnOverride(t *testing.T) {
 	// opencode silently falls back to its built-in theme for an unknown name,
 	// so a missing install has to leave a trace in the daemon log. It is not a
 	// hard stop: a project-local .opencode/themes/ copy resolves it too.
-	t.Run("a missing yesmem theme is still applied and logged", func(t *testing.T) {
+	t.Run("a missing nemons theme is still applied and logged", func(t *testing.T) {
 		stubHelpExec(t, func(string) (string, error) { return helpWithoutFlag, nil })
 		stubUserHome(t) // nothing installed
 		h := &Handler{}
@@ -207,9 +207,9 @@ func TestThemeSpawnOverride(t *testing.T) {
 	// good, so our own shape is replaced.
 	t.Run("our own inherited config content is replaced", func(t *testing.T) {
 		stubHelpExec(t, func(string) (string, error) { return helpWithoutFlag, nil })
-		stubUserHome(t, "yesmem-loop")
+		stubUserHome(t, "nemons-loop")
 		h := &Handler{}
-		environ := []string{opencodeThemeEnvKey + `={"theme":{"name":"yesmem-loop"}}`}
+		environ := []string{opencodeThemeEnvKey + `={"theme":{"name":"nemons-loop"}}`}
 		flags, env := h.themeSpawnOverride("opencode", "/usr/bin/opencode", "", "yesloop-x", environ)
 		if len(flags) != 0 || len(env) != 1 {
 			t.Fatalf("flags=%v env=%v, want our own value replaced", flags, env)
@@ -228,7 +228,7 @@ func TestThemeSpawnOverride(t *testing.T) {
 	})
 }
 
-// TestInheritedThemeContent separates yesmem's own leftover value (replace it)
+// TestInheritedThemeContent separates nemons's own leftover value (replace it)
 // from an operator's richer config content (leave it alone).
 func TestInheritedThemeContent(t *testing.T) {
 	tests := []struct {
@@ -236,9 +236,9 @@ func TestInheritedThemeContent(t *testing.T) {
 		value string
 		want  bool
 	}{
-		{name: "our own shape", value: `{"theme":{"name":"yesmem-loop"}}`, want: true},
-		{name: "theme plus another setting", value: `{"theme":{"name":"yesmem-loop"},"diffs":{"wrap":"word"}}`},
-		{name: "theme plus mode", value: `{"theme":{"name":"yesmem-loop","mode":"dark"}}`},
+		{name: "our own shape", value: `{"theme":{"name":"nemons-loop"}}`, want: true},
+		{name: "theme plus another setting", value: `{"theme":{"name":"nemons-loop"},"diffs":{"wrap":"word"}}`},
+		{name: "theme plus mode", value: `{"theme":{"name":"nemons-loop","mode":"dark"}}`},
 		{name: "other section only", value: `{"diffs":{"wrap":"word"}}`},
 		{name: "theme name is not a string", value: `{"theme":{"name":42}}`},
 		{name: "not an object", value: `[]`},
@@ -264,10 +264,10 @@ func TestOpencodeSpawnPlan_ThemeReachesArgsAndEnv(t *testing.T) {
 
 	t.Run("new session with a capable binary", func(t *testing.T) {
 		stubHelpExec(t, func(string) (string, error) { return helpWithFlag, nil })
-		stubUserHome(t, "yesmem-loop")
+		stubUserHome(t, "nemons-loop")
 		h := &Handler{}
 		args, env := h.opencodeSpawnPlan("agent-1", "sess-uuid", false, "zai/glm-5.2", "", "yesloop-x", "/usr/bin/opencode", nil)
-		if strings.Join(args, " ") != "--model zai/glm-5.2 --theme yesmem-loop" {
+		if strings.Join(args, " ") != "--model zai/glm-5.2 --theme nemons-loop" {
 			t.Fatalf("args = %v, want the model and theme flags", args)
 		}
 		if len(env) != 0 {
@@ -277,7 +277,7 @@ func TestOpencodeSpawnPlan_ThemeReachesArgsAndEnv(t *testing.T) {
 
 	t.Run("new session with an older binary", func(t *testing.T) {
 		stubHelpExec(t, func(string) (string, error) { return helpWithoutFlag, nil })
-		stubUserHome(t, "yesmem-loop")
+		stubUserHome(t, "nemons-loop")
 		h := &Handler{}
 		args, env := h.opencodeSpawnPlan("agent-1", "sess-uuid", false, "", "", "yesloop-x", "/usr/bin/opencode", nil)
 		if len(args) != 0 {
@@ -290,14 +290,14 @@ func TestOpencodeSpawnPlan_ThemeReachesArgsAndEnv(t *testing.T) {
 
 	t.Run("resume keeps the session flag", func(t *testing.T) {
 		stubHelpExec(t, func(string) (string, error) { return helpWithFlag, nil })
-		stubUserHome(t, "yesmem-loop")
+		stubUserHome(t, "nemons-loop")
 		h, s := mustHandler(t)
 		if err := s.AgentCreate(storage.Agent{ID: "agent-9", Project: "proj", Section: "yesloop-x",
 			SessionID: "daemon-uuid", OpencodeSessionID: "ses_stored"}); err != nil {
 			t.Fatalf("AgentCreate: %v", err)
 		}
 		args, _ := h.opencodeSpawnPlan("agent-9", "daemon-uuid", true, "", "", "yesloop-x", "/usr/bin/opencode", nil)
-		if strings.Join(args, " ") != "-s ses_stored --theme yesmem-loop" {
+		if strings.Join(args, " ") != "-s ses_stored --theme nemons-loop" {
 			t.Fatalf("args = %v, want the stored session id plus the theme", args)
 		}
 	})

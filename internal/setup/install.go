@@ -10,7 +10,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/update"
+	"github.com/NasserJabir/Nemons/internal/update"
 )
 
 const DefaultExtractionModel = "sonnet"
@@ -55,13 +55,13 @@ func ensurePermanentLocation(home, binaryPath string) string {
 	}
 
 	// Not in a permanent location — copy to ~/.local/bin automatically
-	dest := filepath.Join(home, ".local", "bin", "yesmem")
+	dest := filepath.Join(home, ".local", "bin", "nemons")
 	os.MkdirAll(filepath.Dir(dest), 0755)
 	var copyErr error
 	withSpinner("Installing to "+dest, func() (string, error) {
 		// No busy-binary workaround here any more: copyBinary installs by rename
 		// and never opens the running inode for writing, so ETXTBSY cannot occur.
-		// The old branch stopped both services and killed every yesmem process on
+		// The old branch stopped both services and killed every nemons process on
 		// the host to get past it (YM-313).
 		if err := copyBinary(absPath, dest); err != nil {
 			copyErr = err
@@ -93,7 +93,7 @@ func restartInstalledServices() {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), systemdReloadTimeout)
 	defer cancel()
-	if err := systemctlRun(ctx, "--user", "try-restart", "yesmem.service", "yesmem-proxy.service"); err != nil {
+	if err := systemctlRun(ctx, "--user", "try-restart", "nemons.service", "nemons-proxy.service"); err != nil {
 		log.Printf("setup: restarting the installed services: %v (a running daemon keeps the previous binary until its next restart)", err)
 	}
 }
@@ -130,9 +130,9 @@ func isPermanentLocation(home, path string) bool {
 	return true // Anywhere else, assume the user knows what they're doing
 }
 
-// copyBinary installs src as dst. It takes the same update lock as `yesmem
+// copyBinary installs src as dst. It takes the same update lock as `nemons
 // update` and `make install`, and it replaces the file by rename instead of
-// writing through the target: a running yesmem has the installed inode mapped,
+// writing through the target: a running nemons has the installed inode mapped,
 // so an in-place copy fails with ETXTBSY mid-write (or leaves a truncated
 // binary behind), and a parallel update would replace a path this copy is still
 // writing. There is no busy-file workaround any more, because a rename never
@@ -153,7 +153,7 @@ func copyBinary(src, dst string) error {
 	// The temp name has to sit in the target directory: rename across filesystems
 	// would copy again. os.CreateTemp reserves the name, so a leftover from an
 	// aborted run cannot block the install (the .bak.tmp lesson of YM-301).
-	tmp, err := os.CreateTemp(filepath.Dir(dst), ".yesmem-copy-*")
+	tmp, err := os.CreateTemp(filepath.Dir(dst), ".nemons-copy-*")
 	if err != nil {
 		return err
 	}
@@ -202,7 +202,7 @@ func ensureInPath(home, dir string) {
 		if err != nil {
 			continue
 		}
-		fmt.Fprintf(f, "\n# YesMem binary\n%s\n", envLine)
+		fmt.Fprintf(f, "\n# Nemons binary\n%s\n", envLine)
 		f.Close()
 	}
 	fmt.Printf("  Added %s to PATH in shell config ✓\n", dir)

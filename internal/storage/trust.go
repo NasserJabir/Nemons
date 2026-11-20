@@ -4,7 +4,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // TrustLevel classifies how resistant a learning is to being superseded.

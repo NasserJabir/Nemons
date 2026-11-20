@@ -16,10 +16,10 @@ func TestBashJobTimeout(t *testing.T) {
 		scriptTimeout int64
 		wantSeconds   int
 	}{
-		{"no declaration, plain command", "journalctl --user -u yesmem", 0, 20},
+		{"no declaration, plain command", "journalctl --user -u nemons", 0, 20},
 		{"no declaration, agent command", "claude -p fix-it", 0, 600},
 		{"no declaration, llm adapter", "echo x | llm summarize", 0, 600},
-		{"declared runtime wins", "journalctl --user -u yesmem", 120, 120},
+		{"declared runtime wins", "journalctl --user -u nemons", 120, 120},
 		{"declared runtime wins over the agent heuristic", "claude -p fix-it", 90, 90},
 	}
 	for _, tc := range cases {

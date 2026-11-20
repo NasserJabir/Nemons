@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // los38ySeedDB creates path with the given statements.
@@ -32,14 +32,14 @@ func los38yInstall(t *testing.T) (dataDir, backupDir string) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 
-	dataDir = filepath.Join(home, ".claude", "yesmem")
+	dataDir = filepath.Join(home, ".claude", "nemons")
 	if err := os.MkdirAll(dataDir, 0o700); err != nil {
 		t.Fatalf("mkdir data dir: %v", err)
 	}
 
 	// The real schema comes from the store itself: a hand-written subset would
 	// fail the migrations storage.Open runs on restore.
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("create schema: %v", err)
 	}
@@ -47,7 +47,7 @@ func los38yInstall(t *testing.T) (dataDir, backupDir string) {
 		t.Fatalf("close: %v", err)
 	}
 
-	los38ySeedDB(t, filepath.Join(dataDir, "yesmem.db"),
+	los38ySeedDB(t, filepath.Join(dataDir, "nemons.db"),
 		`INSERT INTO learnings (category, content, created_at, model_used)
 			VALUES ('gotcha', 'backup marker', '2026-10-20T17:00:00Z', 'test')`)
 
@@ -65,7 +65,7 @@ func los38yInstall(t *testing.T) (dataDir, backupDir string) {
 func los38yRunBackup(t *testing.T, backupDir string) {
 	t.Helper()
 	oldArgs := os.Args
-	os.Args = []string{"yesmem", "backup", backupDir}
+	os.Args = []string{"nemons", "backup", backupDir}
 	t.Cleanup(func() { os.Args = oldArgs })
 	runBackup()
 }
@@ -96,7 +96,7 @@ func los38yBackupFiles(t *testing.T, backupDir string) map[string]string {
 }
 
 // TestRunBackupIncludesMessagesDBLos38y is the regression test for YM-369: the
-// backup command copied yesmem.db and runtime.db, but not messages.db, which
+// backup command copied nemons.db and runtime.db, but not messages.db, which
 // holds every message body since the migrate-messages split. A restore from such
 // a backup loses the complete message history.
 func TestRunBackupIncludesMessagesDBLos38y(t *testing.T) {
@@ -110,7 +110,7 @@ func TestRunBackupIncludesMessagesDBLos38y(t *testing.T) {
 			files["main"], files["runtime"], dataDir)
 	}
 	if _, ok := files["main"]; !ok {
-		t.Fatalf("backup holds no yesmem.db snapshot: %v", files)
+		t.Fatalf("backup holds no nemons.db snapshot: %v", files)
 	}
 }
 
@@ -130,7 +130,7 @@ func TestBackupRestoresMessagesLos38y(t *testing.T) {
 
 	// Restore: the backup files replace the live databases, as a manual restore does.
 	for _, pair := range [][2]string{
-		{files["main"], filepath.Join(dataDir, "yesmem.db")},
+		{files["main"], filepath.Join(dataDir, "nemons.db")},
 		{files["runtime"], filepath.Join(dataDir, "runtime.db")},
 		{messages, filepath.Join(dataDir, "messages.db")},
 	} {
@@ -140,7 +140,7 @@ func TestBackupRestoresMessagesLos38y(t *testing.T) {
 		los38yReplaceFile(t, pair[0], pair[1])
 	}
 
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open restored store: %v", err)
 	}

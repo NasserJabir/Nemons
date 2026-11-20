@@ -60,7 +60,7 @@ func TestLos56i_ExportAllCapsSkipsARetiredCap(t *testing.T) {
 
 // Cold-Review-Nachpruefung (Los 56i): die Ausmusterung als Einmal-Migration
 // reicht nicht. Ein Install, der nur ein neues Binary bekommt (make deploy,
-// ohne "yesmem migrate"), behaelt die aktive Zeile, und damit stuende das Cap
+// ohne "nemons migrate"), behaelt die aktive Zeile, und damit stuende das Cap
 // weiter im Katalog und waere ausfuehrbar. Die Leser filtern deshalb selbst.
 func TestLos56i_ReadersHideARetiredCapEvenWithoutARetirementRun(t *testing.T) {
 	h, s := mustHandler(t)

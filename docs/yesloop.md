@@ -4,7 +4,7 @@
 
 ## Overview
 
-YesLoop is the autonomous execution layer on top of YesMem. Where a normal agent session is interactive (you chat, the agent responds, you correct, it tries again), a yesloop session is fire-and-forget: you describe the task once, the agent works alone, and you review the result at the end.
+YesLoop is the autonomous execution layer on top of Nemons. Where a normal agent session is interactive (you chat, the agent responds, you correct, it tries again), a yesloop session is fire-and-forget: you describe the task once, the agent works alone, and you review the result at the end.
 
 YesLoop exists because interactive babysitting does not scale. Long tasks drift, context rots, agents get stuck in loops, and the human becomes the bottleneck. YesLoop replaces the human-in-the-loop with structural guards: isolated worktrees, convergence gates, drift checks, verification phases, and token budgets.
 
@@ -96,11 +96,11 @@ Commit message follows repo style. Push the branch. Open a PR if configured. Pos
 
 ### Scheduled mode
 
-YesLoop can be triggered via `yesmem_schedule` with `mode='agent'`. The scheduler spawns an agent at cron intervals or one-shot. Useful for nightly refactors, dependency updates, or recurring maintenance tasks.
+YesLoop can be triggered via `nemons_schedule` with `mode='agent'`. The scheduler spawns an agent at cron intervals or one-shot. Useful for nightly refactors, dependency updates, or recurring maintenance tasks.
 
 ## Orchestrator Contract
 
-When you (the orchestrator) spawn a yesloop agent via `yesmem_spawn_agent`, you follow a contract:
+When you (the orchestrator) spawn a yesloop agent via `nemons_spawn_agent`, you follow a contract:
 
 1. Create the worktree before the first edit, not after
 2. Write the task to the scratchpad before spawning
@@ -153,7 +153,7 @@ git worktree add -b yesloop/<task-name> .worktrees/<task-name> origin/main
 
 Autonomous agents need a reliable project-scoped temp directory. `/tmp/` is unreliable across sandbox/container contexts. Global paths collide between parallel agents.
 
-Use `<worktree>/.yesmem/tmp/` instead. Project-local, always writable from any agent context, cleaned up with worktree removal. Ensure the directory exists at session start: `mkdir -p .yesmem/tmp`.
+Use `<worktree>/.nemons/tmp/` instead. Project-local, always writable from any agent context, cleaned up with worktree removal. Ensure the directory exists at session start: `mkdir -p .nemons/tmp`.
 
 The directory is excluded from git via `.gitignore` and from public repo sync via `sync-public.sh`.
 
@@ -175,7 +175,7 @@ Task definition, progress notes, blockers, DONE message. Shared between orchestr
 
 ## Multi-Model Support
 
-YesLoop agents can run on any backend that `yesmem_spawn_agent` supports:
+YesLoop agents can run on any backend that `nemons_spawn_agent` supports:
 
 - `claude` (Anthropic API directly)
 - `opencode` (OpenCode TUI with any configured provider)
@@ -324,7 +324,7 @@ The skill body at `~/.claude/skills/yesloop/SKILL.md` is the authority on the cu
 From an orchestrator session (programmatic):
 
 ```
-yesmem_spawn_agent(
+nemons_spawn_agent(
   backend="opencode",
   model="zai-coding-plan/glm-5.2",
   project="<project>",

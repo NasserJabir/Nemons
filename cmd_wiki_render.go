@@ -8,16 +8,16 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/carsteneu/yesmem/internal/codescan"
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/wikidir"
-	"github.com/carsteneu/yesmem/internal/wikirender"
+	"github.com/NasserJabir/Nemons/internal/codescan"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/wikidir"
+	"github.com/NasserJabir/Nemons/internal/wikirender"
 )
 
 func runWikiRender(args []string) error {
 	fs := flag.NewFlagSet("wiki-render", flag.ExitOnError)
 	project := fs.String("project", "", "Project name (required)")
-	out := fs.String("out", "", "Output dir (default ~/.claude/yesmem/wiki/<basename of --project>)")
+	out := fs.String("out", "", "Output dir (default ~/.claude/nemons/wiki/<basename of --project>)")
 	quiet := fs.Bool("quiet", false, "Suppress progress output")
 	jsonLine := fs.Bool("json", true, "Emit final JSON status line on stdout")
 	scan := fs.Bool("scan", false, "Use CBM scanner for live code graph (imports, calls)")
@@ -29,7 +29,7 @@ func runWikiRender(args []string) error {
 		return fmt.Errorf("--project is required")
 	}
 	if *out == "" {
-		root := wikidir.Root(yesmemDataDir())
+		root := wikidir.Root(nemonsDataDir())
 		name := wikidir.AssignNames(root, []string{*project})[*project]
 		if name == "" {
 			return fmt.Errorf("--project %q has no usable wiki directory name", *project)
@@ -37,7 +37,7 @@ func runWikiRender(args []string) error {
 		*out = filepath.Join(root, name)
 	}
 
-	store, err := storage.Open(filepath.Join(yesmemDataDir(), "yesmem.db"))
+	store, err := storage.Open(filepath.Join(nemonsDataDir(), "nemons.db"))
 	if err != nil {
 		return err
 	}

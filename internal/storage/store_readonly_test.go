@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // storeDirListing lists the data directory, ignoring the -wal/-shm companions.
@@ -33,10 +33,10 @@ func storeDirListing(t *testing.T, dir string) string {
 
 // Read-only consumers (the spend CLI) must not mutate the live database: a plain
 // Open() writes the schema, runs migrations and creates the runtime/messages
-// siblings next to yesmem.db.
+// siblings next to nemons.db.
 func TestOpenReadOnlyDoesNotCreateOrWrite(t *testing.T) {
 	dir := t.TempDir()
-	dbPath := filepath.Join(dir, "yesmem.db")
+	dbPath := filepath.Join(dir, "nemons.db")
 	day := time.Now().Format("2006-01-02")
 
 	w, err := Open(dbPath)
@@ -83,7 +83,7 @@ func TestOpenReadOnlyDoesNotCreateOrWrite(t *testing.T) {
 func TestOpenReadOnlyMissingDB(t *testing.T) {
 	dir := t.TempDir()
 
-	if _, err := OpenReadOnly(filepath.Join(dir, "yesmem.db")); err == nil {
+	if _, err := OpenReadOnly(filepath.Join(dir, "nemons.db")); err == nil {
 		t.Fatal("expected an error for a missing database")
 	}
 	if after := storeDirListing(t, dir); after != "[]" {

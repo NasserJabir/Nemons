@@ -8,13 +8,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/daemon"
 	"gopkg.in/yaml.v3"
 )
 
 func runConfig(args []string) {
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 	cfgPath := filepath.Join(dataDir, "config.yaml")
 
 	if len(args) == 0 {
@@ -37,8 +37,8 @@ func runConfig(args []string) {
 	switch cmd {
 	case "get":
 		if len(args) < 2 {
-			fmt.Fprintln(os.Stderr, "Usage: yesmem config get <dot-path>")
-			fmt.Fprintln(os.Stderr, "  Example: yesmem config get extraction.model")
+			fmt.Fprintln(os.Stderr, "Usage: nemons config get <dot-path>")
+			fmt.Fprintln(os.Stderr, "  Example: nemons config get extraction.model")
 			os.Exit(1)
 		}
 		key := args[1]
@@ -66,8 +66,8 @@ func runConfig(args []string) {
 
 	case "set":
 		if len(args) < 3 {
-			fmt.Fprintln(os.Stderr, "Usage: yesmem config set <dot-path> <value>")
-			fmt.Fprintln(os.Stderr, "  Example: yesmem config set extraction.model opus")
+			fmt.Fprintln(os.Stderr, "Usage: nemons config set <dot-path> <value>")
+			fmt.Fprintln(os.Stderr, "  Example: nemons config set extraction.model opus")
 			os.Exit(1)
 		}
 		key := args[1]
@@ -83,7 +83,7 @@ func runConfig(args []string) {
 		if err != nil {
 			if os.IsNotExist(err) {
 				fmt.Println("Config file not found: " + cfgPath)
-				fmt.Println("Run 'yesmem setup' to create one.")
+				fmt.Println("Run 'nemons setup' to create one.")
 				os.Exit(1)
 			}
 			fmt.Fprintf(os.Stderr, "config show: %v\n", err)
@@ -92,11 +92,11 @@ func runConfig(args []string) {
 		fmt.Print(string(data))
 
 	default:
-		fmt.Fprintf(os.Stderr, "Usage: yesmem config [get|set|show]\n")
-		fmt.Fprintln(os.Stderr, "  yesmem config            Show merged config (defaults + overrides)")
-		fmt.Fprintln(os.Stderr, "  yesmem config show       Show raw config.yaml")
-		fmt.Fprintln(os.Stderr, "  yesmem config get <key>  Get a config value by dot-path")
-		fmt.Fprintln(os.Stderr, "  yesmem config set <key> <value>  Set a config value by dot-path")
+		fmt.Fprintf(os.Stderr, "Usage: nemons config [get|set|show]\n")
+		fmt.Fprintln(os.Stderr, "  nemons config            Show merged config (defaults + overrides)")
+		fmt.Fprintln(os.Stderr, "  nemons config show       Show raw config.yaml")
+		fmt.Fprintln(os.Stderr, "  nemons config get <key>  Get a config value by dot-path")
+		fmt.Fprintln(os.Stderr, "  nemons config set <key> <value>  Set a config value by dot-path")
 		os.Exit(1)
 	}
 }

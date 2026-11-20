@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/orchestrator"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/orchestrator"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // YM-287 [OPS-65]: the socket cleanup in the supervisor paths still followed

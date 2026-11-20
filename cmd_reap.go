@@ -7,10 +7,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/setup"
+	"github.com/NasserJabir/Nemons/internal/setup"
 )
 
-// runReapStaleMCP terminates the `yesmem mcp` helpers that still map a replaced
+// runReapStaleMCP terminates the `nemons mcp` helpers that still map a replaced
 // binary. A deploy swaps the inode; a helper keeps serving the old tool schema
 // until it dies and its client forks a new one (Learning #81467).
 func runReapStaleMCP() {
@@ -38,5 +38,5 @@ func runReapStaleMCP() {
 	for _, pid := range pids {
 		fmt.Printf("  %s PID %d\n", verb, pid)
 	}
-	fmt.Printf("%s %d stale yesmem-mcp process(es) holding old binary\n", verb, len(pids))
+	fmt.Printf("%s %d stale nemons-mcp process(es) holding old binary\n", verb, len(pids))
 }

@@ -478,7 +478,7 @@ type SandboxConfig struct {
 	// reach the daemon socket. Kept for the ai-jail 2.x migration (--allow-host).
 	AllowedPorts []int `yaml:"allowed_ports"`
 	// ReadOnlyMounts are host paths mapped read-only into the sandbox for the
-	// standard and strict profiles. Caps need the yesmem CLI and the restricted
+	// standard and strict profiles. Caps need the nemons CLI and the restricted
 	// job socket (store()/llm()); they never need to write to them. Both ai-jail
 	// versions take the bare PATH form and bind it at the same path inside — but
 	// only when the destination's top-level directory exists in the sandbox: a
@@ -509,7 +509,7 @@ type SandboxConfig struct {
 	// A work dir that is the user's home or an ancestor of it is not supported and
 	// refuses the run: ai-jail binds this directory read-write after the caller's
 	// mounts, so the home would be bound over the sandbox and the maps of the
-	// yesmem CLI and the job socket would be void (YM-428, see workDirCoversHome).
+	// nemons CLI and the job socket would be void (YM-428, see workDirCoversHome).
 	// The exception is `sandbox: none`, which starts the command directly and binds
 	// nothing.
 	WorkDir string `yaml:"work_dir"`
@@ -651,7 +651,7 @@ func (s *Sandbox) Env() []string {
 }
 
 // dedupeEnv keeps the last entry per key. cfg.Env is assembled from caller values
-// and defaults (a cap caller already sets YESMEM_SOCK, newSandbox appends it), and
+// and defaults (a cap caller already sets NEMONS_SOCK, newSandbox appends it), and
 // a duplicate name reaches ai-jail as a second --env flag on 2.x and as two entries
 // in the child environment on 0.9.x — which of them a consumer takes is undefined.
 func dedupeEnv(env []string) []string {
@@ -685,7 +685,7 @@ func dedupeEnv(env []string) []string {
 //     ~/.ai-jail the same run reached it. So strict's egress on 0.9.x is a
 //     property of the host file, not a promise of the profile.
 //   - standard runs without --lockdown, because that is the only mode in which
-//     the restricted job socket and the yesmem CLI stay reachable for caps.
+//     the restricted job socket and the nemons CLI stay reachable for caps.
 //     Without lockdown ai-jail enforces no filesystem or network policy beyond the
 //     masks, so the home stays writable and the network is open. What remains:
 //     Landlock and seccomp (named explicitly so a project .ai-jail cannot switch
@@ -724,7 +724,7 @@ func (s *Sandbox) sandboxFlagsLegacy(profile SandboxProfile) []string {
 	// (measured: the repo mask applied without it and did not apply with it). Since
 	// YM-291 a run starts in its work dir, and a job's work dir is the project — so
 	// the project's own .ai-jail would otherwise be read and merged over these
-	// flags: the yesmem checkout carries a tracked one whose command is a telegram
+	// flags: the nemons checkout carries a tracked one whose command is a telegram
 	// poll, and its mask/rw_maps/hide_dotdirs keys would widen the sandbox. The
 	// global ~/.ai-jail is still read; that is host state, not repository state.
 	switch profile {
@@ -968,7 +968,7 @@ func missingPaths(all, kept []string) []string {
 }
 
 // requiredMountErr turns the paths AddReadOnlyMounts dropped into a refusal when
-// one the run cannot work without is among them. A cap whose yesmem CLI or job
+// one the run cannot work without is among them. A cap whose nemons CLI or job
 // socket mount vanished does not fail at once: store() and llm() run a command
 // the sandbox does not have, so the caller sees a shell error that names the
 // symptom and not the mask (Befund 4, YM-334). The message carries no host path
@@ -992,7 +992,7 @@ func requiredMountErr(dropped, required []string, profile SandboxProfile) error 
 			continue
 		}
 		if lost[path] {
-			return fmt.Errorf("%w: a mount the run needs (the yesmem CLI or the job socket) lies inside a masked path, store() and llm() would fail; see the daemon log", errMaskPrepare)
+			return fmt.Errorf("%w: a mount the run needs (the nemons CLI or the job socket) lies inside a masked path, store() and llm() would fail; see the daemon log", errMaskPrepare)
 		}
 	}
 	return nil
@@ -1008,7 +1008,7 @@ func requiredMountErr(dropped, required []string, profile SandboxProfile) error 
 // dir, and the caller has to be able to act on it. For a job that value is the
 // operator's own project, for a cap or a job without one it is the run dir the daemon
 // derived — a path inside the runtime dir that a sandboxed caller already knows from
-// YESMEM_SOCK, so it carries no secret either.
+// NEMONS_SOCK, so it carries no secret either.
 func maskRefusalForCaller(err error) string {
 	if err == nil {
 		return ""
@@ -1040,7 +1040,7 @@ func (s *Sandbox) withRWMapMounts(args []string) []string {
 }
 
 // withEnvForwards names the variables the run needs inside the sandbox. ai-jail
-// 2.x does not inherit the environment (measured: an exported YESMEM_JOB_DIR
+// 2.x does not inherit the environment (measured: an exported NEMONS_JOB_DIR
 // arrives empty), so a job log path would silently fall back to /tmp. Only the
 // name is passed on: a NAME=VALUE would be visible in ai-jail's own argv.
 // ai-jail 0.9.x inherits the environment and has no --env flag, so its flag set
@@ -1090,7 +1090,7 @@ var errMaskPrepare = errors.New("a sandbox mask could not be applied")
 // errWorkDirCoversHome is the refusal for a run whose own cwd bind would cover the
 // user's home. ai-jail lays the read-write cwd bind after the caller's mounts, so
 // every map inside the home is shadowed by it — and the two the run cannot do
-// without are exactly those: the yesmem CLI the store()/llm() polyfills call and
+// without are exactly those: the nemons CLI the store()/llm() polyfills call and
 // the restricted job socket. Masking them is not an option (the run needs them), so
 // the run is refused instead; that keeps the decision fail-closed and stays on the
 // line claudeConfigFlags already took for ~/.claude.json one step narrower
@@ -1308,7 +1308,7 @@ func runShell(command string, timeoutSec int, workDir string, env []string) (str
 // runProcess runs a process with a timeout and reports its exit code. A non-zero
 // exit is always an error: callers key "did this job succeed" off it. env is
 // appended to the inherited environment, so a run can pass values in (a job's
-// YESMEM_JOB_DIR) without losing the caller's own environment.
+// NEMONS_JOB_DIR) without losing the caller's own environment.
 func runProcess(binary string, args []string, timeoutSec int, workDir string, env []string) (string, int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutSec)*time.Second)
 	defer cancel()

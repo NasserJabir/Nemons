@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/ingest"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/ingest"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // YM-231: handleRemoveDocs derived the clone directory from the caller-supplied

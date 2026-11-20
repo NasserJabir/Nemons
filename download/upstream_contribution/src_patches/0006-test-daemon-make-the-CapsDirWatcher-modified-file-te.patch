@@ -18,8 +18,8 @@ index 0844085..6590746 100644
  	"testing"
 +	"time"
  
- 	"github.com/carsteneu/yesmem/internal/capfile"
- 	"github.com/carsteneu/yesmem/internal/models"
+ 	"github.com/NasserJabir/Nemons/internal/capfile"
+ 	"github.com/NasserJabir/Nemons/internal/models"
 @@ -280,6 +281,14 @@ func TestCapsDirWatcher_DetectsModifiedFile(t *testing.T) {
  	if err := os.WriteFile(capPath, body2, 0o644); err != nil {
  		t.Fatal(err)

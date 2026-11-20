@@ -13,7 +13,7 @@ import (
 // TTL of every bounded volatile learning — the mechanism could never take
 // effect.
 func TestLos56eStoreOpenKeepsValidUntilOnActiveRows(t *testing.T) {
-	dbPath := filepath.Join(t.TempDir(), "yesmem.db")
+	dbPath := filepath.Join(t.TempDir(), "nemons.db")
 
 	s, err := Open(dbPath)
 	if err != nil {

@@ -9,14 +9,14 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // projectMatchesTolerant reports whether a learning (identified by its per-row project
 // and canonical_project columns) belongs to the requested project. Tolerance is needed
-// because callers pass either short names ("yesmem"), full paths ("/home/x/yesmem"), or
-// worktree paths ("/home/x/yesmem/.worktrees/foo"), while learnings carry a mix of
-// canonical_project values ("yesmem" for legacy rows, full paths for newer rows).
+// because callers pass either short names ("nemons"), full paths ("/home/x/nemons"), or
+// worktree paths ("/home/x/nemons/.worktrees/foo"), while learnings carry a mix of
+// canonical_project values ("nemons" for legacy rows, full paths for newer rows).
 //
 // Comparison rules:
 //   - Empty requested matches anything (no filter applied).

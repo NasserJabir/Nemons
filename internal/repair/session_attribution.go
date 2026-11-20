@@ -16,8 +16,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/repo"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/repo"
 )
 
 // DefaultSince is the cut-off of the session-attribution repair: the opencode v2
@@ -167,13 +167,13 @@ func knownProjectPaths(db *sql.DB) ([]string, error) {
 // Plan reads both databases and proposes an attribution per learning: the
 // session whose assistant tool call contains the learning's text. It opens the
 // databases read-only, so a dry run cannot write.
-func Plan(yesmemDBPath, opencodeDBPath, since string) (*Report, error) {
+func Plan(nemonsDBPath, opencodeDBPath, since string) (*Report, error) {
 	if since == "" {
 		since = DefaultSince
 	}
-	ydb, err := openReadOnly(yesmemDBPath)
+	ydb, err := openReadOnly(nemonsDBPath)
 	if err != nil {
-		return nil, fmt.Errorf("open yesmem db: %w", err)
+		return nil, fmt.Errorf("open nemons db: %w", err)
 	}
 	defer ydb.Close()
 	odb, err := openReadOnly(opencodeDBPath)
@@ -261,13 +261,13 @@ func Plan(yesmemDBPath, opencodeDBPath, since string) (*Report, error) {
 // A project repair writes canonical_project alongside project but leaves
 // embedding_text and embedding_vector as they are — those are rebuilt by the
 // embedding pipeline, not here; no live row needs a project repair today.
-func Apply(yesmemDBPath string, report *Report) (int, error) {
+func Apply(nemonsDBPath string, report *Report) (int, error) {
 	if report == nil {
 		return 0, fmt.Errorf("no report to apply")
 	}
-	db, err := openForApply(yesmemDBPath)
+	db, err := openForApply(nemonsDBPath)
 	if err != nil {
-		return 0, fmt.Errorf("open yesmem db: %w", err)
+		return 0, fmt.Errorf("open nemons db: %w", err)
 	}
 	defer db.Close()
 
@@ -466,7 +466,7 @@ func storedParts(data string) []storedPart {
 // matchToolCalls returns, per learning id, the sessions whose assistant tool
 // call carries that learning's text.
 //
-// A remember reaches the database in two shapes: a direct yesmem_remember call
+// A remember reaches the database in two shapes: a direct nemons_remember call
 // whose text argument is the learning content, and an opencode Code Mode
 // execute call whose JavaScript source embeds the same call — the misattributed
 // #101896/#101897 were written the second way, so matching only the direct

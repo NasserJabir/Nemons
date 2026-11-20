@@ -5,8 +5,8 @@ import "testing"
 // --- extractProjectPath ---
 //
 // Daemon RPCs must carry the absolute project path. A bare basename is
-// ambiguous once two indexed projects share it (e.g. /home/x/memory/yesmem
-// vs /home/x/projects/yesmem) and the daemon refuses to resolve it.
+// ambiguous once two indexed projects share it (e.g. /home/x/memory/nemons
+// vs /home/x/projects/nemons) and the daemon refuses to resolve it.
 
 func TestExtractProjectPath_ClaudeCode(t *testing.T) {
 	req := map[string]any{
@@ -51,7 +51,7 @@ func TestExtractProjectPath_Empty(t *testing.T) {
 }
 
 // extractProjectName keeps returning the short name: prompt_rewrite builds the
-// wiki hint (~/.claude/yesmem/wiki/<project>/) from it, and proxy_stub keeps a
+// wiki hint (~/.claude/nemons/wiki/<project>/) from it, and proxy_stub keeps a
 // deliberate short form. Guarding the contract so the two stay separate.
 func TestExtractProjectName_StaysShortAlongsidePath(t *testing.T) {
 	req := map[string]any{

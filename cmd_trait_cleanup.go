@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/carsteneu/yesmem/internal/clustering"
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/embedding"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/clustering"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/embedding"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 func runTraitCleanup() {
@@ -28,10 +28,10 @@ func runTraitCleanup() {
 		}
 	}
 
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 	cfg, _ := config.Load(filepath.Join(dataDir, "config.yaml"))
 
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		log.Fatalf("open db: %v", err)
 	}

@@ -447,7 +447,7 @@ func detectRepeatedError(calls []ToolCallEntry) *LoopSignal {
 // FormatLoopWarning generates the warning text injected into the system prompt.
 // warningLevel escalates: 1 = first warning, 2 = ignored first, 3+ = persistent.
 func FormatLoopWarning(signal *LoopSignal, warningLevel int) string {
-	const prefix = "[YesMem Loop Detection]"
+	const prefix = "[Nemons Loop Detection]"
 	switch {
 	case warningLevel <= 1:
 		return fmt.Sprintf(

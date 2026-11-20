@@ -3,8 +3,8 @@ package daemon
 import (
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // mockLLM implements extraction.LLMClient for tests.

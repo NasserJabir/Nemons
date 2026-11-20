@@ -44,9 +44,9 @@ func processHoldsLockOn(t *testing.T, path string) bool {
 // counts the lock as held. The next process to close its own connection then
 // takes itself for the last one and deletes -wal and -shm under the running
 // daemon (live 18.10.2026: disk I/O error 522, daemon held no lock on
-// yesmem.db and messages.db while runtime.db kept its lock).
+// nemons.db and messages.db while runtime.db kept its lock).
 func TestHotfixWAL_SecondOpenKeepsTheProcessLock(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "yesmem.db")
+	path := filepath.Join(t.TempDir(), "nemons.db")
 
 	first, err := openSQLite(path)
 	if err != nil {
@@ -77,7 +77,7 @@ func TestHotfixWAL_SecondOpenKeepsTheProcessLock(t *testing.T) {
 // An existing database file is hardened by chmod alone, never opened: a file
 // the owner may only read would make an O_RDWR open fail.
 func TestHotfixWAL_HardenDoesNotOpenAnExistingFile(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "yesmem.db")
+	path := filepath.Join(t.TempDir(), "nemons.db")
 	if err := os.WriteFile(path, nil, 0o400); err != nil {
 		t.Fatal(err)
 	}
@@ -95,7 +95,7 @@ func TestHotfixWAL_HardenDoesNotOpenAnExistingFile(t *testing.T) {
 
 // A missing database file is still created owner-only.
 func TestHotfixWAL_HardenCreatesAMissingFileOwnerOnly(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "yesmem.db")
+	path := filepath.Join(t.TempDir(), "nemons.db")
 	if err := hardenDBFile(path); err != nil {
 		t.Fatalf("harden missing file: %v", err)
 	}

@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func los38tLearning(i int) *models.Learning {
@@ -181,15 +181,15 @@ func TestLos38tGuardPoolsGroupByFile(t *testing.T) {
 	for _, p := range pools {
 		byName[p.name] = p
 	}
-	main, ok := byName["yesmem.db"]
+	main, ok := byName["nemons.db"]
 	if !ok {
-		t.Fatalf("no pool for yesmem.db: %v", byName)
+		t.Fatalf("no pool for nemons.db: %v", byName)
 	}
 	if main.path != resolveStorePath(path) {
 		t.Errorf("main pool path = %q, want %q", main.path, resolveStorePath(path))
 	}
 	if len(main.all) != 3 {
-		t.Errorf("yesmem.db pool holds %d handles, want 3 (db, read, read-only)", len(main.all))
+		t.Errorf("nemons.db pool holds %d handles, want 3 (db, read, read-only)", len(main.all))
 	}
 	messages := byName["messages.db"]
 	if len(messages.all) != 2 {
@@ -218,7 +218,7 @@ func TestLos38tGuardWorksThroughSymlinkedDataDir(t *testing.T) {
 		t.Skipf("symlinks unavailable: %v", err)
 	}
 
-	s, err := Open(filepath.Join(link, "yesmem.db"))
+	s, err := Open(filepath.Join(link, "nemons.db"))
 	if err != nil {
 		t.Fatalf("Open through symlink: %v", err)
 	}
@@ -226,7 +226,7 @@ func TestLos38tGuardWorksThroughSymlinkedDataDir(t *testing.T) {
 	if _, err := s.InsertLearning(los38tLearning(1)); err != nil {
 		t.Fatalf("insert: %v", err)
 	}
-	realPath := filepath.Join(real, "yesmem.db")
+	realPath := filepath.Join(real, "nemons.db")
 	for _, suffix := range []string{"-wal", "-shm"} {
 		if err := os.Remove(realPath + suffix); err != nil {
 			t.Fatalf("remove %s: %v", suffix, err)
@@ -293,7 +293,7 @@ func TestLos38tRelativePathAndMissingFile(t *testing.T) {
 	dir := t.TempDir()
 	t.Chdir(dir)
 
-	s, err := Open("yesmem.db")
+	s, err := Open("nemons.db")
 	if err != nil {
 		t.Fatalf("Open with a relative path: %v", err)
 	}
@@ -301,11 +301,11 @@ func TestLos38tRelativePathAndMissingFile(t *testing.T) {
 	if _, err := s.InsertLearning(los38tLearning(1)); err != nil {
 		t.Fatalf("insert: %v", err)
 	}
-	if err := walCanary("yesmem.db"); err != nil {
+	if err := walCanary("nemons.db"); err != nil {
 		t.Fatalf("canary with a relative path: %v", err)
 	}
 
-	missing := filepath.Join(dir, "missing", "yesmem.db")
+	missing := filepath.Join(dir, "missing", "nemons.db")
 	if err := os.MkdirAll(filepath.Dir(missing), 0o700); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
@@ -360,7 +360,7 @@ func TestLos38tGuardDoesNotCreateAMissingDatabase(t *testing.T) {
 // TestLos38tSidecarMatchIsExact pins the file set the alarm and the heal accept:
 // a stale look-alike name next to the database must not count as a sidecar.
 func TestLos38tSidecarMatchIsExact(t *testing.T) {
-	path := "/tmp/yesmem.db"
+	path := "/tmp/nemons.db"
 	for _, ok := range []string{path, path + "-wal", path + "-shm", path + "-journal"} {
 		if !isStoreFile(path, ok) {
 			t.Errorf("isStoreFile(%q) = false, want true", ok)
@@ -377,7 +377,7 @@ func TestLos38tSidecarMatchIsExact(t *testing.T) {
 // never run a guard, because the canary checkpoints the database.
 func TestLos38tGuardRefusesReadOnlyStore(t *testing.T) {
 	dir := t.TempDir()
-	path := filepath.Join(dir, "yesmem.db")
+	path := filepath.Join(dir, "nemons.db")
 	rw, err := Open(path)
 	if err != nil {
 		t.Fatalf("Open: %v", err)
@@ -419,7 +419,7 @@ func TestLos38tDeletedSidecarFDsReportsUnlinkedFiles(t *testing.T) {
 		t.Skip("the sidecar scan needs /proc/<pid>/fd")
 	}
 	dir := t.TempDir()
-	path := filepath.Join(dir, "yesmem.db")
+	path := filepath.Join(dir, "nemons.db")
 	wal := path + "-wal"
 	f, err := os.Create(wal)
 	if err != nil {

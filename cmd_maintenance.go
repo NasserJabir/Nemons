@@ -14,13 +14,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/daemon"
-	"github.com/carsteneu/yesmem/internal/embedding"
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/sanitize"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/embedding"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/sanitize"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // redacted wraps a provider client in the secret redactor when
@@ -36,7 +36,7 @@ func redacted(cfg *config.Config, c extraction.LLMClient) extraction.LLMClient {
 }
 
 func runReextract() {
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 	cfg, _ := config.Load(filepath.Join(dataDir, "config.yaml"))
 
 	// Parse flags
@@ -49,7 +49,7 @@ func runReextract() {
 	fs.BoolVar(dryRun, "n", false, "dry-run (short)")
 	fs.Parse(os.Args[2:])
 
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		log.Fatalf("open db: %v", err)
 	}
@@ -208,7 +208,7 @@ func runReextract() {
 }
 
 func runQuickstart() {
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 	cfg, _ := config.Load(filepath.Join(dataDir, "config.yaml"))
 
 	// Parse flags
@@ -232,7 +232,7 @@ func runQuickstart() {
 		log.Fatal("No API key — set ANTHROPIC_API_KEY/OPENAI_API_KEY or configure in config.yaml")
 	}
 
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		log.Fatalf("open db: %v", err)
 	}
@@ -267,7 +267,7 @@ func runQuickstart() {
 }
 
 func runResolveStale() {
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 
 	dryRun := false
 	for _, arg := range os.Args[2:] {
@@ -276,7 +276,7 @@ func runResolveStale() {
 		}
 	}
 
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		log.Fatalf("open db: %v", err)
 	}
@@ -353,7 +353,7 @@ func runResolveStale() {
 // on a read-only connection; --apply and --ids are the only writers, and they
 // write only rows of the damaged classes.
 func runRestoreShortSessionLearnings() {
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 
 	fs := flag.NewFlagSet("restore-short-session-learnings", flag.ExitOnError)
 	apply := fs.Bool("apply", false, "reactivate every listed learning")
@@ -371,9 +371,9 @@ func runRestoreShortSessionLearnings() {
 		*apply = true
 	}
 
-	dbPath := filepath.Join(dataDir, "yesmem.db")
+	dbPath := filepath.Join(dataDir, "nemons.db")
 	if _, statErr := os.Stat(dbPath); statErr != nil {
-		fmt.Fprintf(os.Stderr, "No yesmem database at %s. Nothing to inspect.\n", dbPath)
+		fmt.Fprintf(os.Stderr, "No nemons database at %s. Nothing to inspect.\n", dbPath)
 		return
 	}
 	var store *storage.Store
@@ -489,7 +489,7 @@ func runRestoreShortSessionLearnings() {
 // any more. That is the operator's decision, which is why every row is listed
 // with its source and its reason before anything is written.
 func runRestoreRuleBasedLearnings() {
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 
 	fs := flag.NewFlagSet("restore-rulebased-learnings", flag.ExitOnError)
 	apply := fs.Bool("apply", false, "reactivate every listed learning of the displacer class")
@@ -517,9 +517,9 @@ func runRestoreRuleBasedLearnings() {
 		*applyNoDisplacer = true
 	}
 
-	dbPath := filepath.Join(dataDir, "yesmem.db")
+	dbPath := filepath.Join(dataDir, "nemons.db")
 	if _, statErr := os.Stat(dbPath); statErr != nil {
-		fmt.Fprintf(os.Stderr, "No yesmem database at %s. Nothing to inspect.\n", dbPath)
+		fmt.Fprintf(os.Stderr, "No nemons database at %s. Nothing to inspect.\n", dbPath)
 		return
 	}
 	var store *storage.Store
@@ -715,13 +715,13 @@ func parseLearningIDs(raw string) ([]int64, error) {
 
 func runResolveCheck() {
 	if len(os.Args) < 3 {
-		fmt.Fprintln(os.Stderr, "Usage: yesmem resolve-check <commit-message>")
+		fmt.Fprintln(os.Stderr, "Usage: nemons resolve-check <commit-message>")
 		os.Exit(1)
 	}
 	commitMsg := os.Args[2]
 
-	dataDir := yesmemDataDir()
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	dataDir := nemonsDataDir()
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		log.Fatalf("open db: %v", err)
 	}
@@ -778,7 +778,7 @@ func stripCommitPrefix(msg string) string {
 }
 
 func runBackfillFlavor() {
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 	cfg, _ := config.Load(filepath.Join(dataDir, "config.yaml"))
 
 	fs := flag.NewFlagSet("backfill-flavor", flag.ExitOnError)
@@ -789,7 +789,7 @@ func runBackfillFlavor() {
 	force := fs.Bool("force", false, "re-generate all flavors (not just missing)")
 	fs.Parse(os.Args[2:])
 
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		log.Fatalf("open db: %v", err)
 	}
@@ -943,7 +943,7 @@ Beispiele guter Flavors:
 }
 
 func runEmbedLearnings() {
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 	cfg, _ := config.Load(filepath.Join(dataDir, "config.yaml"))
 
 	force := false
@@ -973,7 +973,7 @@ func runEmbedLearnings() {
 	}
 
 	// Open DB
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		log.Fatalf("open db: %v", err)
 	}
@@ -1081,7 +1081,7 @@ func truncID(id string) string {
 // "pending_confirmation" status so the historical conflicts can be sifted by
 // hand (Decision D6). Nothing is rewritten automatically.
 func runPendingConfirmation() {
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 
 	fs := flag.NewFlagSet("pending-confirmation", flag.ExitOnError)
 	project := fs.String("project", "", "filter by project")
@@ -1091,7 +1091,7 @@ func runPendingConfirmation() {
 	asJSON := fs.Bool("json", false, "print JSON")
 	fs.Parse(os.Args[2:])
 
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		log.Fatalf("open db: %v", err)
 	}

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 func TestHandleContextualDocs(t *testing.T) {
@@ -406,7 +406,7 @@ func TestHandleIngestDocs_TriggerExtensions(t *testing.T) {
 		Method: "ingest_docs",
 		Params: map[string]any{
 			"name":               "test-docs",
-			"path":               "/tmp/nonexistent-yesmem-test",
+			"path":               "/tmp/nonexistent-nemons-test",
 			"project":            "test",
 			"trigger_extensions": []any{".go", ".mod"},
 		},
@@ -421,7 +421,7 @@ func TestHandleIngestDocs_TriggerExtensions(t *testing.T) {
 		Method: "ingest_docs",
 		Params: map[string]any{
 			"name":               "test-docs-2",
-			"path":               "/tmp/nonexistent-yesmem-test-2",
+			"path":               "/tmp/nonexistent-nemons-test-2",
 			"project":            "test",
 			"trigger_extensions": []any{},
 		},

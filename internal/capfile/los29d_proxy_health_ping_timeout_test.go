@@ -21,7 +21,7 @@ func TestLos29dHealthCountsPingTimeoutsApart(t *testing.T) {
 
 	res := los38nRunHandler(t, proxyLog, "", map[string]string{
 		"ALERT":           "true",
-		"YESMEM_PROJECT":  "/home/tester/memory/yesmem",
+		"NEMONS_PROJECT":  "/home/tester/memory/nemons",
 		"LOS38N_NC_REPLY": `{"result":{}}`,
 	})
 

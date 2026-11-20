@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/verify"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/verify"
 )
 
 // doneClaimContent is a scratchpad that claims completion: seven COMPLETE phase
@@ -23,7 +23,7 @@ func doneClaimContent(t *testing.T, s *storage.Store, project, section, report s
 		"### Phase 3: EXECUTE\n**Status:** COMPLETE\n\n" +
 		"### Phase 4: VERIFY\n**Status:** COMPLETE\n\n" +
 		"### Phase 5: REVIEW\n**Status:** COMPLETE\nself-review: done\ncold-review: ses_cold\nconsequence: ses_cons\nsecurity: ses_sec\n\n" +
-		"### Phase 6: DAEMON-VERIFY\n**Status:** COMPLETE\n**Vorab-Prüfung:** yesmem verify-claims -> exit 0 (accepted)\n\n" +
+		"### Phase 6: DAEMON-VERIFY\n**Status:** COMPLETE\n**Vorab-Prüfung:** nemons verify-claims -> exit 0 (accepted)\n\n" +
 		"### Phase 7: FINISH\n**Status:** COMPLETE\n**Deploy executed:** no\n**send_to orchestrator:** yes\n"
 	if err := s.ScratchpadWrite(project, section+"-verify", report, ""); err != nil {
 		t.Fatalf("ScratchpadWrite: %v", err)
@@ -330,7 +330,7 @@ func TestDoneGateBlocksADoneWithoutAPreCheck(t *testing.T) {
 	message := doneVerifyBlockedMessage(*after, state)
 	for _, want := range []string{
 		"has not been verified",
-		"yesmem verify-claims",
+		"nemons verify-claims",
 		"--profile " + verify.ProfileYesloopDone,
 		"--policy " + doneVerifyPolicyName,
 		"--section 'yesloop-" + id + "-verify'",
@@ -429,7 +429,7 @@ func TestDoneGateNamesWhyAStoredVerdictIsStale(t *testing.T) {
 			if !strings.Contains(message, tc.want) {
 				t.Errorf("message %q does not name why the verdict no longer applies (%q)", message, tc.want)
 			}
-			if !strings.Contains(message, current[:20]) && !strings.Contains(message, "yesmem verify-claims") {
+			if !strings.Contains(message, current[:20]) && !strings.Contains(message, "nemons verify-claims") {
 				t.Errorf("message %q does not name the way to a new verdict", message)
 			}
 		})
@@ -499,7 +499,7 @@ func TestDoneGateNamesAPlanChangeWithoutAPriorAgentState(t *testing.T) {
 	if strings.Contains(message, "has not been verified") {
 		t.Errorf("message %q claims nothing was checked although a verdict exists", message)
 	}
-	if !strings.Contains(message, "yesmem verify-claims") {
+	if !strings.Contains(message, "nemons verify-claims") {
 		t.Errorf("message %q does not name the command that produces a new verdict", message)
 	}
 }
@@ -608,7 +608,7 @@ func TestDoneGateReusesABlockedVerdict(t *testing.T) {
 		t.Fatalf("state = %+v, want the stored finding reused", state)
 	}
 	message := doneVerifyBlockedMessage(*after, state)
-	for _, want := range []string{"commit_exists", "does not exist", "rev-parse", "yesmem verify-claims"} {
+	for _, want := range []string{"commit_exists", "does not exist", "rev-parse", "nemons verify-claims"} {
 		if !strings.Contains(message, want) {
 			t.Errorf("message %q does not carry %q", message, want)
 		}
@@ -1245,7 +1245,7 @@ func TestDoneGateBlocksAClaimlessReportWithoutARun(t *testing.T) {
 			if !strings.Contains(message, tc.wantSay) {
 				t.Errorf("message %q does not say what is missing (%q)", message, tc.wantSay)
 			}
-			if !strings.Contains(message, "yesmem verify-claims") {
+			if !strings.Contains(message, "nemons verify-claims") {
 				t.Errorf("message %q does not name the command that produces a verdict", message)
 			}
 
@@ -1339,7 +1339,7 @@ func TestDoneVerifyMessageNamesTheClaimItsFindingAndTheCommand(t *testing.T) {
 // to rewrite a report that was never judged. The command still follows: without
 // the gate's own retry, it is the only lever back to a fresh verdict.
 func TestDoneVerifyMessageBlamesTheMachineForAnEnvironmentGap(t *testing.T) {
-	const command = "yesmem verify-claims --repo '/repo' --project 'p' --section 's-verify' --profile yesloop-done --policy yesloop-done --strict"
+	const command = "nemons verify-claims --repo '/repo' --project 'p' --section 's-verify' --profile yesloop-done --policy yesloop-done --strict"
 	message := blockedMessageFor(&doneGateVerifyState{
 		Status:       doneVerifyBlocked,
 		Kind:         "environment",
@@ -1442,7 +1442,7 @@ func TestDoneVerifyMessageDoesNotSendAFailedRunToTheReport(t *testing.T) {
 	message := blockedMessageFor(&doneGateVerifyState{
 		Status: doneVerifyBlocked,
 		Kind:   "error",
-		Reason: "cannot create /home/x/.claude/yesmem/tmp/check: permission denied",
+		Reason: "cannot create /home/x/.claude/nemons/tmp/check: permission denied",
 	})
 	if !strings.Contains(message, "permission denied") {
 		t.Errorf("message %q does not name the cause", message)
@@ -1481,7 +1481,7 @@ func TestDoneVerifySignatureIgnoresTheLimitNumbersButNotTheCause(t *testing.T) {
 		Fingerprint: "report-1",
 		Status:      doneVerifyBlocked,
 		Kind:        "error",
-		Reason:      "cannot create /home/x/.claude/yesmem/tmp/check: permission denied",
+		Reason:      "cannot create /home/x/.claude/nemons/tmp/check: permission denied",
 		Notified:    verifyVerdictSignature(&doneGateVerifyState{Fingerprint: "report-1", Status: doneVerifyBlocked, Kind: "error", Reason: "another verification was still running"}),
 	}
 	if !recordVerdictNotice(broken) {

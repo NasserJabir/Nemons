@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/extraction"
 )
 
 // YM-338 (Los 24d): new strings.yaml keys reached an existing installation only

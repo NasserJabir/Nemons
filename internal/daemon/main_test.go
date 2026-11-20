@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/opencode"
+	"github.com/NasserJabir/Nemons/internal/opencode"
 )
 
 // TestMain keeps the package's unit tests hermetic: the on-demand opencode

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // los10cMaxHybridSearchLimit mirrors the cap the handler must enforce. Kept as a

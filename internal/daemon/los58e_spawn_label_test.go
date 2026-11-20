@@ -7,8 +7,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/orchestrator"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/orchestrator"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // los58eSpawnLabels drives one spawn of the given backend and reports the argv the
@@ -108,7 +108,7 @@ func TestLos58e_SpawnLabelCapBites(t *testing.T) {
 	if want := "/p-" + strings.Repeat("s", 64); spawnNameArg(t, args) != want {
 		t.Errorf("--name = %q, want the project plus exactly 64 runes of the section", spawnNameArg(t, args))
 	}
-	if want := "yesmem-" + strings.Repeat("s", 64) + " #los58e-cap"; title != want {
+	if want := "nemons-" + strings.Repeat("s", 64) + " #los58e-cap"; title != want {
 		t.Errorf("title = %q, want %q", title, want)
 	}
 }
@@ -132,7 +132,7 @@ func TestLos58e_SpawnLabelsLeavePlainNamesAlone(t *testing.T) {
 	h, _ := mustHandler(t)
 	args, title := los58eSpawnLabels(t, h, "los58e-plain", "/home/u/proj", "yesloop-los-58e")
 
-	if want := "yesmem-yesloop-los-58e #los58e-plain"; title != want {
+	if want := "nemons-yesloop-los-58e #los58e-plain"; title != want {
 		t.Errorf("title = %q, want %q", title, want)
 	}
 	want := "/home/u/proj-yesloop-los-58e"

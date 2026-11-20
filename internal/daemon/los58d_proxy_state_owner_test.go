@@ -48,7 +48,7 @@ func TestLos58dSetProxyStateRefusesAForeignPeerForAThreadKey(t *testing.T) {
 
 func TestLos58dSetProxyStateAllowsTheProxyForAThreadKey(t *testing.T) {
 	h, s := mustHandler(t)
-	los58dWithPeer(t, "/home/u/.local/bin/yesmem\x00proxy\x00--port\x004000")
+	los58dWithPeer(t, "/home/u/.local/bin/nemons\x00proxy\x00--port\x004000")
 
 	resp := h.Handle(Request{Method: "set_proxy_state", Params: map[string]any{
 		"key": "frozen:ses_live", "value": `{"messages":[]}`, "_peer_pid": 4242,
@@ -77,12 +77,12 @@ func TestLos58dSetProxyStateKeepsInternalCallsWorking(t *testing.T) {
 	}
 }
 
-// The keys that carry no thread are not the subject of this guard: `yesmem
+// The keys that carry no thread are not the subject of this guard: `nemons
 // config set` mirrors the token-threshold family through this RPC and must keep
 // working from a process that is not the proxy.
 func TestLos58dSetProxyStateAllowsTheGlobalConfigSlotFromAClient(t *testing.T) {
 	h, s := mustHandler(t)
-	los58dWithPeer(t, "/usr/local/bin/yesmem\x00config\x00set\x00token_threshold\x00400000")
+	los58dWithPeer(t, "/usr/local/bin/nemons\x00config\x00set\x00token_threshold\x00400000")
 
 	resp := h.Handle(Request{Method: "set_proxy_state", Params: map[string]any{
 		"key": "config_override:token_threshold:deepseek", "value": "400000", "_peer_pid": 4242,
@@ -153,7 +153,7 @@ func TestLos58dDeleteProxyStatePrefixAllowsTheProxy(t *testing.T) {
 	if err := s.SetProxyState("frozen:ses_live", `{"messages":[]}`); err != nil {
 		t.Fatalf("seed proxy state: %v", err)
 	}
-	los58dWithPeer(t, "/home/u/.local/bin/yesmem\x00proxy\x00--port\x004000")
+	los58dWithPeer(t, "/home/u/.local/bin/nemons\x00proxy\x00--port\x004000")
 
 	resp := h.Handle(Request{Method: "delete_proxy_state_prefix", Params: map[string]any{
 		"prefix": "frozen:", "_peer_pid": 4242,

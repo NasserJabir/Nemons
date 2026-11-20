@@ -9,7 +9,7 @@ import (
 	"testing"
 	"unicode/utf8"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 type mockRow struct {
@@ -270,7 +270,7 @@ func TestPut_CreateTableIdempotent(t *testing.T) {
 
 // Pins DefaultChunkSize small enough that a single stored chunk fits in the
 // MCP JSON-RPC response limit (~25 KB/row). Larger chunks make blobs
-// unreadable via mcp__yesmem__cap_store: the row payload trips the MCP
+// unreadable via mcp__nemons__cap_store: the row payload trips the MCP
 // client's result-size cap and returns an error string instead of JSON.
 func TestPut_ChunksStayBelowMCPResponseCap(t *testing.T) {
 	const mcpSafeMax = 25000

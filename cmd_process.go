@@ -12,13 +12,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/daemon"
-	"github.com/carsteneu/yesmem/internal/proxy"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/proxy"
 )
 
 func runProxy() {
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 	cfg, _ := config.Load(filepath.Join(dataDir, "config.yaml"))
 
 	fs := flag.NewFlagSet("proxy", flag.ExitOnError)
@@ -83,7 +83,7 @@ func runStop() {
 		target = os.Args[2] // "daemon", "proxy", or "all"
 	}
 
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 	stopped := 0
 
 	stop := func(role string) {
@@ -101,7 +101,7 @@ func runStop() {
 	}
 
 	if stopped == 0 {
-		fmt.Fprintf(os.Stderr, "No yesmem %s processes found.\n", target)
+		fmt.Fprintf(os.Stderr, "No nemons %s processes found.\n", target)
 	} else {
 		fmt.Fprintf(os.Stderr, "Stopped %d process(es).\n", stopped)
 	}
@@ -140,9 +140,9 @@ func daemonStillAnswers(sockPath string) bool {
 }
 
 func runRestart() {
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 
-	fmt.Fprintf(os.Stderr, "Stopping all yesmem processes...\n")
+	fmt.Fprintf(os.Stderr, "Stopping all nemons processes...\n")
 	stopProcesses("daemon", dataDir)
 
 	// Wait for processes to die
@@ -236,7 +236,7 @@ func ensureProxyRunning() {
 
 	// Try systemd first (Linux)
 	if runtime.GOOS == "linux" {
-		if err := exec.Command("systemctl", "--user", "start", "yesmem-proxy").Run(); err == nil {
+		if err := exec.Command("systemctl", "--user", "start", "nemons-proxy").Run(); err == nil {
 			time.Sleep(300 * time.Millisecond)
 			return
 		}
@@ -245,7 +245,7 @@ func ensureProxyRunning() {
 	// Try launchd (macOS)
 	if runtime.GOOS == "darwin" {
 		home, _ := os.UserHomeDir()
-		plist := filepath.Join(home, "Library", "LaunchAgents", "com.yesmem.proxy.plist")
+		plist := filepath.Join(home, "Library", "LaunchAgents", "com.nemons.proxy.plist")
 		if err := exec.Command("launchctl", "load", plist).Run(); err == nil {
 			time.Sleep(300 * time.Millisecond)
 			return

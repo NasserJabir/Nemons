@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/sanitize"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/sanitize"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 func TestHeadlessArgs_NoSession(t *testing.T) {
@@ -559,10 +559,10 @@ func TestEnsureJobDir_KeepsTheNameInside(t *testing.T) {
 }
 
 // The job dir is useless under strict: lockdown drops every mount, and a
-// YESMEM_JOB_DIR pointing at an unwritable path would make a cap's redirect abort
+// NEMONS_JOB_DIR pointing at an unwritable path would make a cap's redirect abort
 // the script. Strict therefore keeps the /tmp fallback.
 // A job without a project gets an empty variable, so the entry is always there:
-// an omitted key would let an inherited YESMEM_PROJECT through mergeEnv.
+// an omitted key would let an inherited NEMONS_PROJECT through mergeEnv.
 func TestBashSandboxConfig_JobDirOnlyOutsideStrict(t *testing.T) {
 	h, _ := mustHandler(t)
 	job := &ScheduledJob{ID: "sched-poll-999", Name: "poll"}
@@ -571,15 +571,15 @@ func TestBashSandboxConfig_JobDirOnlyOutsideStrict(t *testing.T) {
 	if len(standard.RWMapPaths) != 1 {
 		t.Fatalf("standard must map the job dir, got %+v", standard)
 	}
-	if _, ok := los32cEnvValue(standard.Env, "YESMEM_JOB_DIR"); !ok {
-		t.Errorf("env = %v, want YESMEM_JOB_DIR", standard.Env)
+	if _, ok := los32cEnvValue(standard.Env, "NEMONS_JOB_DIR"); !ok {
+		t.Errorf("env = %v, want NEMONS_JOB_DIR", standard.Env)
 	}
 
 	strict := h.bashSandboxConfig(job, nil, ProfileStrict)
 	if len(strict.RWMapPaths) != 0 {
 		t.Errorf("strict cannot use a mount and must not promise one, got %+v", strict)
 	}
-	if _, ok := los32cEnvValue(strict.Env, "YESMEM_JOB_DIR"); ok {
+	if _, ok := los32cEnvValue(strict.Env, "NEMONS_JOB_DIR"); ok {
 		t.Errorf("env = %v, strict cannot reach the job dir", strict.Env)
 	}
 }
@@ -660,15 +660,15 @@ func TestScheduleDelete_KeepsTheDirOfARunningJob(t *testing.T) {
 
 // A duplicate key in the appended environment must win over the inherited one.
 func TestMergeEnv_OverridesInheritedKeys(t *testing.T) {
-	t.Setenv("YESMEM_JOB_DIR", "/inherited")
-	merged := mergeEnv([]string{"YESMEM_JOB_DIR=/job-dir"})
+	t.Setenv("NEMONS_JOB_DIR", "/inherited")
+	merged := mergeEnv([]string{"NEMONS_JOB_DIR=/job-dir"})
 	var hits []string
 	for _, kv := range merged {
-		if strings.HasPrefix(kv, "YESMEM_JOB_DIR=") {
+		if strings.HasPrefix(kv, "NEMONS_JOB_DIR=") {
 			hits = append(hits, kv)
 		}
 	}
-	if len(hits) != 1 || hits[0] != "YESMEM_JOB_DIR=/job-dir" {
+	if len(hits) != 1 || hits[0] != "NEMONS_JOB_DIR=/job-dir" {
 		t.Fatalf("merged env has %v, want exactly the override", hits)
 	}
 }
@@ -738,7 +738,7 @@ func TestSandboxFlags_EnvIsForwardedOnTwoX(t *testing.T) {
 		stubAiJailVersion(t, major)
 		s := &Sandbox{binaryPath: "/usr/local/bin/ai-jail", cfg: SandboxConfig{
 			RWMapPaths: []string{dir},
-			Env:        []string{"YESMEM_JOB_DIR=" + dir},
+			Env:        []string{"NEMONS_JOB_DIR=" + dir},
 		}}
 		_, args, err := s.WrapExecArgs("bash", []string{"-c", "true"}, ProfileStandard)
 		if err != nil {
@@ -748,10 +748,10 @@ func TestSandboxFlags_EnvIsForwardedOnTwoX(t *testing.T) {
 		if major == 2 && !hasEnv {
 			t.Errorf("2.x must forward the variable by name, got %v", args)
 		}
-		if major == 2 && !containsString(args, "YESMEM_JOB_DIR") {
+		if major == 2 && !containsString(args, "NEMONS_JOB_DIR") {
 			t.Errorf("2.x forwards the name only, got %v", args)
 		}
-		if major == 2 && containsString(args, "YESMEM_JOB_DIR="+dir) {
+		if major == 2 && containsString(args, "NEMONS_JOB_DIR="+dir) {
 			t.Errorf("the value must not appear in ai-jail's argv, got %v", args)
 		}
 		if major == 0 && hasEnv {
@@ -799,8 +799,8 @@ func TestHandlerScheduler_NoHardcodedDevPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read handler_scheduler.go: %v", err)
 	}
-	if strings.Contains(string(src), "/home/user/projects/yesmem") {
-		t.Error("handler_scheduler.go contains hardcoded /home/user/projects/yesmem path — use h.jobWorkDir() / resolveAgentWorkDir instead")
+	if strings.Contains(string(src), "/home/user/projects/nemons") {
+		t.Error("handler_scheduler.go contains hardcoded /home/user/projects/nemons path — use h.jobWorkDir() / resolveAgentWorkDir instead")
 	}
 }
 

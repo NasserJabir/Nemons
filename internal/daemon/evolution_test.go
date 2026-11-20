@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func seedCitedRow(t *testing.T, h *Handler, project, file, hash string) int64 {

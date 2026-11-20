@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func TestUpsertAndGetPersonaTrait(t *testing.T) {
@@ -318,9 +318,9 @@ func TestUpsertPersonaTraitNormalizesKey(t *testing.T) {
 		{
 			name:      "double prefix stripped",
 			dimension: "context",
-			traitKey:  "context.context.yesmem_depth",
+			traitKey:  "context.context.nemons_depth",
 			wantDim:   "context",
-			wantKey:   "yesmem_depth",
+			wantKey:   "nemons_depth",
 		},
 		{
 			name:      "deep nesting stripped to last segment",
@@ -346,9 +346,9 @@ func TestUpsertPersonaTraitNormalizesKey(t *testing.T) {
 		{
 			name:      "dimension whitespace trimmed",
 			dimension: " context",
-			traitKey:  "yesmem_depth",
+			traitKey:  "nemons_depth",
 			wantDim:   "context",
-			wantKey:   "yesmem_depth",
+			wantKey:   "nemons_depth",
 		},
 		{
 			name:      "key whitespace trimmed",
@@ -571,7 +571,7 @@ func TestUpsertPersonaTraitKeepsDottedKeys(t *testing.T) {
 		{name: "boundary shorthand prefix stripped", dimension: "boundaries", traitKey: "boundary.force_push", wantKey: "force_push"},
 		{name: "learning shorthand prefix stripped", dimension: "learning_style", traitKey: "learning.visual_thinker", wantKey: "visual_thinker"},
 		{name: "dimension prefix still stripped", dimension: "communication", traitKey: "communication.directness", wantKey: "directness"},
-		{name: "repeated dimension prefix still stripped", dimension: "context", traitKey: "context.context.yesmem_depth", wantKey: "yesmem_depth"},
+		{name: "repeated dimension prefix still stripped", dimension: "context", traitKey: "context.context.nemons_depth", wantKey: "nemons_depth"},
 	}
 
 	for _, tt := range tests {

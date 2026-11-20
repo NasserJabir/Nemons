@@ -57,7 +57,7 @@ func los61aRunAdapter(t *testing.T, stdin *os.File, prelude, call string) (strin
 	script := "set -u\n" +
 		"exec 3>>\"$LOS61A_REQ\"\n" +
 		"exec 4<\"$LOS61A_REPLY\"\n" +
-		"YESMEM_WORKER_IN=3 YESMEM_WORKER_OUT=4\n" +
+		"NEMONS_WORKER_IN=3 NEMONS_WORKER_OUT=4\n" +
 		GenerateAdapterBash() +
 		prelude + call + "\n"
 
@@ -113,9 +113,9 @@ func los61aSocketStdin(t *testing.T) *os.File {
 }
 
 func TestLos61aJSONWrapperTreatsNonPipeStdinAsEmpty(t *testing.T) {
-	req, err := los61aRunAdapter(t, los61aSocketStdin(t), "", `yesmem json -r '.a'`)
+	req, err := los61aRunAdapter(t, los61aSocketStdin(t), "", `nemons json -r '.a'`)
 	if err != nil {
-		t.Fatalf("yesmem json with a non-pipe stdin: %v", err)
+		t.Fatalf("nemons json with a non-pipe stdin: %v", err)
 	}
 	if !strings.Contains(req, `"stdin_len":0`) {
 		t.Errorf("non-pipe stdin must be treated as empty, request was %q", req)
@@ -125,9 +125,9 @@ func TestLos61aJSONWrapperTreatsNonPipeStdinAsEmpty(t *testing.T) {
 // A closed fd 0 must not fall into the read: bash hands the free fd to the
 // command-substitution pipe, so cat would read its own output pipe forever.
 func TestLos61aJSONWrapperHandlesClosedStdin(t *testing.T) {
-	req, err := los61aRunAdapter(t, nil, "exec 0<&-\n", `yesmem json -r '.a'`)
+	req, err := los61aRunAdapter(t, nil, "exec 0<&-\n", `nemons json -r '.a'`)
 	if err != nil {
-		t.Fatalf("yesmem json with a closed stdin: %v", err)
+		t.Fatalf("nemons json with a closed stdin: %v", err)
 	}
 	if !strings.Contains(req, `"stdin_len":0`) {
 		t.Errorf("a closed fd 0 must count as an empty stdin, request was %q", req)
@@ -141,9 +141,9 @@ func TestLos61aJSONWrapperHandlesDevNullStdin(t *testing.T) {
 	}
 	t.Cleanup(func() { devNull.Close() })
 
-	req, err := los61aRunAdapter(t, devNull, "", `yesmem json -r '.a'`)
+	req, err := los61aRunAdapter(t, devNull, "", `nemons json -r '.a'`)
 	if err != nil {
-		t.Fatalf("yesmem json with %s as stdin: %v", os.DevNull, err)
+		t.Fatalf("nemons json with %s as stdin: %v", os.DevNull, err)
 	}
 	if !strings.Contains(req, `"stdin_len":0`) {
 		t.Errorf("%s must count as an empty stdin, request was %q", os.DevNull, req)
@@ -161,9 +161,9 @@ func TestLos61aJSONWrapperStillReadsPipedStdin(t *testing.T) {
 	pw.Close()
 	t.Cleanup(func() { pr.Close() })
 
-	req, err := los61aRunAdapter(t, pr, "", `yesmem json -r '.a'`)
+	req, err := los61aRunAdapter(t, pr, "", `nemons json -r '.a'`)
 	if err != nil {
-		t.Fatalf("yesmem json with a piped stdin: %v", err)
+		t.Fatalf("nemons json with a piped stdin: %v", err)
 	}
 	if !strings.Contains(req, `"stdin_len":7`) {
 		t.Errorf("piped stdin must still be forwarded, request was %q", req)
@@ -176,7 +176,7 @@ func TestLos61aRocketchatPollSetsStdinToDevNull(t *testing.T) {
 		t.Fatalf("read cap: %v", err)
 	}
 	body := los61aScriptBlock(t, string(md), "rocketchat_poll")
-	// Comment lines mention yesmem json too; only executable lines count.
+	// Comment lines mention nemons json too; only executable lines count.
 	var code []string
 	for _, ln := range strings.Split(body, "\n") {
 		if strings.HasPrefix(strings.TrimSpace(ln), "#") {
@@ -189,9 +189,9 @@ func TestLos61aRocketchatPollSetsStdinToDevNull(t *testing.T) {
 	if set < 0 {
 		t.Fatal("rocketchat_poll must set stdin to /dev/null; the scheduled job inherits an fd that never reaches EOF (YM-439)")
 	}
-	// The line is pointless once a yesmem json call has already run.
-	if first := strings.Index(exec, "yesmem json"); first >= 0 && set > first {
-		t.Error("exec 0</dev/null must precede the first yesmem json call")
+	// The line is pointless once a nemons json call has already run.
+	if first := strings.Index(exec, "nemons json"); first >= 0 && set > first {
+		t.Error("exec 0</dev/null must precede the first nemons json call")
 	}
 }
 

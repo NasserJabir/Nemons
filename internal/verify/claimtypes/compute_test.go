@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 func digestOf(text string) string {
@@ -40,7 +40,7 @@ func TestMatchCompute(t *testing.T) {
 // A shim in the operator's home must not decide a COMPUTE verdict: the digest
 // covers the commit's bytes, not whatever `python3` happens to be first.
 func TestCheckComputeIgnoresAShimFromTheHomeDirectory(t *testing.T) {
-	homeParent := filepath.Join("..", "..", ".yesmem", "tmp", "computehomes")
+	homeParent := filepath.Join("..", "..", ".nemons", "tmp", "computehomes")
 	if err := os.MkdirAll(homeParent, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}

@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // Auto-correct rate limiting (T4): bash-job auto-correct is rate-limited so
@@ -243,7 +243,7 @@ func (h *Handler) redactThenTruncate(s string, max int) string {
 
 // autoCorrectSandboxConfig assembles the sandbox the verification run uses. It
 // is deliberately the job path's own builder: the corrected script has to see the
-// same job dir and the same YESMEM_JOB_DIR as the run it is meant to fix. Without
+// same job dir and the same NEMONS_JOB_DIR as the run it is meant to fix. Without
 // them a fix that needs the dir fails verification, and one that only passes
 // without it (writing its log into the sandbox's throwaway /tmp) verifies while
 // still writing nowhere in production (YM-267).
@@ -594,7 +594,7 @@ func unifiedDiffPreview(oldBody, newBody string) string {
 // bashErrorProject is the address a failing run's outcome is announced to: the
 // absolute project recorded on the job (YM-281). A bare basename never is — the
 // broadcast reader matches the basename of every project too, so an address of
-// "yesmem" reached every checkout of that name (YM-286).
+// "nemons" reached every checkout of that name (YM-286).
 //
 // Empty when the job is gone or was created before jobs carried their project.
 // The caller then has no address at all; see broadcastBashError.

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // UpsertAssociation inserts or updates an association edge.

@@ -2,7 +2,7 @@
 
 **48 unique CREATE TABLE names + 4 FTS5 virtual tables + dynamic cap_store tables.** (The `tables` slice in `createSchema()` references 42 constant-defined tables; migrations add 3 more; separate storage files add 3 more.)
 
-### yesmem.db — Core Database
+### nemons.db — Core Database
 
 42 tables from the main `createSchema()` slice, plus 3 from migrations, plus 2 from other files that auto-create.
 
@@ -11,7 +11,7 @@
 | Table | Purpose | Key Columns |
 |-------|---------|-------------|
 | `sessions` | Chat sessions with project, timestamps, lineage | `id`, `project`, `project_short`, `started_at`, `parent_session_id`, `agent_type`, `source_agent`, `fixation_ratio` |
-| `learnings` | 55-column knowledge store — the heart of YesMem | `id`, `category`, `content`, `project`, `source`, `canonical_project`, `superseded_by`, `stability`, `impact_score`, `content_hash` |
+| `learnings` | 55-column knowledge store — the heart of Nemons | `id`, `category`, `content`, `project`, `source`, `canonical_project`, `superseded_by`, `stability`, `impact_score`, `content_hash` |
 | `learnings_fts` | FTS5 virtual table for BM25 full-text search over learnings | Porter stemmer + unicode61 tokenizer |
 
 #### Learning Metadata (V2 junction tables)
@@ -139,7 +139,7 @@ Opened lazily via `OpenCapsDB()`. Uses DELETE journal mode to prevent stale read
 | Table | Purpose | Key Columns |
 |-------|---------|-------------|
 | `cap_store_meta` | Registry of all dynamic cap tables (cap_name → table_name → full_name) | `id`, `cap_name`, `table_name`, `full_name` |
-| `session_active_caps` | Thread-scoped capability activation (when caps.db is available; falls back to yesmem.db) | `thread_id`, `cap_name`, `activated_at`, `last_used_at` |
+| `session_active_caps` | Thread-scoped capability activation (when caps.db is available; falls back to nemons.db) | `thread_id`, `cap_name`, `activated_at`, `last_used_at` |
 | `cap_*__*` | Dynamic per-capability tables — created on demand via `cap_store` MCP tool | Variable — defined by cap schema at creation time |
 
 Dynamic cap tables are namespaced as `cap_<capname>__<tablename>` with a 10-table-per-cap and 10,000-row-per-table quota limit.

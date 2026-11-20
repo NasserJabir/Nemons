@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/verify/claimtypes"
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/claimtypes"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // suiteRepo is the repository this test lives in, with the commit it stands on.
@@ -100,7 +100,7 @@ func TestSandboxConfirmsAGoTestRun(t *testing.T) {
 	// The confirmation must rest on the suite's own output, not on exit 0: the
 	// inner run reports the package it tested.
 	if !strings.Contains(tested.Reason, "ok") ||
-		!strings.Contains(tested.Reason, "github.com/carsteneu/yesmem/internal/verify/engine") {
+		!strings.Contains(tested.Reason, "github.com/NasserJabir/Nemons/internal/verify/engine") {
 		t.Fatalf("reason = %q, want the inner test run's own report", tested.Reason)
 	}
 	// The verdict shows the sandbox that ran, so the cache bind must be part of

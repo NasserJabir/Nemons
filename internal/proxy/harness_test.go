@@ -139,7 +139,7 @@ func recordingUpstream(t *testing.T) (string, func() string) {
 // message are what keep the request out of the subagent path.
 func userTurnBody(model string) string {
 	return `{"model":"` + model + `","stream":false,"thinking":{"type":"adaptive"},` +
-		`"system":[{"type":"text","text":"Primary working directory: /home/tester/memory/yesmem"}],` +
+		`"system":[{"type":"text","text":"Primary working directory: /home/tester/memory/nemons"}],` +
 		`"messages":[{"role":"user","content":"start the task"},` +
 		`{"role":"assistant","content":"on it"},` +
 		`{"role":"user","content":"check the prompt profile routing"}]}`

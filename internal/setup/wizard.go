@@ -20,7 +20,7 @@ func promptUserType(defaultType string) string {
 	} else if defaultType == "opencode" {
 		defaultIdx = 2
 	}
-	fmt.Println("  YesMem needs an LLM for knowledge extraction.")
+	fmt.Println("  Nemons needs an LLM for knowledge extraction.")
 	fmt.Println("  How should it authenticate?")
 	fmt.Println()
 	idx := promptChoice([]string{
@@ -96,7 +96,7 @@ func promptAPIKey(existing string) string {
 	fmt.Println("  Enter your API key from platform.claude.com")
 	fmt.Println("  → https://platform.claude.com/dashboard/api-keys")
 	fmt.Println()
-	fmt.Println("  YesMem uninstall will restore your previous authentication.")
+	fmt.Println("  Nemons uninstall will restore your previous authentication.")
 	fmt.Println()
 
 	for {

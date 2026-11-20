@@ -1,10 +1,10 @@
-BINARY    := yesmem
+BINARY    := nemons
 INSTALL   := $(HOME)/.local/bin/$(BINARY)
 INSTALL_NEW := $(INSTALL)-new
 # Same lock the updater takes (lockUpdate in internal/update/download.go): it
 # sits next to the installed binary, so a deploy and a running update exclude
 # each other instead of swapping the same inode.
-UPDATE_LOCK := $(dir $(INSTALL)).yesmem-update.lock
+UPDATE_LOCK := $(dir $(INSTALL)).nemons-update.lock
 
 # Version: use git tag if available, else commit count + short hash
 VERSION   := $(shell git describe --tags --always 2>/dev/null || echo "dev")
@@ -12,8 +12,8 @@ VERSION   := $(shell git describe --tags --always 2>/dev/null || echo "dev")
 # Go build settings
 export GOROOT  := $(HOME)/memory/go-sdk/go
 export PATH    := $(GOROOT)/bin:$(PATH)
-export GOPATH  := $(HOME)/.cache/yesmem/gopath
-export GOCACHE := $(HOME)/.cache/yesmem/gocache
+export GOPATH  := $(HOME)/.cache/nemons/gopath
+export GOCACHE := $(HOME)/.cache/nemons/gocache
 export CGO_ENABLED := 0
 
 LDFLAGS := -X main.version=$(VERSION)
@@ -22,7 +22,7 @@ LDFLAGS := -X main.version=$(VERSION)
 # agent shells do not see it), and the plugin suite is part of the test surface,
 # so a bare "bun" in the recipe would make `make test` fail instead of testing.
 BUN ?= $(shell command -v bun 2>/dev/null || echo $(HOME)/.bun/bin/bun)
-PLUGIN_DIR := plugins/opencode-yesmem-v2
+PLUGIN_DIR := plugins/opencode-nemons-v2
 
 # Race gate selection (YM-438): -race runs in no other target. Whole-package
 # -race runs are not affordable (measured on a warm cache: internal/hooks 653s,
@@ -56,7 +56,7 @@ install: build
 	@echo "installed $(VERSION) → $(INSTALL)"
 
 # For deployment from an agent, use deploy-safe. Its worker survives restarting
-# both yesmem and the agent's server, and restores services on failure.
+# both nemons and the agent's server, and restores services on failure.
 deploy-safe: build
 	bash scripts/deploy-safe.sh
 
@@ -69,13 +69,13 @@ deploy: build
 		echo "warning: flock not found, installing without the update lock"; \
 		tmp=$$(mktemp "$(INSTALL_NEW).XXXXXX") && cp "$(BINARY)" "$$tmp" && chmod 0755 "$$tmp" && mv -f "$$tmp" "$(INSTALL)"; \
 	fi
-	cp scripts/injector.js $(HOME)/.claude/yesmem/injector.js
-	@if [ ! -f $(HOME)/.claude/yesmem/SYSTEM.md ]; then \
-		mkdir -p $(HOME)/.claude/yesmem; \
-		cp configs/SYSTEM.md $(HOME)/.claude/yesmem/SYSTEM.md; \
+	cp scripts/injector.js $(HOME)/.claude/nemons/injector.js
+	@if [ ! -f $(HOME)/.claude/nemons/SYSTEM.md ]; then \
+		mkdir -p $(HOME)/.claude/nemons; \
+		cp configs/SYSTEM.md $(HOME)/.claude/nemons/SYSTEM.md; \
 	fi
-	mkdir -p $(HOME)/.config/opencode/plugins/yesmem-window
-	cp plugins/yesmem-window/tui.tsx $(HOME)/.config/opencode/plugins/yesmem-window/
+	mkdir -p $(HOME)/.config/opencode/plugins/nemons-window
+	cp plugins/nemons-window/tui.tsx $(HOME)/.config/opencode/plugins/nemons-window/
 	# The plan block is its own plugin, the way the todo plugin is its own entry.
 	# opencode-sidebar (cache status) is deactivated for now: keep the source, do not
 	# install it. Re-enable by adding it back to this list once it is verified.
@@ -100,30 +100,30 @@ deploy: build
 	$(MAKE) restart-services
 	@echo "deployed $(VERSION) → $(INSTALL)"
 
-# Kill langlaufende yesmem-mcp-Subprozesse, die noch das alte Binary
-# gemappt haben (/proc/PID/exe → ...yesmem (deleted)). Der mv-Schritt in
+# Kill langlaufende nemons-mcp-Subprozesse, die noch das alte Binary
+# gemappt haben (/proc/PID/exe → ...nemons (deleted)). Der mv-Schritt in
 # deploy ersetzt die Inode; langlaufende MCP-Children der opencode-Clients
 # behalten den alten Inode und servieren ein veraltetes Tool-Schema, bis
 # sie sterben und opencode sie neu forkt. Siehe Learning #81467.
 # Die Auswahl trifft das Binary, nicht die Shell: dieselbe argv-geankerte
-# Erkennung wie in `yesmem status` (YM-312).
+# Erkennung wie in `nemons status` (YM-312).
 reap-stale-mcp:
 	@"$(INSTALL)" reap-stale-mcp
 
 restart-services:
-	@if systemctl --user list-unit-files yesmem.service >/dev/null 2>&1; then \
-		systemctl --user restart yesmem; \
+	@if systemctl --user list-unit-files nemons.service >/dev/null 2>&1; then \
+		systemctl --user restart nemons; \
 	else \
 		"$(INSTALL)" stop daemon || true; \
-		nohup "$(INSTALL)" daemon --replace >/tmp/yesmem-daemon.out 2>/tmp/yesmem-daemon.err < /dev/null & \
+		nohup "$(INSTALL)" daemon --replace >/tmp/nemons-daemon.out 2>/tmp/nemons-daemon.err < /dev/null & \
 		sleep 2; \
 	fi
-	@if systemctl --user list-unit-files yesmem-proxy.service >/dev/null 2>&1; then \
-		systemctl --user restart yesmem-proxy; \
+	@if systemctl --user list-unit-files nemons-proxy.service >/dev/null 2>&1; then \
+		systemctl --user restart nemons-proxy; \
 	else \
 		"$(INSTALL)" stop proxy || true; \
 		sleep 1; \
-		nohup "$(INSTALL)" proxy >/tmp/yesmem-proxy.out 2>/tmp/yesmem-proxy.err < /dev/null & \
+		nohup "$(INSTALL)" proxy >/tmp/nemons-proxy.out 2>/tmp/nemons-proxy.err < /dev/null & \
 	fi
 
 # Same package list as test: ./... would break on the ignored go-path/ dir.

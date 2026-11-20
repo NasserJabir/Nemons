@@ -15,12 +15,12 @@ import (
 // inside, the folder holding its JSONL copies.
 func TestProjectDirNameMatchesClaudeProjectEncoding(t *testing.T) {
 	cases := []struct{ path, want string }{
-		{"/home/tester/memory/yesmem", "-home-tester-memory-yesmem"},
+		{"/home/tester/memory/nemons", "-home-tester-memory-nemons"},
 		{"/home/tester/memory/.claude", "-home-tester-memory--claude"},
-		{"/home/tester/memory/yesmem/", "-home-tester-memory-yesmem"},
+		{"/home/tester/memory/nemons/", "-home-tester-memory-nemons"},
 		// Claude Code drops the "+" as well (live: the worktree directory below
-		// exists as -home-tester-memory-yesmem--claude-worktrees-feat-capability-memory).
-		{"/home/tester/memory/yesmem/.claude/worktrees/feat+capability-memory", "-home-tester-memory-yesmem--claude-worktrees-feat-capability-memory"},
+		// exists as -home-tester-memory-nemons--claude-worktrees-feat-capability-memory).
+		{"/home/tester/memory/nemons/.claude/worktrees/feat+capability-memory", "-home-tester-memory-nemons--claude-worktrees-feat-capability-memory"},
 		{"/home/user/a+b", "-home-user-a-b"},
 		// Claude's rule is "every character outside [A-Za-z0-9] becomes a dash"
 		// (extracted from the shipped CLI and probed with an isolated

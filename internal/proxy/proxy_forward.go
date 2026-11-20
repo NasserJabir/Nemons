@@ -64,7 +64,7 @@ func upstreamBodyForLog(body []byte) string {
 
 // forwardWithAnnotation forwards the request and extracts annotations from the SSE response.
 func (s *Server) forwardWithAnnotation(w http.ResponseWriter, origReq *http.Request, body []byte, reqIdx int, toolUseIDs []string, proj string, projDir string, threadID string, msgCount int, isSubagent bool, estimatedTokens ...int) {
-	// Debug: dump forwarded request body for inspection (enable with YESMEM_PROXY_DEBUG=1)
+	// Debug: dump forwarded request body for inspection (enable with NEMONS_PROXY_DEBUG=1)
 	if p := writeDebugDump(s.cfg.DataDir, threadID, dumpKindBody, reqIdx, body); p != "" {
 		s.logger.Printf("[req %d] body-dump %dk to %s", reqIdx, len(body)/1024, p)
 	}

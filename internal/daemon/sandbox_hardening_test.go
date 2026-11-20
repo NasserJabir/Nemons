@@ -14,7 +14,7 @@ import (
 func TestSandboxFlags_StandardMasksSecretsWithoutLockdown(t *testing.T) {
 	s := &Sandbox{binaryPath: "/usr/local/bin/ai-jail", cfg: SandboxConfig{
 		MaskedPaths:    []string{"/home/u/.ssh", "/home/u/.gnupg"},
-		ReadOnlyMounts: []string{"/home/u/.local/bin/yesmem", "/home/u/.claude/yesmem/daemon.sock"},
+		ReadOnlyMounts: []string{"/home/u/.local/bin/nemons", "/home/u/.claude/nemons/daemon.sock"},
 	}}
 
 	_, args, err := s.WrapExecArgs("bash", []string{"-c", "true"}, ProfileStandard)
@@ -28,7 +28,7 @@ func TestSandboxFlags_StandardMasksSecretsWithoutLockdown(t *testing.T) {
 	if strings.Contains(joined, "--lockdown") {
 		t.Errorf("standard must not lock down, got %v", args)
 	}
-	if !strings.Contains(joined, "--map /home/u/.claude/yesmem/daemon.sock") {
+	if !strings.Contains(joined, "--map /home/u/.claude/nemons/daemon.sock") {
 		t.Errorf("standard must mount the daemon socket read-only, got %v", args)
 	}
 	for _, want := range []string{"--landlock", "--seccomp", "--mask /home/u/.ssh", "--mask /home/u/.gnupg"} {
@@ -230,7 +230,7 @@ func TestRunWithProfile_StrictLaunchesUnderRealAiJail(t *testing.T) {
 	}
 }
 
-// The mask is the part of standard that is actually observable: the yesmem
+// The mask is the part of standard that is actually observable: the nemons
 // install state holds an API key and is readable from the sandbox unless it is
 // masked. Runs both ways so the test cannot pass for the wrong reason.
 func TestRunWithProfile_StandardMaskHidesInstallState(t *testing.T) {
@@ -238,7 +238,7 @@ func TestRunWithProfile_StandardMaskHidesInstallState(t *testing.T) {
 	if err != nil {
 		t.Skip("no home directory")
 	}
-	state := filepath.Join(home, ".claude", "yesmem", "install-state.json")
+	state := filepath.Join(home, ".claude", "nemons", "install-state.json")
 	if _, err := os.Stat(state); err != nil {
 		t.Skip("no install-state.json on this host")
 	}

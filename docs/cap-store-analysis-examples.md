@@ -143,7 +143,7 @@ This is the compounding benefit: every analysis you save today becomes a searcha
 
 Scenario: daily cron job summarizes the last 24h of captured content without a human Claude in the loop.
 
-Prereq: `ANTHROPIC_API_KEY` is set in the environment where the cron runs (or in `~/.claude/yesmem/config.yaml` under `api_key:`).
+Prereq: `ANTHROPIC_API_KEY` is set in the environment where the cron runs (or in `~/.claude/nemons/config.yaml` under `api_key:`).
 
 ```js
 // In a scheduled script (e.g. via CronCreate or external cron):
@@ -215,7 +215,7 @@ If `cap_search` returns `Error: blocked SQL keyword`, check your WHERE clause fo
 
 ### Model tag after whoami fix
 
-Once session_model proxy-state is populated (post this commit), `mcp__yesmem__whoami` returns `model`. But until the MCP session_id-resolution bug is fixed separately, whoami still returns empty session_id — meaning the model field won't surface via MCP. Work around by passing `model` explicitly to `cap_save_analysis`.
+Once session_model proxy-state is populated (post this commit), `mcp__nemons__whoami` returns `model`. But until the MCP session_id-resolution bug is fixed separately, whoami still returns empty session_id — meaning the model field won't surface via MCP. Work around by passing `model` explicitly to `cap_save_analysis`.
 
 ## Schema Evolution
 

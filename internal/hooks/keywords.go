@@ -24,7 +24,7 @@ var shellNoise = map[string]bool{
 
 // expandHomeTokens rewrites the home shorthands "~/", "$HOME" and "${HOME}" to the
 // home directory. A command's path words must not depend on how the caller spelled
-// the home anchor: "rm -rf ~/.claude/yesmem" left only [".claude", "yesmem"] where
+// the home anchor: "rm -rf ~/.claude/nemons" left only [".claude", "nemons"] where
 // the absolute form also carried the home and user segments, and the hard block on
 // that command class needs a match score of blockMinScore — so the same command sat
 // two points lower for one spelling than for the other (YM-310). The added segments
@@ -32,7 +32,7 @@ var shellNoise = map[string]bool{
 //
 // Consequence, accepted: once a command consists of nothing but such a path, both
 // spellings reach blockMinScore for a gotcha that names the path, whatever the verb
-// is — "ls ~/.claude/yesmem" is blocked as well. The absolute form always did that;
+// is — "ls ~/.claude/nemons" is blocked as well. The absolute form always did that;
 // the fallback treats the path as the whole signal on purpose, and narrowing it to
 // destructive verbs would weaken the block this fallback exists for.
 func expandHomeTokens(cmd string) string {
@@ -111,7 +111,7 @@ func extractKeywords(cmd string) []string {
 		// segment that says nothing about which file is meant is no better as a
 		// keyword here than it is in a file path. Without this filter a command
 		// that merely runs inside a worktree of this checkout produced
-		// ".worktrees", "yesmem" and "memory", each of which hasLongKeywordMatch
+		// ".worktrees", "nemons" and "memory", each of which hasLongKeywordMatch
 		// admits on its own (YM-269). The user-name segment of a home directory is
 		// the same class, whatever it is called.
 		if pathNoise[w] || userNames[w] {
@@ -122,7 +122,7 @@ func extractKeywords(cmd string) []string {
 	}
 	if len(keywords) == 0 {
 		// Nothing but path noise is left, so the path IS the whole signal. Without
-		// this fallback the command "rm -rf /home/<user>/.claude/yesmem" produced no
+		// this fallback the command "rm -rf /home/<user>/.claude/nemons" produced no
 		// keyword at all ("rm" and "rf" fall below the length floor), RunCheck returned
 		// before its gotcha lookup, and the hard block on the one command class that
 		// destroys the installation was gone. Keeping the filter for every command
@@ -345,7 +345,7 @@ func hasNonFilenameKeywordMatch(keywords []string, content, filename string) boo
 }
 
 // pathNoise contains generic path segments to skip during file path keyword extraction.
-// "memory" and "yesmem" are the checkout directory names this repository lives
+// "memory" and "nemons" are the checkout directory names this repository lives
 // under. They appear in nearly every gotcha text, so as keywords they lifted
 // every edit below them to the warning threshold on their own (YM-160).
 //
@@ -365,7 +365,7 @@ var pathNoise = map[string]bool{
 	"src": true, "lib": true, "bin": true, "www": true,
 	"html": true, "chief": true, "internal": true,
 	"cmd": true, "pkg": true, "vendor": true,
-	"memory": true, "yesmem": true,
+	"memory": true, "nemons": true,
 	".worktrees": true, ".claude": true,
 }
 

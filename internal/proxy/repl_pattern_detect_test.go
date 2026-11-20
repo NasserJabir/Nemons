@@ -290,14 +290,14 @@ func TestExtractMatchedCap(t *testing.T) {
 		cmd  string
 		want string
 	}{
-		{"reddit_posts", `sqlite3 ~/.claude/yesmem/caps.db "SELECT * FROM cap_reddit__posts LIMIT 5"`, "reddit"},
+		{"reddit_posts", `sqlite3 ~/.claude/nemons/caps.db "SELECT * FROM cap_reddit__posts LIMIT 5"`, "reddit"},
 		{"reddit_comments", "sqlite3 caps.db 'SELECT body FROM cap_reddit__comments WHERE post_permalink LIKE ?'", "reddit"},
 		{"reddit_links", "sqlite3 caps.db .schema cap_reddit__links", "reddit"},
 		{"telegram_updates", "sqlite3 caps.db SELECT FROM cap_telegram__updates", "telegram"},
 		{"underscored_cap", "sqlite3 caps.db SELECT FROM cap_gluten_shop_tools__results", "gluten_shop_tools"},
 		{"no_cap_table", "git status --porcelain", ""},
 		{"plain_sqlite", `sqlite3 db ".tables"`, ""},
-		{"non_cap_table", "sqlite3 yesmem.db SELECT FROM learnings", ""},
+		{"non_cap_table", "sqlite3 nemons.db SELECT FROM learnings", ""},
 		{"empty", "", ""},
 		{"first_match_wins", "SELECT FROM cap_a__t1 JOIN cap_b__t2", "a"},
 	}

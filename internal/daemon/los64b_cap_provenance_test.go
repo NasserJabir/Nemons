@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/capfile"
-	"github.com/carsteneu/yesmem/internal/textutil"
+	"github.com/NasserJabir/Nemons/internal/capfile"
+	"github.com/NasserJabir/Nemons/internal/textutil"
 )
 
 // los64bWriteManifest seeds the provenance file of a caps dir, the one the installer

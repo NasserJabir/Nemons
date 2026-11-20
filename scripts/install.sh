@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO="carsteneu/yesmem"
-INSTALL_DIR="${YESMEM_INSTALL_DIR:-$HOME/.local/bin}"
+INSTALL_DIR="${NEMONS_INSTALL_DIR:-$HOME/.local/bin}"
 TMP_DIR=$(mktemp -d)
 trap 'rm -rf "$TMP_DIR"' EXIT
 
@@ -13,14 +13,14 @@ error() { printf '\033[1;31merror:\033[0m %s\n' "$*" >&2; exit 1; }
 case "$(uname -s)" in
     Linux*)  OS=linux ;;
     Darwin*) OS=darwin ;;
-    *)       error "Unsupported OS: $(uname -s). YesMem supports Linux and macOS." ;;
+    *)       error "Unsupported OS: $(uname -s). Nemons supports Linux and macOS." ;;
 esac
 
 # Detect architecture
 case "$(uname -m)" in
     x86_64|amd64)  ARCH=amd64 ;;
     aarch64|arm64) ARCH=arm64 ;;
-    *)             error "Unsupported architecture: $(uname -m). YesMem supports amd64 and arm64." ;;
+    *)             error "Unsupported architecture: $(uname -m). Nemons supports amd64 and arm64." ;;
 esac
 
 info "Detected ${OS}/${ARCH}"
@@ -33,17 +33,17 @@ VERSION="${LATEST#v}"
 info "Latest version: ${LATEST}"
 
 # Check if already installed and up to date
-if command -v yesmem &>/dev/null; then
-    CURRENT=$(yesmem version 2>/dev/null || echo "unknown")
+if command -v nemons &>/dev/null; then
+    CURRENT=$(nemons version 2>/dev/null || echo "unknown")
     if [ "$CURRENT" = "$VERSION" ] || [ "$CURRENT" = "$LATEST" ]; then
-        info "YesMem ${VERSION} is already installed and up to date."
+        info "Nemons ${VERSION} is already installed and up to date."
         exit 0
     fi
     info "Upgrading from ${CURRENT} to ${VERSION}"
 fi
 
 # Download binary and checksums
-ASSET="yesmem_${VERSION}_${OS}_${ARCH}.tar.gz"
+ASSET="nemons_${VERSION}_${OS}_${ARCH}.tar.gz"
 DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${LATEST}/${ASSET}"
 CHECKSUMS_URL="https://github.com/${REPO}/releases/download/${LATEST}/checksums.txt"
 
@@ -70,16 +70,16 @@ info "Checksum verified."
 info "Installing to ${INSTALL_DIR}..."
 tar -xzf "${ASSET}"
 mkdir -p "$INSTALL_DIR"
-mv yesmem "$INSTALL_DIR/yesmem"
-chmod +x "$INSTALL_DIR/yesmem"
+mv nemons "$INSTALL_DIR/nemons"
+chmod +x "$INSTALL_DIR/nemons"
 
 # Verify installation
-if ! "${INSTALL_DIR}/yesmem" version &>/dev/null; then
+if ! "${INSTALL_DIR}/nemons" version &>/dev/null; then
     error "Installation verification failed."
 fi
 
-INSTALLED_VERSION=$("${INSTALL_DIR}/yesmem" version 2>/dev/null || echo "$VERSION")
-info "YesMem ${INSTALLED_VERSION} installed successfully."
+INSTALLED_VERSION=$("${INSTALL_DIR}/nemons" version 2>/dev/null || echo "$VERSION")
+info "Nemons ${INSTALLED_VERSION} installed successfully."
 
 # Check PATH
 if ! echo "$PATH" | tr ':' '\n' | grep -q "^${INSTALL_DIR}$"; then
@@ -89,4 +89,4 @@ if ! echo "$PATH" | tr ':' '\n' | grep -q "^${INSTALL_DIR}$"; then
 fi
 
 printf '\nNext step:\n'
-printf '  yesmem setup\n\n'
+printf '  nemons setup\n\n'

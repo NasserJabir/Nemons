@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/codescan"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/codescan"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // cbmDaemonCheckInterval: how often the keeper re-runs the idempotent CBM
@@ -53,7 +53,7 @@ func startCBMDaemonKeeper(ctx context.Context, store *storage.Store) {
 }
 
 // restoreGitSwaps repairs legacy .git swaps left by crashed index calls
-// (older yesmem builds renamed .git to .git.yesmem-bak inside the worktree).
+// (older nemons builds renamed .git to .git.nemons-bak inside the worktree).
 // Checked once at daemon boot over all active projects.
 func restoreGitSwaps(ctx context.Context, store *storage.Store) {
 	projects, err := activeProjects(ctx, store)

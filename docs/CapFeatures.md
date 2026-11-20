@@ -49,7 +49,7 @@ Claude Code loses **learned tool knowledge** between sessions: REPL snippets, AP
 Capabilities are **not a separate table**, but learnings with `category = "cap"`. Reuses the existing supersede/search/embed infrastructure.
 
 ```
-learnings (yesmem.db)
+learnings (nemons.db)
 ├── id, content, category="cap", source, project
 ├── context → JSON: CapMeta (name, description, schema, handler_repl, handler_bash, tags, version, tested, auto_active)
 ├── keywords → tags for filtering
@@ -93,7 +93,7 @@ CREATE TABLE session_active_caps (
 );
 ```
 
-Stored in `yesmem.db`. Proxy reads which caps are active per thread ID. `auto_active` is **not a column attribute** here, but a field in `CapMeta` (learning context JSON). **Default: true** — new caps are immediately available to all sessions by default.
+Stored in `nemons.db`. Proxy reads which caps are active per thread ID. `auto_active` is **not a column attribute** here, but a field in `CapMeta` (learning context JSON). **Default: true** — new caps are immediately available to all sessions by default.
 
 ### Cap Store (generic KV store)
 
@@ -237,7 +237,7 @@ Schema migration for `session_active_caps` and `cap_store_meta`. v0.55 migration
 
 **File: `internal/mcp/server.go`**
 
-Registers MCP tools (Claude Code sees them as `mcp__yesmem__<name>`):
+Registers MCP tools (Claude Code sees them as `mcp__nemons__<name>`):
 
 | Tool name | Description |
 |-----------|-------------|
@@ -298,7 +298,7 @@ Request to Anthropic API
 
 **Catalog injection** (`renderCapabilitiesCatalog` in `caps_inject.go`):
 - Generates exactly **one** `<caps-available>` block inside a `<system-reminder>` — nothing is appended to `req["tools"]`
-- The block teaches the activation call (`await mcp__yesmem__activate_cap({name})` in REPL, then `eval(result.code)`) once, then lists every available cap as a `| Capability | Description |` table
+- The block teaches the activation call (`await mcp__nemons__activate_cap({name})` in REPL, then `eval(result.code)`) once, then lists every available cap as a `| Capability | Description |` table
 - Rendered once per session from the caps cache
 
 **Per-cap tool registration** (`renderRegisterTools` in `caps_inject.go`):
@@ -319,7 +319,7 @@ For capabilities that need HTTP fetches larger than 30KB (e.g. Reddit posts with
 **Capability:** `cap-blob-put` / `cap-blob-get`:
 
 ```
-Producer → curl | yesmem cap-blob-put --cap NAME --key KEY
+Producer → curl | nemons cap-blob-put --cap NAME --key KEY
                     ↓
               cap_{NAME}__blobs (20KB chunks, auto-created)
                     ↓
@@ -328,7 +328,7 @@ Consumer → cap_store({action:"query", table:"blobs", ...})
               rows.map(r => r.data).join('')  → complete payload
 ```
 
-**Package:** `internal/capblob/` (blob.go, blob_test.go). CLI: `yesmem cap-blob-put --cap NAME --key KEY`. Used by `reddit_fetch`.
+**Package:** `internal/capblob/` (blob.go, blob_test.go). CLI: `nemons cap-blob-put --cap NAME --key KEY`. Used by `reddit_fetch`.
 
 ---
 
@@ -554,7 +554,7 @@ Capabilities registered in the system (as of 2026-04-21):
 | Capabilities as learnings (category="cap"), no separate table | Reuses existing supersede/search/embed infrastructure. No schema migration overhead. |
 | Deliberative activation instead of auto-injection | Model selects more reliably than an embedding ranker. No false positives. Lower token cost. |
 | Native tools win on name collision | Safety: native MCP tools must never be shadowed by capabilities. |
-| Separate caps.db for cap store | Isolation from yesmem.db. No schema pollution. Independent locking. |
+| Separate caps.db for cap store | Isolation from nemons.db. No schema pollution. Independent locking. |
 | Blob pipe instead of temp files | No Read tool permission prompt. No /tmp cleanup. More persistent than temp files. |
 | Cap store sandboxing (no DROP/ALTER) | Capabilities should write data, not destroy structure. Defensive architecture. |
 | Activation instruction in the catalog | Enables `activate_cap` without a prior MCP round-trip: the catalog names the call, `eval` registers the cap's own tools. |
@@ -639,7 +639,7 @@ On every `save_cap` MCP call: after DB upsert, the CAP.md is automatically writt
 ### Dev Workflow
 
 1. Create or edit `~/.claude/caps/my_cap/CAP.md`
-2. Restart daemon (`make deploy` or `systemctl restart yesmem-daemon`)
+2. Restart daemon (`make deploy` or `systemctl restart nemons-daemon`)
 3. Change is immediately in the DB and available via MCP tools
 
 ### Package Structure
@@ -662,9 +662,9 @@ There are **3 adapter primitives**, each action-based:
 
 **Direct Mapping** (`AdapterConfig.Direct`):
 
-| Generic | Provider (YesMem MCP) | Actions |
+| Generic | Provider (Nemons MCP) | Actions |
 |---------|-----------------------|---------|
-| `store()` | `mcp__yesmem__cap_store()` | `create_table`, `upsert`, `query`, `delete`, `list_tables`, `blob_put`, `blob_get` |
+| `store()` | `mcp__nemons__cap_store()` | `create_table`, `upsert`, `query`, `delete`, `list_tables`, `blob_put`, `blob_get` |
 
 **Dispatcher Mapping** (`AdapterConfig.Dispatchers`):
 
@@ -678,10 +678,10 @@ There are **3 adapter primitives**, each action-based:
 
 **Roundtrip (direction matters):**
 
-1. **`CAP.md` on disk carries the provider form** — bundled caps call `mcp__yesmem__cap_store({...})`, never a bare `store()`. There is no generic rewriting step when the file is written
+1. **`CAP.md` on disk carries the provider form** — bundled caps call `mcp__nemons__cap_store({...})`, never a bare `store()`. There is no generic rewriting step when the file is written
 2. **Reader** (`capfile`): the parser keeps the body verbatim; `UsesStoreAdapter()` decides whether the body needs the adapter at all
-3. **activate_cap / register_caps** (DB → runtime): for a tool script that uses the adapter, `ProviderToGeneric()` rewrites `mcp__yesmem__cap_store(` → `store(`, then `WrapToolWithStore()` wraps it so the generic name resolves
-4. **GenerateAdapterJS()**: generates the shims that make the generic names work — `globalThis.store = async(a) => mcp__yesmem__cap_store(a)` for the direct mapping, plus the dispatcher shims (`globalThis.web = async({action,...p}) => ...`)
+3. **activate_cap / register_caps** (DB → runtime): for a tool script that uses the adapter, `ProviderToGeneric()` rewrites `mcp__nemons__cap_store(` → `store(`, then `WrapToolWithStore()` wraps it so the generic name resolves
+4. **GenerateAdapterJS()**: generates the shims that make the generic names work — `globalThis.store = async(a) => mcp__nemons__cap_store(a)` for the direct mapping, plus the dispatcher shims (`globalThis.web = async({action,...p}) => ...`)
 
 **Design principles:**
 - `store()` is 1:1 (string replace, as before)
@@ -769,7 +769,7 @@ Caps are ideal for scheduled tasks because they are predictable: defined schema,
 
 ### Comparison with Anthropic Scheduled Tasks
 
-| | Anthropic Cloud Routines | Desktop Scheduled Tasks | YesMem Scheduler |
+| | Anthropic Cloud Routines | Desktop Scheduled Tasks | Nemons Scheduler |
 |---|---|---|---|
 | Runs on | Anthropic cloud | Local (app open) | Local (daemon) |
 | Memory | None (fresh each run) | None | Full persistent memory |

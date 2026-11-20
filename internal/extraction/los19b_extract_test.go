@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // los19bConversation builds a conversation the pre-filter keeps. 100 characters

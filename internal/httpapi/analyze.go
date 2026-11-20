@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/proxy"
+	"github.com/NasserJabir/Nemons/internal/proxy"
 )
 
 // signalProcessingEnabled asks the daemon for signals.enabled. The proxy gates its

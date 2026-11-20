@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/embedding"
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/embedding"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // TestEnrichRankedResults_EmitsOriginTool guards against the Plan B Critical:

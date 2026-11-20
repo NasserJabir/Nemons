@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/archive"
-	"github.com/carsteneu/yesmem/internal/bloom"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/archive"
+	"github.com/NasserJabir/Nemons/internal/bloom"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // incLine renders one Claude Code JSONL line with array-shaped content, the

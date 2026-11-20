@@ -10,7 +10,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/carsteneu/yesmem/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/daemon"
 	"github.com/itchyny/gojq"
 )
 
@@ -211,7 +211,7 @@ func applyExtract(input json.RawMessage, filter string) (string, error) {
 
 func runWorker(_ []string) {
 	home, _ := os.UserHomeDir()
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	client, err := daemon.Dial(dataDir)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "worker: dial daemon:", err)

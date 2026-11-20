@@ -10,7 +10,7 @@ import (
 func fixture(t *testing.T, configYAML, registry, auth string) (home, dataDir string) {
 	t.Helper()
 	home = tempHome(t)
-	dataDir = filepath.Join(home, ".claude", "yesmem")
+	dataDir = filepath.Join(home, ".claude", "nemons")
 	writeFileT(t, filepath.Join(dataDir, "config.yaml"), configYAML)
 	writeFileT(t, filepath.Join(home, ".cache", "opencode", "models.json"), registry)
 	writeFileT(t, filepath.Join(home, ".local", "share", "opencode", "auth.json"), auth)
@@ -23,7 +23,7 @@ const deepseekAuth = `{"deepseek":{"key":"sk-deepseek"}}`
 func TestResolveOpenCodeProvider(t *testing.T) {
 	home, dataDir := fixture(t, "extraction:\n  model: deepseek-v4-flash\n", deepseekRegistry, deepseekAuth)
 	server, calls := modelList(t, haiku("claude-haiku-5-5", "2026-10-07T18:00:00Z"))
-	t.Setenv("YESMEM_GUARD_MODELS_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_MODELS_URL", server.URL)
 
 	res, err := Resolve(home, dataDir)
 	if err != nil {
@@ -67,7 +67,7 @@ func TestResolveOpenCodeAnthropicProvider(t *testing.T) {
 	registry := `{"anthropic":{"api":"https://api.anthropic.com","npm":"@ai-sdk/anthropic","models":{"claude-haiku-4-5-20251001":{}}}}`
 	home, dataDir := fixture(t, "extraction:\n  model: claude-haiku-4-5-20251001\n", registry, `{"anthropic":{"key":"sk-ant-opencode"}}`)
 	server, _ := modelList(t, haiku("claude-haiku-5-5", "2026-10-07T18:00:00Z"))
-	t.Setenv("YESMEM_GUARD_MODELS_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_MODELS_URL", server.URL)
 
 	res, err := Resolve(home, dataDir)
 	if err != nil {
@@ -89,7 +89,7 @@ func TestResolveClaudeOnlyInstallation(t *testing.T) {
 	// No provider carries the guard's model, so the provider search ends without a key.
 	home, dataDir := fixture(t, "extraction:\n  model: gd-flash\n", `{"anthropic":{"api":"https://api.anthropic.com","npm":"@ai-sdk/anthropic","models":{}}}`, `{"anthropic":{"key":"sk-ant-only"}}`)
 	server, _ := modelList(t, haiku("claude-haiku-5-5", "2026-10-07T18:00:00Z"), haiku("claude-haiku-4-5-20251001", "2025-10-15T00:00:00Z"))
-	t.Setenv("YESMEM_GUARD_MODELS_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_MODELS_URL", server.URL)
 
 	res, err := Resolve(home, dataDir)
 	if err != nil {
@@ -128,7 +128,7 @@ func TestResolveAnthropicKeyLadder(t *testing.T) {
 			home, dataDir := fixture(t, "extraction:\n  model: gd-flash\n", "{}", "{}")
 			tc.setup(t, home)
 			server, _ := modelList(t, haiku("claude-haiku-5-5", "2026-10-07T18:00:00Z"))
-			t.Setenv("YESMEM_GUARD_MODELS_URL", server.URL)
+			t.Setenv("NEMONS_GUARD_MODELS_URL", server.URL)
 
 			res, err := Resolve(home, dataDir)
 			if err != nil {
@@ -184,7 +184,7 @@ func TestResolveProviderTarget(t *testing.T) {
 		"rule_guard:\n  model: privateTom\nproxy:\n  provider_targets:\n    privatetom: https://gateway.example.com/v1\n",
 		"{}",
 		`{"gateway":{"key":"sk-gateway"}}`)
-	t.Setenv("YESMEM_GUARD_MODELS_URL", "http://127.0.0.1:1")
+	t.Setenv("NEMONS_GUARD_MODELS_URL", "http://127.0.0.1:1")
 
 	res, err := Resolve(home, dataDir)
 	if err != nil {
@@ -213,10 +213,10 @@ func TestResolveProviderTarget(t *testing.T) {
 // The plugin's explicit override: endpoint, key and model win over everything the installation holds.
 func TestResolveEnvOverride(t *testing.T) {
 	home, dataDir := fixture(t, "extraction:\n  model: deepseek-v4-flash\n", deepseekRegistry, deepseekAuth)
-	t.Setenv("YESMEM_GUARD_URL", "http://127.0.0.1:9999/")
-	t.Setenv("YESMEM_GUARD_KEY", "sk-override")
-	t.Setenv("YESMEM_GUARD_MODEL", "override-model")
-	t.Setenv("YESMEM_GUARD_NPM", "@ai-sdk/openai-compatible")
+	t.Setenv("NEMONS_GUARD_URL", "http://127.0.0.1:9999/")
+	t.Setenv("NEMONS_GUARD_KEY", "sk-override")
+	t.Setenv("NEMONS_GUARD_MODEL", "override-model")
+	t.Setenv("NEMONS_GUARD_NPM", "@ai-sdk/openai-compatible")
 
 	res, err := Resolve(home, dataDir)
 	if err != nil {
@@ -236,10 +236,10 @@ func TestResolveEnvOverride(t *testing.T) {
 func TestResolveEnvOverrideWithoutModelAsksTheAccountForAHaiku(t *testing.T) {
 	home, dataDir := fixture(t, "extraction:\n  model: deepseek-v4-flash\n", deepseekRegistry, deepseekAuth)
 	server, _ := modelList(t, haiku("claude-haiku-5-5", "2026-10-07T18:00:00Z"))
-	t.Setenv("YESMEM_GUARD_MODELS_URL", server.URL)
-	t.Setenv("YESMEM_GUARD_URL", AnthropicBase)
-	t.Setenv("YESMEM_GUARD_KEY", "sk-override")
-	t.Setenv("YESMEM_GUARD_NPM", AnthropicNPM)
+	t.Setenv("NEMONS_GUARD_MODELS_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_URL", AnthropicBase)
+	t.Setenv("NEMONS_GUARD_KEY", "sk-override")
+	t.Setenv("NEMONS_GUARD_NPM", AnthropicNPM)
 
 	res, err := Resolve(home, dataDir)
 	if err != nil {
@@ -264,7 +264,7 @@ func TestResolveEnvOverrideWithoutModelAsksTheAccountForAHaiku(t *testing.T) {
 // model name would deactivate the guard on every installation whose endpoint is a gateway.
 func TestResolveEnvOverrideWithoutModelKeepsTheOpenAIDefault(t *testing.T) {
 	home, dataDir := fixture(t, "rule_guard:\n  model: glm-5.2\n", "{}", "{}")
-	t.Setenv("YESMEM_GUARD_URL", "http://127.0.0.1:9999")
+	t.Setenv("NEMONS_GUARD_URL", "http://127.0.0.1:9999")
 
 	res, err := Resolve(home, dataDir)
 	if err != nil {
@@ -282,14 +282,14 @@ func TestResolveEnvOverrideWithoutModelKeepsTheOpenAIDefault(t *testing.T) {
 	}
 }
 
-// YESMEM_GUARD_MODEL alone, without an endpoint override, still wins: a harness that pins the model for
+// NEMONS_GUARD_MODEL alone, without an endpoint override, still wins: a harness that pins the model for
 // one call must not get the configured one, and the source has to say where it came from.
 func TestResolveEnvModelWinsWithoutAnEndpointOverride(t *testing.T) {
 	registry := `{"glm":{"api":"https://api.z.ai/api/coding/paas/v4","npm":"@ai-sdk/openai-compatible","models":{"glm-5.2":{}}},` +
 		`"deepseek":{"api":"https://api.deepseek.com","npm":"@ai-sdk/openai-compatible","models":{"deepseek-v4-flash":{}}}}`
 	home, dataDir := fixture(t, "extraction:\n  model: deepseek-v4-flash\nrule_guard:\n  model: deepseek-v4-flash\n",
 		registry, `{"glm":{"key":"sk-glm"},"deepseek":{"key":"sk-deepseek"}}`)
-	t.Setenv("YESMEM_GUARD_MODEL", "glm-5.2")
+	t.Setenv("NEMONS_GUARD_MODEL", "glm-5.2")
 
 	res, err := Resolve(home, dataDir)
 	if err != nil {
@@ -315,7 +315,7 @@ func TestResolveAnthropicProviderHonoursTheConfiguredModel(t *testing.T) {
 	home, dataDir := fixture(t, "extraction:\n  model: gd-flash\nrule_guard:\n  model: claude-haiku-4-5-20251001\n",
 		registry, `{"anthropic":{"key":"sk-ant-opencode"}}`)
 	server, calls := modelList(t, haiku("claude-haiku-5-5", "2026-10-07T18:00:00Z"))
-	t.Setenv("YESMEM_GUARD_MODELS_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_MODELS_URL", server.URL)
 
 	res, err := Resolve(home, dataDir)
 	if err != nil {
@@ -402,7 +402,7 @@ func TestResolveDoesNotSendAnUnhostedConfiguredModelToAnthropic(t *testing.T) {
 	home, dataDir := fixture(t, "extraction:\n  model: gd-flash\nrule_guard:\n  model: my-private-model\n",
 		"{}", `{"anthropic":{"key":"sk-ant-only"}}`)
 	server, _ := modelList(t, haiku("claude-haiku-5-5", "2026-10-07T18:00:00Z"))
-	t.Setenv("YESMEM_GUARD_MODELS_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_MODELS_URL", server.URL)
 
 	res, err := Resolve(home, dataDir)
 	if err != nil {
@@ -426,7 +426,7 @@ func TestResolveANamedProviderWithoutAKeyDoesNotOwnTheGuard(t *testing.T) {
 	registry := `{"zai":{"api":"https://api.z.ai/api/coding/paas/v4","npm":"@ai-sdk/openai-compatible","models":{"glm-5.2":{}}}}`
 	home, dataDir := fixture(t, "rule_guard:\n  model: glm-5.2\n", registry, `{"anthropic":{"key":"sk-ant-only"}}`)
 	server, _ := modelList(t, haiku("claude-haiku-5-5", "2026-10-07T18:00:00Z"))
-	t.Setenv("YESMEM_GUARD_MODELS_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_MODELS_URL", server.URL)
 
 	res, err := Resolve(home, dataDir)
 	if err != nil {

@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/verify/claimtypes"
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/claimtypes"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // Request is everything one verification run needs.

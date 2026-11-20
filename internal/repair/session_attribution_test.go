@@ -9,22 +9,22 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 
 	_ "modernc.org/sqlite"
 )
 
-// The repair reads two databases: yesmem.db holds the learnings, opencode.db
+// The repair reads two databases: nemons.db holds the learnings, opencode.db
 // holds the tool calls that wrote them. The fixtures recreate only the columns
 // the repair touches, so a change in the queries shows up as a test failure
 // rather than as a silent miss on the live data.
 
-func fixtureYesmemDB(t *testing.T) (*sql.DB, string) {
+func fixtureNemonsDB(t *testing.T) (*sql.DB, string) {
 	t.Helper()
-	path := filepath.Join(t.TempDir(), "yesmem.db")
+	path := filepath.Join(t.TempDir(), "nemons.db")
 	db, err := sql.Open("sqlite", path)
 	if err != nil {
-		t.Fatalf("open yesmem fixture: %v", err)
+		t.Fatalf("open nemons fixture: %v", err)
 	}
 	t.Cleanup(func() { db.Close() })
 	if _, err := db.Exec(`CREATE TABLE learnings (
@@ -136,12 +136,12 @@ func gitRootWithWorktree(t *testing.T, name string) (root, worktree string) {
 // A project the v0.65 migration blanked is rebuilt from the session that wrote
 // the learning.
 func TestPlanProposesProjectForBlankedRow(t *testing.T) {
-	ydb, ypath := fixtureYesmemDB(t)
+	ydb, ypath := fixtureNemonsDB(t)
 	odb, opath := fixtureOpencodeDB(t)
 	root, worktree := gitRootWithWorktree(t, "v2-release-notes")
 	insertSession(t, odb, "ses_BLANK", worktree)
 	insertLearningRow(t, ydb, 40, "note whose project was blanked", "opencode:ses_BLANK", nil, "v2-release-notes", "explicit", "2026-10-15T10:00:00+02:00")
-	insertToolCall(t, odb, "ses_BLANK", "yesmem_remember", map[string]any{"text": "note whose project was blanked"})
+	insertToolCall(t, odb, "ses_BLANK", "nemons_remember", map[string]any{"text": "note whose project was blanked"})
 
 	rep, err := Plan(ypath, opath, "2026-10-01")
 	if err != nil {
@@ -178,7 +178,7 @@ func insertKnownProject(t *testing.T, db *sql.DB, sessionID, project string) {
 // Without a session, the historical basename in canonical_project identifies
 // the project when exactly one indexed path carries it.
 func TestPlanFallsBackToCanonicalProject(t *testing.T) {
-	ydb, ypath := fixtureYesmemDB(t)
+	ydb, ypath := fixtureNemonsDB(t)
 	_, opath := fixtureOpencodeDB(t)
 	insertKnownProject(t, ydb, "ses_indexed", "/repo/wal")
 	insertLearningRow(t, ydb, 41, "row without any tool call", "opencode:ses_GONE", nil, "wal", "explicit", "2026-10-15T10:00:00+02:00")
@@ -204,7 +204,7 @@ func TestPlanFallsBackToCanonicalProject(t *testing.T) {
 // Two indexed paths with the same basename make canonical_project worthless as
 // evidence — the row stays untouched rather than being pointed at a guess.
 func TestPlanLeavesAmbiguousCanonicalProjectAlone(t *testing.T) {
-	ydb, ypath := fixtureYesmemDB(t)
+	ydb, ypath := fixtureNemonsDB(t)
 	_, opath := fixtureOpencodeDB(t)
 	insertKnownProject(t, ydb, "ses_one", "/repo/one/wal")
 	insertKnownProject(t, ydb, "ses_two", "/repo/two/wal")
@@ -223,10 +223,10 @@ func TestPlanLeavesAmbiguousCanonicalProjectAlone(t *testing.T) {
 // A blanked project with no evidence at all must not be reported as settled:
 // the row still needs work and the report has to say so.
 func TestPlanReportsBlankedProjectWithoutEvidence(t *testing.T) {
-	ydb, ypath := fixtureYesmemDB(t)
+	ydb, ypath := fixtureNemonsDB(t)
 	odb, opath := fixtureOpencodeDB(t)
 	insertLearningRow(t, ydb, 47, "blanked row whose session is known", "opencode:ses_KNOWN", nil, "wal", "explicit", "2026-10-15T10:00:00+02:00")
-	insertToolCall(t, odb, "ses_KNOWN", "yesmem_remember", map[string]any{"text": "blanked row whose session is known"})
+	insertToolCall(t, odb, "ses_KNOWN", "nemons_remember", map[string]any{"text": "blanked row whose session is known"})
 
 	rep, err := Plan(ypath, opath, "2026-10-01")
 	if err != nil {
@@ -243,12 +243,12 @@ func TestPlanReportsBlankedProjectWithoutEvidence(t *testing.T) {
 
 // A '.' project is as unusable as an empty one.
 func TestPlanTreatsDotProjectAsMissing(t *testing.T) {
-	ydb, ypath := fixtureYesmemDB(t)
+	ydb, ypath := fixtureNemonsDB(t)
 	odb, opath := fixtureOpencodeDB(t)
 	root, worktree := gitRootWithWorktree(t, "dot-project")
 	insertSession(t, odb, "ses_DOT", worktree)
 	insertLearningRow(t, ydb, 46, "note with a dot project", "opencode:ses_DOT", ".", ".", "explicit", "2026-10-15T10:00:00+02:00")
-	insertToolCall(t, odb, "ses_DOT", "yesmem_remember", map[string]any{"text": "note with a dot project"})
+	insertToolCall(t, odb, "ses_DOT", "nemons_remember", map[string]any{"text": "note with a dot project"})
 
 	rep, err := Plan(ypath, opath, "2026-10-01")
 	if err != nil {
@@ -289,11 +289,11 @@ func insertLegacyToolCall(t *testing.T, db *sql.DB, session, name string, input 
 // Sessions recorded before the v2 schema keep their tool calls in the part
 // table; without reading it their learnings look unattributable.
 func TestPlanReadsToolCallsFromTheLegacyPartTable(t *testing.T) {
-	ydb, ypath := fixtureYesmemDB(t)
+	ydb, ypath := fixtureNemonsDB(t)
 	odb, opath := fixtureOpencodeDB(t)
 	createLegacyPartTable(t, odb)
 	insertLearning(t, ydb, 20, "note stored by an older session", "opencode:ses_WRONG", "/repo/main", "explicit", "2026-10-15T10:00:00+02:00")
-	insertLegacyToolCall(t, odb, "ses_LEGACY", "yesmem_remember", map[string]any{"text": "note stored by an older session"})
+	insertLegacyToolCall(t, odb, "ses_LEGACY", "nemons_remember", map[string]any{"text": "note stored by an older session"})
 
 	rep, err := Plan(ypath, opath, "2026-10-01")
 	if err != nil {
@@ -310,15 +310,15 @@ func TestPlanReadsToolCallsFromTheLegacyPartTable(t *testing.T) {
 // Both generations are unioned: agreement keeps the match, disagreement makes
 // it ambiguous.
 func TestPlanUnionsBothStorageGenerations(t *testing.T) {
-	ydb, ypath := fixtureYesmemDB(t)
+	ydb, ypath := fixtureNemonsDB(t)
 	odb, opath := fixtureOpencodeDB(t)
 	createLegacyPartTable(t, odb)
 	insertLearning(t, ydb, 21, "text seen by one session twice", "opencode:ses_WRONG", "/repo/main", "explicit", "2026-10-15T10:00:00+02:00")
 	insertLearning(t, ydb, 22, "text seen by two sessions", "opencode:ses_WRONG", "/repo/main", "explicit", "2026-10-15T10:00:00+02:00")
-	insertToolCall(t, odb, "ses_SAME", "yesmem_remember", map[string]any{"text": "text seen by one session twice"})
-	insertLegacyToolCall(t, odb, "ses_SAME", "yesmem_remember", map[string]any{"text": "text seen by one session twice"})
-	insertToolCall(t, odb, "ses_MSG", "yesmem_remember", map[string]any{"text": "text seen by two sessions"})
-	insertLegacyToolCall(t, odb, "ses_PART", "yesmem_remember", map[string]any{"text": "text seen by two sessions"})
+	insertToolCall(t, odb, "ses_SAME", "nemons_remember", map[string]any{"text": "text seen by one session twice"})
+	insertLegacyToolCall(t, odb, "ses_SAME", "nemons_remember", map[string]any{"text": "text seen by one session twice"})
+	insertToolCall(t, odb, "ses_MSG", "nemons_remember", map[string]any{"text": "text seen by two sessions"})
+	insertLegacyToolCall(t, odb, "ses_PART", "nemons_remember", map[string]any{"text": "text seen by two sessions"})
 
 	rep, err := Plan(ypath, opath, "2026-10-01")
 	if err != nil {
@@ -337,10 +337,10 @@ func TestPlanUnionsBothStorageGenerations(t *testing.T) {
 }
 
 func TestPlanFindsTheUniqueSessionFromTheToolCall(t *testing.T) {
-	ydb, ypath := fixtureYesmemDB(t)
+	ydb, ypath := fixtureNemonsDB(t)
 	odb, opath := fixtureOpencodeDB(t)
 	insertLearning(t, ydb, 1, "patched-release.ts excludes the upstream wave", "opencode:ses_WRONG", "/repo/main", "explicit", "2026-10-15T10:00:00+02:00")
-	insertToolCall(t, odb, "ses_CORRECT", "yesmem_remember", map[string]any{
+	insertToolCall(t, odb, "ses_CORRECT", "nemons_remember", map[string]any{
 		"text": "patched-release.ts excludes the upstream wave", "category": "gotcha",
 	})
 
@@ -362,13 +362,13 @@ func TestPlanFindsTheUniqueSessionFromTheToolCall(t *testing.T) {
 
 // A Code Mode call carries the same remember argument inside its JS source: the
 // live misattributions (#101896/#101897) were written this way, so a matcher
-// that only looks at yesmem_remember calls finds nothing.
+// that only looks at nemons_remember calls finds nothing.
 func TestPlanMatchesRememberTextInsideCodeModeCall(t *testing.T) {
-	ydb, ypath := fixtureYesmemDB(t)
+	ydb, ypath := fixtureNemonsDB(t)
 	odb, opath := fixtureOpencodeDB(t)
 	insertLearning(t, ydb, 7, "Fork release bodies differ upstream", "opencode:ses_WRONG", "/repo/main", "explicit", "2026-10-15T10:00:00+02:00")
 	insertToolCall(t, odb, "ses_CODE", "execute", map[string]any{
-		"code": `await tools.yesmem["remember"]({"text":"Fork release bodies differ upstream","category":"gotcha"})`,
+		"code": `await tools.nemons["remember"]({"text":"Fork release bodies differ upstream","category":"gotcha"})`,
 	})
 
 	rep, err := Plan(ypath, opath, "2026-10-01")
@@ -383,11 +383,11 @@ func TestPlanMatchesRememberTextInsideCodeModeCall(t *testing.T) {
 // The same text in two sessions cannot be attributed: the row stays untouched
 // rather than being pointed at a guess.
 func TestPlanLeavesAmbiguousMatchesAlone(t *testing.T) {
-	ydb, ypath := fixtureYesmemDB(t)
+	ydb, ypath := fixtureNemonsDB(t)
 	odb, opath := fixtureOpencodeDB(t)
 	insertLearning(t, ydb, 2, "shared sentence about the proxy", "opencode:ses_WRONG", "/repo/main", "explicit", "2026-10-15T10:00:00+02:00")
-	insertToolCall(t, odb, "ses_A", "yesmem_remember", map[string]any{"text": "shared sentence about the proxy"})
-	insertToolCall(t, odb, "ses_B", "yesmem_remember", map[string]any{"text": "shared sentence about the proxy"})
+	insertToolCall(t, odb, "ses_A", "nemons_remember", map[string]any{"text": "shared sentence about the proxy"})
+	insertToolCall(t, odb, "ses_B", "nemons_remember", map[string]any{"text": "shared sentence about the proxy"})
 
 	rep, err := Plan(ypath, opath, "2026-10-01")
 	if err != nil {
@@ -399,7 +399,7 @@ func TestPlanLeavesAmbiguousMatchesAlone(t *testing.T) {
 }
 
 func TestPlanLeavesUnmatchedRowsAlone(t *testing.T) {
-	ydb, ypath := fixtureYesmemDB(t)
+	ydb, ypath := fixtureNemonsDB(t)
 	_, opath := fixtureOpencodeDB(t)
 	insertLearning(t, ydb, 3, "text nobody ever remembered", "opencode:ses_WRONG", "/repo/main", "explicit", "2026-10-15T10:00:00+02:00")
 
@@ -415,7 +415,7 @@ func TestPlanLeavesUnmatchedRowsAlone(t *testing.T) {
 // A learning older than the cut-off, one written by extraction rather than by a
 // tool call, and one already attributed to the same session need no repair.
 func TestPlanSelectsOnlyToolWrittenOpencodeRowsAfterTheCutOff(t *testing.T) {
-	ydb, ypath := fixtureYesmemDB(t)
+	ydb, ypath := fixtureNemonsDB(t)
 	odb, opath := fixtureOpencodeDB(t)
 	insertLearning(t, ydb, 4, "written before the cut-off", "opencode:ses_WRONG", "/repo/main", "explicit", "2026-09-30T10:00:00+02:00")
 	insertLearning(t, ydb, 5, "extracted from a session transcript", "opencode:ses_WRONG", "/repo/main", "", "2026-10-15T10:00:00+02:00")
@@ -423,7 +423,7 @@ func TestPlanSelectsOnlyToolWrittenOpencodeRowsAfterTheCutOff(t *testing.T) {
 	if _, err := ydb.Exec(`UPDATE learnings SET origin_tool = 'llm_extracted_session' WHERE id = 5`); err != nil {
 		t.Fatal(err)
 	}
-	insertToolCall(t, odb, "ses_RIGHT", "yesmem_remember", map[string]any{"text": "already attributed"})
+	insertToolCall(t, odb, "ses_RIGHT", "nemons_remember", map[string]any{"text": "already attributed"})
 
 	rep, err := Plan(ypath, opath, "2026-10-01")
 	if err != nil {
@@ -440,7 +440,7 @@ func TestPlanSelectsOnlyToolWrittenOpencodeRowsAfterTheCutOff(t *testing.T) {
 // A project that is not an absolute path cannot be stored as it is; the matched
 // session's directory identifies the repository.
 func TestPlanDerivesProjectFromTheMatchedSessionDirectory(t *testing.T) {
-	ydb, ypath := fixtureYesmemDB(t)
+	ydb, ypath := fixtureNemonsDB(t)
 	odb, opath := fixtureOpencodeDB(t)
 	root := t.TempDir()
 	if err := os.MkdirAll(filepath.Join(root, ".git"), 0o755); err != nil {
@@ -448,7 +448,7 @@ func TestPlanDerivesProjectFromTheMatchedSessionDirectory(t *testing.T) {
 	}
 	insertSession(t, odb, "ses_PROJ", filepath.Join(root, ".worktrees", "v2-release-notes"))
 	insertLearning(t, ydb, 8, "note from the release worktree", "opencode:ses_PROJ", "v2-release-notes", "explicit", "2026-10-15T10:00:00+02:00")
-	insertToolCall(t, odb, "ses_PROJ", "yesmem_remember", map[string]any{"text": "note from the release worktree"})
+	insertToolCall(t, odb, "ses_PROJ", "nemons_remember", map[string]any{"text": "note from the release worktree"})
 
 	rep, err := Plan(ypath, opath, "2026-10-01")
 	if err != nil {
@@ -485,7 +485,7 @@ func TestPlanDerivesProjectFromTheMatchedSessionDirectory(t *testing.T) {
 // tool filter such a row could become the unique match and attribute the
 // learning to the quoting session.
 func TestPlanIgnoresQuotingToolCalls(t *testing.T) {
-	ydb, ypath := fixtureYesmemDB(t)
+	ydb, ypath := fixtureNemonsDB(t)
 	odb, opath := fixtureOpencodeDB(t)
 	insertLearning(t, ydb, 30, "quoted sentence about the proxy", "opencode:ses_NOISE", "/repo/main", "explicit", "2026-10-15T10:00:00+02:00")
 	insertToolCall(t, odb, "ses_QUOTER", "shell", map[string]any{
@@ -502,13 +502,13 @@ func TestPlanIgnoresQuotingToolCalls(t *testing.T) {
 }
 
 func TestApplyWritesOnlyUnambiguousRowsAndIsIdempotent(t *testing.T) {
-	ydb, ypath := fixtureYesmemDB(t)
+	ydb, ypath := fixtureNemonsDB(t)
 	odb, opath := fixtureOpencodeDB(t)
 	insertLearning(t, ydb, 10, "row that will be repaired", "opencode:ses_WRONG", "/repo/main", "explicit", "2026-10-15T10:00:00+02:00")
 	insertLearning(t, ydb, 11, "row with two candidate sessions", "opencode:ses_WRONG", "/repo/main", "explicit", "2026-10-15T10:00:00+02:00")
-	insertToolCall(t, odb, "ses_CORRECT", "yesmem_remember", map[string]any{"text": "row that will be repaired"})
-	insertToolCall(t, odb, "ses_A", "yesmem_remember", map[string]any{"text": "row with two candidate sessions"})
-	insertToolCall(t, odb, "ses_B", "yesmem_remember", map[string]any{"text": "row with two candidate sessions"})
+	insertToolCall(t, odb, "ses_CORRECT", "nemons_remember", map[string]any{"text": "row that will be repaired"})
+	insertToolCall(t, odb, "ses_A", "nemons_remember", map[string]any{"text": "row with two candidate sessions"})
+	insertToolCall(t, odb, "ses_B", "nemons_remember", map[string]any{"text": "row with two candidate sessions"})
 
 	rep, err := Plan(ypath, opath, "2026-10-01")
 	if err != nil {

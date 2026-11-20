@@ -19,7 +19,7 @@ func TestResolveProjectDir_UsesCWDWhenProvided(t *testing.T) {
 		"_cwd": cwd,
 	}
 
-	got := h.resolveProjectDir("yesmem", params)
+	got := h.resolveProjectDir("nemons", params)
 	if got != cwd {
 		t.Errorf("expected %s, got %q", cwd, got)
 	}
@@ -38,7 +38,7 @@ func TestResolveProjectDir_PrefersProjectDirOverCWD(t *testing.T) {
 		"project_dir": explicit,
 	}
 
-	got := h.resolveProjectDir("yesmem", params)
+	got := h.resolveProjectDir("nemons", params)
 	if got != explicit {
 		t.Errorf("expected %s, got %q", explicit, got)
 	}

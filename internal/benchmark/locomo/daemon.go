@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/daemon"
 )
 
-// DaemonClient connects to the running YesMem daemon via Unix socket
+// DaemonClient connects to the running Nemons daemon via Unix socket
 // and executes hybrid_search queries (BM25 + vector + RRF fusion).
 type DaemonClient struct {
 	socketPath string
@@ -17,7 +17,7 @@ type DaemonClient struct {
 }
 
 // NewDaemonClient creates a client that will connect to the daemon socket.
-// dataDir is the parent directory of daemon.sock (e.g. ~/.claude/yesmem).
+// dataDir is the parent directory of daemon.sock (e.g. ~/.claude/nemons).
 func NewDaemonClient(dataDir string) *DaemonClient {
 	return &DaemonClient{
 		socketPath: daemon.SocketPath(dataDir),

@@ -6,8 +6,8 @@ import (
 )
 
 func TestBuildSystemdUnits_NoNetworkOnline(t *testing.T) {
-	daemon := buildDaemonUnit("/usr/local/bin/yesmem", ":0", "/home/u/.Xauthority", "unix:path=/run/user/1000/bus", "http://localhost:9099")
-	proxy := buildProxyUnit("/usr/local/bin/yesmem")
+	daemon := buildDaemonUnit("/usr/local/bin/nemons", ":0", "/home/u/.Xauthority", "unix:path=/run/user/1000/bus", "http://localhost:9099")
+	proxy := buildProxyUnit("/usr/local/bin/nemons")
 
 	for name, unit := range map[string]string{"daemon": daemon, "proxy": proxy} {
 		if strings.Contains(unit, "network-online") {
@@ -24,7 +24,7 @@ func TestBuildSystemdUnits_NoNetworkOnline(t *testing.T) {
 		}
 	}
 
-	if !strings.Contains(daemon, "ExecStart=/usr/local/bin/yesmem daemon --replace") {
+	if !strings.Contains(daemon, "ExecStart=/usr/local/bin/nemons daemon --replace") {
 		t.Errorf("daemon unit wrong ExecStart:\n%s", daemon)
 	}
 	if !strings.Contains(daemon, `Environment="DISPLAY=:0"`) ||
@@ -32,7 +32,7 @@ func TestBuildSystemdUnits_NoNetworkOnline(t *testing.T) {
 		!strings.Contains(daemon, `Environment="DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus"`) {
 		t.Errorf("daemon unit missing graphical session env:\n%s", daemon)
 	}
-	if !strings.Contains(proxy, "ExecStart=/usr/local/bin/yesmem proxy") {
+	if !strings.Contains(proxy, "ExecStart=/usr/local/bin/nemons proxy") {
 		t.Errorf("proxy unit wrong ExecStart:\n%s", proxy)
 	}
 }

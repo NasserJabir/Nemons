@@ -14,12 +14,12 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/carsteneu/yesmem/internal/briefing"
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/repo"
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/textutil"
+	"github.com/NasserJabir/Nemons/internal/briefing"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/repo"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/textutil"
 )
 
 // maxGetLearningsLimit caps a caller supplied limit for get_learnings. The value
@@ -514,7 +514,7 @@ func (h *Handler) supersedeNow(oldID, newID int64, reason string) error {
 // Resolution order (first wins):
 //  1. explicit `model` param (caller override)
 //  2. `_client_model` (MCP server injects from env vars: CODEX_MODEL, OPENAI_MODEL,
-//     ANTHROPIC_MODEL, CLAUDE_MODEL, MODEL, or the new YESMEM_MODEL_ID)
+//     ANTHROPIC_MODEL, CLAUDE_MODEL, MODEL, or the new NEMONS_MODEL_ID)
 //  3. `session_model:<sid>` from proxy_state — proxy.go persists this per CC API
 //     request, so CC sessions always have a real model here even when the MCP
 //     layer doesn't inject one. See learning #76567.
@@ -1256,7 +1256,7 @@ func sameProjectForSupersede(targetProject, project string) bool {
 	if canonicalProjectFor(targetProject) != canonicalProjectFor(project) {
 		return false
 	}
-	// Two repositories can share a basename (/a/yesmem and /b/yesmem).
+	// Two repositories can share a basename (/a/nemons and /b/nemons).
 	targetRoot, projectRoot := models.RepositoryRoot(targetProject), models.RepositoryRoot(project)
 	if targetRoot != "" && projectRoot != "" && targetRoot != projectRoot {
 		return false

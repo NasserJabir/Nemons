@@ -7,16 +7,16 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/daemon"
-	"github.com/carsteneu/yesmem/internal/embedding"
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/embedding"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 func runBootstrapPersona() {
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 	cfg, _ := config.Load(filepath.Join(dataDir, "config.yaml"))
 
 	force := false
@@ -44,7 +44,7 @@ func runBootstrapPersona() {
 		apiKey = daemon.ReadClaudeCodeAPIKey()
 	}
 
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		log.Fatalf("open db: %v", err)
 	}
@@ -122,7 +122,7 @@ func runBootstrapPersona() {
 }
 
 func runSynthesizePersona() {
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 	cfg, _ := config.Load(filepath.Join(dataDir, "config.yaml"))
 
 	apiKey := cfg.ResolvedAPIKey()
@@ -133,7 +133,7 @@ func runSynthesizePersona() {
 		log.Fatal("No API key available. Set ANTHROPIC_API_KEY or OPENAI_API_KEY.")
 	}
 
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		log.Fatalf("open db: %v", err)
 	}
@@ -185,7 +185,7 @@ func cleanupShortSessionNarratives(store *storage.Store) int {
 }
 
 func runRegenerateNarratives() {
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 	cfg, _ := config.Load(filepath.Join(dataDir, "config.yaml"))
 
 	apiKey := cfg.ResolvedAPIKey()
@@ -203,7 +203,7 @@ func runRegenerateNarratives() {
 	client = redacted(cfg, client)
 	log.Printf("Using model: %s for narrative generation", cfg.NarrativeModelID())
 
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		log.Fatalf("open db: %v", err)
 	}

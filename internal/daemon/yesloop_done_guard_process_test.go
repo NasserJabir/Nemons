@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // TestDoneGuard_ProcesslessAgentIsNotUnpaused is the regression guard for YM-75:

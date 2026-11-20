@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // handleForkSetSessionFlavor sets session_flavor on learnings without one.

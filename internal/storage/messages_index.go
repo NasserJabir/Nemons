@@ -27,7 +27,7 @@ const messageSequenceIndex = "idx_messages_session_seq"
 // the schema looking fixed while the invariant is not there.
 //
 // Callers run it after the messages table exists: messages.db (the real store)
-// and yesmem.db, which carries a mirror of the table. It is cheap on a
+// and nemons.db, which carries a mirror of the table. It is cheap on a
 // migrated database — one index_list read — and does the copy-once work (purge,
 // index rebuild) only where an old, non-unique index is found.
 func ensureUniqueMessageSequence(db *sql.DB) error {
@@ -116,7 +116,7 @@ func purgeDuplicateMessageSequences(db *sql.DB) (int64, error) {
 
 	// Search joins messages_fts to messages, so a leftover FTS row of a dropped
 	// duplicate is invisible to search — it is dead weight, not a wrong answer.
-	// Removing it still needs the table to exist (yesmem.db's mirror table has
+	// Removing it still needs the table to exist (nemons.db's mirror table has
 	// no FTS side).
 	if tableExists(db, "messages_fts") {
 		if _, err := db.Exec("DELETE FROM messages_fts WHERE rowid IN (" + duplicateIDs + ")"); err != nil {

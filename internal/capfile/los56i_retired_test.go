@@ -3,7 +3,7 @@ package capfile
 import "testing"
 
 // YM-181 [LIVE-8] und YM-197 [DEV-DT33] (Los 56i): das Cap wiki_export ist aus
-// dem Bundle verschwunden (die Pipeline liegt in "yesmem wiki-render"), aber es
+// dem Bundle verschwunden (die Pipeline liegt in "nemons wiki-render"), aber es
 // wird weiter aus einer CAP.md auf der Platte importiert und steht als aktives
 // Cap-Learning im Katalog. Es schreibt als dritter Wiki-Schreiber ohne
 // internal/wikidir und kann das Verzeichnis eines fremden Projekts

@@ -3,7 +3,7 @@ package proxy
 import (
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 func TestIsFeatureEnabled_ExactMatch(t *testing.T) {

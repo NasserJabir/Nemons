@@ -50,7 +50,7 @@ jobs:
       - name: Build
         env:
           CGO_ENABLED: "0"
-        run: go build -ldflags "-X main.version=ci" -o yesmem .
+        run: go build -ldflags "-X main.version=ci" -o nemons .
 
       - name: Test
         env:
@@ -79,11 +79,11 @@ jobs:
       # and looks like a code failure. --frozen-lockfile keeps CI on the
       # committed bun.lock instead of resolving a newer dependency set.
       - name: Install plugin dev dependencies
-        working-directory: plugins/opencode-yesmem-v2
+        working-directory: plugins/opencode-nemons-v2
         run: bun install --frozen-lockfile
 
       - name: Test plugin
-        working-directory: plugins/opencode-yesmem-v2
+        working-directory: plugins/opencode-nemons-v2
         run: bun test
 
   # A full -race run over every package is not affordable: internal/hooks takes

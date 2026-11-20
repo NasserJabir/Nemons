@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/embedding"
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/embedding"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // TestVectorSearchDropsQuarantinedAnticipatedQueryHitLos10b (YM-245 [MEM-F28]):

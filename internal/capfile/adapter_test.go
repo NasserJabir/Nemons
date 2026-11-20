@@ -8,8 +8,8 @@ import (
 func TestDefaultAdapters_DirectMappings(t *testing.T) {
 	cfg := DefaultAdapters()
 
-	if cfg.Direct["store"] != "mcp__yesmem__cap_store" {
-		t.Errorf("Direct[store] = %q, want mcp__yesmem__cap_store", cfg.Direct["store"])
+	if cfg.Direct["store"] != "mcp__nemons__cap_store" {
+		t.Errorf("Direct[store] = %q, want mcp__nemons__cap_store", cfg.Direct["store"])
 	}
 	if _, ok := cfg.Direct["web"]; ok {
 		t.Error("web should not be in Direct — it is a dispatcher")
@@ -57,7 +57,7 @@ func TestDefaultAdapters_FileDispatcher(t *testing.T) {
 func TestProviderToGeneric_Store(t *testing.T) {
 	cfg := DefaultAdapters()
 
-	got := ProviderToGeneric("await mcp__yesmem__cap_store({action: 'query'})", cfg)
+	got := ProviderToGeneric("await mcp__nemons__cap_store({action: 'query'})", cfg)
 	want := "await store({action: 'query'})"
 	if got != want {
 		t.Errorf("ProviderToGeneric:\ngot:  %s\nwant: %s", got, want)
@@ -68,7 +68,7 @@ func TestGenericToProvider_Store(t *testing.T) {
 	cfg := DefaultAdapters()
 
 	got := GenericToProvider("await store({action: 'query'})", cfg)
-	want := "await mcp__yesmem__cap_store({action: 'query'})"
+	want := "await mcp__nemons__cap_store({action: 'query'})"
 	if got != want {
 		t.Errorf("GenericToProvider:\ngot:  %s\nwant: %s", got, want)
 	}
@@ -79,7 +79,7 @@ func TestNameMappingRoundTrip(t *testing.T) {
 	original := "const r = await store({action:'upsert', table:'t', data:{id:1}})"
 
 	provider := GenericToProvider(original, cfg)
-	if !strings.Contains(provider, "mcp__yesmem__cap_store(") {
+	if !strings.Contains(provider, "mcp__nemons__cap_store(") {
 		t.Error("GenericToProvider should replace store with provider name")
 	}
 
@@ -102,7 +102,7 @@ func TestGenericToProvider_MultipleOccurrences(t *testing.T) {
 	cfg := DefaultAdapters()
 	input := "store({action:'a'}); store({action:'b'})"
 	got := GenericToProvider(input, cfg)
-	count := strings.Count(got, "mcp__yesmem__cap_store(")
+	count := strings.Count(got, "mcp__nemons__cap_store(")
 	if count != 2 {
 		t.Errorf("should replace all occurrences: found %d, want 2", count)
 	}
@@ -115,7 +115,7 @@ func TestGenerateAdapterJS_DirectShim(t *testing.T) {
 	if !strings.Contains(js, "globalThis.store=") {
 		t.Error("should generate store shim")
 	}
-	if !strings.Contains(js, "mcp__yesmem__cap_store") {
+	if !strings.Contains(js, "mcp__nemons__cap_store") {
 		t.Error("store shim should reference provider tool")
 	}
 }
@@ -165,7 +165,7 @@ func TestUsesStoreAdapter(t *testing.T) {
 		want   bool
 	}{
 		{"generic store", "async () => store({action:'query'})", true},
-		{"provider store", "async () => mcp__yesmem__cap_store({action:'query'})", true},
+		{"provider store", "async () => mcp__nemons__cap_store({action:'query'})", true},
 		{"web only", "async () => web({action:'fetch'})", false},
 		{"file only", "async () => file({action:'read'})", false},
 		{"no adapter", "async () => sh('echo hello')", false},
@@ -192,22 +192,22 @@ func TestGenerateAdapterBash_StoreFunction(t *testing.T) {
 func TestGenerateAdapterBash_StartsCoprocWorker(t *testing.T) {
 	bash := GenerateAdapterBash()
 
-	if !strings.Contains(bash, "coproc YESMEM_WORKER") {
-		t.Error("preamble should start a coproc named YESMEM_WORKER")
+	if !strings.Contains(bash, "coproc NEMONS_WORKER") {
+		t.Error("preamble should start a coproc named NEMONS_WORKER")
 	}
-	if !strings.Contains(bash, "yesmem worker") {
-		t.Error("coproc body should invoke `yesmem worker`")
+	if !strings.Contains(bash, "nemons worker") {
+		t.Error("coproc body should invoke `nemons worker`")
 	}
 }
 
 func TestGenerateAdapterBash_StoreUsesCoproc(t *testing.T) {
 	bash := GenerateAdapterBash()
 
-	if !strings.Contains(bash, "YESMEM_WORKER_IN") {
-		t.Error("store() should reference YESMEM_WORKER_IN file descriptor")
+	if !strings.Contains(bash, "NEMONS_WORKER_IN") {
+		t.Error("store() should reference NEMONS_WORKER_IN file descriptor")
 	}
-	if !strings.Contains(bash, "YESMEM_WORKER_OUT") {
-		t.Error("store() should reference YESMEM_WORKER_OUT file descriptor")
+	if !strings.Contains(bash, "NEMONS_WORKER_OUT") {
+		t.Error("store() should reference NEMONS_WORKER_OUT file descriptor")
 	}
 	if !strings.Contains(bash, `"op":"store"`) {
 		t.Error("store() should send op=store payload to worker")
@@ -220,25 +220,25 @@ func TestGenerateAdapterBash_LlmFunction(t *testing.T) {
 	if !strings.Contains(bash, "llm()") {
 		t.Error("should define llm() shell function")
 	}
-	if !strings.Contains(bash, "yesmem llm-complete") {
-		t.Error("llm() should call yesmem llm-complete")
+	if !strings.Contains(bash, "nemons llm-complete") {
+		t.Error("llm() should call nemons llm-complete")
 	}
 }
 
-func TestGenerateAdapterBash_YesmemFunction(t *testing.T) {
+func TestGenerateAdapterBash_NemonsFunction(t *testing.T) {
 	bash := GenerateAdapterBash()
 
-	if !strings.Contains(bash, "yesmem()") {
-		t.Error("should define yesmem() shell function to intercept json subcommand")
+	if !strings.Contains(bash, "nemons()") {
+		t.Error("should define nemons() shell function to intercept json subcommand")
 	}
 	if !strings.Contains(bash, `"op":"json_cli"`) {
-		t.Error("yesmem() should route json subcommand through worker via op=json_cli")
+		t.Error("nemons() should route json subcommand through worker via op=json_cli")
 	}
-	if !strings.Contains(bash, "command yesmem") {
-		t.Error("yesmem() should fall through to real binary via `command yesmem` for non-json subcommands")
+	if !strings.Contains(bash, "command nemons") {
+		t.Error("nemons() should fall through to real binary via `command nemons` for non-json subcommands")
 	}
 	if !strings.Contains(bash, "stdin_len") {
-		t.Error("yesmem() should send stdin_len for length-framed stdin payload")
+		t.Error("nemons() should send stdin_len for length-framed stdin payload")
 	}
 }
 
@@ -267,7 +267,7 @@ func TestUsesGenericAdapters(t *testing.T) {
 		{"file call", "async () => file({action:'read', path:'/tmp/x'})", true},
 		{"no adapter", "async () => sh('echo hello')", false},
 		{"bash handler", "echo hello", false},
-		{"provider name", "mcp__yesmem__cap_store({action:'query'})", false},
+		{"provider name", "mcp__nemons__cap_store({action:'query'})", false},
 		{"empty", "", false},
 		{"store in string", `async () => log("store()")`, true},
 	}
@@ -283,7 +283,7 @@ func TestUsesGenericAdapters(t *testing.T) {
 
 // GenericToProvider must be a stable round-trip: applying it twice yields the
 // same result as applying it once. Before the word-boundary fix, the second
-// call prepended another mcp__yesmem__cap_ layer because strings.ReplaceAll
+// call prepended another mcp__nemons__cap_ layer because strings.ReplaceAll
 // matched the substring "store(" inside the already-prefixed name. That bug
 // produced the 6-layer corruption observed in cap.db on disk.
 func TestGenericToProvider_Idempotent(t *testing.T) {
@@ -293,20 +293,20 @@ func TestGenericToProvider_Idempotent(t *testing.T) {
 	if once != twice {
 		t.Errorf("GenericToProvider not idempotent\n once:  %s\n twice: %s", once, twice)
 	}
-	if !strings.Contains(once, "mcp__yesmem__cap_store(") {
+	if !strings.Contains(once, "mcp__nemons__cap_store(") {
 		t.Errorf("first call did not prefix store call: %s", once)
 	}
-	if strings.Contains(twice, "mcp__yesmem__cap_mcp__yesmem__cap_") {
+	if strings.Contains(twice, "mcp__nemons__cap_mcp__nemons__cap_") {
 		t.Errorf("second call double-prefixed: %s", twice)
 	}
 }
 
 // On an already-prefixed body GenericToProvider must be a no-op. This is the
 // import-roundtrip case: the daemon's CapsDirWatcher re-renders CAP.md every
-// 30s; before this fix that re-render added another mcp__yesmem__cap_ layer.
+// 30s; before this fix that re-render added another mcp__nemons__cap_ layer.
 func TestGenericToProvider_AlreadyPrefixedNoOp(t *testing.T) {
 	cfg := DefaultAdapters()
-	input := "async ({q}) => mcp__yesmem__cap_store({action:'query', q})"
+	input := "async ({q}) => mcp__nemons__cap_store({action:'query', q})"
 	if got := GenericToProvider(input, cfg); got != input {
 		t.Errorf("GenericToProvider must not modify already-prefixed input\n got:  %s\n want: %s", got, input)
 	}

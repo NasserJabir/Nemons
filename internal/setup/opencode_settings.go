@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	opencodepkg "github.com/carsteneu/yesmem/internal/opencode"
+	opencodepkg "github.com/NasserJabir/Nemons/internal/opencode"
 )
 
 func defaultOpencodeSettings() map[string]any {
@@ -55,7 +55,7 @@ func defaultOpencodeSettings() map[string]any {
 				"options": map[string]any{
 					"baseURL": "http://localhost:9099/v1",
 					"headers": map[string]any{
-						"x-yesmem-allow-mcp": "1",
+						"x-nemons-allow-mcp": "1",
 					},
 				},
 				"models": map[string]any{
@@ -67,13 +67,13 @@ func defaultOpencodeSettings() map[string]any {
 			},
 		},
 		"mcp": map[string]any{
-			"yesmem": map[string]any{
+			"nemons": map[string]any{
 				"type":    "local",
-				"command": []any{"yesmem", "mcp"},
+				"command": []any{"nemons", "mcp"},
 				"enabled": true,
 				"timeout": 60000,
 				"environment": map[string]any{
-					"YESMEM_SOURCE_AGENT": "opencode",
+					"NEMONS_SOURCE_AGENT": "opencode",
 				},
 			},
 		},
@@ -96,19 +96,19 @@ func opencodeConfigPath(home string) string {
 	return opencodepkg.ConfigPath(home)
 }
 
-// migrateOpencodeJsonToJsonc copies yesmem-managed content from an existing
+// migrateOpencodeJsonToJsonc copies nemons-managed content from an existing
 // opencode.json to opencode.jsonc when the jsonc file is empty or contains
 // only $schema. The user's manual jsonc edits are preserved via deepMergeJSON
-// (existing keys in jsonc win; only missing yesmem-managed keys are filled in
-// from opencode.json). Idempotent: no-op if jsonc already has yesmem provider
+// (existing keys in jsonc win; only missing nemons-managed keys are filled in
+// from opencode.json). Idempotent: no-op if jsonc already has nemons provider
 // blocks or MCP config.
 //
-// Triggered once during yesmem setup when:
-//   - opencode.json exists with yesmem-managed providers (deepseek/openai/anthropic/opencode), and
+// Triggered once during nemons setup when:
+//   - opencode.json exists with nemons-managed providers (deepseek/openai/anthropic/opencode), and
 //   - opencode.jsonc is missing OR contains only $schema.
 //
 // After migration, opencode.json is left in place as a backup (not deleted).
-// yesmem writes future config updates to opencode.jsonc via opencodeConfigPath.
+// nemons writes future config updates to opencode.jsonc via opencodeConfigPath.
 func migrateOpencodeJsonToJsonc(home string) error {
 	dir := filepath.Join(home, ".config", "opencode")
 	jsonPath := filepath.Join(dir, "opencode.json")
@@ -125,7 +125,7 @@ func migrateOpencodeJsonToJsonc(home string) error {
 	if err := json.Unmarshal(jsonData, &jsonCfg); err != nil {
 		return nil
 	}
-	if !hasYesmemManagedContent(jsonCfg) {
+	if !hasNemonsManagedContent(jsonCfg) {
 		return nil
 	}
 
@@ -139,7 +139,7 @@ func migrateOpencodeJsonToJsonc(home string) error {
 			return nil
 		}
 	}
-	if hasYesmemManagedContent(jsoncCfg) {
+	if hasNemonsManagedContent(jsoncCfg) {
 		return nil
 	}
 	if hasUserContentBeyondSchema(jsoncCfg) {
@@ -162,8 +162,8 @@ func migrateOpencodeJsonToJsonc(home string) error {
 		}
 	}
 
-	yesmemContent := extractYesmemManaged(jsonCfg)
-	deepMergeJSON(target, yesmemContent)
+	nemonsContent := extractNemonsManaged(jsonCfg)
+	deepMergeJSON(target, nemonsContent)
 
 	// Same writer as every other config path: temp file plus rename. A
 	// truncate-in-place write that is interrupted leaves a torn jsonc, and the
@@ -171,10 +171,10 @@ func migrateOpencodeJsonToJsonc(home string) error {
 	return writeOpencodeConfig(jsoncPath, target)
 }
 
-// hasYesmemManagedContent returns true if cfg contains any provider, MCP, or
-// compaction block managed by yesmem (deepseek/openai/anthropic/opencode
-// providers, mcp.yesmem, or compaction.auto/prune).
-func hasYesmemManagedContent(cfg map[string]any) bool {
+// hasNemonsManagedContent returns true if cfg contains any provider, MCP, or
+// compaction block managed by nemons (deepseek/openai/anthropic/opencode
+// providers, mcp.nemons, or compaction.auto/prune).
+func hasNemonsManagedContent(cfg map[string]any) bool {
 	if cfg == nil {
 		return false
 	}
@@ -186,7 +186,7 @@ func hasYesmemManagedContent(cfg map[string]any) bool {
 		}
 	}
 	if mcp, ok := cfg["mcp"].(map[string]any); ok {
-		if _, ok := mcp["yesmem"]; ok {
+		if _, ok := mcp["nemons"]; ok {
 			return true
 		}
 	}
@@ -198,11 +198,11 @@ func hasYesmemManagedContent(cfg map[string]any) bool {
 	return false
 }
 
-// extractYesmemManaged returns a new map containing only the yesmem-managed
-// keys from src (provider subset, mcp.yesmem, compaction.auto/prune, model,
-// small_model, plugin). Used by migration to copy yesmem defaults into jsonc
+// extractNemonsManaged returns a new map containing only the nemons-managed
+// keys from src (provider subset, mcp.nemons, compaction.auto/prune, model,
+// small_model, plugin). Used by migration to copy nemons defaults into jsonc
 // without dragging along unrelated user content from opencode.json.
-func extractYesmemManaged(src map[string]any) map[string]any {
+func extractNemonsManaged(src map[string]any) map[string]any {
 	out := map[string]any{}
 	if v, ok := src["model"]; ok {
 		out["model"] = v
@@ -211,31 +211,31 @@ func extractYesmemManaged(src map[string]any) map[string]any {
 		out["small_model"] = v
 	}
 	if prov, ok := src["provider"].(map[string]any); ok {
-		yesmemProv := map[string]any{}
+		nemonsProv := map[string]any{}
 		for _, name := range []string{"deepseek", "openai", "anthropic", "opencode"} {
 			if v, ok := prov[name]; ok {
-				yesmemProv[name] = v
+				nemonsProv[name] = v
 			}
 		}
-		if len(yesmemProv) > 0 {
-			out["provider"] = yesmemProv
+		if len(nemonsProv) > 0 {
+			out["provider"] = nemonsProv
 		}
 	}
 	if mcp, ok := src["mcp"].(map[string]any); ok {
-		if ymcp, ok := mcp["yesmem"]; ok {
-			out["mcp"] = map[string]any{"yesmem": ymcp}
+		if ymcp, ok := mcp["nemons"]; ok {
+			out["mcp"] = map[string]any{"nemons": ymcp}
 		}
 	}
 	if cmp, ok := src["compaction"].(map[string]any); ok {
-		yesmemCmp := map[string]any{}
+		nemonsCmp := map[string]any{}
 		if v, ok := cmp["auto"]; ok {
-			yesmemCmp["auto"] = v
+			nemonsCmp["auto"] = v
 		}
 		if v, ok := cmp["prune"]; ok {
-			yesmemCmp["prune"] = v
+			nemonsCmp["prune"] = v
 		}
-		if len(yesmemCmp) > 0 {
-			out["compaction"] = yesmemCmp
+		if len(nemonsCmp) > 0 {
+			out["compaction"] = nemonsCmp
 		}
 	}
 	if plugins, ok := src["plugin"].([]any); ok && len(plugins) > 0 {
@@ -266,7 +266,7 @@ func mergeOpencodeSettings(home string) error {
 // readOpencodeConfigObject loads an opencode config as a JSON object. A missing
 // file yields an empty map; anything unreadable or unparseable is an error. The
 // merge paths write the object back, so a config they could not parse must not
-// become an empty map: that would delete every key yesmem does not manage
+// become an empty map: that would delete every key nemons does not manage
 // (JSONC with comments is the common case).
 func readOpencodeConfigObject(path string) (map[string]any, error) {
 	data, err := os.ReadFile(path)
@@ -284,10 +284,10 @@ func readOpencodeConfigObject(path string) (map[string]any, error) {
 func parseOpencodeConfigObject(path string, data []byte) (map[string]any, error) {
 	var cfg map[string]any
 	if err := json.Unmarshal(data, &cfg); err != nil {
-		return nil, fmt.Errorf("parse %s: %w (yesmem leaves a config it cannot read untouched; remove comments or fix the syntax)", path, err)
+		return nil, fmt.Errorf("parse %s: %w (nemons leaves a config it cannot read untouched; remove comments or fix the syntax)", path, err)
 	}
 	if cfg == nil {
-		return nil, fmt.Errorf("%s does not contain a JSON object (yesmem leaves it untouched)", path)
+		return nil, fmt.Errorf("%s does not contain a JSON object (nemons leaves it untouched)", path)
 	}
 	return cfg, nil
 }
@@ -311,12 +311,12 @@ func mergeOpencodeSettingsWith(home, model, smallModel, binaryPath string) error
 	if smallModel != "" {
 		defaults["small_model"] = smallModel
 	}
-	// Use full binary path for the MCP command so opencode finds yesmem
+	// Use full binary path for the MCP command so opencode finds nemons
 	// even when ~/.local/bin is not yet in the PATH.
 	if binaryPath != "" {
 		if mcp, ok := defaults["mcp"].(map[string]any); ok {
-			if yesmem, ok := mcp["yesmem"].(map[string]any); ok {
-				yesmem["command"] = []any{binaryPath, "mcp"}
+			if nemons, ok := mcp["nemons"].(map[string]any); ok {
+				nemons["command"] = []any{binaryPath, "mcp"}
 			}
 		}
 	}
@@ -334,13 +334,13 @@ func upgradeOpencodeTimeout(cfg map[string]any) {
 	if !ok {
 		return
 	}
-	yesmem, ok := mcp["yesmem"].(map[string]any)
+	nemons, ok := mcp["nemons"].(map[string]any)
 	if !ok {
 		return
 	}
-	timeout, ok := yesmem["timeout"].(float64)
+	timeout, ok := nemons["timeout"].(float64)
 	if ok && timeout == 10000 {
-		yesmem["timeout"] = float64(60000)
+		nemons["timeout"] = float64(60000)
 	}
 }
 
@@ -362,7 +362,7 @@ func removeOpencodeSettings(home string) error {
 
 	// Same policy as the merge paths: a config that cannot be parsed is
 	// reported, not treated as empty. Writing the empty map back would delete
-	// every key yesmem does not manage, and reporting success would leave the
+	// every key nemons does not manage, and reporting success would leave the
 	// user with an untouched config and no hint why.
 	cfg, err := parseOpencodeConfigObject(cfgPath, data)
 	if err != nil {
@@ -372,7 +372,7 @@ func removeOpencodeSettings(home string) error {
 	removeOpencodeProviders(cfg)
 	removeOpencodeMCP(cfg)
 	removeOpencodeCompaction(cfg)
-	dropYesmemPluginEntry(cfg, home)
+	dropNemonsPluginEntry(cfg, home)
 
 	// Always write the cleaned file back. Never delete opencode.json/jsonc even
 	// if only $schema remains — opencode needs the file present (it falls back
@@ -401,7 +401,7 @@ func removeOpencodeMCP(cfg map[string]any) {
 	if !ok {
 		return
 	}
-	delete(mcp, "yesmem")
+	delete(mcp, "nemons")
 	if len(mcp) == 0 {
 		delete(cfg, "mcp")
 	}
@@ -425,12 +425,12 @@ func removeOpencodeCompaction(cfg map[string]any) {
 const opencodePluginsRelDir = ".config/opencode/plugins"
 
 // opencodePluginDirEntries are the entries under opencodePluginsRelDir that
-// yesmem installs and uninstall removes. The uninstall announcement is built
+// nemons installs and uninstall removes. The uninstall announcement is built
 // from this list, so it cannot name fewer entries than the deletion removes.
-var opencodePluginDirEntries = []string{"yesmem.ts", "opencode-yesmem", "yesmem-window"}
+var opencodePluginDirEntries = []string{"nemons.ts", "opencode-nemons", "nemons-window"}
 
 func removeOpencodePlugin(home string) error {
-	// Only yesmem's own entries: <config>/opencode/plugins holds plugins the
+	// Only nemons's own entries: <config>/opencode/plugins holds plugins the
 	// user added, and removing the whole directory would delete those too.
 	// A path that cannot be removed must not stop the rest of the uninstall,
 	// so the first error is carried and reported at the end.
@@ -485,8 +485,8 @@ func readOpencodeConfigState(home string) opencodeConfigState {
 
 	// The v2 plugin is a directory opencode discovers on its own, so it never
 	// appears in the config: check it before the config-derived early returns,
-	// or a config yesmem cannot parse reports a working install as missing.
-	if fi, err := os.Stat(filepath.Join(home, opencodePluginsRelDir, "opencode-yesmem", "index.ts")); err == nil && !fi.IsDir() {
+	// or a config nemons cannot parse reports a working install as missing.
+	if fi, err := os.Stat(filepath.Join(home, opencodePluginsRelDir, "opencode-nemons", "index.ts")); err == nil && !fi.IsDir() {
 		state.PluginConfigured = true
 	}
 
@@ -502,8 +502,8 @@ func readOpencodeConfigState(home string) opencodeConfigState {
 		return state
 	}
 
-	// Only an entry that points at a v1 install proves a yesmem plugin. Matching
-	// the substring "yesmem" reported a user's own plugin as our install. The
+	// Only an entry that points at a v1 install proves a nemons plugin. Matching
+	// the substring "nemons" reported a user's own plugin as our install. The
 	// named file has to exist: an entry that outlived its copy reports an
 	// install opencode cannot load.
 	if plugins, ok := cfg["plugin"].([]any); ok {
@@ -526,7 +526,7 @@ func readOpencodeConfigState(home string) opencodeConfigState {
 	}
 
 	if mcp, ok := cfg["mcp"].(map[string]any); ok {
-		if mcp["yesmem"] != nil {
+		if mcp["nemons"] != nil {
 			state.MCPConfigured = true
 		}
 	}

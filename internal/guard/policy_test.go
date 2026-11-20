@@ -53,7 +53,7 @@ func TestAdvisoryRuleBlockOnShellDowngrades(t *testing.T) {
 			if got.Decision != "SUGGEST" {
 				t.Fatalf("expected SUGGEST, got %s", got.Decision)
 			}
-			if !strings.Contains(got.Suggestion, "yesmem-remember") {
+			if !strings.Contains(got.Suggestion, "nemons-remember") {
 				t.Errorf("expected the mandatory-check prefix, got %q", got.Suggestion)
 			}
 			for _, v := range tc.violations {

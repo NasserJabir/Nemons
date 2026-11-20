@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/codescan"
+	"github.com/NasserJabir/Nemons/internal/codescan"
 )
 
 // YM-449 / DEV-DT73: project_dir comes from the client, and real callers send a

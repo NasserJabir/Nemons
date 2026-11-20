@@ -8,20 +8,20 @@ import (
 
 func TestWriteDebugDump_DisabledByDefault(t *testing.T) {
 	dir := t.TempDir()
-	t.Setenv("YESMEM_PROXY_DEBUG", "")
+	t.Setenv("NEMONS_PROXY_DEBUG", "")
 
 	if got := writeDebugDump(dir, "sess-1", dumpKindBody, 42, []byte(`{"hi":1}`)); got != "" {
 		t.Errorf("expected no dump path, got %q", got)
 	}
 
 	if _, err := os.Stat(filepath.Join(dir, "debug")); !os.IsNotExist(err) {
-		t.Fatalf("expected no debug dir when YESMEM_PROXY_DEBUG unset, got err=%v", err)
+		t.Fatalf("expected no debug dir when NEMONS_PROXY_DEBUG unset, got err=%v", err)
 	}
 }
 
 func TestWriteDebugDump_Enabled(t *testing.T) {
 	dir := t.TempDir()
-	t.Setenv("YESMEM_PROXY_DEBUG", "1")
+	t.Setenv("NEMONS_PROXY_DEBUG", "1")
 
 	path := writeDebugDump(dir, "sess-1", dumpKindBody, 7, []byte(`{"hi":1}`))
 	if path == "" {
@@ -41,17 +41,17 @@ func TestWriteDebugDump_Enabled(t *testing.T) {
 
 func TestWriteDebugDump_OtherValueIsOff(t *testing.T) {
 	dir := t.TempDir()
-	t.Setenv("YESMEM_PROXY_DEBUG", "true")
+	t.Setenv("NEMONS_PROXY_DEBUG", "true")
 
 	writeDebugDump(dir, "sess-1", dumpKindBody, 1, []byte("x"))
 
 	if _, err := os.Stat(filepath.Join(dir, "debug")); !os.IsNotExist(err) {
-		t.Fatalf("expected no dump for YESMEM_PROXY_DEBUG=true (only \"1\" enables), got err=%v", err)
+		t.Fatalf("expected no dump for NEMONS_PROXY_DEBUG=true (only \"1\" enables), got err=%v", err)
 	}
 }
 
 func TestWriteDebugDump_EmptyDataDir(t *testing.T) {
-	t.Setenv("YESMEM_PROXY_DEBUG", "1")
+	t.Setenv("NEMONS_PROXY_DEBUG", "1")
 
 	if got := writeDebugDump("", "sess-1", dumpKindBody, 99, []byte("x")); got != "" {
 		t.Errorf("expected no dump path for an empty data dir, got %q", got)

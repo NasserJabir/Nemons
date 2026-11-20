@@ -10,7 +10,7 @@ import (
 )
 
 // The scheduled proxy_health run failed live: the daemon refused the bare
-// project name "yesmem" as ambiguous, the refusal went into the job output, the
+// project name "nemons" as ambiguous, the refusal went into the job output, the
 // script carried on and the run only ended when the scheduler killed it. These
 // tests run the real bash handler as a process — journalctl, nc and store() are
 // stubs, so no daemon, socket or journal is needed — and pin the three
@@ -42,7 +42,7 @@ func los32cRunBash(t *testing.T, env map[string]string) los32cResult {
 	// One overload line makes the run critical, so the alert path is taken.
 	writeStub(t, filepath.Join(bin, "journalctl"), `#!/bin/sh
 case "$*" in
-  *yesmem-proxy*) printf 'Oct 17 12:00:00 host yesmem-proxy[1]: upstream error: overload\n' ;;
+  *nemons-proxy*) printf 'Oct 17 12:00:00 host nemons-proxy[1]: upstream error: overload\n' ;;
 esac
 exit 0
 `)
@@ -73,10 +73,10 @@ exit "${LOS32C_NC_EXIT:-0}"
 	cmd := exec.Command("bash", script)
 	cmd.Env = append(os.Environ(),
 		"PATH="+bin+":"+os.Getenv("PATH"),
-		"YESMEM_SOCK="+filepath.Join(dir, "job.sock"),
+		"NEMONS_SOCK="+filepath.Join(dir, "job.sock"),
 		// The handler must not take a project from the ambient environment; a
 		// test that inherits one would pass for the wrong reason.
-		"YESMEM_PROJECT=",
+		"NEMONS_PROJECT=",
 		"PROJECT=",
 		"ALERT=true",
 		"HOURS=1",
@@ -115,9 +115,9 @@ exit "${LOS32C_NC_EXIT:-0}"
 // look successful while the alert went nowhere.
 func TestLos32cProxyHealthBashAbortsOnAnErrorAnswer(t *testing.T) {
 	res := los32cRunBash(t, map[string]string{
-		"YESMEM_PROJECT": "/home/tester/memory/yesmem",
-		"LOS32C_NC_REPLY": `{"error":"ambiguous project name \"yesmem\" matches 2 candidates: ` +
-			`/home/tester/memory/yesmem, /home/tester/projects/yesmem"}`,
+		"NEMONS_PROJECT": "/home/tester/memory/nemons",
+		"LOS32C_NC_REPLY": `{"error":"ambiguous project name \"nemons\" matches 2 candidates: ` +
+			`/home/tester/memory/nemons, /home/tester/projects/nemons"}`,
 	})
 
 	if res.broadcast == "" {
@@ -134,9 +134,9 @@ func TestLos32cProxyHealthBashAbortsOnAnErrorAnswer(t *testing.T) {
 // A bare basename is what the daemon refuses. The job exports the project it
 // runs in, and that path is what the broadcast must name.
 func TestLos32cProxyHealthBashNamesTheJobProject(t *testing.T) {
-	const project = "/home/tester/memory/yesmem"
+	const project = "/home/tester/memory/nemons"
 	res := los32cRunBash(t, map[string]string{
-		"YESMEM_PROJECT":  project,
+		"NEMONS_PROJECT":  project,
 		"LOS32C_NC_REPLY": `{"result":{"status":"broadcast_sent"}}`,
 	})
 
@@ -146,12 +146,12 @@ func TestLos32cProxyHealthBashNamesTheJobProject(t *testing.T) {
 	if !strings.Contains(res.broadcast, `"project":"`+project+`"`) {
 		t.Errorf("broadcast = %s, want project %q", res.broadcast, project)
 	}
-	if strings.Contains(res.broadcast, `"project":"yesmem"`) {
+	if strings.Contains(res.broadcast, `"project":"nemons"`) {
 		t.Errorf("broadcast = %s still carries the bare name the daemon refuses", res.broadcast)
 	}
 }
 
-// No project, no guess: the old script silently broadcast to "yesmem", and an
+// No project, no guess: the old script silently broadcast to "nemons", and an
 // inherited PROJECT= must not become the next silent guess.
 func TestLos32cProxyHealthBashRefusesToGuessTheProject(t *testing.T) {
 	for _, env := range []map[string]string{
@@ -163,7 +163,7 @@ func TestLos32cProxyHealthBashRefusesToGuessTheProject(t *testing.T) {
 	} {
 		res := los32cRunBash(t, env)
 		if res.broadcast != "" {
-			t.Errorf("env %v: broadcast = %s, want no broadcast without YESMEM_PROJECT", env, res.broadcast)
+			t.Errorf("env %v: broadcast = %s, want no broadcast without NEMONS_PROJECT", env, res.broadcast)
 		}
 		if res.exitCode == 0 {
 			t.Errorf("env %v: exit code 0 without a project; the alert cannot be delivered (stderr=%q)", env, res.stderr)
@@ -175,7 +175,7 @@ func TestLos32cProxyHealthBashRefusesToGuessTheProject(t *testing.T) {
 // answer has to win.
 func TestLos32cProxyHealthBashRejectsAnErrorReplyMentioningResult(t *testing.T) {
 	res := los32cRunBash(t, map[string]string{
-		"YESMEM_PROJECT":  "/home/tester/memory/yesmem",
+		"NEMONS_PROJECT":  "/home/tester/memory/nemons",
 		"LOS32C_NC_REPLY": `{"error":"result"}`,
 	})
 
@@ -191,7 +191,7 @@ func TestLos32cProxyHealthBashRejectsAnErrorReplyMentioningResult(t *testing.T) 
 // hide a dead alert path again.
 func TestLos32cProxyHealthBashAbortsWhenTheSocketFails(t *testing.T) {
 	res := los32cRunBash(t, map[string]string{
-		"YESMEM_PROJECT": "/home/tester/memory/yesmem",
+		"NEMONS_PROJECT": "/home/tester/memory/nemons",
 		"LOS32C_NC_EXIT": "1",
 	})
 
@@ -207,7 +207,7 @@ func TestLos32cProxyHealthBashAbortsWhenTheSocketFails(t *testing.T) {
 // signal is most needed when the bookkeeping is broken.
 func TestLos32cProxyHealthBashStillAlertsWhenTheReportIsNotStored(t *testing.T) {
 	res := los32cRunBash(t, map[string]string{
-		"YESMEM_PROJECT":    "/home/tester/memory/yesmem",
+		"NEMONS_PROJECT":    "/home/tester/memory/nemons",
 		"LOS32C_STORE_FAIL": "store: daemon unreachable",
 		"LOS32C_NC_REPLY":   `{"result":{"status":"broadcast_sent"}}`,
 	})
@@ -227,7 +227,7 @@ func TestLos32cProxyHealthBashStillAlertsWhenTheReportIsNotStored(t *testing.T) 
 // interpolated into the broadcast body.
 func TestLos32cProxyHealthBashSanitizesTheProject(t *testing.T) {
 	res := los32cRunBash(t, map[string]string{
-		"YESMEM_PROJECT":  "/tmp/x\tyesmem\",\"sender\":\"victim\n\033[31m",
+		"NEMONS_PROJECT":  "/tmp/x\tnemons\",\"sender\":\"victim\n\033[31m",
 		"LOS32C_NC_REPLY": `{"result":{"status":"broadcast_sent"}}`,
 	})
 
@@ -253,7 +253,7 @@ func TestLos32cProxyHealthBashSanitizesTheProject(t *testing.T) {
 // timeout instead of reporting. -N shuts the write side after stdin ends.
 func TestLos32cProxyHealthBashBoundsTheSocketCall(t *testing.T) {
 	res := los32cRunBash(t, map[string]string{
-		"YESMEM_PROJECT":  "/home/tester/memory/yesmem",
+		"NEMONS_PROJECT":  "/home/tester/memory/nemons",
 		"LOS32C_NC_REPLY": `{"result":{"status":"broadcast_sent"}}`,
 	})
 

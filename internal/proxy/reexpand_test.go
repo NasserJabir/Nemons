@@ -71,7 +71,7 @@ func TestReexpandStubs_LeavesRealToolResultsAlone(t *testing.T) {
 		return "null"
 	})
 
-	out := s.reexpandStubsFor(msgs, 200000, "why does the read of app file fail", "yesmem")
+	out := s.reexpandStubsFor(msgs, 200000, "why does the read of app file fail", "nemons")
 
 	block := out[1].(map[string]any)["content"].([]any)[0].(map[string]any)
 	if got, _ := block["content"].(string); got != realContent {
@@ -136,7 +136,7 @@ func TestReexpandStubs_FindsCompressedToolResult(t *testing.T) {
 		return string(payload)
 	})
 
-	out := s.reexpandStubsFor(msgs, 200000, "why does decay.go in proxy keep negative ages", "yesmem")
+	out := s.reexpandStubsFor(msgs, 200000, "why does decay.go in proxy keep negative ages", "nemons")
 
 	blocks := out[1].(map[string]any)["content"].([]any)
 	block := blocks[0].(map[string]any)

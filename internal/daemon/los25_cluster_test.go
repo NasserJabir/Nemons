@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/embedding"
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/embedding"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // los25CountingLLM counts completion calls so a test can prove that one cluster
@@ -90,8 +90,8 @@ func los25EmbeddingTestStore(t *testing.T) *storage.Store {
 func TestLos25_ClusterLearningsRunsOncePerCanonicalProject(t *testing.T) {
 	s := los25EmbeddingTestStore(t)
 
-	const wtA = "/home/tester/memory/yesmem/.worktrees/yesloop-los-25"
-	const wtB = "/home/tester/memory/yesmem/.worktrees/yesloop-los-31"
+	const wtA = "/home/tester/memory/nemons/.worktrees/yesloop-los-25"
+	const wtB = "/home/tester/memory/nemons/.worktrees/yesloop-los-31"
 
 	for i := 0; i < 3; i++ {
 		los25UpsertSession(t, s, fmt.Sprintf("los25sess-a-%d", i), wtA)
@@ -139,8 +139,8 @@ func TestLos25_ClusterLearningsRunsOncePerCanonicalProject(t *testing.T) {
 		}
 		projects = append(projects, p)
 	}
-	if len(projects) != 1 || projects[0] != "/home/tester/memory/yesmem" {
-		t.Fatalf("cluster rows live under %v, want exactly [/home/tester/memory/yesmem]", projects)
+	if len(projects) != 1 || projects[0] != "/home/tester/memory/nemons" {
+		t.Fatalf("cluster rows live under %v, want exactly [/home/tester/memory/nemons]", projects)
 	}
 
 	var clusterRows int
@@ -160,8 +160,8 @@ func TestLos25_ClusterLearningsRunsOncePerCanonicalProject(t *testing.T) {
 func TestLos25_ClusterRowsCarryAllWorktreeLearnings(t *testing.T) {
 	s := los25EmbeddingTestStore(t)
 
-	const wtA = "/home/tester/memory/yesmem/.worktrees/yesloop-los-25"
-	const wtB = "/home/tester/memory/yesmem/.worktrees/yesloop-los-31"
+	const wtA = "/home/tester/memory/nemons/.worktrees/yesloop-los-25"
+	const wtB = "/home/tester/memory/nemons/.worktrees/yesloop-los-31"
 
 	for i := 0; i < 3; i++ {
 		los25UpsertSession(t, s, fmt.Sprintf("los25sess2-a-%d", i), wtA)
@@ -188,7 +188,7 @@ func TestLos25_ClusterRowsCarryAllWorktreeLearnings(t *testing.T) {
 
 	ClusterLearnings(s, &los25CountingLLM{reply: "shared topic"}, vec)
 
-	clusters, err := s.GetLearningClusters("yesmem")
+	clusters, err := s.GetLearningClusters("nemons")
 	if err != nil {
 		t.Fatalf("get clusters: %v", err)
 	}
@@ -209,7 +209,7 @@ func TestLos25_ClusterRowsCarryAllWorktreeLearnings(t *testing.T) {
 func TestLos25_ClusterLearningsSkipsRecurrenceAlerts(t *testing.T) {
 	s := los25EmbeddingTestStore(t)
 
-	const project = "/home/tester/memory/yesmem"
+	const project = "/home/tester/memory/nemons"
 	for i := 0; i < 3; i++ {
 		los25UpsertSession(t, s, fmt.Sprintf("los25sess-alert-%d", i), project)
 	}
@@ -244,7 +244,7 @@ func TestLos25_ClusterLearningsSkipsRecurrenceAlerts(t *testing.T) {
 
 	ClusterLearnings(s, &los25CountingLLM{reply: "shared topic"}, vec)
 
-	clusters, err := s.GetLearningClusters("yesmem")
+	clusters, err := s.GetLearningClusters("nemons")
 	if err != nil {
 		t.Fatalf("get clusters: %v", err)
 	}

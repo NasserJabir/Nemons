@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/carsteneu/yesmem/plugins"
+	"github.com/NasserJabir/Nemons/plugins"
 )
 
 // ThemeDir is the directory opencode reads custom TUI themes from, relative to
@@ -71,7 +71,7 @@ func InstallThemes(home string) (int, error) {
 }
 
 // RemoveThemes deletes the bundled theme files from
-// ~/.config/opencode/themes/. Only the files yesmem installs are removed — a
+// ~/.config/opencode/themes/. Only the files nemons installs are removed — a
 // theme the user added to that directory stays.
 func RemoveThemes(home string) error {
 	entries, err := fs.ReadDir(plugins.AgentThemes, ThemeDir)

@@ -2,7 +2,7 @@
 
 ## 1. Multi-Agent Communication & Memory Safety
 
-YesMem enables multiple Claude Code sessions to communicate and share long-term memory safely.
+Nemons enables multiple Claude Code sessions to communicate and share long-term memory safely.
 
 ### 22.1 Agent-to-Agent Messaging
 
@@ -30,7 +30,7 @@ Claude Code → API Request → Proxy extracts session_id from metadata.user_id
 **Key mechanisms:**
 - **Session ID extraction:** `metadata.user_id` in every API request contains `{"device_id":"...","account_uuid":"...","session_id":"uuid"}`. No hook dependency — the proxy extracts it directly from the request (`extractSessionID()` in `proxy_helpers.go`)
 - **Thread ID:** Session UUID from `metadata.user_id` is used directly as threadID. No mapping layer — MCP and Proxy share the same key. Fallback to SHA256-hash for requests without metadata (Codex, legacy).
-- **Injection format:** `<channel source="yesmem-dialog">` tags (matches Claude Code's Channel format for forward compatibility)
+- **Injection format:** `<channel source="nemons-dialog">` tags (matches Claude Code's Channel format for forward compatibility)
 - **Idle state:** there is no `[KEINE NEUEN NACHRICHTEN]` placeholder any more — with nothing pending, no channel block is injected at all
 - **Session ID display:** `SESSION_ID: uuid` is prepended to the injected channel block, so an agent knows its own reply target. It only appears when there is actually something to deliver
 
@@ -99,7 +99,7 @@ Note: The Persona system describes the **user** (traits, preferences, expertise)
 
 The dialog system is designed for seamless migration to Claude Code Channels when available:
 
-- **Current:** Proxy-based injection with `<channel source="yesmem-dialog">` tags + CronCreate polling
+- **Current:** Proxy-based injection with `<channel source="nemons-dialog">` tags + CronCreate polling
 - **Future:** MCP Channel server (`channel/index.mjs`) sends `notifications/claude/channel` push notifications
 - **Channel requirements (Research Preview):** `--dangerously-load-development-channels` flag + claude.ai login (not API keys)
 - **Channel advantages:** Push as User-Turn (not content block), idle-only delivery (buffered), no polling needed
@@ -155,19 +155,19 @@ Sub-agents can use different LLM backends:
 
 | Backend | CLI | Prompt Injection | MCP Tools | Status |
 |---------|-----|-----------------|-----------|--------|
-| `claude` (default) | Claude Code | PTY inject, 15s after spawn | Full YesMem proxy integration | Live |
+| `claude` (default) | Claude Code | PTY inject, 15s after spawn | Full Nemons proxy integration | Live |
 | `codex` | OpenAI Codex CLI | PTY inject, 15s after spawn | MCP-only (no proxy channel) | Live (MCP-only) |
-| `opencode` | OpenCode CLI | PTY inject, 15s after spawn | Full YesMem integration | Live |
+| `opencode` | OpenCode CLI | PTY inject, 15s after spawn | Full Nemons integration | Live |
 
 ```
-spawn_agent(project="yesmem", section="recherche", backend="codex")
+spawn_agent(project="nemons", section="recherche", backend="codex")
 ```
 
 **Codex-specific:**
 - `--full-auto --no-alt-screen` flags
-- Per-tool MCP approvals configured via `yesmem setup` (no global `approval_policy` override)
+- Per-tool MCP approvals configured via `nemons setup` (no global `approval_policy` override)
 - Communicates exclusively via MCP tools (scratchpad, send_to, remember)
-- YesMem registered as MCP server in Codex config
+- Nemons registered as MCP server in Codex config
 
 **Backend abstraction in `handler_agents.go`:**
 - `buildAgentCommand()` switch on backend for CLI args

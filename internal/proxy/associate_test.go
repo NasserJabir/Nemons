@@ -312,7 +312,7 @@ func TestCleanQueryForSearch(t *testing.T) {
 
 func TestFormatDocResult(t *testing.T) {
 	result := formatDocResult("go-release-notes", "1.22", "# Changes > ## New Features", "The new log/slog package provides structured logging.")
-	if !strings.Contains(result, "[yesmem doc context]") {
+	if !strings.Contains(result, "[nemons doc context]") {
 		t.Error("should have doc context marker")
 	}
 	if !strings.Contains(result, "go-release-notes") {
@@ -321,7 +321,7 @@ func TestFormatDocResult(t *testing.T) {
 	if !strings.Contains(result, "log/slog") {
 		t.Error("should contain doc content")
 	}
-	if !strings.Contains(result, "[/yesmem doc context]") {
+	if !strings.Contains(result, "[/nemons doc context]") {
 		t.Error("should have closing marker")
 	}
 }

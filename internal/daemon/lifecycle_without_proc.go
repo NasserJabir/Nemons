@@ -46,8 +46,8 @@ var listProcesses = func() (string, error) {
 //
 // On a platform with a process table the verified identity of StopOwnedRole is
 // used unchanged. Where that table does not exist (macOS), the check had exactly
-// one source and therefore signalled nothing at all, so `yesmem stop` did nothing
-// and `yesmem restart` aborted (YM-333). The two sources that do exist there are
+// one source and therefore signalled nothing at all, so `nemons stop` did nothing
+// and `nemons restart` aborted (YM-333). The two sources that do exist there are
 // launchd, which states the identity itself through the agent it keeps loaded, and
 // the process listing, whose identity is the data dir's PID file or, failing that,
 // this binary's path plus the role argument.
@@ -249,7 +249,7 @@ func parseProcessLine(line string) (int, []string, bool) {
 // checks the same argv against the kernel's record of the executable; here the
 // listing shows the path as it was invoked, so both the literal and the symlink
 // resolved form count. A shell that merely mentions the words cannot match (its
-// argv[0] is the interpreter), and a worktree test binary fails isYesmemBinary.
+// argv[0] is the interpreter), and a worktree test binary fails isNemonsBinary.
 //
 // A binary path containing whitespace cannot be read back from an unfolded ps line
 // and therefore does not match; such an install has to use the launchd agent. And
@@ -262,7 +262,7 @@ func listingNamesOurRole(argv []string, role string) bool {
 	if !sameBinaryPath(argv[0]) {
 		return false
 	}
-	if !isYesmemBinary(filepath.Base(argv[0])) {
+	if !isNemonsBinary(filepath.Base(argv[0])) {
 		return false
 	}
 	return argv[1] == role
@@ -286,7 +286,7 @@ func sameBinaryPath(exe string) bool {
 func launchdDomain() string { return fmt.Sprintf("gui/%d", os.Getuid()) }
 
 // launchdLabel is the agent label the installer writes into the plist.
-func launchdLabel(role string) string { return "com.yesmem." + role }
+func launchdLabel(role string) string { return "com.nemons." + role }
 
 // launchdTarget addresses the loaded agent of a role.
 func launchdTarget(role string) string { return launchdDomain() + "/" + launchdLabel(role) }

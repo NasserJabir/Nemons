@@ -23,7 +23,7 @@ type Narrative struct {
 	goal           string          // extracted from first user message
 	phases         []phase         // chronological phases
 	decisions      []string        // key decisions (from isDecision messages)
-	pivotMoments   []string        // from yesmem pivot_moment learnings (Phase-A)
+	pivotMoments   []string        // from nemons pivot_moment learnings (Phase-A)
 	archivedTopics []ArchivedTopic // stubbed topic summaries
 	lastQuestion   string          // last user message ending with ?
 }
@@ -142,7 +142,7 @@ func (n *Narrative) Update(messages []any) {
 	}
 }
 
-// SetPivotMoments sets pivot moments from yesmem (Phase-A integration).
+// SetPivotMoments sets pivot moments from nemons (Phase-A integration).
 func (n *Narrative) SetPivotMoments(pivots []string) {
 	n.mu.Lock()
 	defer n.mu.Unlock()

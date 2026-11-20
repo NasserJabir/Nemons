@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // commitCheckTimeout bounds the git call: the hook runs synchronously in Claude
@@ -97,7 +97,7 @@ func resolveCheckOutput(dataDir string, input []byte) string {
 		scope = dir
 	}
 
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		return ""
 	}

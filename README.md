@@ -1,8 +1,8 @@
 # نيمونز Nemons
 
-**Nemons is a governance-first memory layer for AI coding agents, built on YesMem (Apache-2.0).** كل جلسة برمجة تبدأ من الحالة الحية للمشروع المحكوم — لا من الصفر، ولا من ذاكرة عشوائية.
+**Nemons is a governance-first memory layer for AI coding agents, built on Nemons (Apache-2.0).** كل جلسة برمجة تبدأ من الحالة الحية للمشروع المحكوم — لا من الصفر، ولا من ذاكرة عشوائية.
 
-نيمونز يبني فوق [YesMem](https://github.com/carsteneu/yesmem) (لإسكارين نيو) عبر **22 رقعة موثقة المراسئ** تحوّله من طبقة استمرارية إلى **منظومة ذاكرة تحكمها الحوكمة أولًا**: كل قراءة تمر عبر بوابة إنفاذ خادمية، وكل أثر يُعدّ ولا يُخزَّن محتواه، وكل ادعاء يحمل مصدره وهاشه.
+نيمونز يبني فوق [Nemons](https://github.com/carsteneu/yesmem) (لإسكارين نيو) عبر **22 رقعة موثقة المراسئ** تحوّله من طبقة استمرارية إلى **منظومة ذاكرة تحكمها الحوكمة أولًا**: كل قراءة تمر عبر بوابة إنفاذ خادمية، وكل أثر يُعدّ ولا يُخزَّن محتواه، وكل ادعاء يحمل مصدره وهاشه.
 
 ## لماذا نيمونز
 
@@ -24,7 +24,7 @@
 | بناء الحزمة | سياق المهمة عبر البوابة، بأولوية معلنة | `internal/daemon/context_engineering.go` |
 | الميزانية المعلنة (رقعة 21) | `budget_chars`: اختيار عناصر كاملة لا بتر نصي — القرارات المعتمدة تصمد أخيرًا، وعدادات الإسقاط معلنة | `internal/daemon/context_budget_test.go` |
 | كشف الخسارة الدلالية (رقعة 22) | `check_pack_loss`: مقارنة المُسلَّم بالمصدر المحكوم ادعاءً بادعاء — missing / altered / injected بنسبة تغطية | `internal/daemon/context_loss_test.go` |
-| أدوات MCP اختيارية | تعريض العمليات المحكومة كأدوات وكيل عبر `YESMEM_FEATURE_TOOLS=1` | `internal/mcp/server.go` |
+| أدوات MCP اختيارية | تعريض العمليات المحكومة كأدوات وكيل عبر `NEMONS_FEATURE_TOOLS=1` | `internal/mcp/server.go` |
 
 ## البدء السريع
 
@@ -40,9 +40,9 @@ go test ./...        # 45 حزمة — آخر جولة موثقة: 45 ok صفر 
 تشغيل الديمون مع المصادقة الحاملية والسطح القرائي فقط، وتمكين أدوات MCP الاختيارية:
 
 ```bash
-YESMEM_BEARER_TOKEN=<token-of-your-own> \
-YESMEM_FEATURE_TOOLS=1 \
-./yesmem daemon
+NEMONS_BEARER_TOKEN=<token-of-your-own> \
+NEMONS_FEATURE_TOOLS=1 \
+./nemons daemon
 ```
 
 ثم من وكيل البرمجة (Claude Code أو OpenCode أو أي عميل MCP): `build_context_pack` يجمع حزمة المهمة عبر العرض الخادمي، و`check_pack_loss` يتحقق من ما وصل فعليًا.
@@ -57,6 +57,6 @@ go test ./internal/daemon/ -run 'TestContextPack|TestPackLoss' -v -count=1
 
 ## الإسناد والترخيص
 
-- الأساس: [YesMem](https://github.com/carsteneu/yesmem) عند `d0bba3f4` — ترخيص [Apache-2.0](LICENSE)، ومشكور لمالكه الأصلي.
+- الأساس: [Nemons](https://github.com/carsteneu/yesmem) عند `d0bba3f4` — ترخيص [Apache-2.0](LICENSE)، ومشكور لمالكه الأصلي.
 - طبقة نيمونز (الرقع 1–22): مبنية فوقه بروح Apache-2.0 نفسها، والتاريخ الكامل محفوظ في git — كل رقعة بمرسئها يمكن تصديرها `git format-patch d0bba3f4..HEAD`.
 - الحالة: إصدار داخلي `v0.1.0-internal`.

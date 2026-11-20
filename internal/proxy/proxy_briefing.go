@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // briefingData holds both briefing text and code map from a single daemon RPC call.
@@ -320,7 +320,7 @@ func (s *Server) injectCodeMapTurn(req map[string]any, reqIdx int, proj, threadI
 
 // Deprecated: popRecentRemember is no longer called from the proxy pipeline.
 // Fresh remember injection caused echo-loops: Claude saved a learning, saw it
-// again next turn as [yesmem fresh memory], and reacted to its own output.
+// again next turn as [nemons fresh memory], and reacted to its own output.
 // Recovery after /clear is handled by recovery.go, subagents get their own briefing.
 // The daemon-side handler (pop_recent_remember) still exists but is effectively dead code.
 func (s *Server) popRecentRemember() []recentLearningItem {

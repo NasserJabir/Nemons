@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // DefaultLanguages is the language data the quality claims work with.
@@ -31,9 +31,9 @@ func DefaultLanguages() []engine.Language {
 			Extensions:       []string{".go"},
 			TestFilePatterns: []string{`_test\.go$`},
 			TestCommand:      "go test ./...",
-			CoverageCommand:  "go test -coverprofile=.yesmem-cover.out ./...",
+			CoverageCommand:  "go test -coverprofile=.nemons-cover.out ./...",
 			CoverageFormat:   "go-cover",
-			CoverageArtifact: ".yesmem-cover.out",
+			CoverageArtifact: ".nemons-cover.out",
 			BuildErrorPatterns: []string{
 				// The package header go prints before a compile error, and the
 				// "[build failed]" marker of the test summary. A plain
@@ -75,9 +75,9 @@ func DefaultLanguages() []engine.Language {
 			Extensions:       []string{".php"},
 			TestFilePatterns: []string{`Test\.php$`},
 			TestCommand:      "vendor/bin/phpunit",
-			CoverageCommand:  "vendor/bin/phpunit --coverage-cobertura .yesmem-coverage.xml",
+			CoverageCommand:  "vendor/bin/phpunit --coverage-cobertura .nemons-coverage.xml",
 			CoverageFormat:   "cobertura",
-			CoverageArtifact: ".yesmem-coverage.xml",
+			CoverageArtifact: ".nemons-coverage.xml",
 			BuildErrorPatterns: []string{
 				`(?i)PHP Parse error`,
 				`(?i)PHP Fatal error:  Uncaught (?:Error|TypeError|ParseError)`,
@@ -89,9 +89,9 @@ func DefaultLanguages() []engine.Language {
 			Extensions:       []string{".py"},
 			TestFilePatterns: []string{`^test_.*\.py$`, `_test\.py$`},
 			TestCommand:      "python3 -m pytest -q",
-			CoverageCommand:  "python3 -m pytest -q --cov-report=xml:.yesmem-coverage.xml",
+			CoverageCommand:  "python3 -m pytest -q --cov-report=xml:.nemons-coverage.xml",
 			CoverageFormat:   "cobertura",
-			CoverageArtifact: ".yesmem-coverage.xml",
+			CoverageArtifact: ".nemons-coverage.xml",
 			BuildErrorPatterns: []string{
 				`(?i)\bSyntaxError\b`,
 				`(?i)\bIndentationError\b`,

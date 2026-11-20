@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // TestLos56eSupersedeReturnsExactlyTheRowsItChanged pins YM-367 (1): the cleanup

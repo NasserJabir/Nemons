@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // The corpus only exercises a non-allowlisted lint command, so the tool
@@ -16,7 +16,7 @@ import (
 
 func lintRepo(t *testing.T, name, consoleScript string, twigFiles int) (repo, commit string) {
 	t.Helper()
-	parent, err := filepath.Abs(filepath.Join("..", "..", ".yesmem", "tmp", "lint"))
+	parent, err := filepath.Abs(filepath.Join("..", "..", ".nemons", "tmp", "lint"))
 	if err != nil {
 		t.Fatalf("abs: %v", err)
 	}

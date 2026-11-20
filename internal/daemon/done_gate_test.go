@@ -94,7 +94,7 @@ security: ses_secfix
 
 ### Phase 6: DAEMON-VERIFY
 **Status:** COMPLETE
-**Vorab-Prüfung:** yesmem verify-claims → exit 0 (accepted), Urteil liegt für diesen Bericht
+**Vorab-Prüfung:** nemons verify-claims → exit 0 (accepted), Urteil liegt für diesen Bericht
 
 ### Phase 7: FINISH
 **Status:** COMPLETE
@@ -489,7 +489,7 @@ security: ses_secfix
 
 ### Phase 6: DAEMON-VERIFY
 **Status:** COMPLETE
-**Vorab-Prüfung:** yesmem verify-claims -> exit 0 (accepted)
+**Vorab-Prüfung:** nemons verify-claims -> exit 0 (accepted)
 
 ### Phase 7: FINISH
 **Status:** COMPLETE

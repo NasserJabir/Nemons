@@ -5,8 +5,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/verify"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/verify"
 )
 
 // The delivery side of the DONE contract.

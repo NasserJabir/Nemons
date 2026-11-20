@@ -16,7 +16,7 @@ func windowHome(t *testing.T, installed string) string {
 		t.Fatal(err)
 	}
 	if installed != "" {
-		dst := filepath.Join(home, ".config", "opencode", "plugins", "yesmem-window", "tui.tsx")
+		dst := filepath.Join(home, ".config", "opencode", "plugins", "nemons-window", "tui.tsx")
 		if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
 			t.Fatal(err)
 		}
@@ -37,11 +37,11 @@ func TestInstallWindowPlugin_InstallsFile(t *testing.T) {
 	if n != 1 {
 		t.Fatalf("updated = %d, want 1", n)
 	}
-	data, err := os.ReadFile(filepath.Join(home, ".config", "opencode", "plugins", "yesmem-window", "tui.tsx"))
+	data, err := os.ReadFile(filepath.Join(home, ".config", "opencode", "plugins", "nemons-window", "tui.tsx"))
 	if err != nil {
 		t.Fatalf("plugin file missing: %v", err)
 	}
-	if !strings.Contains(string(data), "yesmem.window-register") {
+	if !strings.Contains(string(data), "nemons.window-register") {
 		t.Error("installed file does not look like the window plugin")
 	}
 }
@@ -55,7 +55,7 @@ func TestInstallWindowPlugin_IdempotentAndUpdating(t *testing.T) {
 	if n, err := InstallWindowPlugin(home); err != nil || n != 0 {
 		t.Fatalf("second run = (%d, %v), want (0, nil)", n, err)
 	}
-	data, err := os.ReadFile(filepath.Join(home, ".config", "opencode", "plugins", "yesmem-window", "tui.tsx"))
+	data, err := os.ReadFile(filepath.Join(home, ".config", "opencode", "plugins", "nemons-window", "tui.tsx"))
 	if err != nil {
 		t.Fatal(err)
 	}

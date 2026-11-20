@@ -8,17 +8,17 @@ func TestUpsertAndGetCodeDescriptions(t *testing.T) {
 	s := mustOpen(t)
 
 	// Upsert two package descriptions
-	err := s.UpsertCodeDescription("yesmem", "proxy", "Intercepts API requests for context management.", "", "abc123", 100)
+	err := s.UpsertCodeDescription("nemons", "proxy", "Intercepts API requests for context management.", "", "abc123", 100)
 	if err != nil {
 		t.Fatalf("upsert proxy: %v", err)
 	}
-	err = s.UpsertCodeDescription("yesmem", "storage", "SQLite persistence layer for learnings and sessions.", "", "abc123", 100)
+	err = s.UpsertCodeDescription("nemons", "storage", "SQLite persistence layer for learnings and sessions.", "", "abc123", 100)
 	if err != nil {
 		t.Fatalf("upsert storage: %v", err)
 	}
 
 	// Get all descriptions for project
-	descs, err := s.GetCodeDescriptions("yesmem")
+	descs, err := s.GetCodeDescriptions("nemons")
 	if err != nil {
 		t.Fatalf("get: %v", err)
 	}
@@ -30,11 +30,11 @@ func TestUpsertAndGetCodeDescriptions(t *testing.T) {
 	}
 
 	// Upsert same package — should update, not duplicate
-	err = s.UpsertCodeDescription("yesmem", "proxy", "HTTP proxy for context injection.", "", "def456", 105)
+	err = s.UpsertCodeDescription("nemons", "proxy", "HTTP proxy for context injection.", "", "def456", 105)
 	if err != nil {
 		t.Fatalf("upsert update: %v", err)
 	}
-	descs, err = s.GetCodeDescriptions("yesmem")
+	descs, err = s.GetCodeDescriptions("nemons")
 	if err != nil {
 		t.Fatalf("get after update: %v", err)
 	}
@@ -59,30 +59,30 @@ func TestCodeDescriptionStaleness(t *testing.T) {
 	s := mustOpen(t)
 
 	// No descriptions — always stale
-	if !s.IsCodeDescriptionStale("yesmem", "abc123", 100) {
+	if !s.IsCodeDescriptionStale("nemons", "abc123", 100) {
 		t.Error("expected stale when no descriptions exist")
 	}
 
 	// Insert description
-	s.UpsertCodeDescription("yesmem", "proxy", "desc", "", "abc123", 100)
+	s.UpsertCodeDescription("nemons", "proxy", "desc", "", "abc123", 100)
 
 	// Same HEAD, same learning count — NOT stale
-	if s.IsCodeDescriptionStale("yesmem", "abc123", 100) {
+	if s.IsCodeDescriptionStale("nemons", "abc123", 100) {
 		t.Error("expected not stale with same HEAD and learning count")
 	}
 
 	// Different HEAD — stale
-	if !s.IsCodeDescriptionStale("yesmem", "def456", 100) {
+	if !s.IsCodeDescriptionStale("nemons", "def456", 100) {
 		t.Error("expected stale with different HEAD")
 	}
 
 	// Same HEAD, learning count delta >= 5 — stale
-	if !s.IsCodeDescriptionStale("yesmem", "abc123", 105) {
+	if !s.IsCodeDescriptionStale("nemons", "abc123", 105) {
 		t.Error("expected stale with 5+ new learnings")
 	}
 
 	// Same HEAD, learning count delta < 5 — NOT stale
-	if s.IsCodeDescriptionStale("yesmem", "abc123", 104) {
+	if s.IsCodeDescriptionStale("nemons", "abc123", 104) {
 		t.Error("expected not stale with <5 new learnings")
 	}
 }
@@ -91,12 +91,12 @@ func TestCodeDescriptionAntiPatterns(t *testing.T) {
 	s := mustOpen(t)
 
 	antiPatterns := "→ New injection = new *_inject.go file\n→ Never modify pipeline order"
-	err := s.UpsertCodeDescription("yesmem", "proxy", "Proxy desc", antiPatterns, "abc123", 100)
+	err := s.UpsertCodeDescription("nemons", "proxy", "Proxy desc", antiPatterns, "abc123", 100)
 	if err != nil {
 		t.Fatalf("upsert: %v", err)
 	}
 
-	descs, _ := s.GetCodeDescriptions("yesmem")
+	descs, _ := s.GetCodeDescriptions("nemons")
 	if descs["proxy"].AntiPatterns != antiPatterns {
 		t.Errorf("anti_patterns: %q", descs["proxy"].AntiPatterns)
 	}

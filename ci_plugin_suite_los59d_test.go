@@ -12,7 +12,7 @@ import (
 // ciPluginTestDir ist das Verzeichnis, dessen bun-Suite in der CI laufen muss.
 // Die Referenz im Workflow wird gegen das Dateisystem geprueft, damit ein
 // Verzeichnis-Rename keinen toten Job hinterlaesst.
-const ciPluginTestDir = "plugins/opencode-yesmem-v2"
+const ciPluginTestDir = "plugins/opencode-nemons-v2"
 
 type ciWorkflowStep struct {
 	Name             string         `yaml:"name"`

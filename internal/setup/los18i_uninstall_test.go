@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/skills"
+	"github.com/NasserJabir/Nemons/skills"
 )
 
 // Same bug class as Los 18h (YM-363): the announcement and the deletion have to

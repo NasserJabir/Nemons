@@ -245,7 +245,7 @@ func TestEnforceCacheBreakpointLimit_TrimsBriefingFirst(t *testing.T) {
 		"system": []any{
 			map[string]any{"type": "text", "text": "system 1", "cache_control": map[string]any{"type": "ephemeral"}},
 			map[string]any{"type": "text", "text": "system 2", "cache_control": map[string]any{"type": "ephemeral"}},
-			map[string]any{"type": "text", "text": "[yesmem-briefing]\nbrief", "cache_control": map[string]any{"type": "ephemeral"}},
+			map[string]any{"type": "text", "text": "[nemons-briefing]\nbrief", "cache_control": map[string]any{"type": "ephemeral"}},
 		},
 		"messages": []any{
 			map[string]any{
@@ -278,7 +278,7 @@ func TestUpgradeCacheTTL_NormalizesAllBlocksRecursively(t *testing.T) {
 			map[string]any{"name": "Bash", "cache_control": map[string]any{"type": "ephemeral"}},
 		},
 		"system": []any{
-			map[string]any{"type": "text", "text": "[yesmem-briefing]\nbrief", "cache_control": map[string]any{"type": "ephemeral", "ttl": "1h"}},
+			map[string]any{"type": "text", "text": "[nemons-briefing]\nbrief", "cache_control": map[string]any{"type": "ephemeral", "ttl": "1h"}},
 		},
 		"messages": []any{
 			map[string]any{

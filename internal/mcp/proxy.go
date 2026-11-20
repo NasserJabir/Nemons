@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/daemon"
 )
 
 // mcpErrorLog writes structured error entries to mcp-error.log.
@@ -186,24 +186,24 @@ func dialWithTimeout(dataDir string, timeout time.Duration) (*daemon.SocketClien
 // errDaemonOwnedBySystemd marks the case where the user unit owns the daemon and
 // its socket did not answer. The caller fails fast on it instead of waiting for a
 // socket that nothing is going to create.
-var errDaemonOwnedBySystemd = errors.New("yesmem.service owns the daemon")
+var errDaemonOwnedBySystemd = errors.New("nemons.service owns the daemon")
 
-// yesmemUnitState is what systemd knows about this installation's user unit.
-type yesmemUnitState int
+// nemonsUnitState is what systemd knows about this installation's user unit.
+type nemonsUnitState int
 
 const (
-	// yesmemUnitAbsent: no user unit installed, so the unit cannot own the
+	// nemonsUnitAbsent: no user unit installed, so the unit cannot own the
 	// daemon and a client has to spawn the binary itself.
-	yesmemUnitAbsent yesmemUnitState = iota
-	yesmemUnitActive
-	yesmemUnitInactive
+	nemonsUnitAbsent nemonsUnitState = iota
+	nemonsUnitActive
+	nemonsUnitInactive
 )
 
 // daemonStartDeps are the four things startDaemonWith needs from its
 // environment. A test supplies fakes, so the decision is checked without a real
 // systemctl, without spawning a binary and without a live unit.
 type daemonStartDeps struct {
-	unitState  func() yesmemUnitState
+	unitState  func() nemonsUnitState
 	systemctl  func(args ...string) error
 	executable func() (string, error)
 	spawn      func(dataDir, exe string, args, env []string) error
@@ -211,7 +211,7 @@ type daemonStartDeps struct {
 
 // defaultDaemonStartDeps is the production wiring.
 var defaultDaemonStartDeps = daemonStartDeps{
-	unitState:  detectYesmemUnitState,
+	unitState:  detectNemonsUnitState,
 	systemctl:  systemctlUser,
 	executable: os.Executable,
 	spawn:      spawnDaemonProcess,
@@ -225,7 +225,7 @@ const unitStateTimeout = 5 * time.Second
 //
 // The bare name left the choice to PATH, and PATH carries user-writable
 // directories on a normal install (~/.local/bin is prepended by the daemon, and
-// the installer puts yesmem there). This refuses a candidate that is not a
+// the installer puts nemons there). This refuses a candidate that is not a
 // regular, executable file or that any local writer may replace — same heuristic
 // as sqlite3Binary in internal/daemon/opencode_capture.go.
 //
@@ -259,26 +259,26 @@ func systemctlBinary() (string, error) {
 	return resolved, nil
 }
 
-// detectYesmemUnitState asks systemd whether yesmem.service is installed and
+// detectNemonsUnitState asks systemd whether nemons.service is installed and
 // running. A failure to ask (no user bus, no systemd, a timeout, an untrusted
 // systemctl) reads as "absent": the client then falls back to handling the
 // daemon itself.
-func detectYesmemUnitState() yesmemUnitState {
+func detectNemonsUnitState() nemonsUnitState {
 	bin, err := systemctlBinary()
 	if err != nil {
-		log.Printf("cannot inspect yesmem.service (%v) — treating it as not installed", err)
-		return yesmemUnitAbsent
+		log.Printf("cannot inspect nemons.service (%v) — treating it as not installed", err)
+		return nemonsUnitAbsent
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), unitStateTimeout)
 	defer cancel()
-	out, err := exec.CommandContext(ctx, bin, "--user", "show", "-p", "LoadState", "-p", "ActiveState", "yesmem.service").Output()
+	out, err := exec.CommandContext(ctx, bin, "--user", "show", "-p", "LoadState", "-p", "ActiveState", "nemons.service").Output()
 	if err != nil {
-		return yesmemUnitAbsent
+		return nemonsUnitAbsent
 	}
-	return parseYesmemUnitState(string(out))
+	return parseNemonsUnitState(string(out))
 }
 
-func parseYesmemUnitState(out string) yesmemUnitState {
+func parseNemonsUnitState(out string) nemonsUnitState {
 	load, active := "", ""
 	for _, line := range strings.Split(out, "\n") {
 		if v, ok := strings.CutPrefix(line, "LoadState="); ok {
@@ -289,12 +289,12 @@ func parseYesmemUnitState(out string) yesmemUnitState {
 		}
 	}
 	if load != "loaded" {
-		return yesmemUnitAbsent
+		return nemonsUnitAbsent
 	}
 	if active == "active" || active == "activating" || active == "reloading" {
-		return yesmemUnitActive
+		return nemonsUnitActive
 	}
-	return yesmemUnitInactive
+	return nemonsUnitInactive
 }
 
 // systemctlStartTimeout bounds the start call: the probe next to it is bounded,
@@ -339,7 +339,7 @@ func spawnDaemonProcess(dataDir, exe string, args, env []string) error {
 
 func startDaemon(dataDir string) error {
 	// Fork-bomb guard: under `go test` os.Executable() resolves to the
-	// *.test binary, not yesmem. Spawning that with "daemon --replace"
+	// *.test binary, not nemons. Spawning that with "daemon --replace"
 	// re-runs the entire test suite in the child, which calls mcp.New()
 	// again, which lands here, which forks again — earlyoom kills the
 	// machine before the kernel can. Refuse early and let the caller
@@ -355,7 +355,7 @@ func startDaemon(dataDir string) error {
 // drives the decision with fake dependencies.
 //
 // A client never replaces a daemon it cannot see. The former body spawned
-// "yesmem daemon --replace" unconditionally, so an MCP client whose socket
+// "nemons daemon --replace" unconditionally, so an MCP client whose socket
 // appeared dead killed the running instance and every restart repeated it — the
 // 2026-10-17 cascade (YM-297). The unit is the owner when it exists: an active
 // unit is left to systemd (the caller waits for the socket), a stopped unit is
@@ -364,21 +364,21 @@ func startDaemon(dataDir string) error {
 // unreachable stays alive.
 func startDaemonWith(dataDir string, deps daemonStartDeps) error {
 	switch deps.unitState() {
-	case yesmemUnitActive:
+	case nemonsUnitActive:
 		// The unit owns the daemon; a second one started here would be the
 		// YM-297 cascade again. Reported as an error so the caller does not
 		// spend the whole dial timeout waiting for a socket nothing is creating.
-		log.Println("Daemon socket unreachable while yesmem.service is active — leaving the restart to systemd")
-		return fmt.Errorf("%w: its socket did not answer — run 'systemctl --user restart yesmem'", errDaemonOwnedBySystemd)
-	case yesmemUnitInactive:
-		log.Println("Daemon socket unreachable — starting yesmem.service via systemctl --user")
-		if err := deps.systemctl("start", "yesmem"); err != nil {
-			return fmt.Errorf("start yesmem.service: %w", err)
+		log.Println("Daemon socket unreachable while nemons.service is active — leaving the restart to systemd")
+		return fmt.Errorf("%w: its socket did not answer — run 'systemctl --user restart nemons'", errDaemonOwnedBySystemd)
+	case nemonsUnitInactive:
+		log.Println("Daemon socket unreachable — starting nemons.service via systemctl --user")
+		if err := deps.systemctl("start", "nemons"); err != nil {
+			return fmt.Errorf("start nemons.service: %w", err)
 		}
 		return nil
 	}
 
-	// Find the yesmem binary
+	// Find the nemons binary
 	exe, err := deps.executable()
 	if err != nil {
 		return err
@@ -388,6 +388,6 @@ func startDaemonWith(dataDir string, deps daemonStartDeps) error {
 	// itself (main.go). A second derivation in the environment was never read and
 	// could only drift from the real one, so the entry is gone.
 	return deps.spawn(dataDir, exe, []string{"daemon"}, append(os.Environ(),
-		"YESMEM_DATA_DIR="+dataDir,
+		"NEMONS_DATA_DIR="+dataDir,
 	))
 }

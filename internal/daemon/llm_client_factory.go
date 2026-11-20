@@ -1,9 +1,9 @@
 package daemon
 
 import (
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/sanitize"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/sanitize"
 )
 
 // llmClientOpts describes one daemon LLM construction site. Zero-valued fields

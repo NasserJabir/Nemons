@@ -71,7 +71,7 @@ func TestHandleSpawnAgent_RejectsPromptBreakingFields(t *testing.T) {
 func TestHandleSpawnAgent_AcceptsPlainFields(t *testing.T) {
 	h, _ := mustHandler(t)
 	resp := h.handleSpawnAgent(map[string]any{
-		"project":        "/home/tester/memory/yesmem",
+		"project":        "/home/tester/memory/nemons",
 		"section":        "yesloop-los-21",
 		"caller_session": "opencode:ses_ebc14c083ffeX3thcK0w81q4OZ",
 		"backend":        "claude",

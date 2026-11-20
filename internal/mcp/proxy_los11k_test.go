@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-// YM-357 (Los 11k): der Selbst-Spawn setzte YESMEM_PROJECTS_DIR auf ein selbst
+// YM-357 (Los 11k): der Selbst-Spawn setzte NEMONS_PROJECTS_DIR auf ein selbst
 // gebautes $HOME/.claude/projects. Die Variable hatte keinen Leser: der Daemon
 // loest das Verzeichnis aus der config.yaml (main.go, appCfg.ClaudeProjectsDir).
 // Eine zweite Ableitung im Environment konnte nur von der echten abweichen, also
@@ -23,9 +23,9 @@ func TestLos11kStartDaemonPassesNoProjectsDir(t *testing.T) {
 
 	var gotEnv []string
 	deps := daemonStartDeps{
-		unitState:  func() yesmemUnitState { return yesmemUnitAbsent },
+		unitState:  func() nemonsUnitState { return nemonsUnitAbsent },
 		systemctl:  func(...string) error { return nil },
-		executable: func() (string, error) { return "/opt/yesmem/yesmem", nil },
+		executable: func() (string, error) { return "/opt/nemons/nemons", nil },
 		spawn: func(_ string, _ string, _ []string, env []string) error {
 			gotEnv = env
 			return nil
@@ -36,7 +36,7 @@ func TestLos11kStartDaemonPassesNoProjectsDir(t *testing.T) {
 		t.Fatalf("startDaemonWith returned %v, want nil", err)
 	}
 	for _, kv := range gotEnv {
-		if strings.HasPrefix(kv, "YESMEM_PROJECTS_DIR=") {
+		if strings.HasPrefix(kv, "NEMONS_PROJECTS_DIR=") {
 			t.Fatalf("spawned env carries %q; the daemon reads the projects dir from config.yaml itself, a second copy in the environment was never read and could drift", kv)
 		}
 	}

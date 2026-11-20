@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/sanitize"
+	"github.com/NasserJabir/Nemons/internal/sanitize"
 )
 
 type spyLLMClient struct {

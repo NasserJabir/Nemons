@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // TestSkipRecentSurvivesForeignInsertsLos10c (YM-305 [MEM-F37]): skip_recent was a

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // Review round 1 (cold + consequence): CapState trimmed the in-memory map, but
@@ -169,8 +169,8 @@ func TestLos56dTimestampStoreCapKeepsNewest(t *testing.T) {
 func TestLos56dFailFingerprintIgnoresRerunNoise(t *testing.T) {
 	s := &Server{logger: log.New(io.Discard, "", 0), failFingerprints: make(map[string]map[int64]uint64)}
 
-	first := "--- FAIL: TestFoo (0.01s)\nopen /tmp/TestFoo123/001/yesmem.db: permission denied"
-	tempRerun := "--- FAIL: TestFoo (12.34ms)\nopen /tmp/TestFoo987/001/yesmem.db: permission denied"
+	first := "--- FAIL: TestFoo (0.01s)\nopen /tmp/TestFoo123/001/nemons.db: permission denied"
+	tempRerun := "--- FAIL: TestFoo (12.34ms)\nopen /tmp/TestFoo987/001/nemons.db: permission denied"
 	buildRerun := "--- FAIL: TestBar (0.01s)\nopen /tmp/go-build111/b001/x: permission denied"
 	buildRerun2 := "--- FAIL: TestBar (0.01s)\nopen /tmp/go-build222/b001/x: permission denied"
 

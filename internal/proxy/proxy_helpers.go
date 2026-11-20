@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/logrotate"
-	"github.com/carsteneu/yesmem/internal/wikidir"
+	"github.com/NasserJabir/Nemons/internal/logrotate"
+	"github.com/NasserJabir/Nemons/internal/wikidir"
 )
 
 // extractSessionID extracts the session ID from headers and request metadata.
@@ -112,7 +112,7 @@ func DeriveThreadID(req map[string]any) string {
 						text, _ := b["text"].(string)
 						trimmed := strings.TrimSpace(text)
 						if text != "" && !strings.HasPrefix(trimmed, "<system-reminder>") &&
-							!strings.HasPrefix(text, "[yesmem-") && !strings.HasPrefix(text, "[skill-check]") &&
+							!strings.HasPrefix(text, "[nemons-") && !strings.HasPrefix(text, "[skill-check]") &&
 							!strings.HasPrefix(text, "[task-reminder]") {
 							snippet := text
 							if len(snippet) > 200 {
@@ -245,7 +245,7 @@ func daemonProject(short, dir string) string {
 	return short
 }
 
-// wikiDir resolves the wiki directory named in the [yesmem-wiki-first]
+// wikiDir resolves the wiki directory named in the [nemons-wiki-first]
 // directive. The daemon renders one directory per project below the data dir
 // (see wikidir); without a data dir the documented tilde path is named instead.
 // Empty project or no usable name yields "" — the directive then keeps its

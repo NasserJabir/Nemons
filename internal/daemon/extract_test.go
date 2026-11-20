@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // --- truncID ---
@@ -493,7 +493,7 @@ func TestExtract_BuildNarrativeUserMessageWithContext(t *testing.T) {
 		OpenWork:       []string{"fix rate limiting", "add tests"},
 		IntensityTrend: "rising",
 	}
-	got := BuildNarrativeUserMessageWithContext(msgs, "yesmem", "2026-03-15 14:30", ctx)
+	got := BuildNarrativeUserMessageWithContext(msgs, "nemons", "2026-03-15 14:30", ctx)
 
 	if !strings.Contains(got, "Recent sessions in project:") {
 		t.Error("missing recent sessions header")

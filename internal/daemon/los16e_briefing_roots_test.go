@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // TestBriefingRefreshIncludesWorktreeParentProjectLos16e (YM-382 [BRF-B15]):
@@ -22,7 +22,7 @@ func TestBriefingRefreshIncludesWorktreeParentProjectLos16e(t *testing.T) {
 		t.Fatalf("userhomedir: %v", err)
 	}
 	// A real path: isLiveProjectPath rejects anything missing on disk.
-	root, err := os.MkdirTemp(home, ".yesmem-test-los16e-root-*")
+	root, err := os.MkdirTemp(home, ".nemons-test-los16e-root-*")
 	if err != nil {
 		t.Fatalf("mkdir root: %v", err)
 	}
@@ -75,7 +75,7 @@ func TestBriefingRefreshSkipsRootBelowOwnedAncestorLos16e(t *testing.T) {
 	if err != nil {
 		t.Fatalf("userhomedir: %v", err)
 	}
-	parent, err := os.MkdirTemp(home, ".yesmem-test-los16e-owned-*")
+	parent, err := os.MkdirTemp(home, ".nemons-test-los16e-owned-*")
 	if err != nil {
 		t.Fatalf("mkdir parent: %v", err)
 	}
@@ -114,7 +114,7 @@ func TestBriefingRefreshSkipsDormantWorktreeParentLos16e(t *testing.T) {
 	if err != nil {
 		t.Fatalf("userhomedir: %v", err)
 	}
-	root, err := os.MkdirTemp(home, ".yesmem-test-los16e-dormant-*")
+	root, err := os.MkdirTemp(home, ".nemons-test-los16e-dormant-*")
 	if err != nil {
 		t.Fatalf("mkdir root: %v", err)
 	}

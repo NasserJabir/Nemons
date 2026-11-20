@@ -3,7 +3,7 @@ package storage
 import (
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // ruleBasedVictim inserts a learning and displaces it with the given reason.

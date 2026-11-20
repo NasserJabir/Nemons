@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // exportVersion is the format version ExportLearnings writes. ImportLearnings
@@ -46,7 +46,7 @@ type ExportLearning struct {
 	AnticipatedQueries []string `json:"anticipated_queries,omitempty"`
 
 	// Runtime state that a restore used to drop. Additive and omitempty, so an
-	// older yesmem reads a file carrying them unchanged and a file without them
+	// older nemons reads a file carrying them unchanged and a file without them
 	// still imports. exportVersion stays 2: a bump would make the deployed
 	// daemon reject every export this build writes.
 	//
@@ -266,7 +266,7 @@ func (s *Store) ExportLearnings(path string) (int, error) {
 		return 0, fmt.Errorf("write export: %w", err)
 	}
 	// WriteFile applies its perm only when it creates the file: an export
-	// overwriting one an earlier yesmem wrote world-readable has to be tightened
+	// overwriting one an earlier nemons wrote world-readable has to be tightened
 	// explicitly, otherwise the whole memory corpus stays readable by others.
 	if err := os.Chmod(path, 0o600); err != nil {
 		return 0, fmt.Errorf("tighten export permissions: %w", err)
@@ -371,7 +371,7 @@ func (s *Store) ImportLearningsWithOptions(path string, opts ImportOptions) (int
 		return 0, 0, fmt.Errorf("unmarshal: %w", err)
 	}
 	if export.Version > exportVersion {
-		return 0, 0, fmt.Errorf("export version %d is newer than this yesmem understands (max %d)",
+		return 0, 0, fmt.Errorf("export version %d is newer than this nemons understands (max %d)",
 			export.Version, exportVersion)
 	}
 

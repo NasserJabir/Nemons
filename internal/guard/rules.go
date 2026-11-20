@@ -279,10 +279,10 @@ func installedRulesPaths(dataDir string) []string {
 	paths := make([]string, 0, 3)
 	if dataDir != "" {
 		paths = append(paths, filepath.Join(dataDir, "RULES.md"))
-		paths = append(paths, filepath.Join(dataDir, "..", "..", "memory", "yesmem", "RULES.md"))
+		paths = append(paths, filepath.Join(dataDir, "..", "..", "memory", "nemons", "RULES.md"))
 	}
 	if home := os.Getenv("HOME"); home != "" {
-		paths = append(paths, filepath.Join(home, "memory", "yesmem", "RULES.md"))
+		paths = append(paths, filepath.Join(home, "memory", "nemons", "RULES.md"))
 	}
 	return paths
 }

@@ -10,7 +10,7 @@ import (
 // the data dir. This is the single derivation both sides share now.
 func TestLos35eCapsDirPath(t *testing.T) {
 	home := t.TempDir()
-	stdData := filepath.Join(home, ".claude", "yesmem")
+	stdData := filepath.Join(home, ".claude", "nemons")
 
 	cases := []struct {
 		name       string
@@ -25,7 +25,7 @@ func TestLos35eCapsDirPath(t *testing.T) {
 		},
 		{
 			name:    "a data dir outside the claude home moves the caps dir with it",
-			dataDir: filepath.Join(home, "xdg-data", "yesmem"),
+			dataDir: filepath.Join(home, "xdg-data", "nemons"),
 			want:    filepath.Join(home, "xdg-data", "caps"),
 		},
 		{

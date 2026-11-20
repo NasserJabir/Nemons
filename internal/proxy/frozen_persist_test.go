@@ -297,7 +297,7 @@ func TestFrozenStubs_RealisticMessageRoundtrip(t *testing.T) {
 			"role": "user",
 			"content": []any{
 				map[string]any{"type": "text", "text": "Read the file"},
-				map[string]any{"type": "text", "text": "[YesMem stub: 15 msgs collapsed, 3 tool calls, key: proxy.go refactor]", "cache_control": map[string]any{"type": "ephemeral"}},
+				map[string]any{"type": "text", "text": "[Nemons stub: 15 msgs collapsed, 3 tool calls, key: proxy.go refactor]", "cache_control": map[string]any{"type": "ephemeral"}},
 			},
 		},
 		map[string]any{

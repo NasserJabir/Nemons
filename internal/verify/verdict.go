@@ -1,6 +1,6 @@
 package verify
 
-import "github.com/carsteneu/yesmem/internal/verify/engine"
+import "github.com/NasserJabir/Nemons/internal/verify/engine"
 
 // The public judgement model. The types live in engine so that claim types can
 // implement checkers without importing this package; the aliases keep the

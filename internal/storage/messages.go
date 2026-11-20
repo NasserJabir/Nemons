@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // InsertMessages inserts a batch of messages in a single transaction.

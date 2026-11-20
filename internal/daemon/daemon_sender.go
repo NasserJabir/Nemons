@@ -3,7 +3,7 @@ package daemon
 import (
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // daemonSenderPrefix marks a channel message as daemon-originated. A daemon

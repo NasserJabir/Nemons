@@ -6,12 +6,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/setup"
+	"github.com/NasserJabir/Nemons/internal/setup"
 )
 
-// YM-386 [PLG-F34] Teil 1 (Los 56i): "yesmem update" frischte Skills, Caps,
+// YM-386 [PLG-F34] Teil 1 (Los 56i): "nemons update" frischte Skills, Caps,
 // Plugin, Window-Plugin und Themes auf, aber nicht die opencode-Commands. Nach
-// einem Uninstall stellte nur ein vollstaendiges "yesmem setup" sie wieder her,
+// einem Uninstall stellte nur ein vollstaendiges "nemons setup" sie wieder her,
 // und eine Bestandsinstallation bekam sie durch ein Update nie.
 //
 // runMigrateCmd selbst ist nicht testbar: es oeffnet die Live-DB, ruft systemctl

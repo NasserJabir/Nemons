@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // LLMClient abstracts LLM calls across HTTP and CLI backends.
@@ -30,7 +30,7 @@ type usageSink func(inputTokens, outputTokens int)
 type callOpts struct {
 	maxTokens int    // 0 = use default (8192)
 	sessionID string // opencode session to resume
-	tools     bool   // allow MCP tools in subprocess (sets YESMEM_ALLOW_CHILD_MCP=1)
+	tools     bool   // allow MCP tools in subprocess (sets NEMONS_ALLOW_CHILD_MCP=1)
 
 	usageSink usageSink // set by the metering layer only
 }
@@ -78,7 +78,7 @@ func WithSession(id string) CallOption {
 }
 
 // WithTools enables MCP tool access in subprocess calls (opencode CLI).
-// Sets YESMEM_ALLOW_CHILD_MCP=1 so the child yesmem mcp process is not killed.
+// Sets NEMONS_ALLOW_CHILD_MCP=1 so the child nemons mcp process is not killed.
 func WithTools() CallOption {
 	return func(o *callOpts) { o.tools = true }
 }

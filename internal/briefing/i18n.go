@@ -224,7 +224,7 @@ func DefaultStrings() Strings {
 		IntensityCalm:         "calm",
 
 		// MEMORY.md narrative
-		MemoryMDNarrative: `Your memory lives in a database, not in this file. Use the yesmem MCP tools (search, remember, get_learnings, etc.) — the session briefing is the canonical source of truth. Never write to this file.`,
+		MemoryMDNarrative: `Your memory lives in a database, not in this file. Use the nemons MCP tools (search, remember, get_learnings, etc.) — the session briefing is the canonical source of truth. Never write to this file.`,
 
 		// Fork reflection (v0.47)
 		ForkReflectionIntro:   "IMPORTANT: This is a mandatory reflection. You MUST complete the following tasks before doing anything else. Respond EXCLUSIVELY with the requested JSON.",

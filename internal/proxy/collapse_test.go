@@ -440,7 +440,7 @@ func TestExtractTimeline_GitCommitExtraction(t *testing.T) {
 			map[string]any{"type": "tool_use", "name": "Bash", "input": map[string]any{"command": "make deploy"}},
 		}},
 		map[string]any{"role": "assistant", "content": []any{
-			map[string]any{"type": "tool_use", "name": "Bash", "input": map[string]any{"command": "ssh testhost@10.0.0.1 \"systemctl --user restart yesmem\""}},
+			map[string]any{"type": "tool_use", "name": "Bash", "input": map[string]any{"command": "ssh testhost@10.0.0.1 \"systemctl --user restart nemons\""}},
 		}},
 	}
 
@@ -622,14 +622,14 @@ func TestBuildArchiveBlock_NoTruncation(t *testing.T) {
 	}
 }
 
-func TestExtractTimeline_YesmemMCPTools(t *testing.T) {
+func TestExtractTimeline_NemonsMCPTools(t *testing.T) {
 	msgs := []any{
 		map[string]any{"role": "system", "content": "sys"},
 		map[string]any{"role": "assistant", "content": []any{
-			map[string]any{"type": "tool_use", "name": "mcp__yesmem__hybrid_search", "input": map[string]any{"query": "CLI extraction"}},
+			map[string]any{"type": "tool_use", "name": "mcp__nemons__hybrid_search", "input": map[string]any{"query": "CLI extraction"}},
 		}},
 		map[string]any{"role": "assistant", "content": []any{
-			map[string]any{"type": "tool_use", "name": "mcp__yesmem__remember", "input": map[string]any{"text": "CLI bug fixed"}},
+			map[string]any{"type": "tool_use", "name": "mcp__nemons__remember", "input": map[string]any{"text": "CLI bug fixed"}},
 		}},
 	}
 
@@ -638,20 +638,20 @@ func TestExtractTimeline_YesmemMCPTools(t *testing.T) {
 	hasSearch := false
 	hasRemember := false
 	for _, e := range events {
-		if strings.Contains(e, "yesmem:hybrid_search") {
+		if strings.Contains(e, "nemons:hybrid_search") {
 			hasSearch = true
 		}
-		if strings.Contains(e, "yesmem:remember") {
+		if strings.Contains(e, "nemons:remember") {
 			hasRemember = true
 		}
 		t.Logf("event: %s", e)
 	}
 
 	if !hasSearch {
-		t.Error("expected yesmem:hybrid_search event")
+		t.Error("expected nemons:hybrid_search event")
 	}
 	if !hasRemember {
-		t.Error("expected yesmem:remember event")
+		t.Error("expected nemons:remember event")
 	}
 }
 
@@ -687,7 +687,7 @@ func TestExtractTimeline_DeduplicatesRepetitiveEvents(t *testing.T) {
 			map[string]any{"type": "tool_use", "name": "Bash", "input": map[string]any{"command": "ssh testhost@10.0.0.1 \"grep api_key config.yaml\""}},
 		}},
 		map[string]any{"role": "assistant", "content": []any{
-			map[string]any{"type": "tool_use", "name": "Bash", "input": map[string]any{"command": "ssh testhost@10.0.0.1 \"systemctl status yesmem\""}},
+			map[string]any{"type": "tool_use", "name": "Bash", "input": map[string]any{"command": "ssh testhost@10.0.0.1 \"systemctl status nemons\""}},
 		}},
 	}
 

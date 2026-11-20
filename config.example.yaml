@@ -1,7 +1,7 @@
 # ============================================================================
-# YesMem Configuration
+# Nemons Configuration
 # Long-term memory system for Claude Code
-# Copy to ~/.claude/yesmem/config.yaml and adjust
+# Copy to ~/.claude/nemons/config.yaml and adjust
 # ============================================================================
 
 # --- Extraction Pipeline ---
@@ -45,7 +45,7 @@ extraction:
   chunk_size: 25000
 
   # Auto-extract learnings when a new session ends?
-  # If false: manual extraction via "yesmem extract" required.
+  # If false: manual extraction via "nemons extract" required.
   auto_extract: true
 
   # Only extract sessions from the last N days. 0 = all sessions.
@@ -177,9 +177,9 @@ embedding:
     # Local embedding model (go:embed in binary, no download needed).
     # multilingual-e5-small: 384d vectors, multilingual, ~80MB
     model: multilingual-e5-small
-    cache_dir: ~/.claude/yesmem/models
+    cache_dir: ~/.claude/nemons/models
   vector_db:
-    persist_dir: ~/.claude/yesmem/vectors
+    persist_dir: ~/.claude/nemons/vectors
     collection: learnings
 
 # --- API ---
@@ -218,7 +218,7 @@ signals:
   every_n_turns: 1
 
 # --- ClaudeMD (Operative Reference) ---
-# Auto-generates a per-project operative reference file (yesmem-ops.md) that gets
+# Auto-generates a per-project operative reference file (nemons-ops.md) that gets
 # included in CLAUDE.md. Contains architecture decisions, known pitfalls, patterns
 # and deployment notes distilled from session history.
 claudemd:
@@ -244,7 +244,7 @@ claudemd:
   min_sessions: 3
 
   # Output filename (placed in project's .claude/ directory).
-  output_file: "yesmem-ops.md"
+  output_file: "nemons-ops.md"
 
   # Model for operative reference generation. Empty = use narrative_model.
   # model: ""
@@ -272,9 +272,9 @@ secrets_sanitization:
   allowed_exceptions: []
 
 # --- Paths (optional) ---
-# All paths have sensible defaults under ~/.claude/yesmem/.
+# All paths have sensible defaults under ~/.claude/nemons/.
 # Only set these if you need a custom location.
 # paths:
-#   db: ~/.claude/yesmem/yesmem.db
-#   archive: ~/.claude/yesmem/archive
+#   db: ~/.claude/nemons/nemons.db
+#   archive: ~/.claude/nemons/archive
 #   claude_projects: ~/.claude/projects

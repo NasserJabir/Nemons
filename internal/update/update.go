@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // maxInstallAttemptsPerVersion is the backoff of a release that keeps failing:
@@ -52,17 +52,17 @@ func forgetInstallAttempts(version string) {
 	delete(failedAttempts, version)
 }
 
-// BinaryPath returns the path to the currently running yesmem binary.
+// BinaryPath returns the path to the currently running nemons binary.
 //
 // After "make deploy" replaces the inode under the live path, /proc/self/exe
-// reads "…/yesmem (deleted)". os.Executable already trims that suffix itself
+// reads "…/nemons (deleted)". os.Executable already trims that suffix itself
 // (Go 1.25, os/executable_procfs.go), so the path returned here points at the
 // new binary and needs no guard of its own.
 func BinaryPath() string {
 	exe, err := os.Executable()
 	if err != nil {
 		home, _ := os.UserHomeDir()
-		return home + "/.local/bin/yesmem"
+		return home + "/.local/bin/nemons"
 	}
 	return exe
 }
@@ -131,7 +131,7 @@ func runUpdateTo(dest, currentVersion string, logger *log.Logger) (string, error
 	}
 
 	home, _ := os.UserHomeDir()
-	cfgPath := filepath.Join(home, ".claude", "yesmem", "config.yaml")
+	cfgPath := filepath.Join(home, ".claude", "nemons", "config.yaml")
 	if err := postUpdateInstall(dest, cfgPath, logger); err != nil {
 		installAttempts(info.Version, true)
 		return "", err
@@ -148,7 +148,7 @@ func runUpdateTo(dest, currentVersion string, logger *log.Logger) (string, error
 // the update lock: runMigrate executes dest, and only .bak can undo a build that
 // fails there.
 //
-// The rollback restores the binary, not the database: `yesmem migrate` may have
+// The rollback restores the binary, not the database: `nemons migrate` may have
 // applied part of the new schema before it failed. The production migrations are
 // additive, so the restored build still reads that schema; a real downgrade
 // would need its own migration and is not attempted here.
@@ -187,7 +187,7 @@ func restartArgs() []string {
 	return []string{"restart"}
 }
 
-// RunRestart executes "yesmem restart" to restart daemon and proxy.
+// RunRestart executes "nemons restart" to restart daemon and proxy.
 func RunRestart(logger *log.Logger) error {
 	return runRestartTo(BinaryPath(), logger)
 }

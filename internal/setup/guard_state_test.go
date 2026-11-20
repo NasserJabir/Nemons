@@ -8,12 +8,12 @@ import (
 
 func TestMigrateGuardState_RemovesLegacyJSON(t *testing.T) {
 	home := t.TempDir()
-	dir := filepath.Join(home, ".claude", "yesmem")
+	dir := filepath.Join(home, ".claude", "nemons")
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		t.Fatal(err)
 	}
 	legacy := filepath.Join(dir, "guard_suggest_cooldown.json")
-	if err := os.WriteFile(legacy, []byte(`{"yesmem-docs":1700000000}`), 0644); err != nil {
+	if err := os.WriteFile(legacy, []byte(`{"nemons-docs":1700000000}`), 0644); err != nil {
 		t.Fatal(err)
 	}
 	removed, err := MigrateGuardState(home)

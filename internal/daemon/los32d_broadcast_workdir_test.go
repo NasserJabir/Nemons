@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // los32dSession registers a session the way the indexer does (absolute project).
@@ -23,7 +23,7 @@ func los32dSession(t *testing.T, s *storage.Store, id, project string) {
 // los32dJobProject is the absolute project a job is created from. The bare
 // basename of it is what used to be broadcast, and the basename matches every
 // checkout of that name.
-const los32dJobProject = "/srv/los32d/memory/yesmem"
+const los32dJobProject = "/srv/los32d/memory/nemons"
 
 // seedLos32dBashErrorJob schedules a job the way schedule create does (project is
 // the creating caller's directory) and queues one failed run for it.
@@ -69,7 +69,7 @@ func los32dHandler(t *testing.T) (*Handler, *storage.Store) {
 }
 
 // YM-286 (1): a failing bash job is announced to the project the job was created
-// from. The old address was the bare basename "yesmem", which GetUnreadBroadcasts
+// from. The old address was the bare basename "nemons", which GetUnreadBroadcasts
 // also matches for every checkout of that name.
 func TestLos32dBashErrorBroadcastUsesTheJobsProject(t *testing.T) {
 	neutralizeClaude(t)
@@ -83,7 +83,7 @@ func TestLos32dBashErrorBroadcastUsesTheJobsProject(t *testing.T) {
 	if got := los32dBroadcasts(t, s, "reader-elsewhere", los32dJobProject); len(got) != 1 {
 		t.Fatalf("the job's own project must receive the broadcast, got %d: %v", len(got), got)
 	}
-	if got := los32dBroadcasts(t, s, "reader-elsewhere", "yesmem"); len(got) != 0 {
+	if got := los32dBroadcasts(t, s, "reader-elsewhere", "nemons"); len(got) != 0 {
 		t.Fatalf("a bare-basename reader must not receive it (over-delivery), got %d: %v", len(got), got)
 	}
 }
@@ -101,7 +101,7 @@ func TestLos32dBashErrorBroadcastInventsNoProject(t *testing.T) {
 
 	h.processBashJobErrors(context.Background())
 
-	for _, reader := range []string{"yesmem", ""} {
+	for _, reader := range []string{"nemons", ""} {
 		if got := los32dBroadcasts(t, s, "reader-any", reader); len(got) != 0 {
 			t.Errorf("project %q received a broadcast for a job without a project: %v", reader, got)
 		}
@@ -140,8 +140,8 @@ func TestLos32dJobWorkDirIsTheJobsProject(t *testing.T) {
 	if got := h.bashSandboxConfig(job, nil, ProfileStandard).WorkDir; got != project {
 		t.Fatalf("job WorkDir = %q, want %q", got, project)
 	}
-	if _, err := os.Stat(filepath.Join(home, "projects", "yesmem")); !os.IsNotExist(err) {
-		t.Errorf("$HOME/projects/yesmem was created for a job that names its project")
+	if _, err := os.Stat(filepath.Join(home, "projects", "nemons")); !os.IsNotExist(err) {
+		t.Errorf("$HOME/projects/nemons was created for a job that names its project")
 	}
 }
 
@@ -157,7 +157,7 @@ func TestLos32dJobWorkDirWithoutAProjectInventsNoCheckout(t *testing.T) {
 	if got == "" {
 		t.Fatal("a run still needs a working directory")
 	}
-	if got == filepath.Join(home, "projects", "yesmem") {
+	if got == filepath.Join(home, "projects", "nemons") {
 		t.Fatalf("WorkDir = %q: the daemon's own name resolved against $HOME/projects", got)
 	}
 	if _, err := os.Stat(filepath.Join(home, "projects")); !os.IsNotExist(err) {
@@ -190,18 +190,18 @@ func TestLos32dJobWorkDirFallsBackWhenTheProjectIsGone(t *testing.T) {
 }
 
 // An ambiguous short name must not be resolved by inventing a third directory:
-// that is how $HOME/projects/yesmem came to exist next to the two real checkouts.
+// that is how $HOME/projects/nemons came to exist next to the two real checkouts.
 func TestLos32dResolveAgentWorkDirRefusesAnAmbiguousShortName(t *testing.T) {
 	home := isolateHome(t)
 	h, s := los32dHandler(t)
 	for id, project := range map[string]string{
-		"ses-los32d-amb-a": "/srv/los32d/a/yesmem",
-		"ses-los32d-amb-b": "/srv/los32d/b/yesmem",
+		"ses-los32d-amb-a": "/srv/los32d/a/nemons",
+		"ses-los32d-amb-b": "/srv/los32d/b/nemons",
 	} {
 		los32dSession(t, s, id, project)
 	}
 
-	got := h.resolveAgentWorkDir("yesmem", "")
+	got := h.resolveAgentWorkDir("nemons", "")
 
 	if got != "" {
 		t.Fatalf("resolveAgentWorkDir(ambiguous) = %q, want \"\"", got)

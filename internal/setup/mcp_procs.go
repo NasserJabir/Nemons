@@ -22,7 +22,7 @@ const userHZ = 100
 // helper.
 const maxCmdlineBytes = 8 << 10
 
-// procRootPath is the process table `yesmem status` scans. Systems without
+// procRootPath is the process table `nemons status` scans. Systems without
 // /proc (macOS) fail the read and get a notice line instead.
 var procRootPath = "/proc"
 
@@ -31,7 +31,7 @@ var procRootPath = "/proc"
 // still resolves to a live process.
 var reaperParents = map[string]bool{"systemd": true, "init": true, "launchd": true}
 
-// MCPHelper is one live `yesmem mcp` stdio helper process. The helpers are
+// MCPHelper is one live `nemons mcp` stdio helper process. The helpers are
 // expected — one per connected client session — but they accumulate when a
 // client leaves one behind, and a stale binary keeps serving an outdated tool
 // schema until the process dies.
@@ -43,14 +43,14 @@ type MCPHelper struct {
 	Orphan bool          // no client owns it any more, nobody will reap it
 }
 
-// isMCPHelperArgs reports whether a cmdline belongs to a `yesmem mcp` helper:
-// the executable basename carries "yesmem" and "mcp" is the FIRST argument.
-// Anchoring on argv[0] keeps a grep for "mcp" inside a yesmem path out of the
+// isMCPHelperArgs reports whether a cmdline belongs to a `nemons mcp` helper:
+// the executable basename carries "nemons" and "mcp" is the FIRST argument.
+// Anchoring on argv[0] keeps a grep for "mcp" inside a nemons path out of the
 // list, and it means a helper started through a wrapper shell (argv[0] = "sh")
 // is not listed either. The position matters because main.go dispatches
-// exclusively on os.Args[1]: "yesmem search mcp" is a search, not a helper.
+// exclusively on os.Args[1]: "nemons search mcp" is a search, not a helper.
 func isMCPHelperArgs(args []string) bool {
-	if len(args) < 2 || !strings.Contains(filepath.Base(args[0]), "yesmem") {
+	if len(args) < 2 || !strings.Contains(filepath.Base(args[0]), "nemons") {
 		return false
 	}
 	return args[1] == "mcp"
@@ -142,7 +142,7 @@ func isReaperParent(procRoot string, ppid int) bool {
 	return reaperParents[strings.TrimSpace(string(comm))]
 }
 
-// scanMCPHelpers lists the live `yesmem mcp` helpers below procRoot, sorted by
+// scanMCPHelpers lists the live `nemons mcp` helpers below procRoot, sorted by
 // pid. procRoot is a parameter so tests can point it at a fixture tree.
 func scanMCPHelpers(procRoot string, now time.Time) ([]MCPHelper, error) {
 	entries, err := os.ReadDir(procRoot)
@@ -262,9 +262,9 @@ func formatMCPHelper(h MCPHelper) string {
 // disk and returns the pids it signalled — or, with a nil kill function, the pids
 // it would signal.
 //
-// The selection is the scan `yesmem status` renders, not a name grep: a process
-// counts only when argv[0] names a yesmem binary and argv[1] is "mcp". The former
-// shell rule matched every command line containing "yesmem mcp" (a grep, a search
+// The selection is the scan `nemons status` renders, not a name grep: a process
+// counts only when argv[0] names a nemons binary and argv[1] is "mcp". The former
+// shell rule matched every command line containing "nemons mcp" (a grep, a search
 // subcommand, another installation's helper) and killed whatever it found with a
 // "(deleted)" executable. Two further guards: only helpers of the current user
 // (a reap under sudo is not a licence to end another account's sessions), and a

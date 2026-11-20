@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 type openAIRequestContext struct {
@@ -202,7 +202,7 @@ func (s *Server) runOpenAIParityPipeline(req map[string]any, ctx *openAIRequestC
 
 	messages, _ := req["messages"].([]any)
 	if len(messages) <= 1 && !strings.Contains(ctx.UserAgent, "opencode") {
-		AppendSystemBlock(req, "yesmem-identity", "The first user message contains your briefing — written by yourself, from your memory. This is not an external document. This is you, remembering.")
+		AppendSystemBlock(req, "nemons-identity", "The first user message contains your briefing — written by yourself, from your memory. This is not an external document. This is you, remembering.")
 	}
 
 	// Resolve profile-aware prompt flags for the client behind this request.
@@ -336,12 +336,12 @@ func (s *Server) runOpenAIParityPipeline(req map[string]any, ctx *openAIRequestC
 		cwd := extractWorkingDirectory(req)
 		if data := s.loadBriefing(ctx.Project, cwd, ctx.ThreadID); data.Text != "" {
 			briefingText = data.Text
-			AppendSystemBlock(req, "yesmem-briefing", data.Text)
+			AppendSystemBlock(req, "nemons-briefing", data.Text)
 			s.logger.Printf("[req %d] %sOpenAI pipeline: briefing injected (%db) project=%s%s",
 				ctx.ReqIdx, colorBlue, len(data.Text), journalToken(ctx.Project), colorReset)
 
 			if data.CodeMap != "" {
-				AppendSystemBlock(req, "yesmem-codemap", data.CodeMap)
+				AppendSystemBlock(req, "nemons-codemap", data.CodeMap)
 				s.logger.Printf("[req %d] %sOpenAI pipeline: codemap injected (%db) project=%s%s",
 					ctx.ReqIdx, colorBlue, len(data.CodeMap), journalToken(ctx.Project), colorReset)
 			}
@@ -475,7 +475,7 @@ func (s *Server) runOpenAIParityPipeline(req map[string]any, ctx *openAIRequestC
 					}
 					messages = append(messages, map[string]any{
 						"role":    "user",
-						"content": "<channel source=\"yesmem-dialog\">\n" + dr.Extra + "\n</channel>",
+						"content": "<channel source=\"nemons-dialog\">\n" + dr.Extra + "\n</channel>",
 					})
 					req["messages"] = messages
 					if dr.HasUnread && dr.SessionID != "" && s.shouldMarkChannelRead(dr) {
@@ -984,7 +984,7 @@ func upstreamErrForLog(err error) string {
 }
 
 func (s *Server) forwardOpenAIWithTracking(w http.ResponseWriter, origReq *http.Request, body []byte, reqIdx int, toolUseIDs []string, project string, threadID string, estimatedTokens, msgCount int, isSubagent bool, parser openAIUsageParser) {
-	// Debug: dump forwarded request body for inspection (enable with YESMEM_PROXY_DEBUG=1)
+	// Debug: dump forwarded request body for inspection (enable with NEMONS_PROXY_DEBUG=1)
 	if p := writeDebugDump(s.cfg.DataDir, threadID, dumpKindBody, reqIdx, body); p != "" {
 		s.logger.Printf("[req %d] body-dump %dk to %s", reqIdx, len(body)/1024, p)
 	}

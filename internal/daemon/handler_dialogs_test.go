@@ -7,8 +7,8 @@ import (
 	"testing"
 	"unicode/utf8"
 
-	"github.com/carsteneu/yesmem/internal/httpapi"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/httpapi"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 func TestHandleSendTo_WithMsgType(t *testing.T) {
@@ -784,7 +784,7 @@ func TestCheckBroadcasts_ProxyCallerIsServed(t *testing.T) {
 	if _, err := s.SendBroadcast("orchestrator-c", "/srv/proj-c", "broadcast for the reader"); err != nil {
 		t.Fatal(err)
 	}
-	stubProcCmdline(t, "/home/u/.local/bin/yesmem\x00proxy\x00")
+	stubProcCmdline(t, "/home/u/.local/bin/nemons\x00proxy\x00")
 
 	resp := h.Handle(Request{Method: "check_broadcasts", Params: map[string]any{
 		"session_id": "opencode:ses_READER_C", "project": "/srv/proj-c", "_peer_pid": 4321,
@@ -1130,7 +1130,7 @@ func TestCheckChannel_ProxyPeerReadsTheNamedSession(t *testing.T) {
 	if _, err := s.SendChannelMessage("opencode:ses_TARGET", "someone", "for the target", "command"); err != nil {
 		t.Fatal(err)
 	}
-	stubProcCmdline(t, "/home/tester/.local/bin/yesmem\x00proxy\x00")
+	stubProcCmdline(t, "/home/tester/.local/bin/nemons\x00proxy\x00")
 
 	resp := h.Handle(Request{Method: "check_channel", Params: map[string]any{
 		"session_id": "opencode:ses_TARGET", "_peer_pid": 4242,

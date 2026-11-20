@@ -17,7 +17,7 @@ type StatusFile = {
   plan?: Plan
 }
 
-const cacheStatusDir = join(homedir(), ".claude", "yesmem", "cache-status")
+const cacheStatusDir = join(homedir(), ".claude", "nemons", "cache-status")
 
 // The status file is rewritten every second, but a slot body renders once per
 // mount: without a refresh the block would freeze at the state of the moment the
@@ -27,13 +27,13 @@ const REFRESH_MS = 2000
 // Colours come from the theme (theme.text.*), so light and dark themes both read.
 
 export default Plugin.define({
-  id: "yesmem.sidebar.plan",
+  id: "nemons.sidebar.plan",
   setup(context) {
     const theme = context.theme
 
     // Host-provided reactive state: the timer mutates it, the slot body reads it.
     // No solid-js import, so the plugin needs nothing beyond the JSX runtime.
-    const [state, mutate] = context.storage.memory<{ plan: Plan | null }>("yesmem.plan", {
+    const [state, mutate] = context.storage.memory<{ plan: Plan | null }>("nemons.plan", {
       initial: { plan: null },
     })
 

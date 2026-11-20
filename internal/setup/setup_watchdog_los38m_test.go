@@ -12,7 +12,7 @@ import (
 // call just time out until someone notices. Type=notify plus a watchdog makes
 // systemd ask for proof of life instead of assuming it.
 func TestDaemonUnitRunsAWatchdog(t *testing.T) {
-	unit := buildDaemonUnit("/usr/local/bin/yesmem", ":0", "/home/u/.Xauthority", "unix:path=/run/user/1000/bus", "http://localhost:9099")
+	unit := buildDaemonUnit("/usr/local/bin/nemons", ":0", "/home/u/.Xauthority", "unix:path=/run/user/1000/bus", "http://localhost:9099")
 
 	if !strings.Contains(unit, "Type=notify") {
 		t.Errorf("daemon unit is not Type=notify, so nothing waits for READY=1:\n%s", unit)
@@ -25,7 +25,7 @@ func TestDaemonUnitRunsAWatchdog(t *testing.T) {
 	}
 	// The proxy is a plain forwarder with no socket of its own to probe; it keeps
 	// the simple type until it has a liveness signal worth reporting.
-	if proxy := buildProxyUnit("/usr/local/bin/yesmem"); strings.Contains(proxy, "WatchdogSec=") {
+	if proxy := buildProxyUnit("/usr/local/bin/nemons"); strings.Contains(proxy, "WatchdogSec=") {
 		t.Errorf("proxy unit gained a watchdog without a liveness signal:\n%s", proxy)
 	}
 }
@@ -35,7 +35,7 @@ func TestDaemonUnitRunsAWatchdog(t *testing.T) {
 // turns a slow daemon into a restart loop. Two ping intervals must fit inside the
 // deadline (the daemon pings every third of it, see internal/daemon).
 func TestDaemonWatchdogOutlivesItsDeadline(t *testing.T) {
-	unit := buildDaemonUnit("/usr/local/bin/yesmem", ":0", "/home/u/.Xauthority", "unix:path=/run/user/1000/bus", "http://localhost:9099")
+	unit := buildDaemonUnit("/usr/local/bin/nemons", ":0", "/home/u/.Xauthority", "unix:path=/run/user/1000/bus", "http://localhost:9099")
 	sec := watchdogSecondsInUnit(t, unit)
 	if sec < 60 {
 		t.Fatalf("WatchdogSec=%ds is too tight for a daemon that bounds its own work in seconds", sec)

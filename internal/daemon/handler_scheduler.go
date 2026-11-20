@@ -17,8 +17,8 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/carsteneu/yesmem/internal/capfile"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/capfile"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 func (h *Handler) handleSchedule(params map[string]any) Response {
@@ -343,7 +343,7 @@ var errHeadlessTimeout = errors.New("headless run timed out")
 
 // runHeadlessCommand runs the wrapped command with a deadline. The prompt arrives
 // on stdin, which is how claude -p reads it. env is the run's sandbox environment:
-// the MCP server claude starts inside dials the daemon through YESMEM_SOCK, and
+// the MCP server claude starts inside dials the daemon through NEMONS_SOCK, and
 // the sandbox only mounts the restricted socket (YM-267). The deadline takes down
 // the whole process group: killing the direct child alone left the children it
 // started running. WaitDelay bounds the wait for the pipes after the kill, so a
@@ -442,7 +442,7 @@ func (h *Handler) executeHeadless(job ScheduledJob) {
 	}
 	// The result is reported under the address the run belongs to: the job's
 	// project when it has one, its job-owned run dir otherwise. Until YM-295 every
-	// scheduler write used the literal "yesmem", the daemon's own checkout, so a
+	// scheduler write used the literal "nemons", the daemon's own checkout, so a
 	// job of any other project reported into a foreign one.
 	h.handleScratchpadWrite(map[string]any{
 		"project": workDir,
@@ -456,7 +456,7 @@ func (h *Handler) executeAgent(job ScheduledJob) {
 	section := jobSectionName(job.Name)
 	// One address for the agent row, the task section and every control call: the
 	// job's project when it has one, the job-owned run work dir otherwise. Until
-	// YM-295 all of them used the literal "yesmem", the daemon's own checkout, so
+	// YM-295 all of them used the literal "nemons", the daemon's own checkout, so
 	// get/relay/stop could not find the agent of any other project and the run
 	// reported into a foreign one.
 	project := h.jobWorkDir(&job)
@@ -666,7 +666,7 @@ func (h *Handler) fireJobBash(job *ScheduledJob) {
 // bashSandboxConfig assembles the sandbox a bash job runs in. /tmp inside the
 // sandbox is its own tmpfs, so cap logs written there are gone when the run ends;
 // the job dir is mapped in and named in the environment instead (YM-218). Under
-// strict nothing can be mounted into the sandbox, so a YESMEM_JOB_DIR there would
+// strict nothing can be mounted into the sandbox, so a NEMONS_JOB_DIR there would
 // point at a path the cap cannot create: its log writes would silently go nowhere,
 // which is worse than the documented /tmp fallback.
 func (h *Handler) bashSandboxConfig(job *ScheduledJob, allowedHosts []string, profile SandboxProfile) SandboxConfig {
@@ -684,8 +684,8 @@ func (h *Handler) bashSandboxConfig(job *ScheduledJob, allowedHosts []string, pr
 		WorkDir: h.jobWorkDir(job),
 	}
 	// A cap that talks to the daemon has to name a project, and a bare basename
-	// is refused as soon as two checkouts share it (live: "yesmem" matched
-	// /home/tester/memory/yesmem and /home/tester/projects/yesmem, and the
+	// is refused as soon as two checkouts share it (live: "nemons" matched
+	// /home/tester/memory/nemons and /home/tester/projects/nemons, and the
 	// broadcast was rejected). The job carries the project it was created from;
 	// without one the variable is emptied rather than omitted, so an inherited
 	// value cannot leak in through mergeEnv and the cap fails loudly instead of
@@ -697,7 +697,7 @@ func (h *Handler) bashSandboxConfig(job *ScheduledJob, allowedHosts []string, pr
 	if filepath.IsAbs(job.Project) {
 		project = job.Project
 	}
-	cfg.Env = append(cfg.Env, "YESMEM_PROJECT="+project)
+	cfg.Env = append(cfg.Env, "NEMONS_PROJECT="+project)
 	if profile == ProfileStrict {
 		return cfg
 	}
@@ -885,7 +885,7 @@ func jobSandboxProfile(stored string) SandboxProfile {
 }
 
 // agentForwardPorts is the loopback relay a sandboxed agent run needs: the
-// yesmem proxy the host already points claude/codex at. Empty when no port was
+// nemons proxy the host already points claude/codex at. Empty when no port was
 // resolved, which leaves the run without the relay (and without the LLM).
 func (h *Handler) agentForwardPorts() []int {
 	if h.proxyForwardPort <= 0 {
@@ -967,7 +967,7 @@ func jobKey(id, name string) string {
 // inside the runtime dir.
 //
 // Naming the daemon's own checkout "$HOME/projects/<its basename>" invented a
-// second yesmem beside the real one, created it, and ran every such job there
+// second nemons beside the real one, created it, and ran every such job there
 // (YM-286).
 func (h *Handler) jobWorkDir(job *ScheduledJob) string {
 	if job != nil && filepath.IsAbs(job.Project) {
@@ -990,7 +990,7 @@ func (h *Handler) jobWorkDir(job *ScheduledJob) string {
 }
 
 // ensureJobDir creates the job's persistent log directory. Caps write their logs
-// there (via YESMEM_JOB_DIR) instead of /tmp, which the sandbox replaces with a
+// there (via NEMONS_JOB_DIR) instead of /tmp, which the sandbox replaces with a
 // throwaway tmpfs (YM-218). The directory is keyed on the job ID, not the name, so
 // two jobs sharing a name do not overwrite each other's state file by accident.
 // Same-uid runs are not isolated from each other here: a sandboxed job can read
@@ -1112,5 +1112,5 @@ func jobDirEnv(dir string) []string {
 	if dir == "" {
 		return nil
 	}
-	return []string{"YESMEM_JOB_DIR=" + dir}
+	return []string{"NEMONS_JOB_DIR=" + dir}
 }

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // TestLos56eInsertLearningNeverWritesAnEmptyCreatedAt is the regression test for
@@ -47,7 +47,7 @@ func TestLos56eInsertLearningNeverWritesAnEmptyCreatedAt(t *testing.T) {
 // created_at. The session start is the only evidence the store holds, so the
 // backfill takes it and leaves a row without a datable session alone.
 func TestLos56eStoreOpenBackfillsEmptyCreatedAt(t *testing.T) {
-	dbPath := filepath.Join(t.TempDir(), "yesmem.db")
+	dbPath := filepath.Join(t.TempDir(), "nemons.db")
 
 	s, err := Open(dbPath)
 	if err != nil {

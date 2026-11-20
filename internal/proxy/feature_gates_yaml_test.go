@@ -5,7 +5,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // decodeProxyGates decodes a YAML document the way config.Load does, so the

@@ -13,7 +13,7 @@ import (
 //   - User skills: ~/.claude/skills/<name>/SKILL.md
 //   - Superpowers skills: <superpowers-root>/skills/<name>/SKILL.md
 //
-// Bundled yesmem skills in the repo (skills/bundled-skills/) are NOT counted
+// Bundled nemons skills in the repo (skills/bundled-skills/) are NOT counted
 // here — they must be deployed to one of the host directories to become
 // agent-loadable. This prevents the guard from suggesting skills the agent
 // cannot activate.

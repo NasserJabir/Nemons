@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/codescan"
+	"github.com/NasserJabir/Nemons/internal/codescan"
 )
 
 // cbmGCInterval: how often the daemon GC task runs.

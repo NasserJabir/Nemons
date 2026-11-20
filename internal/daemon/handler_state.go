@@ -13,10 +13,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/briefing"
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/briefing"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 func (h *Handler) handleGetCompactedStubs(params map[string]any) Response {
@@ -388,7 +388,7 @@ func peerEnvSession(pid int) string {
 		"CLAUDE_SESSION_ID",
 		"CODEX_THREAD_ID",
 		"CODEX_SESSION_ID",
-		"YESMEM_SESSION_ID",
+		"NEMONS_SESSION_ID",
 	} {
 		want := name + "="
 		for _, entry := range entries {

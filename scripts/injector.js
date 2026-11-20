@@ -1,5 +1,5 @@
-// YesMem Agent Dialog Injector
-// Preloaded via NODE_OPTIONS="--require ~/.claude/yesmem/injector.js"
+// Nemons Agent Dialog Injector
+// Preloaded via NODE_OPTIONS="--require ~/.claude/nemons/injector.js"
 // Opens a Unix socket that accepts text to inject as stdin input into Claude Code.
 
 const net = require('net');
@@ -9,7 +9,7 @@ const path = require('path');
 // Only activate inside Claude Code
 if (!process.argv.some(a => a.includes('claude'))) return;
 
-const sockDir = path.join(process.env.HOME, '.claude', 'yesmem');
+const sockDir = path.join(process.env.HOME, '.claude', 'nemons');
 const sockPath = path.join(sockDir, `inject-${process.pid}.sock`);
 
 // Clean up stale socket

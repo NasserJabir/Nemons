@@ -7,11 +7,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/carsteneu/yesmem/internal/archive"
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/indexer"
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/textutil"
+	"github.com/NasserJabir/Nemons/internal/archive"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/indexer"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/textutil"
 )
 
 // runArchiveSessions backfills archive documents for indexed sessions that have
@@ -20,7 +20,7 @@ import (
 // sessions without a JSONL file are covered; a failed ArchiveFile copy of a
 // file-backed session belongs to the indexer.
 func runArchiveSessions() {
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 
 	fs := flag.NewFlagSet("archive-sessions", flag.ExitOnError)
 	project := fs.String("project", "", "only sessions of this project")
@@ -31,9 +31,9 @@ func runArchiveSessions() {
 	fs.Parse(os.Args[2:])
 
 	// storage.Open and not OpenReadOnly: this store must resolve messages.db, and
-	// the read-only opener maps messages to yesmem.db, which would find no messages
+	// the read-only opener maps messages to nemons.db, which would find no messages
 	// for a split installation.
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		log.Fatalf("open db: %s", textutil.ErrorLine(err))
 	}

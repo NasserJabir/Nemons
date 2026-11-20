@@ -159,7 +159,7 @@ func TestEnsureTmuxSession(t *testing.T) {
 	if _, err := exec.LookPath("tmux"); err != nil {
 		t.Skip("tmux not available")
 	}
-	session := fmt.Sprintf("yesmem-test-%d", time.Now().UnixNano())
+	session := fmt.Sprintf("nemons-test-%d", time.Now().UnixNano())
 	t.Cleanup(func() { _ = exec.Command("tmux", "kill-session", "-t", session).Run() })
 
 	if err := EnsureTmuxSession(session); err != nil {

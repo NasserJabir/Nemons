@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/briefing"
-	"github.com/carsteneu/yesmem/internal/clustering"
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/embedding"
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/briefing"
+	"github.com/NasserJabir/Nemons/internal/clustering"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/embedding"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // extractPersonaSignals runs persona signal extraction over recent sessions (default limit: 10).

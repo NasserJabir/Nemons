@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func TestClaudeMdStateCRUD(t *testing.T) {
@@ -26,7 +26,7 @@ func TestClaudeMdStateCRUD(t *testing.T) {
 		Project:       "testproject",
 		LastGenerated: now,
 		LearningsHash: "abc123",
-		OutputPath:    "/tmp/test/.claude/yesmem-ops.md",
+		OutputPath:    "/tmp/test/.claude/nemons-ops.md",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -52,7 +52,7 @@ func TestClaudeMdStateCRUD(t *testing.T) {
 		Project:       "testproject",
 		LastGenerated: now.Add(time.Hour),
 		LearningsHash: "def456",
-		OutputPath:    "/tmp/test/.claude/yesmem-ops.md",
+		OutputPath:    "/tmp/test/.claude/nemons-ops.md",
 	})
 	if err != nil {
 		t.Fatal(err)

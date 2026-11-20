@@ -8,27 +8,27 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/carsteneu/yesmem/plugins"
+	"github.com/NasserJabir/Nemons/plugins"
 )
 
-// bundledThemeNames is the theme family shipped with yesmem: a neutral
+// bundledThemeNames is the theme family shipped with nemons: a neutral
 // default, one per-hue-tinted dark theme per agent type, and a light theme.
 var bundledThemeNames = []string{
-	"yesmem-default",
-	"yesmem-dark",
-	"yesmem-loop",
-	"yesmem-research",
-	"yesmem-subresearch",
-	"yesmem-light",
+	"nemons-default",
+	"nemons-dark",
+	"nemons-loop",
+	"nemons-research",
+	"nemons-subresearch",
+	"nemons-light",
 }
 
 // agentThemeNames are the four dark agent themes: shared text/border
 // structure, deliberately per-hue-tinted backgrounds, one accent per type.
 var agentThemeNames = []string{
-	"yesmem-dark",
-	"yesmem-loop",
-	"yesmem-research",
-	"yesmem-subresearch",
+	"nemons-dark",
+	"nemons-loop",
+	"nemons-research",
+	"nemons-subresearch",
 }
 
 // opencodeThemeSlots mirrors the slot set opencode's bundled themes define
@@ -170,26 +170,26 @@ func TestAgentThemesShareStructureAndTintBackgrounds(t *testing.T) {
 		}
 	}
 
-	deflt := readBundledTheme(t, "yesmem-default")
+	deflt := readBundledTheme(t, "nemons-default")
 	defbg := deflt.Defs[deflt.Theme["background"].(string)]
 	lr, _ := strconv.ParseUint(defbg[1:3], 16, 8)
 	lg, _ := strconv.ParseUint(defbg[3:5], 16, 8)
 	lb, _ := strconv.ParseUint(defbg[5:7], 16, 8)
 	if lr != lg || lg != lb {
-		t.Errorf("yesmem-default background %s is tinted, want neutral", defbg)
+		t.Errorf("nemons-default background %s is tinted, want neutral", defbg)
 	}
 	if text := deflt.Defs[deflt.Theme["text"].(string)]; text != "#ffffff" {
-		t.Errorf("yesmem-default text = %s, want pure white", text)
+		t.Errorf("nemons-default text = %s, want pure white", text)
 	}
 
-	light := readBundledTheme(t, "yesmem-light")
+	light := readBundledTheme(t, "nemons-light")
 	lightbg := light.Defs[light.Theme["background"].(string)]
 	lighttext := light.Defs[light.Theme["text"].(string)]
 	if luminance(lightbg) < 0.8 {
-		t.Errorf("yesmem-light background %s is not light", lightbg)
+		t.Errorf("nemons-light background %s is not light", lightbg)
 	}
 	if luminance(lighttext) > 0.05 {
-		t.Errorf("yesmem-light text %s is not dark", lighttext)
+		t.Errorf("nemons-light text %s is not dark", lighttext)
 	}
 }
 
@@ -230,7 +230,7 @@ func TestInstallThemesIdempotentAndUpdating(t *testing.T) {
 		t.Fatalf("second install: n=%d err=%v, want 0/nil", n, err)
 	}
 
-	stale := filepath.Join(home, ".config", "opencode", "themes", "yesmem-loop.json")
+	stale := filepath.Join(home, ".config", "opencode", "themes", "nemons-loop.json")
 	if err := os.WriteFile(stale, []byte(`{"theme":{"primary":"#000000"}}`), 0644); err != nil {
 		t.Fatal(err)
 	}
@@ -241,7 +241,7 @@ func TestInstallThemesIdempotentAndUpdating(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read refreshed theme: %v", err)
 	}
-	want, _ := plugins.AgentThemes.ReadFile("themes/yesmem-loop.json")
+	want, _ := plugins.AgentThemes.ReadFile("themes/nemons-loop.json")
 	if string(got) != string(want) {
 		t.Error("edited theme was not restored to the embedded content")
 	}
@@ -272,7 +272,7 @@ func themesHome(t *testing.T) string {
 	return home
 }
 
-// TestRemoveThemesLeavesUserThemes: uninstall removes what yesmem installed,
+// TestRemoveThemesLeavesUserThemes: uninstall removes what nemons installed,
 // not the themes a user added to the same directory.
 func TestRemoveThemesLeavesUserThemes(t *testing.T) {
 	home := themesHome(t)

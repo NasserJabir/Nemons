@@ -11,7 +11,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // MaxArtifactBytes is the largest file the verifier will hash: the digest

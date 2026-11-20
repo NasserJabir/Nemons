@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// ClaudeMdState tracks when a project's yesmem-ops.md was last generated.
+// ClaudeMdState tracks when a project's nemons-ops.md was last generated.
 type ClaudeMdState struct {
 	Project       string
 	LastGenerated time.Time

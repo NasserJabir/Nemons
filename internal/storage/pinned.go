@@ -31,7 +31,7 @@ func (s *Store) pinnedDB(scope string) *sql.DB {
 	if scope == "session" {
 		return s.proxyStateDB() // runtime.db
 	}
-	return s.db // yesmem.db
+	return s.db // nemons.db
 }
 
 // PinLearning creates a new pinned learning in the appropriate DB. sessionID

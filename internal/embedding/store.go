@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // searchAllowedBatch bounds the placeholders one statement may bind. SQLite
@@ -247,7 +247,7 @@ func (s *VectorStore) bruteForceScan(ctx context.Context, queryEmbedding []float
 	// SQL pre-filter to shrink the working set. The post-filter via projectMatchesTolerant
 	// below handles edge cases (worktree paths, same-basename collision avoidance) that
 	// this clause cannot express in SQL. We pass both the raw requested value and its
-	// canonical basename so legacy rows (canonical_project='yesmem') match when the
+	// canonical basename so legacy rows (canonical_project='nemons') match when the
 	// caller passes a full path, and vice versa.
 	if project != "" {
 		reqCanon := models.CanonicalProject(project)

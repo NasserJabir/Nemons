@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/archive"
-	"github.com/carsteneu/yesmem/internal/bloom"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/archive"
+	"github.com/NasserJabir/Nemons/internal/bloom"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // Synthetic-session benchmarks for the append fast path.
@@ -25,12 +25,12 @@ import (
 // whole file on every write. Sizes are parameterised so CI runs a small case
 // while a real GB-class rollout can be reproduced on demand:
 //
-//	YESMEM_BENCH_MB      total session size to grow to (default 16)
-//	YESMEM_BENCH_STEPS   number of append steps (default 8)
-//	YESMEM_BENCH_ARCHIVE set to 0 to index without the JSONL archiver
+//	NEMONS_BENCH_MB      total session size to grow to (default 16)
+//	NEMONS_BENCH_STEPS   number of append steps (default 8)
+//	NEMONS_BENCH_ARCHIVE set to 0 to index without the JSONL archiver
 //
-// Examples: YESMEM_BENCH_MB=200 go test ./internal/indexer -run Scaling -v
-//           YESMEM_BENCH_MB=1024 YESMEM_BENCH_STEPS=8 go test ./internal/indexer -run Scaling -v -timeout 0
+// Examples: NEMONS_BENCH_MB=200 go test ./internal/indexer -run Scaling -v
+//           NEMONS_BENCH_MB=1024 NEMONS_BENCH_STEPS=8 go test ./internal/indexer -run Scaling -v -timeout 0
 //
 // A GB-class run needs -timeout 0: each step measures a full reparse of the
 // current file, so the aggregate work is several times one full pass.
@@ -85,7 +85,7 @@ func appendChunk(tb testing.TB, path, sessionID string, from int, bytes int64) i
 func benchIndexer(tb testing.TB, withArchive bool) (*Indexer, *storage.Store) {
 	tb.Helper()
 	dir := tb.TempDir()
-	store, err := storage.Open(filepath.Join(dir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dir, "nemons.db"))
 	if err != nil {
 		tb.Fatalf("open store: %v", err)
 	}
@@ -191,9 +191,9 @@ func TestReindexScalingReport(t *testing.T) {
 		t.Skip("scaling report is skipped with -short")
 	}
 
-	targetMB := benchEnvInt("YESMEM_BENCH_MB", 16)
-	steps := benchEnvInt("YESMEM_BENCH_STEPS", 8)
-	withArchive := os.Getenv("YESMEM_BENCH_ARCHIVE") != "0"
+	targetMB := benchEnvInt("NEMONS_BENCH_MB", 16)
+	steps := benchEnvInt("NEMONS_BENCH_STEPS", 8)
+	withArchive := os.Getenv("NEMONS_BENCH_ARCHIVE") != "0"
 
 	idx, store := benchIndexer(t, withArchive)
 	dir := t.TempDir()

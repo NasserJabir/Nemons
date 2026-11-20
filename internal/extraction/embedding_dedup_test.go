@@ -3,8 +3,8 @@ package extraction
 import (
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/embedding"
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/embedding"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func TestFindEmbeddingDuplicates_IdenticalVectors(t *testing.T) {

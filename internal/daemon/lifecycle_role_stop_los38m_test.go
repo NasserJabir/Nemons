@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// Los 38m / YM-312: the process-table side of `yesmem stop`/`restart`. The fixture
+// Los 38m / YM-312: the process-table side of `nemons stop`/`restart`. The fixture
 // tree keeps the test hermetic: the identity check reads cmdline and environ from
 // files, so no real daemon has to run.
 func writeProcFixture(t *testing.T, root string, pid int, argv, environ []string) {
@@ -50,7 +50,7 @@ func writeProcFixtureStat(t *testing.T, root string, pid, startTicks int) {
 	fields[1] = "1" // ppid
 	fields[19] = strconv.Itoa(startTicks)
 	if err := os.WriteFile(filepath.Join(root, strconv.Itoa(pid), "stat"),
-		[]byte(fmt.Sprintf("%d (yesmem) %s\n", pid, strings.Join(fields, " "))), 0o644); err != nil {
+		[]byte(fmt.Sprintf("%d (nemons) %s\n", pid, strings.Join(fields, " "))), 0o644); err != nil {
 		t.Fatalf("fixture stat for %d: %v", pid, err)
 	}
 }
@@ -95,28 +95,28 @@ func TestOwnedRolePIDsRequiresArgvAndDataDir(t *testing.T) {
 	root := t.TempDir()
 	useProcRoot(t, root)
 	home := t.TempDir()
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	foreignHome := t.TempDir()
 
 	// ours: started from this HOME, no explicit data dir
-	writeProcFixture(t, root, 10, []string{"/home/u/.local/bin/yesmem", "daemon"}, []string{"HOME=" + home})
-	// ours even though a stray YESMEM_DATA_DIR points elsewhere: no service binary
+	writeProcFixture(t, root, 10, []string{"/home/u/.local/bin/nemons", "daemon"}, []string{"HOME=" + home})
+	// ours even though a stray NEMONS_DATA_DIR points elsewhere: no service binary
 	// reads that variable, so it must not reclassify the process
-	writeProcFixture(t, root, 11, []string{"/home/u/.local/bin/yesmem", "daemon", "--replace"}, []string{"HOME=" + home, "YESMEM_DATA_DIR=/srv/elsewhere"})
+	writeProcFixture(t, root, 11, []string{"/home/u/.local/bin/nemons", "daemon", "--replace"}, []string{"HOME=" + home, "NEMONS_DATA_DIR=/srv/elsewhere"})
 	// another installation's daemon
-	writeProcFixture(t, root, 12, []string{"/home/u/.local/bin/yesmem", "daemon"}, []string{"HOME=" + foreignHome})
+	writeProcFixture(t, root, 12, []string{"/home/u/.local/bin/nemons", "daemon"}, []string{"HOME=" + foreignHome})
 	// a process that only MENTIONS the words in its arguments (the pgrep class)
-	writeProcFixture(t, root, 13, []string{"/usr/bin/grep", "yesmem daemon"}, []string{"HOME=" + home})
+	writeProcFixture(t, root, 13, []string{"/usr/bin/grep", "nemons daemon"}, []string{"HOME=" + home})
 	// a worktree test binary
-	writeProcFixture(t, root, 14, []string{"/home/u/worktrees/yesmem.test", "daemon"}, []string{"HOME=" + home})
+	writeProcFixture(t, root, 14, []string{"/home/u/worktrees/nemons.test", "daemon"}, []string{"HOME=" + home})
 	// the other role
-	writeProcFixture(t, root, 15, []string{"/home/u/.local/bin/yesmem", "proxy"}, []string{"HOME=" + home})
+	writeProcFixture(t, root, 15, []string{"/home/u/.local/bin/nemons", "proxy"}, []string{"HOME=" + home})
 	// no readable environment: unverifiable
-	writeProcFixture(t, root, 16, []string{"/home/u/.local/bin/yesmem", "daemon"}, nil)
+	writeProcFixture(t, root, 16, []string{"/home/u/.local/bin/nemons", "daemon"}, nil)
 	// cleared environment: also unverifiable, not "our default dir"
-	writeProcFixture(t, root, 18, []string{"/home/u/.local/bin/yesmem", "daemon"}, []string{})
+	writeProcFixture(t, root, 18, []string{"/home/u/.local/bin/nemons", "daemon"}, []string{})
 	// a dev build under another name is still this installation
-	writeProcFixture(t, root, 17, []string{"/tmp/yesmem-dev", "daemon"}, []string{"HOME=" + home})
+	writeProcFixture(t, root, 17, []string{"/tmp/nemons-dev", "daemon"}, []string{"HOME=" + home})
 
 	got := ownedRolePIDs("daemon", dataDir, 999)
 	want := []int{10, 11, 17}
@@ -137,11 +137,11 @@ func TestOwnedRolePIDsIgnoresForeignPIDFile(t *testing.T) {
 	root := t.TempDir()
 	useProcRoot(t, root)
 	home := t.TempDir()
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	if err := os.MkdirAll(dataDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	writeProcFixture(t, root, 21, []string{"/home/u/.local/bin/yesmem", "daemon"}, []string{"HOME=" + t.TempDir()})
+	writeProcFixture(t, root, 21, []string{"/home/u/.local/bin/nemons", "daemon"}, []string{"HOME=" + t.TempDir()})
 	if err := os.WriteFile(filepath.Join(dataDir, "daemon.pid"), []byte("21\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -158,9 +158,9 @@ func TestStopOwnedRoleSignalsOnlyItsOwn(t *testing.T) {
 	root := t.TempDir()
 	useProcRoot(t, root)
 	home := t.TempDir()
-	dataDir := filepath.Join(home, ".claude", "yesmem")
-	writeProcFixture(t, root, 31, []string{"/home/u/.local/bin/yesmem", "daemon"}, []string{"HOME=" + home})
-	writeProcFixture(t, root, 32, []string{"/home/u/.local/bin/yesmem", "daemon"}, []string{"HOME=" + t.TempDir()})
+	dataDir := filepath.Join(home, ".claude", "nemons")
+	writeProcFixture(t, root, 31, []string{"/home/u/.local/bin/nemons", "daemon"}, []string{"HOME=" + home})
+	writeProcFixture(t, root, 32, []string{"/home/u/.local/bin/nemons", "daemon"}, []string{"HOME=" + t.TempDir()})
 	calls := stubRoleStopSeams(t, func(int) bool { return true }, nil)
 
 	signalled := StopOwnedRole("daemon", dataDir)
@@ -179,8 +179,8 @@ func TestStopOwnedRoleRefusesKillAfterIdentityLoss(t *testing.T) {
 	root := t.TempDir()
 	useProcRoot(t, root)
 	home := t.TempDir()
-	dataDir := filepath.Join(home, ".claude", "yesmem")
-	writeProcFixture(t, root, 41, []string{"/home/u/.local/bin/yesmem", "daemon"}, []string{"HOME=" + home})
+	dataDir := filepath.Join(home, ".claude", "nemons")
+	writeProcFixture(t, root, 41, []string{"/home/u/.local/bin/nemons", "daemon"}, []string{"HOME=" + home})
 	calls := stubRoleStopSeams(t, func(int) bool { return false }, func(pid int, label string) {
 		if label == "TERM" {
 			// The number is recycled: the fixture entry no longer resolves.
@@ -220,8 +220,8 @@ func TestStopOwnedRoleRefusesKillWhenTheStartTimeChanges(t *testing.T) {
 	useProcRoot(t, root)
 	writeProcFixtureBtime(t, root, 1700000000)
 	home := t.TempDir()
-	dataDir := filepath.Join(home, ".claude", "yesmem")
-	writeProcFixture(t, root, 51, []string{"/home/u/.local/bin/yesmem", "daemon"}, []string{"HOME=" + home})
+	dataDir := filepath.Join(home, ".claude", "nemons")
+	writeProcFixture(t, root, 51, []string{"/home/u/.local/bin/nemons", "daemon"}, []string{"HOME=" + home})
 	writeProcFixtureStat(t, root, 51, 1000)
 
 	calls := stubRoleStopSeams(t, func(int) bool { return false }, func(pid int, label string) {
@@ -248,9 +248,9 @@ func TestEffectiveDataDirResolution(t *testing.T) {
 		environ []string
 		want    string
 	}{
-		{"below own HOME", []string{"HOME=/home/u"}, "/home/u/.claude/yesmem"},
-		{"stray override is ignored", []string{"YESMEM_DATA_DIR=/tmp/other", "HOME=/home/u"}, "/home/u/.claude/yesmem"},
-		{"missing HOME falls back", []string{"PATH=/usr/bin"}, "/fallback/.claude/yesmem"},
+		{"below own HOME", []string{"HOME=/home/u"}, "/home/u/.claude/nemons"},
+		{"stray override is ignored", []string{"NEMONS_DATA_DIR=/tmp/other", "HOME=/home/u"}, "/home/u/.claude/nemons"},
+		{"missing HOME falls back", []string{"PATH=/usr/bin"}, "/fallback/.claude/nemons"},
 	}
 	for _, tc := range cases {
 		if got := effectiveDataDir(tc.environ, "/fallback"); got != tc.want {
@@ -267,8 +267,8 @@ func TestStopOwnedRoleChecksIdentityBeforeTheFirstSignal(t *testing.T) {
 	root := t.TempDir()
 	useProcRoot(t, root)
 	home := t.TempDir()
-	dataDir := filepath.Join(home, ".claude", "yesmem")
-	writeProcFixture(t, root, 61, []string{"/home/u/.local/bin/yesmem", "daemon"}, []string{"HOME=" + home})
+	dataDir := filepath.Join(home, ".claude", "nemons")
+	writeProcFixture(t, root, 61, []string{"/home/u/.local/bin/nemons", "daemon"}, []string{"HOME=" + home})
 
 	// First look (the scan) dates the process; every later look finds another one.
 	looks := 0

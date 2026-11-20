@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // fakeInjectSocket accepts connections on the inject socket path and records
@@ -113,7 +113,7 @@ func newPermKickHandler(t *testing.T, kickDefault bool) (*Handler, *storage.Stor
 // agentProcCmdlineStub is the /proc cmdline the tests attribute to the test's
 // own PID. C2 gates the kick on the PID being a *verified* agent process, and
 // the test binary cannot present an opencode cmdline of its own.
-const agentProcCmdlineStub = "/home/tester/.opencode/bin/opencode\x00--theme\x00yesmem-loop"
+const agentProcCmdlineStub = "/home/tester/.opencode/bin/opencode\x00--theme\x00nemons-loop"
 
 func createKickAgent(t *testing.T, s *storage.Store, id, sockPath, permissionKick string) storage.Agent {
 	t.Helper()

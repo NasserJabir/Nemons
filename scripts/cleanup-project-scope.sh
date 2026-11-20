@@ -8,7 +8,7 @@
 #   ./cleanup-project-scope.sh apply     # backup, then apply the migration
 #   ./cleanup-project-scope.sh rollback  # backup, then reverse the migration
 #
-# DB: $YESMEM_DB, defaulting to ~/.claude/yesmem/yesmem.db
+# DB: $NEMONS_DB, defaulting to ~/.claude/nemons/nemons.db
 # Backup: <db>.bak-<label>-<UTC-timestamp> next to the DB (never overwritten).
 #   The apply run labels its snapshot "pre-apply"; the rollback uses the newest
 #   snapshot that still contains learnings.id=71692 to restore R4-5's deleted cap,
@@ -19,7 +19,7 @@
 set -euo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DB="${YESMEM_DB:-$HOME/.claude/yesmem/yesmem.db}"
+DB="${NEMONS_DB:-$HOME/.claude/nemons/nemons.db}"
 MODE="${1:-dry-run}"
 
 command -v sqlite3 >/dev/null || { echo "sqlite3 not found in PATH" >&2; exit 1; }
@@ -51,10 +51,10 @@ SELECT 'cap ' || id || ' ' || COALESCE(json_extract(context,'$.cap_name'),'?') |
   FROM learnings WHERE id=91447 AND category='cap' AND (project='' OR project IS NULL);
 SELECT 'doc_source ' || id || ' ' || name || ' -> /var/www/html/GreenWashProjekt/greenWebsite' AS change
   FROM doc_sources WHERE id=122 AND (project='' OR project IS NULL);
-SELECT 'doc_source ' || id || ' ' || name || ' -> $HOME/memory/yesmem' AS change
-  FROM doc_sources WHERE id=106 AND project='yesmem-projects-ghost';
+SELECT 'doc_source ' || id || ' ' || name || ' -> $HOME/memory/nemons' AS change
+  FROM doc_sources WHERE id=106 AND project='nemons-projects-ghost';
 SELECT 'doc_source ' || id || ' ' || name || ' -> (global)' AS change
-  FROM doc_sources WHERE id IN (112,113) AND project='yesmem-projects-ghost';
+  FROM doc_sources WHERE id IN (112,113) AND project='nemons-projects-ghost';
 SELECT 'cinnamon-* (' || count(*) || ' rows) -> $HOME/performance/cinnamon' AS change
   FROM doc_sources WHERE name LIKE 'cinnamon-%' AND (project='' OR project IS NULL);
 SELECT 'cinnamon-* copies to create -> $HOME/projects/greenTile' AS change
@@ -75,7 +75,7 @@ SQL
             OR (id=87262 AND project='/var/www/html/GreenWashProjekt/greencrawler')
             OR (id=91447 AND project='/var/www/html/GreenWashProjekt/greenwashCCm19/cookie-consent-management')),
         (SELECT count(*) FROM doc_sources WHERE (id=122 AND project='/var/www/html/GreenWashProjekt/greenWebsite')
-            OR (id=106 AND project='$HOME/memory/yesmem')
+            OR (id=106 AND project='$HOME/memory/nemons')
             OR (id=112 AND project='')
             OR (id=113 AND project='')),
         (SELECT count(*) FROM doc_sources WHERE id BETWEEN 87 AND 101 AND project='$HOME/performance/cinnamon'),
@@ -184,7 +184,7 @@ SQL
     back="$(sqlite3 "$DB" "SELECT
         (SELECT count(*) FROM learnings WHERE id IN (65739,87262,91447) AND (project='' OR project IS NULL)),
         (SELECT count(*) FROM doc_sources WHERE (id=122 AND (project='' OR project IS NULL))
-            OR (id IN (106,112,113) AND project='yesmem-projects-ghost')),
+            OR (id IN (106,112,113) AND project='nemons-projects-ghost')),
         (SELECT count(*) FROM doc_sources WHERE id BETWEEN 87 AND 101 AND (project='' OR project IS NULL)),
         (SELECT count(*) FROM doc_sources WHERE project='$HOME/projects/greenTile'
             AND name IN (SELECT name FROM doc_sources WHERE id BETWEEN 87 AND 101));")"

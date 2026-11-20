@@ -27,8 +27,8 @@ func TestLos63cCapDeliveryDocsMatchTheMechanism(t *testing.T) {
 		path string
 	}{
 		{"docs/features/operations.md", filepath.Join("..", "..", "docs", "features", "operations.md")},
-		{"yesmem-cap-builder/recipes.md", filepath.Join("..", "..", "skills", "bundled-skills", "yesmem-cap-builder", "recipes.md")},
-		{"yesmem-cap-builder/SKILL.md", filepath.Join("..", "..", "skills", "bundled-skills", "yesmem-cap-builder", "SKILL.md")},
+		{"nemons-cap-builder/recipes.md", filepath.Join("..", "..", "skills", "bundled-skills", "nemons-cap-builder", "recipes.md")},
+		{"nemons-cap-builder/SKILL.md", filepath.Join("..", "..", "skills", "bundled-skills", "nemons-cap-builder", "SKILL.md")},
 	}
 	// Claims the mechanism no longer makes. Each one named a gate that is gone, and a
 	// doc that still carries it sends the maintainer after a counter that decides
@@ -45,7 +45,7 @@ func TestLos63cCapDeliveryDocsMatchTheMechanism(t *testing.T) {
 		"manifest.yaml",     // the file it lives in, shipped and per installation
 		"No entry",          // the case that reports instead of installing
 		"display only",      // the frontmatter version no longer gates
-		"yesmem migrate",    // the command that runs InstallBundledCaps; `make deploy` does not install caps
+		"nemons migrate",    // the command that runs InstallBundledCaps; `make deploy` does not install caps
 	}
 	for _, d := range docs {
 		doc := readFile(t, d.path)

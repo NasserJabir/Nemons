@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/buildinfo"
+	"github.com/NasserJabir/Nemons/internal/buildinfo"
 )
 
 // --- install hygiene (YM-86) ---
@@ -15,7 +15,7 @@ import (
 // The installer mirrors the embedded bundle and never deleted anything, so the
 // installed plugin directory kept files the repo had removed and shipped the
 // plugin's own test files. The directory is generated output: it mirrors the
-// bundle. Exercised on the v2 bundle, the only plugin yesmem ships.
+// bundle. Exercised on the v2 bundle, the only plugin nemons ships.
 
 func TestInstallOpencodePluginV2_InstallsBundle(t *testing.T) {
 	home := filepath.Join(t.TempDir(), "home")
@@ -68,7 +68,7 @@ func TestInstallOpencodePluginV2_DoesNotInstallTestFiles(t *testing.T) {
 		if strings.HasSuffix(e.Name(), "_test.ts") || strings.HasSuffix(e.Name(), ".test.ts") {
 			t.Errorf("test file installed: %s", e.Name())
 		}
-		if e.Name() == "opencode-yesmem-fixture.ts" {
+		if e.Name() == "opencode-nemons-fixture.ts" {
 			t.Errorf("test harness installed: %s", e.Name())
 		}
 	}
@@ -85,7 +85,7 @@ func TestInstallOpencodePluginV2_RemovesStaleFiles(t *testing.T) {
 	if err := os.MkdirAll(dstDir, 0755); err != nil {
 		t.Fatal(err)
 	}
-	// Files a previous yesmem version installed and the repo has since dropped.
+	// Files a previous nemons version installed and the repo has since dropped.
 	for _, name := range []string{"old_hook.ts", "messages_test.ts"} {
 		if err := os.WriteFile(filepath.Join(dstDir, name), []byte("// old"), 0644); err != nil {
 			t.Fatal(err)
@@ -126,7 +126,7 @@ func TestInstallOpencodePluginV2_ReportsUpdatedCount(t *testing.T) {
 // --- plugin manifest (YM-421) ---
 //
 // opencode reports a directory plugin's version from its package.json; without one the listing says
-// "local" and two installs of different yesmem versions are indistinguishable. The manifest is
+// "local" and two installs of different nemons versions are indistinguishable. The manifest is
 // generated, not embedded, because the version has to be the one of the installing binary.
 
 func readInstalledManifest(t *testing.T, home string) map[string]any {
@@ -153,8 +153,8 @@ func TestInstallOpencodePluginV2_WritesManifest(t *testing.T) {
 	}
 
 	manifest := readInstalledManifest(t, home)
-	if manifest["name"] != "opencode-yesmem" {
-		t.Errorf("name = %v, want opencode-yesmem", manifest["name"])
+	if manifest["name"] != "opencode-nemons" {
+		t.Errorf("name = %v, want opencode-nemons", manifest["name"])
 	}
 	if manifest["version"] != "9.9.9-los58f" {
 		t.Errorf("version = %v, want the version of the installing binary", manifest["version"])

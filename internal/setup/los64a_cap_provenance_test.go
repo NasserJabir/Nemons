@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/caps"
-	"github.com/carsteneu/yesmem/internal/capfile"
-	"github.com/carsteneu/yesmem/internal/textutil"
+	"github.com/NasserJabir/Nemons/caps"
+	"github.com/NasserJabir/Nemons/internal/capfile"
+	"github.com/NasserJabir/Nemons/internal/textutil"
 )
 
 // los64aBundledBody returns the CAP.md this binary ships for name.

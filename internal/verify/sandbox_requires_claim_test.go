@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // bunFixtureRepo is a project whose suite needs a program outside the sandbox:
@@ -29,7 +29,7 @@ func bunFixtureRepo(t *testing.T, profile string) (repo, toolDir string) {
 	if err != nil {
 		t.Fatalf("mkdtemp: %v", err)
 	}
-	if err := os.MkdirAll(filepath.Join(repo, ".yesmem"), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Join(repo, ".nemons"), 0o755); err != nil {
 		t.Fatalf("mkdir repo: %v", err)
 	}
 	toolDir = filepath.Join(root, "tools", t.Name(), "bin")
@@ -61,7 +61,7 @@ func TestTheSuiteNeedsABun(t *testing.T) {
 `,
 	}
 	if profile != "" {
-		files[filepath.Join(".yesmem", "verify.yaml")] = profile
+		files[filepath.Join(".nemons", "verify.yaml")] = profile
 	}
 	for name, content := range files {
 		path := filepath.Join(repo, name)
@@ -181,7 +181,7 @@ func judgeFixtureSuite(t *testing.T, repo string) engine.Verdict {
 
 func writeFixtureProfile(t *testing.T, repo, profile string) {
 	t.Helper()
-	if err := os.WriteFile(filepath.Join(repo, ".yesmem", "verify.yaml"), []byte(profile), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(repo, ".nemons", "verify.yaml"), []byte(profile), 0o644); err != nil {
 		t.Fatalf("write profile: %v", err)
 	}
 }

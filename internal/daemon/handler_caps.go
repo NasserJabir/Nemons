@@ -8,12 +8,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/capfile"
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/repo"
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/textutil"
+	"github.com/NasserJabir/Nemons/internal/capfile"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/repo"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/textutil"
 )
 
 type capResult struct {
@@ -232,11 +232,11 @@ func (h *Handler) handleSaveCapFrom(params map[string]any, sourcePath string) Re
 	}
 	// Retirement is a rule, not a one-off migration: this is the single point
 	// every import path goes through (SyncCapsFromDisk, the CAP.md watcher, the
-	// job socket, the tool itself), so a name yesmem no longer ships is refused
+	// job socket, the tool itself), so a name nemons no longer ships is refused
 	// here. Without it the CAP.md that stays on disk, or an agent following an old
 	// recipe, puts the cap back into the catalog (YM-181, YM-197).
 	if capfile.IsRetiredCap(name) {
-		return errorResponse(fmt.Sprintf("save_cap: %q is a retired cap name: yesmem no longer ships it and a CAP.md of that name is ignored. Pick another name, or use \"yesmem wiki-render\" for the wiki.", name))
+		return errorResponse(fmt.Sprintf("save_cap: %q is a retired cap name: nemons no longer ships it and a CAP.md of that name is ignored. Pick another name, or use \"nemons wiki-render\" for the wiki.", name))
 	}
 	description := stringOr(params, "description", "")
 	project := stringOr(params, "project", "")
@@ -910,7 +910,7 @@ func (h *Handler) handleDeactivateCap(params map[string]any) Response {
 //
 // The caller names one value only. An earlier version also asked with the bare
 // basename of an absolute path, which turned the relative-row half of the rule
-// into a back door: a row stored as "yesmem/.worktrees/w1" matched every checkout
+// into a back door: a row stored as "nemons/.worktrees/w1" matched every checkout
 // of that name in the catalog while execute_cap refused it (YM-404).
 func capProjectVisible(capProject, project string) bool {
 	if capProject == "" {

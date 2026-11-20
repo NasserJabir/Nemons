@@ -10,12 +10,12 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/ingest"
-	"github.com/carsteneu/yesmem/internal/repo"
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/textutil"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/ingest"
+	"github.com/NasserJabir/Nemons/internal/repo"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/textutil"
 )
 
 func runAddDocs(args []string) {
@@ -62,8 +62,8 @@ func runAddDocs(args []string) {
 		os.Exit(1)
 	}
 
-	dataDir := yesmemDataDir()
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	dataDir := nemonsDataDir()
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		log.Fatalf("open db: %s", textutil.ErrorLine(err))
 	}
@@ -126,8 +126,8 @@ func runSyncDocs(args []string) {
 		os.Exit(1)
 	}
 
-	dataDir := yesmemDataDir()
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	dataDir := nemonsDataDir()
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		log.Fatalf("open db: %s", textutil.ErrorLine(err))
 	}
@@ -314,8 +314,8 @@ func runListDocs(args []string) {
 	project := fs.String("project", "", "Filter by project")
 	fs.Parse(args)
 
-	dataDir := yesmemDataDir()
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	dataDir := nemonsDataDir()
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		log.Fatalf("open db: %s", textutil.ErrorLine(err))
 	}
@@ -365,8 +365,8 @@ func runRemoveDocs(args []string) {
 		os.Exit(1)
 	}
 
-	dataDir := yesmemDataDir()
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	dataDir := nemonsDataDir()
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		log.Fatalf("open db: %s", textutil.ErrorLine(err))
 	}
@@ -398,7 +398,7 @@ func runRemoveDocs(args []string) {
 // names that are not a single path element, so a caller-supplied name cannot
 // steer the recursive cleanup outside the docs directory.
 func docsCloneDir(name string) (string, error) {
-	return ingest.CloneDir(yesmemDataDir(), name)
+	return ingest.CloneDir(nemonsDataDir(), name)
 }
 
 // tryGitPull updates a doc source from its upstream, but only when the source
@@ -435,9 +435,9 @@ func tryGitPull(path string) bool {
 	return true
 }
 
-// cloneOrPullRepo clones a git URL to ~/.claude/yesmem/docs/<name>/ or pulls if exists.
+// cloneOrPullRepo clones a git URL to ~/.claude/nemons/docs/<name>/ or pulls if exists.
 func cloneOrPullRepo(name, url string) string {
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 	docsDir, err := ingest.CloneDir(dataDir, name)
 	if err != nil {
 		log.Printf("  %v", err)

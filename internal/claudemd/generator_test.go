@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 type mockLLMClient struct {
@@ -63,12 +63,12 @@ func mustOpenStore(t *testing.T) *storage.Store {
 func TestGeneratorWritesFile(t *testing.T) {
 	cfg := &config.ClaudeMdConfig{
 		MaxPerCategory: map[string]int{"gotcha": 5},
-		OutputFileName: "yesmem-ops.md",
+		OutputFileName: "nemons-ops.md",
 	}
 	gen := NewGenerator(mustOpenStore(t), &mockLLMClient{response: "## Bekannte Fallen\n- test gotcha"}, cfg)
 
 	dir := t.TempDir()
-	outPath, err := gen.writeTo(dir, ".claude", "yesmem-ops.md", "testproj", "## Bekannte Fallen\n- test gotcha", claudeHeader)
+	outPath, err := gen.writeTo(dir, ".claude", "nemons-ops.md", "testproj", "## Bekannte Fallen\n- test gotcha", claudeHeader)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,9 +104,9 @@ func TestGeneratorNeedsRefreshNoState(t *testing.T) {
 }
 
 func TestGeneratorWriteMissingDir(t *testing.T) {
-	cfg := &config.ClaudeMdConfig{OutputFileName: "yesmem-ops.md"}
+	cfg := &config.ClaudeMdConfig{OutputFileName: "nemons-ops.md"}
 	gen := NewGenerator(mustOpenStore(t), nil, cfg)
-	_, err := gen.writeTo("/nonexistent/path", ".claude", "yesmem-ops.md", "proj", "content", claudeHeader)
+	_, err := gen.writeTo("/nonexistent/path", ".claude", "nemons-ops.md", "proj", "content", claudeHeader)
 	if err == nil {
 		t.Error("expected error for non-existent project dir")
 	}
@@ -120,7 +120,7 @@ func TestGenerateFullPipeline(t *testing.T) {
 	mock := &mockLLMClient{response: "## Fallen\n- gotcha 1\n- gotcha 2"}
 	cfg := &config.ClaudeMdConfig{
 		MaxPerCategory: map[string]int{"gotcha": 5},
-		OutputFileName: "yesmem-ops.md",
+		OutputFileName: "nemons-ops.md",
 	}
 	gen := NewGenerator(store, mock, cfg)
 
@@ -135,7 +135,7 @@ func TestGenerateFullPipeline(t *testing.T) {
 	}
 
 	// File was written
-	outPath := filepath.Join(dir, ".claude", "yesmem-ops.md")
+	outPath := filepath.Join(dir, ".claude", "nemons-ops.md")
 	data, err := os.ReadFile(outPath)
 	if err != nil {
 		t.Fatalf("read output: %v", err)
@@ -168,7 +168,7 @@ func TestGenerateSkipsWhenHashUnchanged(t *testing.T) {
 	mock := &mockLLMClient{response: "## Content"}
 	cfg := &config.ClaudeMdConfig{
 		MaxPerCategory: map[string]int{"gotcha": 5},
-		OutputFileName: "yesmem-ops.md",
+		OutputFileName: "nemons-ops.md",
 	}
 	gen := NewGenerator(store, mock, cfg)
 
@@ -197,7 +197,7 @@ func TestGenerateRerunsWhenLearningsChange(t *testing.T) {
 	mock := &mockLLMClient{response: "## Content"}
 	cfg := &config.ClaudeMdConfig{
 		MaxPerCategory: map[string]int{"gotcha": 10, "decision": 10},
-		OutputFileName: "yesmem-ops.md",
+		OutputFileName: "nemons-ops.md",
 	}
 	gen := NewGenerator(store, mock, cfg)
 
@@ -234,7 +234,7 @@ func TestGenerateNoLearnings(t *testing.T) {
 	mock := &mockLLMClient{response: "should not be called"}
 	cfg := &config.ClaudeMdConfig{
 		MaxPerCategory: map[string]int{},
-		OutputFileName: "yesmem-ops.md",
+		OutputFileName: "nemons-ops.md",
 	}
 	gen := NewGenerator(store, mock, cfg)
 
@@ -254,7 +254,7 @@ func TestGenerateLLMError(t *testing.T) {
 	mock := &mockLLMClient{err: fmt.Errorf("rate limited")}
 	cfg := &config.ClaudeMdConfig{
 		MaxPerCategory: map[string]int{"gotcha": 5},
-		OutputFileName: "yesmem-ops.md",
+		OutputFileName: "nemons-ops.md",
 	}
 	gen := NewGenerator(store, mock, cfg)
 
@@ -279,7 +279,7 @@ func TestNeedsRefreshHashChanged(t *testing.T) {
 
 	cfg := &config.ClaudeMdConfig{
 		MaxPerCategory: map[string]int{"gotcha": 10, "decision": 10},
-		OutputFileName: "yesmem-ops.md",
+		OutputFileName: "nemons-ops.md",
 	}
 	gen := NewGenerator(store, &mockLLMClient{response: "ok"}, cfg)
 
@@ -352,7 +352,7 @@ func TestGenerateAgentsMdAfterClaudeMdWritesBothTargets(t *testing.T) {
 	mock := &mockLLMClient{response: "## Fallen\n- gotcha 1"}
 	cfg := &config.ClaudeMdConfig{
 		MaxPerCategory: map[string]int{"gotcha": 5},
-		OutputFileName: "yesmem-ops.md",
+		OutputFileName: "nemons-ops.md",
 	}
 	gen := NewGenerator(store, mock, cfg)
 
@@ -363,8 +363,8 @@ func TestGenerateAgentsMdAfterClaudeMdWritesBothTargets(t *testing.T) {
 		t.Fatalf("GenerateAgentsMd: %v", err)
 	}
 
-	if _, err := os.Stat(filepath.Join(dir, ".claude", "yesmem-ops.md")); err != nil {
-		t.Errorf("yesmem-ops.md missing after Generate: %v", err)
+	if _, err := os.Stat(filepath.Join(dir, ".claude", "nemons-ops.md")); err != nil {
+		t.Errorf("nemons-ops.md missing after Generate: %v", err)
 	}
 	if _, err := os.Stat(filepath.Join(dir, "AGENTS.md")); err != nil {
 		t.Errorf("AGENTS.md missing after GenerateAgentsMd: %v", err)
@@ -375,33 +375,33 @@ func TestGenerateAgentsMdAfterClaudeMdWritesBothTargets(t *testing.T) {
 }
 
 // NeedsRefreshFor must be target-aware: a project whose stored state belongs to
-// yesmem-ops.md is stale for AGENTS.md.
+// nemons-ops.md is stale for AGENTS.md.
 func TestNeedsRefreshForIsTargetAware(t *testing.T) {
 	store := mustOpenStore(t)
 	seedLearnings(t, store, "testproj", 2, "gotcha")
 
 	cfg := &config.ClaudeMdConfig{
 		MaxPerCategory: map[string]int{"gotcha": 5},
-		OutputFileName: "yesmem-ops.md",
+		OutputFileName: "nemons-ops.md",
 	}
 	gen := NewGenerator(store, &mockLLMClient{response: "x"}, cfg)
 	if err := gen.Generate("testproj", t.TempDir()); err != nil {
 		t.Fatalf("Generate: %v", err)
 	}
 
-	needs, err := gen.NeedsRefreshFor("testproj", "yesmem-ops.md")
+	needs, err := gen.NeedsRefreshFor("testproj", "nemons-ops.md")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if needs {
-		t.Error("yesmem-ops.md should be up to date after Generate")
+		t.Error("nemons-ops.md should be up to date after Generate")
 	}
 	needs, err = gen.NeedsRefreshFor("testproj", "AGENTS.md")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !needs {
-		t.Error("AGENTS.md should be stale when only yesmem-ops.md was generated")
+		t.Error("AGENTS.md should be stale when only nemons-ops.md was generated")
 	}
 }
 
@@ -420,7 +420,7 @@ func TestGenerateAgentsMdRefusesForeignFile(t *testing.T) {
 
 	gen := NewGenerator(store, &mockLLMClient{response: "## Fallen\n- x"}, &config.ClaudeMdConfig{
 		MaxPerCategory: map[string]int{"gotcha": 5},
-		OutputFileName: "yesmem-ops.md",
+		OutputFileName: "nemons-ops.md",
 	})
 	if err := gen.GenerateAgentsMd("testproj", dir); err == nil {
 		t.Error("expected refusal for a hand-written AGENTS.md")
@@ -434,7 +434,7 @@ func TestGenerateAgentsMdRefusesForeignFile(t *testing.T) {
 	}
 }
 
-// A file yesmem generated itself is refreshed as before.
+// A file nemons generated itself is refreshed as before.
 func TestGenerateAgentsMdRefreshesOwnFile(t *testing.T) {
 	store := mustOpenStore(t)
 	seedLearnings(t, store, "testproj", 2, "gotcha")
@@ -442,7 +442,7 @@ func TestGenerateAgentsMdRefreshesOwnFile(t *testing.T) {
 	dir := t.TempDir()
 	gen := NewGenerator(store, &mockLLMClient{response: "## Fallen\n- x"}, &config.ClaudeMdConfig{
 		MaxPerCategory: map[string]int{"gotcha": 5},
-		OutputFileName: "yesmem-ops.md",
+		OutputFileName: "nemons-ops.md",
 	})
 	if err := gen.GenerateAgentsMd("testproj", dir); err != nil {
 		t.Fatalf("first run: %v", err)
@@ -455,7 +455,7 @@ func TestGenerateAgentsMdRefreshesOwnFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(data), "Auto-generated by yesmem") {
+	if !strings.Contains(string(data), "Auto-generated by nemons") {
 		t.Errorf("own AGENTS.md lost its header: %q", string(data))
 	}
 }
@@ -472,7 +472,7 @@ func TestGenerateAgentsMdRefusesSymlink(t *testing.T) {
 	}
 	gen := NewGenerator(store, &mockLLMClient{response: "x"}, &config.ClaudeMdConfig{
 		MaxPerCategory: map[string]int{"gotcha": 5},
-		OutputFileName: "yesmem-ops.md",
+		OutputFileName: "nemons-ops.md",
 	})
 	if err := gen.GenerateAgentsMd("testproj", dir); err == nil {
 		t.Error("expected refusal for a symlinked AGENTS.md")
@@ -483,7 +483,7 @@ func TestGenerateAgentsMdRefusesSymlink(t *testing.T) {
 }
 
 // The same ownership rule guards the .claude/ target: a hand-written
-// yesmem-ops.md is not ours to replace, even though the path looks like ours
+// nemons-ops.md is not ours to replace, even though the path looks like ours
 // (YM-266 / DEV-DT43).
 func TestGenerateRefusesForeignClaudeMd(t *testing.T) {
 	store := mustOpenStore(t)
@@ -494,7 +494,7 @@ func TestGenerateRefusesForeignClaudeMd(t *testing.T) {
 		t.Fatal(err)
 	}
 	foreign := "# handgeschriebene Notizen\n- nicht ueberschreiben\n"
-	target := filepath.Join(dir, ".claude", "yesmem-ops.md")
+	target := filepath.Join(dir, ".claude", "nemons-ops.md")
 	if err := os.WriteFile(target, []byte(foreign), 0644); err != nil {
 		t.Fatal(err)
 	}
@@ -502,10 +502,10 @@ func TestGenerateRefusesForeignClaudeMd(t *testing.T) {
 	mock := &mockLLMClient{response: "## Fallen\n- x"}
 	gen := NewGenerator(store, mock, &config.ClaudeMdConfig{
 		MaxPerCategory: map[string]int{"gotcha": 5},
-		OutputFileName: "yesmem-ops.md",
+		OutputFileName: "nemons-ops.md",
 	})
 	if err := gen.Generate("testproj", dir); err == nil {
-		t.Error("expected refusal for a hand-written .claude/yesmem-ops.md")
+		t.Error("expected refusal for a hand-written .claude/nemons-ops.md")
 	} else if !strings.Contains(err.Error(), "refusing to overwrite") {
 		t.Errorf("refusal came from somewhere else: %v", err)
 	}
@@ -517,7 +517,7 @@ func TestGenerateRefusesForeignClaudeMd(t *testing.T) {
 		t.Fatal(err)
 	}
 	if string(data) != foreign {
-		t.Errorf("hand-written .claude/yesmem-ops.md was overwritten: %q", string(data))
+		t.Errorf("hand-written .claude/nemons-ops.md was overwritten: %q", string(data))
 	}
 }
 
@@ -532,15 +532,15 @@ func TestGenerateRefusesSymlinkClaudeMd(t *testing.T) {
 		t.Fatal(err)
 	}
 	outside := filepath.Join(t.TempDir(), "outside.md")
-	if err := os.Symlink(outside, filepath.Join(claudeDir, "yesmem-ops.md")); err != nil {
+	if err := os.Symlink(outside, filepath.Join(claudeDir, "nemons-ops.md")); err != nil {
 		t.Skipf("symlinks unavailable: %v", err)
 	}
 	gen := NewGenerator(store, &mockLLMClient{response: "x"}, &config.ClaudeMdConfig{
 		MaxPerCategory: map[string]int{"gotcha": 5},
-		OutputFileName: "yesmem-ops.md",
+		OutputFileName: "nemons-ops.md",
 	})
 	if err := gen.Generate("testproj", dir); err == nil {
-		t.Error("expected refusal for a symlinked .claude/yesmem-ops.md")
+		t.Error("expected refusal for a symlinked .claude/nemons-ops.md")
 	} else if !strings.Contains(err.Error(), "symlink") {
 		t.Errorf("refusal came from somewhere else: %v", err)
 	}
@@ -561,16 +561,16 @@ func TestGenerateRefusesForeignTargetAtTheWrite(t *testing.T) {
 		t.Fatal(err)
 	}
 	foreign := "# handgeschrieben\n- x\n"
-	target := filepath.Join(dir, ".claude", "yesmem-ops.md")
+	target := filepath.Join(dir, ".claude", "nemons-ops.md")
 	if err := os.WriteFile(target, []byte(foreign), 0644); err != nil {
 		t.Fatal(err)
 	}
 
 	gen := NewGenerator(store, &mockLLMClient{response: "## Fallen\n- x"}, &config.ClaudeMdConfig{
 		MaxPerCategory: map[string]int{"gotcha": 5},
-		OutputFileName: "yesmem-ops.md",
+		OutputFileName: "nemons-ops.md",
 	})
-	if err := gen.generate("testproj", dir, ".claude", "yesmem-ops.md", claudeHeader); err == nil {
+	if err := gen.generate("testproj", dir, ".claude", "nemons-ops.md", claudeHeader); err == nil {
 		t.Error("expected refusal at the write")
 	} else if !strings.Contains(err.Error(), "refusing to overwrite") {
 		t.Errorf("refusal came from somewhere else: %v", err)
@@ -584,7 +584,7 @@ func TestGenerateRefusesForeignTargetAtTheWrite(t *testing.T) {
 	}
 }
 
-// A .claude/yesmem-ops.md written by yesmem before afccf1df carries the German
+// A .claude/nemons-ops.md written by nemons before afccf1df carries the German
 // header. It is ours: refusing it would freeze every such file forever, because
 // the state is never rewritten (YM-266 review finding).
 func TestGenerateRefreshesLegacyGermanHeader(t *testing.T) {
@@ -596,18 +596,18 @@ func TestGenerateRefreshesLegacyGermanHeader(t *testing.T) {
 	if err := os.MkdirAll(claudeDir, 0755); err != nil {
 		t.Fatal(err)
 	}
-	legacy := "# Operative Hinweise — testproj\n> Auto-generiert von yesmem (2026-03-22 01:54)\n> Nicht manuell editieren — wird bei Änderungen überschrieben\n\n## Alte Fallen\n- alt\n"
-	target := filepath.Join(claudeDir, "yesmem-ops.md")
+	legacy := "# Operative Hinweise — testproj\n> Auto-generiert von nemons (2026-03-22 01:54)\n> Nicht manuell editieren — wird bei Änderungen überschrieben\n\n## Alte Fallen\n- alt\n"
+	target := filepath.Join(claudeDir, "nemons-ops.md")
 	if err := os.WriteFile(target, []byte(legacy), 0644); err != nil {
 		t.Fatal(err)
 	}
 
 	gen := NewGenerator(store, &mockLLMClient{response: "## Fallen\n- neu"}, &config.ClaudeMdConfig{
 		MaxPerCategory: map[string]int{"gotcha": 5},
-		OutputFileName: "yesmem-ops.md",
+		OutputFileName: "nemons-ops.md",
 	})
 	if err := gen.Generate("testproj", dir); err != nil {
-		t.Fatalf("legacy yesmem file refused: %v", err)
+		t.Fatalf("legacy nemons file refused: %v", err)
 	}
 	data, err := os.ReadFile(target)
 	if err != nil {
@@ -624,14 +624,14 @@ func TestGenerateAgentsMdRefusesForeignFileMentioningMarker(t *testing.T) {
 	seedLearnings(t, store, "testproj", 2, "gotcha")
 
 	dir := t.TempDir()
-	foreign := "# Regeln\n\nDiese Datei wird nicht von Auto-generated by yesmem verwaltet.\n"
+	foreign := "# Regeln\n\nDiese Datei wird nicht von Auto-generated by nemons verwaltet.\n"
 	target := filepath.Join(dir, "AGENTS.md")
 	if err := os.WriteFile(target, []byte(foreign), 0644); err != nil {
 		t.Fatal(err)
 	}
 	gen := NewGenerator(store, &mockLLMClient{response: "x"}, &config.ClaudeMdConfig{
 		MaxPerCategory: map[string]int{"gotcha": 5},
-		OutputFileName: "yesmem-ops.md",
+		OutputFileName: "nemons-ops.md",
 	})
 	if err := gen.GenerateAgentsMd("testproj", dir); err == nil {
 		t.Error("expected refusal: marker in the body is not ownership")
@@ -654,7 +654,7 @@ func TestGenerateRefusesSymlinkedClaudeDir(t *testing.T) {
 	mock := &mockLLMClient{response: "x"}
 	gen := NewGenerator(store, mock, &config.ClaudeMdConfig{
 		MaxPerCategory: map[string]int{"gotcha": 5},
-		OutputFileName: "yesmem-ops.md",
+		OutputFileName: "nemons-ops.md",
 	})
 	if err := gen.Generate("testproj", dir); err == nil {
 		t.Error("expected refusal for a symlinked .claude directory")
@@ -664,7 +664,7 @@ func TestGenerateRefusesSymlinkedClaudeDir(t *testing.T) {
 	if mock.callCount != 0 {
 		t.Error("the refusal must come before the LLM call")
 	}
-	if _, err := os.Stat(filepath.Join(outside, "yesmem-ops.md")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(outside, "nemons-ops.md")); !os.IsNotExist(err) {
 		t.Errorf("write followed the .claude symlink: %v", err)
 	}
 }
@@ -680,13 +680,13 @@ func TestGenerateRefusesFIFOAtTarget(t *testing.T) {
 	if err := os.MkdirAll(claudeDir, 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := syscall.Mkfifo(filepath.Join(claudeDir, "yesmem-ops.md"), 0644); err != nil {
+	if err := syscall.Mkfifo(filepath.Join(claudeDir, "nemons-ops.md"), 0644); err != nil {
 		t.Skipf("mkfifo unavailable: %v", err)
 	}
 
 	gen := NewGenerator(store, &mockLLMClient{response: "x"}, &config.ClaudeMdConfig{
 		MaxPerCategory: map[string]int{"gotcha": 5},
-		OutputFileName: "yesmem-ops.md",
+		OutputFileName: "nemons-ops.md",
 	})
 	done := make(chan error, 1)
 	go func() { done <- gen.Generate("testproj", dir) }()

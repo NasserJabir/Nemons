@@ -103,7 +103,7 @@ func TestOpenAIClientCompleteJSON(t *testing.T) {
 	if format["type"] != "json_schema" {
 		t.Fatalf("format.type = %#v", format["type"])
 	}
-	if format["name"] != "yesmem_output" {
+	if format["name"] != "nemons_output" {
 		t.Fatalf("format.name = %#v", format["name"])
 	}
 	if format["strict"] != true {

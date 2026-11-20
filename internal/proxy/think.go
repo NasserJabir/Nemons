@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/carsteneu/yesmem/internal/channeltext"
-	"github.com/carsteneu/yesmem/internal/hints"
+	"github.com/NasserJabir/Nemons/internal/channeltext"
+	"github.com/NasserJabir/Nemons/internal/hints"
 )
 
 // lastUserHasText returns true when the last user message contains actual text content

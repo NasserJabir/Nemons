@@ -8,17 +8,17 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/briefing"
-	"github.com/carsteneu/yesmem/internal/buildinfo"
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/daemon"
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/hooks"
-	yesmcp "github.com/carsteneu/yesmem/internal/mcp"
-	"github.com/carsteneu/yesmem/internal/setup"
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/terminals"
-	"github.com/carsteneu/yesmem/internal/textutil"
+	"github.com/NasserJabir/Nemons/internal/briefing"
+	"github.com/NasserJabir/Nemons/internal/buildinfo"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/hooks"
+	yesmcp "github.com/NasserJabir/Nemons/internal/mcp"
+	"github.com/NasserJabir/Nemons/internal/setup"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/terminals"
+	"github.com/NasserJabir/Nemons/internal/textutil"
 )
 
 // version is set at build time via: go build -ldflags "-X main.version=..."
@@ -47,13 +47,13 @@ func main() {
 
 	switch os.Args[1] {
 	case "version":
-		fmt.Printf("yesmem %s\n", version)
+		fmt.Printf("nemons %s\n", version)
 	case "mcp":
 		runMCP()
 	case "micro-reminder":
 		runMicroReminder()
 	case "idle-tick":
-		hooks.RunIdleTick(yesmemDataDir())
+		hooks.RunIdleTick(nemonsDataDir())
 	case "daemon":
 		runDaemon()
 	case "briefing":
@@ -68,7 +68,7 @@ func main() {
 			log.Fatalf("install: %s", textutil.ErrorLine(err))
 		}
 	case "status":
-		if err := setup.Status(yesmemDataDir()); err != nil {
+		if err := setup.Status(nemonsDataDir()); err != nil {
 			log.Fatalf("status: %s", textutil.ErrorLine(err))
 		}
 	case "regenerate-narratives":
@@ -80,19 +80,19 @@ func main() {
 	case "gap-review":
 		runGapReview()
 	case "hook-check":
-		hooks.RunCheck(yesmemDataDir())
+		hooks.RunCheck(nemonsDataDir())
 	case "hook-guard":
-		hooks.RunGuard(yesmemDataDir())
+		hooks.RunGuard(nemonsDataDir())
 	case "hook-learn":
-		hooks.RunLearn(yesmemDataDir())
+		hooks.RunLearn(nemonsDataDir())
 	case "hook-assist":
-		hooks.RunAssist(yesmemDataDir())
+		hooks.RunAssist(nemonsDataDir())
 	case "hook-failure":
-		hooks.RunFailure(yesmemDataDir())
+		hooks.RunFailure(nemonsDataDir())
 	case "hook-resolve":
-		hooks.RunResolveCheck(yesmemDataDir())
+		hooks.RunResolveCheck(nemonsDataDir())
 	case "hook-think":
-		hooks.RunThink(yesmemDataDir())
+		hooks.RunThink(nemonsDataDir())
 	case "save-terminals":
 		runSaveTerminals()
 	case "restart-terminals":
@@ -100,7 +100,7 @@ func main() {
 	case "spawn-terminal":
 		runSpawnTerminal()
 	case "session-end":
-		hooks.RunSessionEnd(yesmemDataDir())
+		hooks.RunSessionEnd(nemonsDataDir())
 	case "reextract":
 		runReextract()
 	case "quickstart":
@@ -232,15 +232,15 @@ func runMCP() {
 	originPpid := os.Getppid()
 
 	// Prevent MCP recursion deadlock: when the daemon spawns opencode
-	// (which loads yesmem mcp), the child mcp must not reconnect to the
+	// (which loads nemons mcp), the child mcp must not reconnect to the
 	// same daemon that is blocked waiting for opencode to finish.
-	// YESMEM_ALLOW_CHILD_MCP=1 overrides: used for explicit agent calls (Telegram).
-	if os.Getenv("YESMEM_DAEMON_CHILD") == "1" &&
-		os.Getenv("YESMEM_ALLOW_CHILD_MCP") != "1" {
+	// NEMONS_ALLOW_CHILD_MCP=1 overrides: used for explicit agent calls (Telegram).
+	if os.Getenv("NEMONS_DAEMON_CHILD") == "1" &&
+		os.Getenv("NEMONS_ALLOW_CHILD_MCP") != "1" {
 		os.Exit(0)
 	}
 
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 
 	srv, err := yesmcp.New(dataDir)
 	if err != nil {
@@ -255,7 +255,7 @@ func runDaemon() {
 	runtime.GOMAXPROCS(4)
 
 	home, _ := os.UserHomeDir()
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 	codexSessionsDir := filepath.Join(home, ".codex", "sessions")
 
 	replace := false
@@ -312,15 +312,15 @@ func runDaemon() {
 	}
 }
 
-func yesmemDataDir() string {
+func nemonsDataDir() string {
 	home, _ := os.UserHomeDir()
-	dir := filepath.Join(home, ".claude", "yesmem")
+	dir := filepath.Join(home, ".claude", "nemons")
 	// ~/.claude itself can be 0777 (measured 18.10.2026; Claude Code creates it and
-	// yesmem does not own it). The data directory inside it is 0700, so the
+	// nemons does not own it). The data directory inside it is 0700, so the
 	// knowledge base is not reachable through the parent's mode. Documented only:
 	// changing Claude Code's directory is not this tool's decision (YM-338).
 	if err := os.MkdirAll(dir, 0o700); err != nil {
-		log.Printf("yesmem data dir %q: %s", dir, textutil.ErrorLine(err))
+		log.Printf("nemons data dir %q: %s", dir, textutil.ErrorLine(err))
 	}
 	// MkdirAll leaves the mode of a directory it did not create, so an existing
 	// installation keeps its 0755 until this runs. The directory holds the
@@ -328,22 +328,22 @@ func yesmemDataDir() string {
 	// YM-328). A mode it cannot set is reported, not fatal: unlike the database
 	// and socket hardening, this path runs on every CLI call.
 	if err := os.Chmod(dir, 0o700); err != nil {
-		log.Printf("yesmem data dir %q: chmod: %s", dir, textutil.ErrorLine(err))
+		log.Printf("nemons data dir %q: chmod: %s", dir, textutil.ErrorLine(err))
 	}
 	return dir
 }
 
 func printUsage() {
-	fmt.Println("YesMem — Long-term memory for coding agents")
+	fmt.Println("Nemons — Long-term memory for coding agents")
 	fmt.Println()
-	fmt.Println("Usage: yesmem <command>")
+	fmt.Println("Usage: nemons <command>")
 	fmt.Println()
 	fmt.Println("Commands:")
 	fmt.Println("  daemon          Run background indexer with file watching")
 	fmt.Println("  mcp             Start MCP server (stdio)")
 	fmt.Println("  briefing        Generate session briefing for hooks")
 	fmt.Println("  micro-reminder  Output micro-reminder for UserPromptSubmit hook")
-	fmt.Println("  idle-tick       Dynamic yesmem-usage reminder via daemon (replaces micro-reminder)")
+	fmt.Println("  idle-tick       Dynamic nemons-usage reminder via daemon (replaces micro-reminder)")
 	fmt.Println("  install         Interactive install wizard")
 	fmt.Println("  regenerate-narratives  Re-generate all narratives with immersive prompt")
 	fmt.Println("  bootstrap-persona     Run persona extraction [--force] [--limit N] [--all]")
@@ -359,7 +359,7 @@ func printUsage() {
 	fmt.Println("  proxy           Start infinite-thread proxy [--port N] [--threshold N] [--target URL]")
 	fmt.Println("  stop [target]   Stop daemon/proxy/all (default: all)")
 	fmt.Println("  restart         Stop all, clean up, start daemon fresh")
-	fmt.Println("  reap-stale-mcp  Kill yesmem-mcp helpers that still map a replaced binary [--dry-run]")
+	fmt.Println("  reap-stale-mcp  Kill nemons-mcp helpers that still map a replaced binary [--dry-run]")
 	fmt.Println("  hook-check      PreToolUse hook: warn about known gotchas")
 	fmt.Println("  hook-guard      PreToolUse hook: evaluate tool calls against RULES.md via LLM")
 	fmt.Println("  hook-failure    PostToolUseFailure hook: learn gotcha + deep search (combined)")
@@ -370,7 +370,7 @@ func printUsage() {
 	fmt.Println("  sync-docs       Re-sync registered doc sources [--name N|--project P|--all] [--prune]")
 	fmt.Println("  list-docs       List registered documentation sources [--project P]")
 	fmt.Println("  remove-docs     Remove a doc source and its chunks [--name N] [--project P]")
-	fmt.Println("  export [path]   Export learnings + persona to JSON (default: yesmem-export.json)")
+	fmt.Println("  export [path]   Export learnings + persona to JSON (default: nemons-export.json)")
 	fmt.Println("  import <file> [--distrust-file-sources]  Import learnings from JSON export file")
 	fmt.Println("  backup [path]   Back up database to timestamped file (default: backups/)")
 	fmt.Println("  archive-sessions  Write archive documents for indexed sessions without one [--project P] [--dry-run]")
@@ -387,9 +387,9 @@ func printUsage() {
 	fmt.Println("  update          Download and install the latest version")
 	fmt.Println("  migrate         Run post-update DB/config migration")
 	fmt.Println("  quickstart      Fast extraction of last N sessions [--last N]")
-	fmt.Println("  uninstall       Remove all YesMem registrations")
+	fmt.Println("  uninstall       Remove all Nemons registrations")
 	fmt.Println("  status          Show index status")
-	fmt.Println("  verify-claims   Judge a DONE report against the repository [--repo P] [--report file|-|--project P --section S] [--base R] [--head R] [--profile P] [--policy P] [--budget D] [--report-session S] [--plan-thread T] [--strict] [--json]; --init writes the project profile .yesmem/verify.yaml after a passing proof run")
+	fmt.Println("  verify-claims   Judge a DONE report against the repository [--repo P] [--report file|-|--project P --section S] [--base R] [--head R] [--profile P] [--policy P] [--budget D] [--report-session S] [--plan-thread T] [--strict] [--json]; --init writes the project profile .nemons/verify.yaml after a passing proof run")
 	fmt.Println("  save-terminals  Snapshot open terminal windows (positions + sessions)")
 	fmt.Println("  restart-terminals  Reopen saved terminal windows after a reboot")
 	fmt.Println("  spawn-terminal [dir]  Start a new terminal session as a managed (relayable) agent; default: current dir")
@@ -406,8 +406,8 @@ func printUsage() {
 }
 
 func runConsolidate() {
-	dataDir := yesmemDataDir()
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	dataDir := nemonsDataDir()
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		log.Fatalf("open store: %s", textutil.ErrorLine(err))
 	}

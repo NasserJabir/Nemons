@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // codexUUIDForTest is a well-formed session uuid; the resolver only ever reads

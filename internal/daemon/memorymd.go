@@ -7,12 +7,12 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/carsteneu/yesmem/internal/archive"
-	"github.com/carsteneu/yesmem/internal/briefing"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/archive"
+	"github.com/NasserJabir/Nemons/internal/briefing"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
-const yesmemMarker = "# --- YesMem Auto-Generated (do not edit below) ---"
+const nemonsMarker = "# --- Nemons Auto-Generated (do not edit below) ---"
 
 // wireMutationHook points the handler's post-mutation side effect at MEMORY.md
 // regeneration. Only the production assembly calls this: NewHandler is also used
@@ -64,7 +64,7 @@ func wireMutationHook(h *Handler, store *storage.Store, claudeProjects string) {
 }
 
 // GenerateAllMemoryMDs creates/updates MEMORY.md for every project.
-// Writes only a narrative redirect to yesmem MCP tools — no learning content.
+// Writes only a narrative redirect to nemons MCP tools — no learning content.
 //
 // claudeProjects is the directory Claude Code names its project folders in, as
 // resolved by config.Config.ClaudeProjectsDir. The directory belongs to the
@@ -118,7 +118,7 @@ func GenerateAllMemoryMDs(store *storage.Store, claudeProjects string) {
 		written, len(projects), noDirectory, writeFailed)
 }
 
-func writeMemoryMD(memDir, memFile, yesmemContent string) error {
+func writeMemoryMD(memDir, memFile, nemonsContent string) error {
 	os.MkdirAll(memDir, 0755)
 
 	// Read existing file
@@ -132,17 +132,17 @@ func writeMemoryMD(memDir, memFile, yesmemContent string) error {
 	if len(existing) > 0 {
 		content := string(existing)
 		// Find marker
-		idx := strings.Index(content, yesmemMarker)
+		idx := strings.Index(content, nemonsMarker)
 		if idx >= 0 {
 			// Replace everything from marker onwards
-			result = content[:idx] + yesmemMarker + "\n" + yesmemContent
+			result = content[:idx] + nemonsMarker + "\n" + nemonsContent
 		} else {
 			// Append marker + content
-			result = content + "\n\n" + yesmemMarker + "\n" + yesmemContent
+			result = content + "\n\n" + nemonsMarker + "\n" + nemonsContent
 		}
 	} else {
 		// New file
-		result = yesmemMarker + "\n" + yesmemContent
+		result = nemonsMarker + "\n" + nemonsContent
 	}
 
 	// The narrative is constant, so after the first write a sweep changes nothing.

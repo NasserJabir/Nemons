@@ -50,9 +50,9 @@ func TestSanitizeListenAddr_LocalhostName(t *testing.T) {
 // === Task #9: Bypass-Switch ===
 
 func TestBypass_EnvVar(t *testing.T) {
-	t.Setenv("YESMEM_PROXY_BYPASS", "1")
+	t.Setenv("NEMONS_PROXY_BYPASS", "1")
 	if !isBypassed(nil) {
-		t.Error("bypass should be active when YESMEM_PROXY_BYPASS=1")
+		t.Error("bypass should be active when NEMONS_PROXY_BYPASS=1")
 	}
 }
 
@@ -64,9 +64,9 @@ func TestBypass_EnvVarUnset(t *testing.T) {
 
 func TestBypass_Header(t *testing.T) {
 	h := http.Header{}
-	h.Set("X-Yesmem-Bypass", "true")
+	h.Set("X-Nemons-Bypass", "true")
 	if !isBypassed(h) {
-		t.Error("bypass should be active with X-Yesmem-Bypass header")
+		t.Error("bypass should be active with X-Nemons-Bypass header")
 	}
 }
 
@@ -268,7 +268,7 @@ func TestBypass_PassesThroughUnmodified(t *testing.T) {
 	// Request with bypass header
 	body := `{"messages":[{"role":"user","content":"` + longString(5000) + `"}]}`
 	req := httptest.NewRequest("POST", "/v1/messages", strings.NewReader(body))
-	req.Header.Set("X-Yesmem-Bypass", "true")
+	req.Header.Set("X-Nemons-Bypass", "true")
 	w := httptest.NewRecorder()
 
 	s.handleMessages(w, req)

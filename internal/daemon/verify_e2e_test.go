@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/verify"
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/verify"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // endToEndAgent creates a yesloop agent that claims DONE and writes its report

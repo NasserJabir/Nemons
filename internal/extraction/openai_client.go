@@ -63,10 +63,10 @@ func (c *OpenAIClient) CompleteJSON(system, userMessage string, schema map[strin
 	return c.doRequest(system, userMessage, &openAITextConfig{
 		Format: &openAIResponseFormat{
 			Type:        "json_schema",
-			Name:        "yesmem_output",
+			Name:        "nemons_output",
 			Schema:      schema,
 			Strict:      &strict,
-			Description: "Structured extraction output for yesmem.",
+			Description: "Structured extraction output for nemons.",
 		},
 	}, opts...)
 }

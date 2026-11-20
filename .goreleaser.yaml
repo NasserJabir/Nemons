@@ -23,7 +23,7 @@ checksum:
 release:
   github:
     owner: carsteneu
-    name: yesmem
+    name: nemons
   draft: false
   prerelease: auto
 

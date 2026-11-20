@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/daemon"
-	"github.com/carsteneu/yesmem/internal/verify"
+	"github.com/NasserJabir/Nemons/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/verify"
 )
 
 // verify-claims judges a report against the world through the daemon: the same
@@ -44,7 +44,7 @@ type verifyClaimsFlags struct {
 	strict        bool
 	asJSON        bool
 	// init is the profile mode: it detects the stack, proves its test command in
-	// the sandbox and writes .yesmem/verify.yaml only if that run passed. It
+	// the sandbox and writes .nemons/verify.yaml only if that run passed. It
 	// needs no report and no daemon.
 	init bool
 }
@@ -100,7 +100,7 @@ func runVerifyClaims(args []string) {
 		os.Exit(2)
 	}
 
-	client, err := daemon.DialTimeout(yesmemDataDir(), 5*time.Second)
+	client, err := daemon.DialTimeout(nemonsDataDir(), 5*time.Second)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "verify-claims: connect to daemon: %v\n", err)
 		os.Exit(2)
@@ -147,9 +147,9 @@ func parseVerifyClaimsFlags(args []string, stderr io.Writer) (*verifyClaimsFlags
 	fs.StringVar(&flags.planThread, "plan-thread", "", "thread whose plan a [PLAN:] claim is checked against (ignored when a section is given: its agent owns it)")
 	fs.BoolVar(&flags.strict, "strict", false, "reserve exit 0 for a report whose every claim was proven")
 	fs.BoolVar(&flags.asJSON, "json", false, "print the daemon's answer as JSON")
-	fs.BoolVar(&flags.init, "init", false, "detect the project's stack, prove its test command in the sandbox, and write .yesmem/verify.yaml only if that run passed")
+	fs.BoolVar(&flags.init, "init", false, "detect the project's stack, prove its test command in the sandbox, and write .nemons/verify.yaml only if that run passed")
 	fs.Usage = func() {
-		fmt.Fprintln(stderr, "Usage: yesmem verify-claims [flags]")
+		fmt.Fprintln(stderr, "Usage: nemons verify-claims [flags]")
 		fmt.Fprintln(stderr, "  Judges a report against the repository: exit 0 accepted, 1 blocked, 2 usage or transport.")
 		fmt.Fprintln(stderr, "  The report comes from --report <file|-> or from a scratchpad section (--project and --section).")
 		fmt.Fprintln(stderr, "  --init writes the project profile instead: exit 0 written, 1 nothing written (unrecognised stack or failed proof), 2 usage or transport.")
@@ -320,7 +320,7 @@ func verifyClaimsText(answer verifyClaimsAnswer) string {
 // Exit 0 written, 1 nothing written (unrecognised stack or a proof that did not
 // pass), 2 usage or an I/O failure.
 func runVerifyInit(repo string, stdout, stderr io.Writer) int {
-	tmpDir := filepath.Join(yesmemDataDir(), "tmp", "init")
+	tmpDir := filepath.Join(nemonsDataDir(), "tmp", "init")
 	if err := os.MkdirAll(tmpDir, 0o755); err != nil {
 		fmt.Fprintf(stderr, "verify-claims --init: cannot create %s: %v\n", tmpDir, err)
 		return 2

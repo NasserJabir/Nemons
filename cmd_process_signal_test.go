@@ -37,23 +37,23 @@ func procState(pid int) string {
 	return "running"
 }
 
-// YM-312: `yesmem stop`/`restart` used to signal every process that merely carried
-// "yesmem daemon" in its argv (pgrep -f), without checking the argv structure or
+// YM-312: `nemons stop`/`restart` used to signal every process that merely carried
+// "nemons daemon" in its argv (pgrep -f), without checking the argv structure or
 // the data dir the process belongs to. A decoy with the same argv but another
 // data dir therefore died, and so would a second installation's daemon. This test
 // builds exactly that pair.
 //
 // It signals real processes and must only ever run in a process table of its own:
 //
-//	go test -c -o .yesmem/tmp/signal.test . &&
-//	unshare -rpf --mount-proc ./.yesmem/tmp/signal.test -test.run TestStopProcessesOnlyStopsItsOwnInstallation -test.count=1 -test.v
+//	go test -c -o .nemons/tmp/signal.test . &&
+//	unshare -rpf --mount-proc ./.nemons/tmp/signal.test -test.run TestStopProcessesOnlyStopsItsOwnInstallation -test.count=1 -test.v
 func TestStopProcessesOnlyStopsItsOwnInstallation(t *testing.T) {
 	if os.Getpid() != 1 {
-		t.Skip("needs a PID namespace; outside one this would signal host yesmem processes")
+		t.Skip("needs a PID namespace; outside one this would signal host nemons processes")
 	}
 	yesBin, err := exec.LookPath("yes")
 	if err != nil {
-		t.Skip("no 'yes' binary to give a decoy a yesmem argv")
+		t.Skip("no 'yes' binary to give a decoy a nemons argv")
 	}
 
 	base := t.TempDir()
@@ -64,16 +64,16 @@ func TestStopProcessesOnlyStopsItsOwnInstallation(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	ownDir := filepath.Join(ownHome, ".claude", "yesmem")
-	// The decoys carry the argv of a yesmem daemon (`<path>/yesmem daemon`) and
+	ownDir := filepath.Join(ownHome, ".claude", "nemons")
+	// The decoys carry the argv of a nemons daemon (`<path>/nemons daemon`) and
 	// only differ in the home their environment names: that is the only thing a
-	// yesmem service resolves its data dir from.
+	// nemons service resolves its data dir from.
 	spawn := func(home string) *exec.Cmd {
 		cmd := exec.Command(yesBin)
-		cmd.Args = []string{filepath.Join(base, "yesmem"), "daemon"}
+		cmd.Args = []string{filepath.Join(base, "nemons"), "daemon"}
 		env := make([]string, 0, len(os.Environ())+1)
 		for _, kv := range os.Environ() {
-			if strings.HasPrefix(kv, "HOME=") || strings.HasPrefix(kv, "YESMEM_DATA_DIR=") {
+			if strings.HasPrefix(kv, "HOME=") || strings.HasPrefix(kv, "NEMONS_DATA_DIR=") {
 				continue
 			}
 			env = append(env, kv)

@@ -11,13 +11,13 @@ import (
 // — the watcher walked one directory, the sandbox mask named another, and the
 // importer read a third. One derivation has to yield one absolute directory, and
 // it has to be the same one in the daemon (working directory home) and in
-// yesmem update (working directory the caller's shell), so a relative value is
+// nemons update (working directory the caller's shell), so a relative value is
 // anchored at home and not at the working directory.
 func TestLos35fCapsDirPathAnchorsARelativeValue(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 
-	got := CapsDirPath("caps-here", "/data/yesmem")
+	got := CapsDirPath("caps-here", "/data/nemons")
 
 	if !filepath.IsAbs(got) {
 		t.Fatalf("a relative caps_dir stayed relative: %q", got)
@@ -34,7 +34,7 @@ func TestLos35fCapsDirPathAnchorsARelativeValue(t *testing.T) {
 func TestLos35fCapsDirPathYieldsNothingWithoutHome(t *testing.T) {
 	t.Setenv("HOME", "")
 
-	if got := CapsDirPath("caps-here", "/data/yesmem"); got != "" {
+	if got := CapsDirPath("caps-here", "/data/nemons"); got != "" {
 		t.Errorf("CapsDirPath(%q) = %q, want the empty answer", "caps-here", got)
 	}
 }
@@ -45,7 +45,7 @@ func TestLos35fCapsDirPathExpandsATildeValue(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 
-	got := CapsDirPath("~/.claude/caps", "/data/yesmem")
+	got := CapsDirPath("~/.claude/caps", "/data/nemons")
 
 	if want := filepath.Join(home, ".claude", "caps"); got != want {
 		t.Errorf("CapsDirPath(%q) = %q, want %q", "~/.claude/caps", got, want)
@@ -56,7 +56,7 @@ func TestLos35fCapsDirPathExpandsATildeValue(t *testing.T) {
 func TestLos35fCapsDirPathKeepsAnAbsoluteValue(t *testing.T) {
 	configured := filepath.Join(t.TempDir(), "caps-elsewhere")
 
-	if got := CapsDirPath(configured, "/data/yesmem"); got != configured {
+	if got := CapsDirPath(configured, "/data/nemons"); got != configured {
 		t.Errorf("CapsDirPath(%q) = %q, want it unchanged", configured, got)
 	}
 }
@@ -67,12 +67,12 @@ func TestLos35fCapsDirPathAnchorsARelativeDataDir(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 
-	got := CapsDirPath("", filepath.Join("rel", "yesmem"))
+	got := CapsDirPath("", filepath.Join("rel", "nemons"))
 
 	if !filepath.IsAbs(got) {
 		t.Fatalf("a relative data dir yielded a relative caps dir: %q", got)
 	}
 	if want := filepath.Join(home, "rel", "caps"); got != want {
-		t.Errorf("CapsDirPath(empty, rel/yesmem) = %q, want %q", got, want)
+		t.Errorf("CapsDirPath(empty, rel/nemons) = %q, want %q", got, want)
 	}
 }

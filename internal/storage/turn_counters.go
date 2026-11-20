@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // IncrementTurnCount atomically increments the turn counter for a project.
@@ -90,7 +90,7 @@ func (s *Store) EnrichTurnCounts(learnings []models.Learning) {
 
 	turnCounts := make(map[string]int64, len(projectList))
 	// Chunk the IN clause: the driver rejects more than 32766 bound variables,
-	// and yesmem keys projects by full path, so the count only grows.
+	// and nemons keys projects by full path, so the count only grows.
 	const chunk = 500
 	for start := 0; start < len(projectList); start += chunk {
 		end := start + chunk

@@ -14,23 +14,23 @@ import (
 
 func TestBriefingCache_HitOnSameThreadAndProject(t *testing.T) {
 	s := &Server{}
-	s.setCachedBriefing("tid-A", "yesmem", "yesmem-brief", "yesmem-cm")
+	s.setCachedBriefing("tid-A", "nemons", "nemons-brief", "nemons-cm")
 
-	text, cm, ok := s.getCachedBriefing("tid-A", "yesmem")
+	text, cm, ok := s.getCachedBriefing("tid-A", "nemons")
 	if !ok {
 		t.Fatalf("expected cache hit for same thread+project, got miss")
 	}
-	if text != "yesmem-brief" {
-		t.Errorf("text = %q, want %q", text, "yesmem-brief")
+	if text != "nemons-brief" {
+		t.Errorf("text = %q, want %q", text, "nemons-brief")
 	}
-	if cm != "yesmem-cm" {
-		t.Errorf("codemap = %q, want %q", cm, "yesmem-cm")
+	if cm != "nemons-cm" {
+		t.Errorf("codemap = %q, want %q", cm, "nemons-cm")
 	}
 }
 
 func TestBriefingCache_MissOnDifferentProject(t *testing.T) {
 	s := &Server{}
-	s.setCachedBriefing("tid-A", "yesmem", "yesmem-brief", "yesmem-cm")
+	s.setCachedBriefing("tid-A", "nemons", "nemons-brief", "nemons-cm")
 
 	text, cm, ok := s.getCachedBriefing("tid-A", "erecht24api")
 	if ok {
@@ -44,7 +44,7 @@ func TestBriefingCache_MissOnDifferentProject(t *testing.T) {
 func TestBriefingCache_MissWhenEmpty(t *testing.T) {
 	s := &Server{}
 
-	text, cm, ok := s.getCachedBriefing("tid-A", "yesmem")
+	text, cm, ok := s.getCachedBriefing("tid-A", "nemons")
 	if ok {
 		t.Fatalf("expected cache miss for empty server, got hit")
 	}
@@ -57,15 +57,15 @@ func TestBriefingCache_MissWhenEmpty(t *testing.T) {
 // must each keep their own snapshot. A set on thread B must not leak to thread A.
 func TestBriefingCache_IsolatedBetweenThreads(t *testing.T) {
 	s := &Server{}
-	s.setCachedBriefing("tid-A", "yesmem", "A-text", "A-cm")
-	s.setCachedBriefing("tid-B", "yesmem", "B-text", "B-cm")
+	s.setCachedBriefing("tid-A", "nemons", "A-text", "A-cm")
+	s.setCachedBriefing("tid-B", "nemons", "B-text", "B-cm")
 
-	textA, cmA, okA := s.getCachedBriefing("tid-A", "yesmem")
+	textA, cmA, okA := s.getCachedBriefing("tid-A", "nemons")
 	if !okA || textA != "A-text" || cmA != "A-cm" {
 		t.Errorf("tid-A must keep its own entry after tid-B writes: ok=%v text=%q cm=%q",
 			okA, textA, cmA)
 	}
-	textB, cmB, okB := s.getCachedBriefing("tid-B", "yesmem")
+	textB, cmB, okB := s.getCachedBriefing("tid-B", "nemons")
 	if !okB || textB != "B-text" || cmB != "B-cm" {
 		t.Errorf("tid-B entry wrong: ok=%v text=%q cm=%q", okB, textB, cmB)
 	}
@@ -75,10 +75,10 @@ func TestBriefingCache_IsolatedBetweenThreads(t *testing.T) {
 // (A thread may switch working directory; old-project cache must not bleed in.)
 func TestBriefingCache_EvictsPreviousProjectForSameThread(t *testing.T) {
 	s := &Server{}
-	s.setCachedBriefing("tid-A", "yesmem", "A-text", "A-cm")
+	s.setCachedBriefing("tid-A", "nemons", "A-text", "A-cm")
 	s.setCachedBriefing("tid-A", "erecht24api", "B-text", "B-cm")
 
-	if _, _, ok := s.getCachedBriefing("tid-A", "yesmem"); ok {
+	if _, _, ok := s.getCachedBriefing("tid-A", "nemons"); ok {
 		t.Errorf("old project for same thread must be evicted after project switch")
 	}
 	text, cm, ok := s.getCachedBriefing("tid-A", "erecht24api")
@@ -89,13 +89,13 @@ func TestBriefingCache_EvictsPreviousProjectForSameThread(t *testing.T) {
 
 func TestBriefingCache_IgnoresEmptyProject(t *testing.T) {
 	s := &Server{}
-	s.setCachedBriefing("tid-A", "yesmem", "real-text", "real-cm")
+	s.setCachedBriefing("tid-A", "nemons", "real-text", "real-cm")
 
 	s.setCachedBriefing("tid-A", "", "garbage", "garbage-cm")
 
-	text, cm, ok := s.getCachedBriefing("tid-A", "yesmem")
+	text, cm, ok := s.getCachedBriefing("tid-A", "nemons")
 	if !ok {
-		t.Fatalf("yesmem cache should survive a setCachedBriefing call with empty project, got miss")
+		t.Fatalf("nemons cache should survive a setCachedBriefing call with empty project, got miss")
 	}
 	if text != "real-text" || cm != "real-cm" {
 		t.Errorf("empty-project write must not overwrite: text=%q cm=%q", text, cm)
@@ -108,11 +108,11 @@ func TestBriefingCache_IgnoresEmptyProject(t *testing.T) {
 
 func TestBriefingCache_IgnoresEmptyThreadID(t *testing.T) {
 	s := &Server{}
-	s.setCachedBriefing("tid-A", "yesmem", "real-text", "real-cm")
+	s.setCachedBriefing("tid-A", "nemons", "real-text", "real-cm")
 
-	s.setCachedBriefing("", "yesmem", "garbage", "garbage-cm")
+	s.setCachedBriefing("", "nemons", "garbage", "garbage-cm")
 
-	text, cm, ok := s.getCachedBriefing("tid-A", "yesmem")
+	text, cm, ok := s.getCachedBriefing("tid-A", "nemons")
 	if !ok {
 		t.Fatalf("tid-A cache should survive a setCachedBriefing call with empty threadID, got miss")
 	}
@@ -120,7 +120,7 @@ func TestBriefingCache_IgnoresEmptyThreadID(t *testing.T) {
 		t.Errorf("empty-threadID write must not overwrite: text=%q cm=%q", text, cm)
 	}
 
-	if _, _, ok := s.getCachedBriefing("", "yesmem"); ok {
+	if _, _, ok := s.getCachedBriefing("", "nemons"); ok {
 		t.Errorf("empty threadID must never produce a cache hit")
 	}
 }
@@ -128,15 +128,15 @@ func TestBriefingCache_IgnoresEmptyThreadID(t *testing.T) {
 // Evicting thread A must not touch thread B.
 func TestBriefingCache_InvalidatePerThread(t *testing.T) {
 	s := &Server{}
-	s.setCachedBriefing("tid-A", "yesmem", "A-text", "A-cm")
-	s.setCachedBriefing("tid-B", "yesmem", "B-text", "B-cm")
+	s.setCachedBriefing("tid-A", "nemons", "A-text", "A-cm")
+	s.setCachedBriefing("tid-B", "nemons", "B-text", "B-cm")
 
 	s.invalidateBriefingForThread("tid-A")
 
-	if _, _, ok := s.getCachedBriefing("tid-A", "yesmem"); ok {
+	if _, _, ok := s.getCachedBriefing("tid-A", "nemons"); ok {
 		t.Errorf("tid-A should be evicted by invalidateBriefingForThread")
 	}
-	textB, cmB, okB := s.getCachedBriefing("tid-B", "yesmem")
+	textB, cmB, okB := s.getCachedBriefing("tid-B", "nemons")
 	if !okB || textB != "B-text" || cmB != "B-cm" {
 		t.Errorf("tid-B must survive tid-A invalidation: ok=%v text=%q cm=%q",
 			okB, textB, cmB)
@@ -152,16 +152,16 @@ func TestRefreshBriefing_UpdatesOnlyThatThread(t *testing.T) {
 			return briefingData{Text: "fresh-" + project, CodeMap: "fresh-cm-" + project}
 		},
 	}
-	s.setCachedBriefing("tid-A", "yesmem", "old-A", "old-cm-A")
-	s.setCachedBriefing("tid-B", "yesmem", "old-B", "old-cm-B")
+	s.setCachedBriefing("tid-A", "nemons", "old-A", "old-cm-A")
+	s.setCachedBriefing("tid-B", "nemons", "old-B", "old-cm-B")
 
-	s.refreshBriefing("tid-A", "yesmem", "/tmp/yesmem")
+	s.refreshBriefing("tid-A", "nemons", "/tmp/nemons")
 
-	textA, cmA, _ := s.getCachedBriefing("tid-A", "yesmem")
-	if textA != "fresh-yesmem" || cmA != "fresh-cm-yesmem" {
+	textA, cmA, _ := s.getCachedBriefing("tid-A", "nemons")
+	if textA != "fresh-nemons" || cmA != "fresh-cm-nemons" {
 		t.Errorf("tid-A should be refreshed: text=%q cm=%q", textA, cmA)
 	}
-	textB, cmB, _ := s.getCachedBriefing("tid-B", "yesmem")
+	textB, cmB, _ := s.getCachedBriefing("tid-B", "nemons")
 	if textB != "old-B" || cmB != "old-cm-B" {
 		t.Errorf("tid-B must be untouched by refresh on tid-A: text=%q cm=%q", textB, cmB)
 	}
@@ -248,10 +248,10 @@ func TestInjectBriefingTurn_RetriesAfterFailedLoad(t *testing.T) {
 		},
 	}
 
-	if s.injectBriefingTurn(briefingTestRequest(), 1, "yesmem", "tid-A") {
+	if s.injectBriefingTurn(briefingTestRequest(), 1, "nemons", "tid-A") {
 		t.Fatalf("first request: no injection expected on failed load")
 	}
-	if s.injectBriefingTurn(briefingTestRequest(), 2, "yesmem", "tid-A") {
+	if s.injectBriefingTurn(briefingTestRequest(), 2, "nemons", "tid-A") {
 		t.Fatalf("second request within backoff: no injection expected")
 	}
 	if calls != 1 {
@@ -261,7 +261,7 @@ func TestInjectBriefingTurn_RetriesAfterFailedLoad(t *testing.T) {
 	ageBriefingEntry(s, "tid-A", briefingRetryBackoff+time.Second)
 
 	req := briefingTestRequest()
-	if !s.injectBriefingTurn(req, 3, "yesmem", "tid-A") {
+	if !s.injectBriefingTurn(req, 3, "nemons", "tid-A") {
 		t.Fatalf("after backoff the briefing must be reloaded and injected")
 	}
 	if calls != 2 {
@@ -272,7 +272,7 @@ func TestInjectBriefingTurn_RetriesAfterFailedLoad(t *testing.T) {
 	if !strings.Contains(first, "BRIEF-TEXT") {
 		t.Errorf("injected turn missing briefing text: %q", first)
 	}
-	if _, cm, ok := s.getCachedBriefing("tid-A", "yesmem"); !ok || cm != "BRIEF-CM" {
+	if _, cm, ok := s.getCachedBriefing("tid-A", "nemons"); !ok || cm != "BRIEF-CM" {
 		t.Errorf("retry must cache code map too: ok=%v cm=%q", ok, cm)
 	}
 }
@@ -289,11 +289,11 @@ func TestInjectBriefingTurn_SuccessfulLoadDoesNotExpire(t *testing.T) {
 		},
 	}
 
-	if !s.injectBriefingTurn(briefingTestRequest(), 1, "yesmem", "tid-A") {
+	if !s.injectBriefingTurn(briefingTestRequest(), 1, "nemons", "tid-A") {
 		t.Fatalf("first request: injection expected")
 	}
 	ageBriefingEntry(s, "tid-A", briefingRetryBackoff+time.Hour)
-	if !s.injectBriefingTurn(briefingTestRequest(), 2, "yesmem", "tid-A") {
+	if !s.injectBriefingTurn(briefingTestRequest(), 2, "nemons", "tid-A") {
 		t.Fatalf("second request: injection from cache expected")
 	}
 	if calls != 1 {
@@ -315,9 +315,9 @@ func TestInjectBriefingTurn_CodeMapOnlyEntryDoesNotExpire(t *testing.T) {
 		},
 	}
 
-	s.injectBriefingTurn(briefingTestRequest(), 1, "yesmem", "tid-A")
+	s.injectBriefingTurn(briefingTestRequest(), 1, "nemons", "tid-A")
 	ageBriefingEntry(s, "tid-A", briefingRetryBackoff+time.Second)
-	s.injectBriefingTurn(briefingTestRequest(), 2, "yesmem", "tid-A")
+	s.injectBriefingTurn(briefingTestRequest(), 2, "nemons", "tid-A")
 
 	if calls != 1 {
 		t.Errorf("code-map-only entry must not be reloaded, got %d loader calls", calls)
@@ -328,11 +328,11 @@ func TestInjectBriefingTurn_CodeMapOnlyEntryDoesNotExpire(t *testing.T) {
 // refresh stored a good briefing) must not downgrade the entry to empty.
 func TestBriefingCache_EmptyWriteDoesNotReplaceGoodEntry(t *testing.T) {
 	s := &Server{}
-	s.setCachedBriefing("tid-A", "yesmem", "GOOD", "GOOD-CM")
+	s.setCachedBriefing("tid-A", "nemons", "GOOD", "GOOD-CM")
 
-	s.setCachedBriefing("tid-A", "yesmem", "", "")
+	s.setCachedBriefing("tid-A", "nemons", "", "")
 
-	text, cm, ok := s.getCachedBriefing("tid-A", "yesmem")
+	text, cm, ok := s.getCachedBriefing("tid-A", "nemons")
 	if !ok || text != "GOOD" || cm != "GOOD-CM" {
 		t.Errorf("empty write must not replace good entry: ok=%v text=%q cm=%q", ok, text, cm)
 	}

@@ -168,15 +168,15 @@ func TestSearchAnticipatedQueries_EmptyWithDateMismatch(t *testing.T) {
 
 // TestSearchLearningsBM25Ctx_ProjectFilter_FullPathMatches covers the regression from
 // the resolve-short-cwd merge: when the caller passes a full path as project filter
-// ("/home/user/code/yesmem") but learnings carry short canonical_project ("yesmem"),
+// ("/home/user/code/nemons") but learnings carry short canonical_project ("nemons"),
 // the learning must still match. Before the fix the filter compared canonical_project
 // against project via string inequality and filtered everything out.
 func TestSearchLearningsBM25Ctx_ProjectFilter_FullPathMatches(t *testing.T) {
 	s := mustOpen(t)
 	insertTestLearningForProject(t, s, "hybrid search bm25 project filter regression", "gotcha",
-		"/home/user/code/yesmem", "yesmem")
+		"/home/user/code/nemons", "nemons")
 
-	results, err := s.SearchLearningsBM25Ctx(context.Background(), "project filter regression", "/home/user/code/yesmem", "", "", 10)
+	results, err := s.SearchLearningsBM25Ctx(context.Background(), "project filter regression", "/home/user/code/nemons", "", "", 10)
 	if err != nil {
 		t.Fatalf("SearchLearningsBM25Ctx: %v", err)
 	}
@@ -186,30 +186,30 @@ func TestSearchLearningsBM25Ctx_ProjectFilter_FullPathMatches(t *testing.T) {
 }
 
 // TestSearchLearningsBM25Ctx_ProjectFilter_ShortNameMatches covers the legacy short-name
-// caller path: project="yesmem" and canonical_project="yesmem" must keep matching.
+// caller path: project="nemons" and canonical_project="nemons" must keep matching.
 func TestSearchLearningsBM25Ctx_ProjectFilter_ShortNameMatches(t *testing.T) {
 	s := mustOpen(t)
 	insertTestLearningForProject(t, s, "short name hybrid search bm25 match", "gotcha",
-		"/home/user/code/yesmem", "yesmem")
+		"/home/user/code/nemons", "nemons")
 
-	results, err := s.SearchLearningsBM25Ctx(context.Background(), "short name hybrid bm25", "yesmem", "", "", 10)
+	results, err := s.SearchLearningsBM25Ctx(context.Background(), "short name hybrid bm25", "nemons", "", "", 10)
 	if err != nil {
 		t.Fatalf("SearchLearningsBM25Ctx: %v", err)
 	}
 	if len(results) == 0 {
-		t.Fatal("expected BM25 hit when project=canonical=yesmem; got 0")
+		t.Fatal("expected BM25 hit when project=canonical=nemons; got 0")
 	}
 }
 
 // TestSearchLearningsBM25Ctx_ProjectFilter_WorktreeMatches covers the worktree case:
-// project passed as "/home/user/code/yesmem/.worktrees/foo", canonical_project is "yesmem".
+// project passed as "/home/user/code/nemons/.worktrees/foo", canonical_project is "nemons".
 // CanonicalProject() strips the worktree suffix so the filter still matches.
 func TestSearchLearningsBM25Ctx_ProjectFilter_WorktreeMatches(t *testing.T) {
 	s := mustOpen(t)
 	insertTestLearningForProject(t, s, "worktree project filter must match parent canonical", "gotcha",
-		"/home/user/code/yesmem/.worktrees/foo", "yesmem")
+		"/home/user/code/nemons/.worktrees/foo", "nemons")
 
-	results, err := s.SearchLearningsBM25Ctx(context.Background(), "worktree project filter parent", "/home/user/code/yesmem/.worktrees/foo", "", "", 10)
+	results, err := s.SearchLearningsBM25Ctx(context.Background(), "worktree project filter parent", "/home/user/code/nemons/.worktrees/foo", "", "", 10)
 	if err != nil {
 		t.Fatalf("SearchLearningsBM25Ctx: %v", err)
 	}
@@ -223,15 +223,15 @@ func TestSearchLearningsBM25Ctx_ProjectFilter_WorktreeMatches(t *testing.T) {
 func TestSearchLearningsBM25Ctx_ProjectFilter_NoMatchFiltered(t *testing.T) {
 	s := mustOpen(t)
 	insertTestLearningForProject(t, s, "unrelated project must be filtered out bm25", "gotcha",
-		"/home/user/code/yesmem", "yesmem")
+		"/home/user/code/nemons", "nemons")
 
 	results, err := s.SearchLearningsBM25Ctx(context.Background(), "unrelated project filtered bm25", "/home/user/code/other", "", "", 10)
 	if err != nil {
 		t.Fatalf("SearchLearningsBM25Ctx: %v", err)
 	}
 	for _, r := range results {
-		if r.Project == "/home/user/code/yesmem" || r.Project == "yesmem" {
-			t.Fatalf("expected unrelated project to be filtered, but got result from yesmem: %+v", r)
+		if r.Project == "/home/user/code/nemons" || r.Project == "nemons" {
+			t.Fatalf("expected unrelated project to be filtered, but got result from nemons: %+v", r)
 		}
 	}
 }
@@ -245,9 +245,9 @@ func TestSearchAnticipatedQueries_ProjectFilter_Tolerant(t *testing.T) {
 	id := insertTestLearningWithTime(t, s, "aq tolerant project filter for full path", "gotcha", now)
 	insertAnticipatedQuery(t, s, id, "aq tolerant project filter")
 	// Set canonical_project to short name after insert (insertTestLearningWithTime doesn't set it)
-	s.db.Exec(`UPDATE learnings SET canonical_project = 'yesmem', project = '/home/user/code/yesmem' WHERE id = ?`, id)
+	s.db.Exec(`UPDATE learnings SET canonical_project = 'nemons', project = '/home/user/code/nemons' WHERE id = ?`, id)
 
-	results, err := s.SearchAnticipatedQueries("aq tolerant project filter", "/home/user/code/yesmem", 10, "", "")
+	results, err := s.SearchAnticipatedQueries("aq tolerant project filter", "/home/user/code/nemons", 10, "", "")
 	if err != nil {
 		t.Fatalf("SearchAnticipatedQueries: %v", err)
 	}
@@ -288,7 +288,7 @@ func TestSearchLearningsBM25Ctx_ProjectFilter_LegacyEmptyCanonicalMatches(t *tes
 	id := insertTestLearningWithTime(t, s, "legacy row without project metadata must still be findable", "gotcha", time.Now().UTC())
 	_ = id
 
-	results, err := s.SearchLearningsBM25Ctx(context.Background(), "legacy row without project", "/home/user/code/yesmem", "", "", 10)
+	results, err := s.SearchLearningsBM25Ctx(context.Background(), "legacy row without project", "/home/user/code/nemons", "", "", 10)
 	if err != nil {
 		t.Fatalf("SearchLearningsBM25Ctx: %v", err)
 	}

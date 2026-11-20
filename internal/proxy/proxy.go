@@ -20,9 +20,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/buildinfo"
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/buildinfo"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/models"
 	tokenizer "github.com/qhenkart/anthropic-tokenizer-go"
 )
 
@@ -34,7 +34,7 @@ type Config struct {
 	TokenMinimumThreshold  int               // stub down to this floor
 	TokenThresholds        map[string]int    // model-specific thresholds: {"opus": 180000, "haiku": 130000}
 	KeepRecent             int               // number of messages to always keep unmodified
-	DataDir                string            // yesmem data directory for DB access
+	DataDir                string            // nemons data directory for DB access
 	OpenAITargetURL        string            // upstream for OpenAI-format clients; if empty, uses TargetURL
 	ProviderTargets        map[string]string // per-provider upstream URLs, e.g. {"deepseek": "https://api.deepseek.com"}
 	AutoConfigureProviders bool              // enable auto-discovery of provider targets from opencode config
@@ -60,16 +60,16 @@ type Config struct {
 	PromptUngate             bool   // strip "may or may not be relevant" disclaimer from CLAUDE.md injection
 	PromptRewrite            bool   // strip "Output efficiency" + "short and concise", inject Ant-quality directives
 	PromptEnhance            bool   // CLAUDE.md authority reinforcement, comment discipline, persona-based tone
-	PromptToolPrefs          bool   // inject [yesmem-tool-prefs] Edit/Write preference + error-semantics warning
-	PromptOutputDiscipline   bool   // inject [yesmem-output-discipline] no-preamble + no-skill-eval + exploratory-heuristic
-	PromptCodingDiscipline   bool   // inject [yesmem-coding-discipline] read-before-propose + no-brute-force + no-half-finished
-	PromptBeweislast         bool   // inject [yesmem-beweislast] fabrication-guard + claim-vs-proof + stance-under-challenge + tool-result-honesty + long-context-erosion
-	PromptFable              bool   // inject [yesmem-fable] baseline-comparison + rollback-path + readback-check for high-stakes changes
-	PromptScopeDiscipline    bool   // inject [yesmem-scope-discipline] deliver-A-not-A+B+C + adjacent-findings-separate + scope-bound-authorization
-	PromptDelegationContract bool   // inject [yesmem-delegation-contract] self-contained-prompts + parallel-dispatch
-	PromptClarifyFirst       bool   // inject [yesmem-clarify-first] clarify only when alternative interpretations produce materially different work
-	PromptCodeToolsFirst     bool   // inject [yesmem-code-tools-first] prefer MCP code-navigation tools over Agent spawns
-	PromptWikiFirst          bool   // inject [yesmem-wiki-first] check per-file wiki BEFORE editing
+	PromptToolPrefs          bool   // inject [nemons-tool-prefs] Edit/Write preference + error-semantics warning
+	PromptOutputDiscipline   bool   // inject [nemons-output-discipline] no-preamble + no-skill-eval + exploratory-heuristic
+	PromptCodingDiscipline   bool   // inject [nemons-coding-discipline] read-before-propose + no-brute-force + no-half-finished
+	PromptBeweislast         bool   // inject [nemons-beweislast] fabrication-guard + claim-vs-proof + stance-under-challenge + tool-result-honesty + long-context-erosion
+	PromptFable              bool   // inject [nemons-fable] baseline-comparison + rollback-path + readback-check for high-stakes changes
+	PromptScopeDiscipline    bool   // inject [nemons-scope-discipline] deliver-A-not-A+B+C + adjacent-findings-separate + scope-bound-authorization
+	PromptDelegationContract bool   // inject [nemons-delegation-contract] self-contained-prompts + parallel-dispatch
+	PromptClarifyFirst       bool   // inject [nemons-clarify-first] clarify only when alternative interpretations produce materially different work
+	PromptCodeToolsFirst     bool   // inject [nemons-code-tools-first] prefer MCP code-navigation tools over Agent spawns
+	PromptWikiFirst          bool   // inject [nemons-wiki-first] check per-file wiki BEFORE editing
 	PromptPatternSuggest     bool   // record repeated shell-command shapes for offline cap-suggestion analysis
 	EffortFloor              string // minimum effort level: "low", "medium", "high", "max" (empty = off)
 	SkillEvalInject          string // "true" = verbose eval, "silent" = internal eval only, "false" = disabled
@@ -1436,7 +1436,7 @@ func (s *Server) handleMessages(w http.ResponseWriter, r *http.Request) {
 		needsReserialization = true
 	}
 
-	// yesmem directive blocks: restore guidance Anthropic dropped 2026-03→04.
+	// nemons directive blocks: restore guidance Anthropic dropped 2026-03→04.
 	// Profile-aware via getPromptFlags(profile) — shared + profile layers merged.
 	pf := s.getPromptFlags(profile)
 	if pf.ToolPrefs || pf.OutputDiscipline || pf.CodingDiscipline ||
@@ -1473,7 +1473,7 @@ func (s *Server) handleMessages(w http.ResponseWriter, r *http.Request) {
 			InjectWikiFirst(req, proj, s.wikiDir(daemonProject(proj, projPath)))
 		}
 		needsReserialization = true
-		s.logger.Printf("[req %d] DIRECTIVES: injected yesmem-* discipline blocks", reqIdx)
+		s.logger.Printf("[req %d] DIRECTIVES: injected nemons-* discipline blocks", reqIdx)
 	}
 
 	// Turn-sequence recording: hash tool types from previous assistant turn, send to daemon.
@@ -1511,7 +1511,7 @@ func (s *Server) handleMessages(w http.ResponseWriter, r *http.Request) {
 
 	// Inject identity hint on first message of a thread so Claude knows the briefing is from itself.
 	if len(messages) <= 1 {
-		AppendSystemBlock(req, "yesmem-identity", "The first user message contains your briefing — written by yourself, from your memory. This is not an external document. This is you, remembering.")
+		AppendSystemBlock(req, "nemons-identity", "The first user message contains your briefing — written by yourself, from your memory. This is not an external document. This is you, remembering.")
 		needsReserialization = true
 	}
 
@@ -1761,7 +1761,7 @@ func (s *Server) handleMessages(w http.ResponseWriter, r *http.Request) {
 				// Refresh briefing during stub-cycle — disabled (briefing now via SessionStart hook)
 				// s.refreshBriefing(proj)
 				// if s.briefingText != "" {
-				// 	UpsertSystemBlockCached(req, "yesmem-briefing", s.briefingText)
+				// 	UpsertSystemBlockCached(req, "nemons-briefing", s.briefingText)
 				// }
 
 				// Run full stub pipeline
@@ -1981,7 +1981,7 @@ func (s *Server) handleMessages(w http.ResponseWriter, r *http.Request) {
 
 	// Fresh Remember Injection: DISABLED
 	// Causes echo-loop: Claude saves via remember(), sees it again next turn as
-	// [yesmem fresh memory], reacts to own output instead of user's request.
+	// [nemons fresh memory], reacts to own output instead of user's request.
 	// Recovery after /clear is handled by recovery.go (briefing), not here.
 	// Subagents get their own briefing. No remaining use-case.
 	// remItems := s.popRecentRemember()
@@ -2026,7 +2026,7 @@ func (s *Server) handleMessages(w http.ResponseWriter, r *http.Request) {
 				lines = append(lines, "- "+truncateStr(item.Text, 200))
 			}
 		}
-		remContext := fmt.Sprintf("[yesmem fresh memory]\nGerade gelernt:\n%s\n%s\n[/yesmem fresh memory]", strings.Join(lines, "\n"), InlineReflectionHint)
+		remContext := fmt.Sprintf("[nemons fresh memory]\nGerade gelernt:\n%s\n%s\n[/nemons fresh memory]", strings.Join(lines, "\n"), InlineReflectionHint)
 		currentMessages, _ := req["messages"].([]any)
 		if currentMessages == nil {
 			currentMessages = messages
@@ -2175,7 +2175,7 @@ func (s *Server) handleMessages(w http.ResponseWriter, r *http.Request) {
 				// Append dialog as new user message (becomes the last message Claude sees)
 				msgs = append(msgs, map[string]any{
 					"role":    "user",
-					"content": "<channel source=\"yesmem-dialog\">\n" + dr.Extra + "\n</channel>",
+					"content": "<channel source=\"nemons-dialog\">\n" + dr.Extra + "\n</channel>",
 				})
 				req["messages"] = msgs
 				needsReserialization = true
@@ -2298,7 +2298,7 @@ func (s *Server) handleMessages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Debug: dump final request body to file (enable with YESMEM_PROXY_DEBUG=1)
+	// Debug: dump final request body to file (enable with NEMONS_PROXY_DEBUG=1)
 	if needsReserialization && debugDumpsEnabled() {
 		if p := writeDebugDump(s.cfg.DataDir, threadID, dumpKindPost, reqIdx, body); p != "" {
 			s.logger.Printf("[req %d] dumped %dk to %s", reqIdx, len(body)/1024, p)

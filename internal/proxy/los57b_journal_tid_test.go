@@ -94,7 +94,7 @@ func los57bRequestForge(t *testing.T, session string) {
 		t.Fatalf("marshal user_id: %v", err)
 	}
 	body := `{"model":"claude-opus-4-6","stream":false,"thinking":{"type":"adaptive"},` +
-		`"system":[{"type":"text","text":"Primary working directory: /home/tester/memory/yesmem"}],` +
+		`"system":[{"type":"text","text":"Primary working directory: /home/tester/memory/nemons"}],` +
 		`"messages":[{"role":"user","content":"start the task"},` +
 		`{"role":"assistant","content":"on it"},` +
 		`{"role":"user","content":"check the prompt profile routing"}],` +

@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // GetIndexState returns the index state for a JSONL path, or nil if not indexed.

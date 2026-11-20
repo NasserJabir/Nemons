@@ -59,7 +59,7 @@ func TestLos32fHealthCountsHeadlessJobFailures(t *testing.T) {
 // turn every quiet window into a degraded verdict (the YM-289 noise pattern).
 func TestLos32fHealthIgnoresSuccessfulAndSkippedHeadlessRuns(t *testing.T) {
 	daemonLog := los32fDaemonLine(`[scheduler] headless run for job sched-research-9182 (resume=false, sandbox=standard)`) +
-		los32fDaemonLine(`[scheduler] headless job sched-research-9182 done (412 bytes, session=ses_ab12, section=sched-research, under "/home/tester/memory/yesmem")`) +
+		los32fDaemonLine(`[scheduler] headless job sched-research-9182 done (412 bytes, session=ses_ab12, section=sched-research, under "/home/tester/memory/nemons")`) +
 		los32fDaemonLine(`[scheduler] headless job sched-refine-4410 skipped: no working directory`)
 
 	res := los32eRunBash(t, "", daemonLog)
@@ -115,7 +115,7 @@ func TestLos32fHeadlessRulesDoNotOverMatch(t *testing.T) {
 }
 
 // los32fDaemonLine wraps a payload in the daemon's real journal envelope, the
-// form journalctl --user -u yesmem prints.
+// form journalctl --user -u nemons prints.
 func los32fDaemonLine(payload string) string {
-	return fmt.Sprintf("Oct 17 18:00:00 host yesmem[42]: 2026/10/17 18:00:00 %s\n", payload)
+	return fmt.Sprintf("Oct 17 18:00:00 host nemons[42]: 2026/10/17 18:00:00 %s\n", payload)
 }

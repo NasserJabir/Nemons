@@ -1,4 +1,4 @@
-// Package sanitize stellt eine Sanitization-Pipeline für YesMem bereit.
+// Package sanitize stellt eine Sanitization-Pipeline für Nemons bereit.
 //
 // Sanitizer ist die kleinste Einheit: nimmt einen String, gibt einen
 // modifizierten String zurück. Pipeline kettet Sanitizer in

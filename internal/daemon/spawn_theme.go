@@ -25,16 +25,16 @@ const opencodeThemeEnvKey = "OPENCODE_CLI_CONFIG_CONTENT"
 // its area agents yesresearch-<topic>-<cluster>, so they get the research
 // accent). A caller can pass theme= explicitly for anything else.
 var defaultAgentThemes = map[string]string{
-	"yesloop":      "yesmem-loop",
-	"yesresearch":  "yesmem-research",
-	"subresearch":  "yesmem-subresearch",
-	"orchestrator": "yesmem-dark",
+	"yesloop":      "nemons-loop",
+	"yesresearch":  "nemons-research",
+	"subresearch":  "nemons-subresearch",
+	"orchestrator": "nemons-dark",
 }
 
-// agentThemePrefix marks the themes yesmem itself installs. Only those can be
+// agentThemePrefix marks the themes nemons itself installs. Only those can be
 // checked for presence on disk; every other name is a built-in opencode theme
 // that opencode resolves on its own.
-const agentThemePrefix = "yesmem-"
+const agentThemePrefix = "nemons-"
 
 // themeNamePattern is the shape a theme name must have to be safe on the
 // command line. A value starting with "-" would be parsed as another flag and
@@ -116,7 +116,7 @@ func (h *Handler) themeSpawnOverride(backend, bin, explicit, section string, env
 		// opencode silently falls back to its built-in theme for an unknown
 		// name, so a missing install is otherwise invisible. Not a hard stop:
 		// a project-local .opencode/themes/ copy resolves it just as well.
-		log.Printf("[agents] theme %q is not installed under ~/.config/opencode/themes — run `yesmem update` if the accent does not appear", theme)
+		log.Printf("[agents] theme %q is not installed under ~/.config/opencode/themes — run `nemons update` if the accent does not appear", theme)
 	}
 	if opencodeSupportsThemeFlag(bin) {
 		return []string{"--theme", theme}, nil
@@ -148,7 +148,7 @@ func (h *Handler) themeSpawnOverride(backend, bin, explicit, section string, env
 }
 
 // inheritedThemeContent reports whether an OPENCODE_CLI_CONFIG_CONTENT value is
-// one yesmem wrote itself: exactly a theme.name override, nothing else. A
+// one nemons wrote itself: exactly a theme.name override, nothing else. A
 // daemon started from an agent shell inherits that value, and without this check
 // it would read its own leftovers as an operator decision and disable theming
 // for good.
@@ -170,7 +170,7 @@ func inheritedThemeContent(value string) bool {
 }
 
 // agentThemeInstalled reports whether the theme can be resolved by opencode.
-// Names outside the yesmem family are built-in opencode themes, which opencode
+// Names outside the nemons family are built-in opencode themes, which opencode
 // resolves itself; only our own family can be checked on disk.
 func agentThemeInstalled(home, theme string) bool {
 	if !strings.HasPrefix(theme, agentThemePrefix) {

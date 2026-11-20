@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/verify"
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // A test claim that came back as an environment gap is the case an init exists
@@ -43,7 +43,7 @@ func TestDoneVerifyMessageNamesTheMissingProfileInit(t *testing.T) {
 
 	// With the file in place the environment gap has another cause. Naming init
 	// again would send the agent to a command that refuses to replace the file.
-	if err := os.MkdirAll(filepath.Join(repo, ".yesmem"), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Join(repo, ".nemons"), 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 	if err := os.WriteFile(filepath.Join(repo, verify.ProfilePath),

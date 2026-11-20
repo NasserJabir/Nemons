@@ -8,7 +8,7 @@ import (
 )
 
 // PRX-P45 (3): writeFileAtomic resolves a symlink at its destination, which is
-// right for the user's config but wrong for the backup yesmem writes beside it.
+// right for the user's config but wrong for the backup nemons writes beside it.
 // A link at the backup path sent the config copy over an unrelated file. The
 // backup is now written without resolving: the rename replaces the link, the
 // link target keeps its content, and the patch still runs.

@@ -8,21 +8,21 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/textutil"
-	"github.com/carsteneu/yesmem/internal/wikidir"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/textutil"
+	"github.com/NasserJabir/Nemons/internal/wikidir"
 )
 
 // los04iSeedWikiLearning gives the project one learning, so the render claims the
 // output directory and prints its status line.
 func los04iSeedWikiLearning(t *testing.T, home, project string) {
 	t.Helper()
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	if err := os.MkdirAll(dataDir, 0o700); err != nil {
 		t.Fatalf("mkdir data dir: %v", err)
 	}
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}

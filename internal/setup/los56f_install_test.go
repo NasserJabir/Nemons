@@ -9,29 +9,29 @@ import (
 	"syscall"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/update"
+	"github.com/NasserJabir/Nemons/internal/update"
 )
 
 // ── YM-313 (Los 56f): copyBinary atomar und unter dem Update-Lock ───────────
 
 // copyBinary used to write through the target's inode. An existing copy of the
-// binary under another name shares that inode, and a running yesmem (the
+// binary under another name shares that inode, and a running nemons (the
 // daemon, the proxy, an MCP child) has it mapped: the write either fails with
 // ETXTBSY in the middle or leaves a truncated binary behind. A rename installs
 // the new bytes without ever touching the old inode.
 func TestLos56fCopyBinaryReplacesAtomically(t *testing.T) {
 	dir := t.TempDir()
-	src := filepath.Join(dir, "yesmem-new")
+	src := filepath.Join(dir, "nemons-new")
 	if err := os.WriteFile(src, []byte("new-binary"), 0755); err != nil {
 		t.Fatalf("seed src: %v", err)
 	}
-	dst := filepath.Join(dir, "yesmem")
+	dst := filepath.Join(dir, "nemons")
 	if err := os.WriteFile(dst, []byte("old-binary"), 0755); err != nil {
 		t.Fatalf("seed dst: %v", err)
 	}
 	// A second name for the installed inode, like the .bak copy the updater
 	// keeps and the mapping of a running process.
-	witness := filepath.Join(dir, "yesmem.bak")
+	witness := filepath.Join(dir, "nemons.bak")
 	if err := os.Link(dst, witness); err != nil {
 		t.Fatalf("link witness: %v", err)
 	}
@@ -82,7 +82,7 @@ func TestLos56fSetupSwitchesRunningServicesToTheNewBinary(t *testing.T) {
 	}
 
 	home := t.TempDir()
-	src := filepath.Join(t.TempDir(), "yesmem")
+	src := filepath.Join(t.TempDir(), "nemons")
 	if err := os.WriteFile(src, []byte("new-binary"), 0755); err != nil {
 		t.Fatalf("seed src: %v", err)
 	}
@@ -99,7 +99,7 @@ func TestLos56fSetupSwitchesRunningServicesToTheNewBinary(t *testing.T) {
 		t.Fatalf("systemctl called %d times, want exactly one try-restart", len(got))
 	}
 	joined := strings.Join(got[0], " ")
-	for _, want := range []string{"--user", "try-restart", "yesmem.service", "yesmem-proxy.service"} {
+	for _, want := range []string{"--user", "try-restart", "nemons.service", "nemons-proxy.service"} {
 		if !strings.Contains(joined, want) {
 			t.Errorf("systemctl invocation %q does not name %q", joined, want)
 		}
@@ -107,15 +107,15 @@ func TestLos56fSetupSwitchesRunningServicesToTheNewBinary(t *testing.T) {
 }
 
 // The setup copy and the updater write the same path. Without the shared lock a
-// setup running next to `yesmem update` or `make deploy` replaces a binary the
+// setup running next to `nemons update` or `make deploy` replaces a binary the
 // other side is mid-way through.
 func TestLos56fCopyBinaryRefusesWhileUpdateRuns(t *testing.T) {
 	dir := t.TempDir()
-	src := filepath.Join(dir, "yesmem-new")
+	src := filepath.Join(dir, "nemons-new")
 	if err := os.WriteFile(src, []byte("new-binary"), 0755); err != nil {
 		t.Fatalf("seed src: %v", err)
 	}
-	dst := filepath.Join(dir, "yesmem")
+	dst := filepath.Join(dir, "nemons")
 	if err := os.WriteFile(dst, []byte("old-binary"), 0755); err != nil {
 		t.Fatalf("seed dst: %v", err)
 	}

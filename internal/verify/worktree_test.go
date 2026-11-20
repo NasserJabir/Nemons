@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // uncommittedFile writes a file into the repository without adding it to the
@@ -102,14 +102,14 @@ func TestACleanWorktreeIsAccepted(t *testing.T) {
 }
 
 // Ignored files are the project's statement that they are not its history, and
-// .yesmem is the ordinary case: the profile, the temp space and the artifacts
+// .nemons is the ordinary case: the profile, the temp space and the artifacts
 // live there. They must not read as residue.
 func TestIgnoredFilesDoNotDirtyTheWorktree(t *testing.T) {
 	repo, commit := makeRepoFiles(t, "ignoredworktree", map[string]string{
-		".gitignore": ".yesmem/\n",
+		".gitignore": ".nemons/\n",
 		"file.txt":   "x\n",
 	})
-	uncommittedFile(t, repo, ".yesmem/tmp/probe", "probe\n")
+	uncommittedFile(t, repo, ".nemons/tmp/probe", "probe\n")
 
 	report, err := Verify(context.Background(), Request{
 		Repo:    repo,

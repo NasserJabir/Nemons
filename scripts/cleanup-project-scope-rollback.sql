@@ -27,13 +27,13 @@ UPDATE doc_sources SET project=''
  WHERE id=122 AND name='sulu-docs' AND project='/var/www/html/GreenWashProjekt/greenWebsite';
 
 -- R3-1 rows: restore the original (archived) project value.
-UPDATE doc_sources SET project='yesmem-projects-ghost'
- WHERE id=106 AND name='rules' AND project='/home/chief/memory/yesmem';
+UPDATE doc_sources SET project='nemons-projects-ghost'
+ WHERE id=106 AND name='rules' AND project='/home/chief/memory/nemons';
 
-UPDATE doc_sources SET project='yesmem-projects-ghost'
+UPDATE doc_sources SET project='nemons-projects-ghost'
  WHERE id=112 AND name='go-effective' AND project='';
 
-UPDATE doc_sources SET project='yesmem-projects-ghost'
+UPDATE doc_sources SET project='nemons-projects-ghost'
  WHERE id=113 AND name='go-stdlib' AND project='';
 
 -- --- R3-3 rollback: re-globalize the moved originals, then drop the greenTile copies -
@@ -66,7 +66,7 @@ SELECT 'sulu_docs_restored_global' AS check_name, count(*) AS n
   FROM doc_sources WHERE id=122 AND (project='' OR project IS NULL);
 
 SELECT 'ghost_rows_restored' AS check_name, count(*) AS n
-  FROM doc_sources WHERE id IN (106, 112, 113) AND project='yesmem-projects-ghost';
+  FROM doc_sources WHERE id IN (106, 112, 113) AND project='nemons-projects-ghost';
 
 SELECT 'cinnamon_reglobalized' AS check_name, count(*) AS n
   FROM doc_sources WHERE name LIKE 'cinnamon-%' AND (project='' OR project IS NULL);

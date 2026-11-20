@@ -492,9 +492,9 @@ func formatToolEvent(toolName string, input map[string]any, msgIdx int) string {
 
 	default:
 		// MCP tools and others — include with short name
-		if strings.HasPrefix(toolName, "mcp__yesmem__") {
-			short := strings.TrimPrefix(toolName, "mcp__yesmem__")
-			return fmt.Sprintf("  [%d] yesmem:%s", msgIdx, short)
+		if strings.HasPrefix(toolName, "mcp__nemons__") {
+			short := strings.TrimPrefix(toolName, "mcp__nemons__")
+			return fmt.Sprintf("  [%d] nemons:%s", msgIdx, short)
 		}
 		if strings.HasPrefix(toolName, "mcp__") {
 			return "" // skip other MCP tools
@@ -523,7 +523,7 @@ func formatBashEvent(cmd string, msgIdx int) string {
 	}
 
 	// Deployments
-	if strings.Contains(cmd, "make deploy") || (strings.Contains(cmd, "scp ") && strings.Contains(cmd, "yesmem")) {
+	if strings.Contains(cmd, "make deploy") || (strings.Contains(cmd, "scp ") && strings.Contains(cmd, "nemons")) {
 		return fmt.Sprintf("  [%d] deploy", msgIdx)
 	}
 

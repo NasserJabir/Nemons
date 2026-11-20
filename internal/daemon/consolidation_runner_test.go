@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 func TestConsolidationRunnerPersistsBaselineAndCoalescesConcurrentRuns(t *testing.T) {
@@ -61,7 +61,7 @@ func TestConsolidationRunnerPersistsBaselineAndCoalescesConcurrentRuns(t *testin
 }
 
 func TestConsolidationRunnerPersistsWatermarkAcrossStoreReopen(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "yesmem.db")
+	path := filepath.Join(t.TempDir(), "nemons.db")
 	store, err := storage.Open(path)
 	if err != nil {
 		t.Fatalf("open store: %v", err)
@@ -88,7 +88,7 @@ func TestConsolidationRunnerPersistsWatermarkAcrossStoreReopen(t *testing.T) {
 
 func TestConsolidationRunnerStoresStateWithLearningDatabase(t *testing.T) {
 	dir := t.TempDir()
-	store, err := storage.Open(filepath.Join(dir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -123,7 +123,7 @@ func TestConsolidationRunnerStoresStateWithLearningDatabase(t *testing.T) {
 }
 
 func TestConsolidationRunnerMigratesLegacyRuntimeState(t *testing.T) {
-	store, err := storage.Open(filepath.Join(t.TempDir(), "yesmem.db"))
+	store, err := storage.Open(filepath.Join(t.TempDir(), "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}

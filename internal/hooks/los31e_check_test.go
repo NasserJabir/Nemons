@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // TestLos31eProtectedFileNeedsTheGeneratedDirectory covers finding 2 of YM-342:
@@ -22,12 +22,12 @@ func TestLos31eProtectedFileNeedsTheGeneratedDirectory(t *testing.T) {
 		path string
 		want bool
 	}{
-		{"the generated file", "/home/x/project/.claude/yesmem-ops.md", true},
-		{"the generated file with a trailing separator", "/home/x/project/.claude/yesmem-ops.md/", true},
-		{"the same name in the project root", "/home/x/project/yesmem-ops.md", false},
-		{"the same name in a temp dir", "/tmp/yesmem-ops.md", false},
-		{"the same name in another hidden dir", "/home/x/project/.config/yesmem-ops.md", false},
-		{"a case variant of the generated file", "/home/x/project/.CLAUDE/YESMEM-OPS.MD", true},
+		{"the generated file", "/home/x/project/.claude/nemons-ops.md", true},
+		{"the generated file with a trailing separator", "/home/x/project/.claude/nemons-ops.md/", true},
+		{"the same name in the project root", "/home/x/project/nemons-ops.md", false},
+		{"the same name in a temp dir", "/tmp/nemons-ops.md", false},
+		{"the same name in another hidden dir", "/home/x/project/.config/nemons-ops.md", false},
+		{"a case variant of the generated file", "/home/x/project/.CLAUDE/NEMONS-OPS.MD", true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -53,9 +53,9 @@ func TestLos31eOpsFileAliasesStayProtected(t *testing.T) {
 	}
 
 	blocked := []struct{ name, command string }{
-		{"escaped separator", `echo '{}' > ` + home + `/.claude\/yesmem-ops.md`},
-		{"through a directory symlink", `echo '{}' > ` + link + `/yesmem-ops.md`},
-		{"copied into the generated directory", `cp /x/yesmem-ops.md ` + filepath.Join(home, ".claude") + `/`},
+		{"escaped separator", `echo '{}' > ` + home + `/.claude\/nemons-ops.md`},
+		{"through a directory symlink", `echo '{}' > ` + link + `/nemons-ops.md`},
+		{"copied into the generated directory", `cp /x/nemons-ops.md ` + filepath.Join(home, ".claude") + `/`},
 	}
 	for _, tt := range blocked {
 		t.Run(tt.name, func(t *testing.T) {
@@ -72,7 +72,7 @@ func TestLos31eOpsFileAliasesStayProtected(t *testing.T) {
 			}
 		})
 	}
-	if !isProtectedFile(filepath.Join(link, "yesmem-ops.md")) {
+	if !isProtectedFile(filepath.Join(link, "nemons-ops.md")) {
 		t.Error("a symlinked directory that resolves to .claude must protect the ops file")
 	}
 }
@@ -84,20 +84,20 @@ func TestLos31eWriteOfAStrayOpsFileIsNotBlocked(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 
-	stray := filepath.Join(home, "notes", "yesmem-ops.md")
+	stray := filepath.Join(home, "notes", "nemons-ops.md")
 	out, code := runCheckBlocking(t, openTempStore(t, func(*storage.Store) {}), HookInput{
 		ToolName:  "Write",
 		CWD:       home,
 		ToolInput: json.RawMessage(`{"file_path":` + quoteJSON(stray) + `}`),
 	})
 	if code != 0 {
-		t.Errorf("a stray file named yesmem-ops.md must not block, exit = %d, out = %q", code, out)
+		t.Errorf("a stray file named nemons-ops.md must not block, exit = %d, out = %q", code, out)
 	}
 	if strings.Contains(out, `"decision"`) {
-		t.Errorf("a stray file named yesmem-ops.md must not produce a block decision, got: %q", out)
+		t.Errorf("a stray file named nemons-ops.md must not produce a block decision, got: %q", out)
 	}
 
-	generated := filepath.Join(home, ".claude", "yesmem-ops.md")
+	generated := filepath.Join(home, ".claude", "nemons-ops.md")
 	out, code = runCheckBlocking(t, openTempStore(t, func(*storage.Store) {}), HookInput{
 		ToolName:  "Write",
 		CWD:       home,
@@ -182,7 +182,7 @@ func TestLos31eReplShellWriteReachesTheGuard(t *testing.T) {
 			CWD:       home,
 			ToolInput: json.RawMessage(`{"code":` + quoteJSON(code) + `}`),
 		})
-		if !strings.Contains(out, "yesmem setup") {
+		if !strings.Contains(out, "nemons setup") {
 			t.Errorf("an in-place REPL write of the settings file must warn, got: %q", out)
 		}
 	})
@@ -210,7 +210,7 @@ func TestLos31eReplShellWriteReachesTheGuard(t *testing.T) {
 			if code != 0 {
 				t.Errorf("%q does not write the file and must not exit %d, out = %q", tt.code, code, out)
 			}
-			if strings.Contains(out, "yesmem setup") || strings.Contains(out, `"decision"`) {
+			if strings.Contains(out, "nemons setup") || strings.Contains(out, `"decision"`) {
 				t.Errorf("%q does not write the file and must stay silent, got: %q", tt.code, out)
 			}
 		})
@@ -231,10 +231,10 @@ func TestLos31eEscapedSpellingsReachTheGuard(t *testing.T) {
 		`echo '{}' > $HOME/\.claude/settings.json`,
 		`echo '{}' > $HOME/.claude/settings\.json`,
 		`echo '{}' > $HOME\/\.claude\/settings\.json`,
-		`echo x > $HOME/.claude/yesmem-ops\.md`,
-		`echo x > $HOME/\.claude/yesmem-ops.md`,
+		`echo x > $HOME/.claude/nemons-ops\.md`,
+		`echo x > $HOME/\.claude/nemons-ops.md`,
 		`cd $HOME/\.claude && echo '{}' > settings\.json`,
-		`cp /x/yesmem-ops\.md $HOME/.claude/`,
+		`cp /x/nemons-ops\.md $HOME/.claude/`,
 	}
 	for _, command := range blocked {
 		t.Run(command, func(t *testing.T) {
@@ -270,7 +270,7 @@ func TestLos31eSettingsEditWarningDoesNotSkipTheGotcha(t *testing.T) {
 			quoteJSON(filepath.Join(home, ".claude", "settings.json")) +
 			`,"old_string":"a","new_string":"b"}`),
 	})
-	if !strings.Contains(out, "yesmem setup") {
+	if !strings.Contains(out, "nemons setup") {
 		t.Errorf("the settings warning must still be emitted, got: %q", out)
 	}
 	if !strings.Contains(out, "LOS31E-GOTCHA-MARKER") {
@@ -289,7 +289,7 @@ func TestLos31eInjectionCapDoesNotHideTheBlock(t *testing.T) {
 
 	var id int64
 	dir := openTempStore(t, func(s *storage.Store) {
-		id = insertGotcha(t, s, "rm -rf "+home+"/.claude/yesmem loescht alle Learnings", "hook_auto_learned", "bash")
+		id = insertGotcha(t, s, "rm -rf "+home+"/.claude/nemons loescht alle Learnings", "hook_auto_learned", "bash")
 		for i := 0; i < blockThreshold; i++ {
 			if err := s.IncrementFailCounts([]int64{id}); err != nil {
 				t.Fatalf("escalate fail count: %v", err)
@@ -306,7 +306,7 @@ func TestLos31eInjectionCapDoesNotHideTheBlock(t *testing.T) {
 		SessionID: session,
 		CWD:       home,
 		ToolName:  "Bash",
-		ToolInput: json.RawMessage(`{"command":` + quoteJSON("rm -rf "+home+"/.claude/yesmem") + `}`),
+		ToolInput: json.RawMessage(`{"command":` + quoteJSON("rm -rf "+home+"/.claude/nemons") + `}`),
 	})
 	if code != 2 {
 		t.Fatalf("an escalated gotcha must block even when its injection cap is reached, exit = %d, out = %q", code, out)

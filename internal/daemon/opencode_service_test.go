@@ -4,11 +4,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/opencode"
+	"github.com/NasserJabir/Nemons/internal/opencode"
 )
 
 func TestOpencodeServerConnectionRejectsDaemonOwnedServer(t *testing.T) {
-	group := "/user.slice/user@1000.service/app.slice/yesmem.service"
+	group := "/user.slice/user@1000.service/app.slice/nemons.service"
 	for _, server := range []string{group, group + "/child"} {
 		args, env, err := opencodeServerConnection(opencode.Service{PID: 42}, group, server)
 		if err == nil || len(args) != 0 || len(env) != 0 {
@@ -20,7 +20,7 @@ func TestOpencodeServerConnectionRejectsDaemonOwnedServer(t *testing.T) {
 func TestOpencodeServerConnectionAttachesWithoutPuttingPasswordInArgv(t *testing.T) {
 	svc := opencode.Service{PID: 42, URL: "http://127.0.0.1:49374", Password: "private-password"}
 	args, env, err := opencodeServerConnection(svc,
-		"/user.slice/app.slice/yesmem.service", "/user.slice/app.slice/opencode.service")
+		"/user.slice/app.slice/nemons.service", "/user.slice/app.slice/opencode.service")
 	if err != nil || strings.Join(args, " ") != "--server "+svc.URL {
 		t.Fatalf("connection args=%v err=%v", args, err)
 	}
@@ -33,7 +33,7 @@ func TestOpencodeServerConnectionAttachesWithoutPuttingPasswordInArgv(t *testing
 }
 
 func TestServiceControlGroupDistinguishesInteractiveScope(t *testing.T) {
-	if !serviceControlGroup("/user.slice/user@1000.service/app.slice/yesmem.service") {
+	if !serviceControlGroup("/user.slice/user@1000.service/app.slice/nemons.service") {
 		t.Fatal("daemon service not recognized")
 	}
 	if serviceControlGroup("/user.slice/user@1000.service/app.slice/terminal.scope") {

@@ -3,7 +3,7 @@ package daemon
 import (
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 func TestEmbeddingCacheModelKey_Nil(t *testing.T) {
@@ -34,8 +34,8 @@ func TestEmbeddingCacheModelKey_EmptyProvider(t *testing.T) {
 // TestTryGitPull_DoesNotPullSourceInsideWorkingRepo.
 
 func TestSocketPath(t *testing.T) {
-	got := SocketPath("/tmp/yesmem-test")
-	expected := "/tmp/yesmem-test/daemon.sock"
+	got := SocketPath("/tmp/nemons-test")
+	expected := "/tmp/nemons-test/daemon.sock"
 	if got != expected {
 		t.Errorf("expected %q, got %q", expected, got)
 	}

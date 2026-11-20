@@ -38,7 +38,7 @@ func los34cInside(dir, path string) bool {
 
 // YM-276: with ai-jail 0.9.x the standard profile leaves the real home writable,
 // so the data dir was readable and writable from a job — agent-*.sock.inject
-// (key injection into unsandboxed agent TUIs), yesmem.db, config.yaml. A mask on
+// (key injection into unsandboxed agent TUIs), nemons.db, config.yaml. A mask on
 // single files cannot cover the agent sockets created later, so the dir as a
 // whole has to be masked. Both flag sets, because the mask is the one enforcement
 // point the two ai-jail majors share.
@@ -85,7 +85,7 @@ func TestJobSandboxMountsNothingFromTheDataDir(t *testing.T) {
 	// A configured mount that points into the data dir must not survive.
 	inside := SandboxConfig{
 		Enabled:        true,
-		ReadOnlyMounts: []string{filepath.Join(h.dataDir, "yesmem.db")},
+		ReadOnlyMounts: []string{filepath.Join(h.dataDir, "nemons.db")},
 	}
 
 	cases := map[string]SandboxConfig{
@@ -142,7 +142,7 @@ func TestJobDirLivesOutsideTheDataDir(t *testing.T) {
 // The daemon listens on the job socket before any job exists, so the runtime dir
 // has to be creatable on its own.
 func TestEnsureRuntimeDirCreatesTheSiblingDirectory(t *testing.T) {
-	dataDir := filepath.Join(t.TempDir(), "yesmem")
+	dataDir := filepath.Join(t.TempDir(), "nemons")
 	if err := os.MkdirAll(dataDir, 0o700); err != nil {
 		t.Fatalf("mkdir data dir: %v", err)
 	}
@@ -172,7 +172,7 @@ func TestEnsureRuntimeDirCreatesTheSiblingDirectory(t *testing.T) {
 // on 0.9.x can write in ~/.claude, so both cases are reachable (YM-276 review).
 func TestEnsureRuntimeDirRefusesASymlinkAndRepairsTheMode(t *testing.T) {
 	root := t.TempDir()
-	dataDir := filepath.Join(root, "yesmem")
+	dataDir := filepath.Join(root, "nemons")
 	runtimeDir := RuntimeDir(dataDir)
 
 	if err := os.MkdirAll(runtimeDir, 0o755); err != nil {
@@ -225,14 +225,14 @@ func TestRunWithProfile_DataDirMaskHidesTheDataDirForReal(t *testing.T) {
 	}
 	t.Cleanup(func() { os.RemoveAll(root) })
 
-	dataDir := filepath.Join(root, "yesmem")
-	runtimeDir := filepath.Join(root, "yesmem-run")
+	dataDir := filepath.Join(root, "nemons")
+	runtimeDir := filepath.Join(root, "nemons-run")
 	for _, dir := range []string{dataDir, runtimeDir} {
 		if err := os.MkdirAll(dir, 0o700); err != nil {
 			t.Fatalf("mkdir %s: %v", dir, err)
 		}
 	}
-	if err := os.WriteFile(filepath.Join(dataDir, "yesmem.db"), []byte("memory"), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(dataDir, "nemons.db"), []byte("memory"), 0o600); err != nil {
 		t.Fatalf("write decoy db: %v", err)
 	}
 	if err := os.WriteFile(filepath.Join(runtimeDir, "job.sock"), []byte("socket"), 0o600); err != nil {

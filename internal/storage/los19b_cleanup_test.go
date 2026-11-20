@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // YM-265 [MEM-F33]: CleanupJunkLearnings superseded every row that matched its
@@ -31,11 +31,11 @@ func TestLos19b_CleanupJunkSparesUserOwnedLearnings(t *testing.T) {
 		id     int64
 		source string
 	}{
-		{insert("GEFIXT: Der Cache liegt unter ~/.cache/yesmem", "user_stated"), "user_stated"},
+		{insert("GEFIXT: Der Cache liegt unter ~/.cache/nemons", "user_stated"), "user_stated"},
 		{insert("ab", "agreed_upon"), "agreed_upon"},
 		{insert("Soll ich das aufraeumen?", "user_override"), "user_override"},
 	}
-	autoID := insert("GEFIXT: Der Cache liegt unter ~/.cache/yesmem", "llm_extracted")
+	autoID := insert("GEFIXT: Der Cache liegt unter ~/.cache/nemons", "llm_extracted")
 	emptySourceID := insert("ab", "")
 
 	ids, err := s.CleanupJunkLearnings()

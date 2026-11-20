@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func TestMapOpencodeParts_UserText(t *testing.T) {
@@ -85,7 +85,7 @@ func TestMapOpencodeParts_ToolUse(t *testing.T) {
 				CallID: "call_00_abc123",
 				ToolState: &opencodeToolState{
 					Status: "completed",
-					Input:  json.RawMessage(`{"name":"yesmem-orientation"}`),
+					Input:  json.RawMessage(`{"name":"nemons-orientation"}`),
 					Output: "<skill_content>...</skill_content>",
 				},
 			},
@@ -100,7 +100,7 @@ func TestMapOpencodeParts_ToolUse(t *testing.T) {
 	if toolUse.Role != "assistant" || toolUse.MessageType != "tool_use" || toolUse.ToolName != "skill" {
 		t.Fatalf("unexpected tool_use: role=%s type=%s tool=%s", toolUse.Role, toolUse.MessageType, toolUse.ToolName)
 	}
-	if !strings.Contains(toolUse.Content, "yesmem-orientation") {
+	if !strings.Contains(toolUse.Content, "nemons-orientation") {
 		t.Fatalf("tool_use Content should contain tool input, got %q", toolUse.Content)
 	}
 	if toolUse.Sequence != 0 {
@@ -168,7 +168,7 @@ func TestMapOpencodeMessages_Empty(t *testing.T) {
 
 func TestBuildSession_Opencode(t *testing.T) {
 	dbID := "ses_203379163ffeOCkZGQFP71ATIH"
-	directory := "/home/user/projects/yesmem/.worktrees/opencode-proxy"
+	directory := "/home/user/projects/nemons/.worktrees/opencode-proxy"
 	title := "Test Session"
 	created := time.UnixMilli(1778072048326)
 	updated := time.UnixMilli(1778080000000)
@@ -195,8 +195,8 @@ func TestBuildSession_Opencode(t *testing.T) {
 	if !strings.HasPrefix(sess.ID, models.SourceAgentOpencode+":") {
 		t.Fatalf("expected ID prefix 'opencode:', got %s", sess.ID)
 	}
-	if sess.ProjectShort != "/home/user/projects/yesmem/.worktrees/opencode-proxy" {
-		t.Fatalf("expected project '/home/user/projects/yesmem/.worktrees/opencode-proxy', got %s", sess.ProjectShort)
+	if sess.ProjectShort != "/home/user/projects/nemons/.worktrees/opencode-proxy" {
+		t.Fatalf("expected project '/home/user/projects/nemons/.worktrees/opencode-proxy', got %s", sess.ProjectShort)
 	}
 	if sess.MessageCount != 2 {
 		t.Fatalf("expected 2 messages, got %d", sess.MessageCount)

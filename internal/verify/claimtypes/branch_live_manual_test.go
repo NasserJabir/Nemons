@@ -8,11 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // Manual measurement, not part of the suite: it needs the real remote over ssh.
-// Run with YESMEM_LIVE_BRANCH=1 go test ./internal/verify/claimtypes/ -run TestLiveBranchPushed -v
+// Run with NEMONS_LIVE_BRANCH=1 go test ./internal/verify/claimtypes/ -run TestLiveBranchPushed -v
 func liveBranchCtx(t *testing.T) (repo, commit string, ctx *engine.Ctx) {
 	t.Helper()
 	root, err := filepath.Abs(filepath.Join("..", "..", ".."))
@@ -27,14 +27,14 @@ func liveBranchCtx(t *testing.T) (repo, commit string, ctx *engine.Ctx) {
 	}
 	return root, strings.TrimSpace(string(output)), &engine.Ctx{
 		Repo:    root,
-		TmpDir:  filepath.Join(root, ".yesmem", "tmp", "live"),
+		TmpDir:  filepath.Join(root, ".nemons", "tmp", "live"),
 		Sandbox: engine.SandboxOff,
 	}
 }
 
 func TestLiveBranchPushedAgainstOrigin(t *testing.T) {
-	if os.Getenv("YESMEM_LIVE_BRANCH") == "" {
-		t.Skip("YESMEM_LIVE_BRANCH not set: the measurement needs the real remote over ssh")
+	if os.Getenv("NEMONS_LIVE_BRANCH") == "" {
+		t.Skip("NEMONS_LIVE_BRANCH not set: the measurement needs the real remote over ssh")
 	}
 	_, commit, ctx := liveBranchCtx(t)
 	start := time.Now()
@@ -48,8 +48,8 @@ func TestLiveBranchPushedAgainstOrigin(t *testing.T) {
 // Same manual measurement for the other side of the split: the real remote
 // answers, and it does not carry that branch.
 func TestLiveBranchPushedRefutesMissingRemoteBranch(t *testing.T) {
-	if os.Getenv("YESMEM_LIVE_BRANCH") == "" {
-		t.Skip("YESMEM_LIVE_BRANCH not set: the measurement needs the real remote over ssh")
+	if os.Getenv("NEMONS_LIVE_BRANCH") == "" {
+		t.Skip("NEMONS_LIVE_BRANCH not set: the measurement needs the real remote over ssh")
 	}
 	_, commit, ctx := liveBranchCtx(t)
 	start := time.Now()

@@ -11,14 +11,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/bloom"
-	"github.com/carsteneu/yesmem/internal/codescan"
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/embedding"
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/indexer"
-	"github.com/carsteneu/yesmem/internal/sanitize"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/bloom"
+	"github.com/NasserJabir/Nemons/internal/codescan"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/embedding"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/indexer"
+	"github.com/NasserJabir/Nemons/internal/sanitize"
+	"github.com/NasserJabir/Nemons/internal/storage"
 	_ "modernc.org/sqlite" // opencode session tracking
 )
 
@@ -155,7 +155,7 @@ type embedWiring struct {
 type Handler struct {
 	store                       *storage.Store
 	bloom                       *bloom.Manager
-	dataDir                     string        // ~/.claude/yesmem/ — set by daemon after construction
+	dataDir                     string        // ~/.claude/nemons/ — set by daemon after construction
 	capsDir                     string        // CAP.md directory the daemon imports from — set by daemon from config
 	agentTerminal               string        // preferred terminal for agent windows — set by daemon from config
 	agentMaxRuntime             time.Duration // max runtime per agent — set by daemon from config
@@ -644,9 +644,9 @@ func (h *Handler) handleIdleTick(params map[string]any) Response {
 	var reminder string
 	switch {
 	case state.count >= 50:
-		reminder = fmt.Sprintf("⛔ Seit %d Requests kein yesmem-Zugriff. search() JETZT.", state.count)
+		reminder = fmt.Sprintf("⛔ Seit %d Requests kein nemons-Zugriff. search() JETZT.", state.count)
 	case state.count >= 30:
-		reminder = fmt.Sprintf("⚠ Seit %d Requests kein yesmem-Zugriff. search() nutzen!", state.count)
+		reminder = fmt.Sprintf("⚠ Seit %d Requests kein nemons-Zugriff. search() nutzen!", state.count)
 	}
 
 	return jsonResponse(idleTickResult{Count: state.count, Reminder: reminder})
@@ -1154,7 +1154,7 @@ func (h *Handler) handleLLMComplete(params map[string]any) Response {
 
 	// For opencode provider without an explicit system prompt, inject a
 	// minimal instruction to prevent the LLM from making tool calls.
-	// The proxy injects CUSTOM-SYSTEM which advertises yesmem MCP tools;
+	// The proxy injects CUSTOM-SYSTEM which advertises nemons MCP tools;
 	// without this guard the LLM uses tools → zero text events.
 	injectedSystem := system
 	if provider == "opencode" && injectedSystem == "" {
@@ -1257,7 +1257,7 @@ func opencodeSessionAfter(afterTS int64) string {
 }
 
 func randomSessionID() string {
-	return fmt.Sprintf("yesmem-%d", time.Now().UnixNano())
+	return fmt.Sprintf("nemons-%d", time.Now().UnixNano())
 }
 
 // helpers

@@ -7,7 +7,7 @@ The proxy sits between Claude Code and the Anthropic API, enabling unlimited con
 ### Connection Flow
 
 ```
-Claude Code → ANTHROPIC_BASE_URL=http://localhost:9099 → yesmem proxy → api.anthropic.com
+Claude Code → ANTHROPIC_BASE_URL=http://localhost:9099 → nemons proxy → api.anthropic.com
 ```
 
 Thread identification uses the `X-Claude-Code-Session-Id` header sent by Claude Code. Each unique session ID gets isolated proxy state (stubs, collapse cutoff, sawtooth cache, keepalive timers).
@@ -31,7 +31,7 @@ StripCLAUDEMDDisclaimer → StripOutputEfficiency → StripToneBrevity
 → InjectAntDirectives → InjectCLAUDEMDAuthority → … → InjectPersonaTone
 ```
 
-**InjectAntDirectives** writes the `[yesmem-directives]` system block (verification before completion, faithful reporting, collaborator mode). It has nothing to do with code-tool preference: that is a separate injector, `InjectCodeToolsFirst`, which writes `[yesmem-code-tools-first]` and asks Claude to use the project's code-navigation tools before raw grep/find. Both are plain text inside a system block, not tool hints and not user messages.
+**InjectAntDirectives** writes the `[nemons-directives]` system block (verification before completion, faithful reporting, collaborator mode). It has nothing to do with code-tool preference: that is a separate injector, `InjectCodeToolsFirst`, which writes `[nemons-code-tools-first]` and asks Claude to use the project's code-navigation tools before raw grep/find. Both are plain text inside a system block, not tool hints and not user messages.
 
 ### Context Compression (CompressContext)
 
@@ -43,7 +43,7 @@ Before stubbing or collapse, a compression pass removes low-value content:
 
 ### Differentiated Stubs (Not Dumb Summarization)
 
-Unlike Anthropic's server-side compaction (lossy, irreversible), YesMem stubs preserve conversation structure:
+Unlike Anthropic's server-side compaction (lossy, irreversible), Nemons stubs preserve conversation structure:
 
 | Block Type | Action | Example |
 |---|---|---|
@@ -144,7 +144,7 @@ Each proxy thread (session) maintains its own keepalive timer:
 ### Reminder Stripping
 
 Aggressive cleanup of redundant `<system-reminder>` blocks from older messages:
-- Skill-check, yesmem-context, task-reminder, local-cmd → stripped immediately
+- Skill-check, nemons-context, task-reminder, local-cmd → stripped immediately
 - File-change diffs: < 3 requests = full, 3–10 = summary, > 10 = minimal
 - SessionStart blocks → always protected
 - Only the **last user message** stays untouched; every older message is processed (age in turns measured from this thread's own tail)
@@ -172,7 +172,7 @@ Nothing is lost, but the archive is not the `compacted_blocks` table: the collap
 
 ### Auto-Start
 
-`yesmem setup` adds `ANTHROPIC_BASE_URL=http://localhost:9099` to shell profiles. The proxy is started via systemd user service or manually via `yesmem proxy`. Zero manual steps after initial setup.
+`nemons setup` adds `ANTHROPIC_BASE_URL=http://localhost:9099` to shell profiles. The proxy is started via systemd user service or manually via `nemons proxy`. Zero manual steps after initial setup.
 
 **Auto-Translate Bundled Skills:** During setup, if the system language (via `$LANG`) is not German and an API key is available, bundled skill files (e.g., `/schwarm`) are automatically translated via Haiku before installing to `~/.claude/commands/`. Technical terms, code blocks, and YAML frontmatter are preserved. Translation runs once during setup, not on every start.
 
@@ -206,7 +206,7 @@ The proxy handles both Anthropic Messages API requests (Claude Code) and OpenAI 
 
 **Request flow:**
 ```
-Codex/Opencode → POST /v1/responses → yesmem proxy
+Codex/Opencode → POST /v1/responses → nemons proxy
   → translate to Anthropic Messages API format
     → run same compression pipeline (stubbing, collapse, sawtooth)
     → inject briefing, associative context, directives (profile-aware)
@@ -243,7 +243,7 @@ The parity pipeline runs the same injection sequence as the main proxy pipeline,
 
 **Session identity:**
 - `source_agent` is detected from working directory patterns and request metadata
-- `YESMEM_SOURCE_AGENT=opencode` is injected by the plugin into shell environments (§10b)
+- `NEMONS_SOURCE_AGENT=opencode` is injected by the plugin into shell environments (§10b)
 - Session IDs are prefixed by source: `opencode:...` for opencode, `codex:...` for Codex, bare UUID for Claude
 
 ---
@@ -278,10 +278,10 @@ Note: OAuth token is "exclusively for Claude Code and Claude.ai" — direct API 
 
 ### Setup Features
 
-- **Non-interactive install**: `yesmem setup` (without `-i`) runs a streamlined default path that auto-detects authentication type (CLI vs API key)
+- **Non-interactive install**: `nemons setup` (without `-i`) runs a streamlined default path that auto-detects authentication type (CLI vs API key)
 - **API key detection**: The setup wizard checks `.claude.json` for `primaryApiKey` as a fallback when `$ANTHROPIC_API_KEY` is not set
 - **CBM binary auto-download**: During setup, the CBM CLI binary (code scanner) is automatically downloaded from GitHub releases if not present
-- **Config migration**: `yesmem migrate` applies config template updates and adds new proxy fields (like `effort_floor`, `skill_eval_inject`) to existing configs. Also deploys bundled skills and caps automatically.
+- **Config migration**: `nemons migrate` applies config template updates and adds new proxy fields (like `effort_floor`, `skill_eval_inject`) to existing configs. Also deploys bundled skills and caps automatically.
 
 ### Setup Auth Conflict Resolution
 
@@ -290,12 +290,12 @@ When the user chooses `provider: api`, the setup wizard handles Claude Code's tr
 - **Solution:** `clearClaudeJSONAuth()` removes both `primaryApiKey` and `oauthAccount` from `~/.claude.json`. Only `ANTHROPIC_API_KEY` in `settings.json` env remains as the sole auth method.
 - **Key detection:** Setup checks 3 sources for existing keys: `$ANTHROPIC_API_KEY` env → `settings.json` env block → `~/.claude.json` primaryApiKey. If found, offers "Keep this key" instead of requiring re-entry.
 - **Pre-install state:** `install-state.json` saves `oauthAccount`, `primaryApiKey`, `envAPIKey`, and `autoCompactEnabled` before any changes.
-- **Uninstall restore:** `restorePrimaryApiKeyFromState()` restores both `oauthAccount` and `primaryApiKey` to `~/.claude.json`, returning the user to their pre-YesMem auth state.
+- **Uninstall restore:** `restorePrimaryApiKeyFromState()` restores both `oauthAccount` and `primaryApiKey` to `~/.claude.json`, returning the user to their pre-Nemons auth state.
 - **Cache-TTL hint:** Wizard explains why a platform.claude.com key is needed (1-hour prompt caching vs 5-minute ephemeral).
 
 ### Multi-Agent Prompt Isolation (PromptProfile)
 
-YesMem supports multiple LLM agent frontends — Claude Code, opencode, and Codex CLI — each with different system prompt requirements, tool preferences, and behavioral constraints. The `PromptProfile` system ensures each agent type receives only the prompt directives that apply to it, without cross-contamination.
+Nemons supports multiple LLM agent frontends — Claude Code, opencode, and Codex CLI — each with different system prompt requirements, tool preferences, and behavioral constraints. The `PromptProfile` system ensures each agent type receives only the prompt directives that apply to it, without cross-contamination.
 
 **PromptProfile Type** (`internal/models/prompt_profile.go`):
 
@@ -386,7 +386,7 @@ pricing:
 
 ### Codex Session Parser
 
-YesMem indexes Codex CLI sessions alongside Claude Code sessions:
+Nemons indexes Codex CLI sessions alongside Claude Code sessions:
 
 - Parses JSONL conversation logs from `~/.codex/sessions/`
 - Extracts messages, tool calls, and tool results into unified message format
@@ -422,7 +422,7 @@ The proxy reads three config sources from the opencode installation at startup a
 
 ### Prompt Cache Architecture
 
-YesMem exploits Anthropic's byte-prefix prompt cache (5-minute TTL) through several mechanisms:
+Nemons exploits Anthropic's byte-prefix prompt cache (5-minute TTL) through several mechanisms:
 
 - **Cache breakpoints:** `cache_control: {type: ephemeral}` set on message boundaries (max 4 per Anthropic budget). Breakpoint positions are carefully chosen — cache stability vs granularity.
 - **TTL upgrades:** `UpgradeCacheTTL()` overwrites ALL cache_control blocks to the configured TTL (e.g. `"1h"`). This is a brute-force normalization, not a selective extension. The 1h lifetime only works with console API keys — OAuth/login keys are silently capped at 5 minutes by Anthropic. Requires `cache_ttl: "1h"` in config.
@@ -453,4 +453,4 @@ Runtime loop detection runs inside the proxy, no LLM call needed:
   - Level 1: "Step back, same approach failed N times"
   - Level 2: "WARNING: Loop continues — ask user for guidance"
   - Level 3+: "ALERT: persistent loop — stop and ask user"
-- **Injection:** `[loop-warning]` label inside the timestamp meta prefix of the next user message, followed by `[YesMem Loop Detection] <description>`
+- **Injection:** `[loop-warning]` label inside the timestamp meta prefix of the next user message, followed by `[Nemons Loop Detection] <description>`

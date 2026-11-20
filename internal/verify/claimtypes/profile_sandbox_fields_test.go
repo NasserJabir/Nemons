@@ -6,14 +6,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // writeProfile plants a project profile in a temporary repository root.
 func writeProfile(t *testing.T, content string) string {
 	t.Helper()
 	repo := t.TempDir()
-	if err := os.MkdirAll(filepath.Join(repo, ".yesmem"), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Join(repo, ".nemons"), 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 	if err := os.WriteFile(filepath.Join(repo, ProfilePath), []byte(content), 0o644); err != nil {
@@ -29,7 +29,7 @@ func TestTheProfileCarriesTheSandboxToolDeclarations(t *testing.T) {
   - name: go
     requires: ["bun"]
     sandbox_readonly: ["/home/example/.bun/bin"]
-    sandbox_cache: "/home/example/.cache/yesmem-build"
+    sandbox_cache: "/home/example/.cache/nemons-build"
 `)
 
 	resolved, err := ResolveProfile(repo, DefaultLanguages())
@@ -51,7 +51,7 @@ func TestTheProfileCarriesTheSandboxToolDeclarations(t *testing.T) {
 	if len(goEntry.SandboxReadOnly) != 1 || goEntry.SandboxReadOnly[0] != "/home/example/.bun/bin" {
 		t.Errorf("sandbox_readonly = %v, want the declared bin directory", goEntry.SandboxReadOnly)
 	}
-	if goEntry.SandboxCache != "/home/example/.cache/yesmem-build" {
+	if goEntry.SandboxCache != "/home/example/.cache/nemons-build" {
 		t.Errorf("sandbox_cache = %q, want the declared root", goEntry.SandboxCache)
 	}
 }
@@ -111,7 +111,7 @@ func TestTheProfileCanClearTheCache(t *testing.T) {
 	builtin := []engine.Language{{
 		Name:         "go",
 		TestCommand:  "go test ./...",
-		SandboxCache: "/home/example/.cache/yesmem-build",
+		SandboxCache: "/home/example/.cache/nemons-build",
 	}}
 	repo := writeProfile(t, `languages:
   - name: go
@@ -136,7 +136,7 @@ func TestTheProfileWriterKeepsTheSandboxDeclarations(t *testing.T) {
 		TestCommand:     "go test ./...",
 		Requires:        []string{"bun"},
 		SandboxReadOnly: []string{"/home/example/.bun/bin"},
-		SandboxCache:    "/home/example/.cache/yesmem-build",
+		SandboxCache:    "/home/example/.cache/nemons-build",
 	}}
 	if _, err := WriteProfileFile(repo, languages); err != nil {
 		t.Fatalf("WriteProfileFile: %v", err)

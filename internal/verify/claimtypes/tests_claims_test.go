@@ -7,13 +7,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // makeClaimRepo builds a one-commit repository from the given files.
 func makeClaimRepo(t *testing.T, name string, files map[string]string) (repo, commit string) {
 	t.Helper()
-	parent, err := filepath.Abs(filepath.Join("..", "..", ".yesmem", "tmp", "claimrepos"))
+	parent, err := filepath.Abs(filepath.Join("..", "..", ".nemons", "tmp", "claimrepos"))
 	if err != nil {
 		t.Fatalf("abs: %v", err)
 	}
@@ -115,7 +115,7 @@ func TestCheckTestsConfirmsACleanGreenRun(t *testing.T) {
 // A runner shadowed from an operator-owned directory must not decide the
 // verdict: the run uses a PATH without the operator's home.
 func TestCheckTestsIgnoresARunnerFromTheHomeDirectory(t *testing.T) {
-	homeParent, err := filepath.Abs(filepath.Join("..", "..", ".yesmem", "tmp", "fakehome"))
+	homeParent, err := filepath.Abs(filepath.Join("..", "..", ".nemons", "tmp", "fakehome"))
 	if err != nil {
 		t.Fatalf("abs: %v", err)
 	}

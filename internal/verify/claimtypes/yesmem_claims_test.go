@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // fakeSessions is a session store over a literal table. An id mapped to an
@@ -258,7 +258,7 @@ func TestPlanItemsClaim(t *testing.T) {
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
 			ctx := &engine.Ctx{Plans: test.plans, PlanThread: test.thread}
-			verdict := CheckPlanItems(engine.Claim{Kind: "plan_items", Plan: "yesmem"}, ctx)
+			verdict := CheckPlanItems(engine.Claim{Kind: "plan_items", Plan: "nemons"}, ctx)
 
 			if verdict.Status != test.want {
 				t.Fatalf("Status = %s (%s), want %s", verdict.Status, verdict.Reason, test.want)

@@ -39,8 +39,8 @@ var aiJailAssetDigests = map[string]string{
 var aiJailAPIBase = "https://api.github.com"
 
 func downloadAiJail() (string, error) {
-	if os.Getenv("YESMEM_DISABLE_AIJAIL_DOWNLOAD") != "" {
-		return "", errors.New("ai-jail download disabled by YESMEM_DISABLE_AIJAIL_DOWNLOAD env")
+	if os.Getenv("NEMONS_DISABLE_AIJAIL_DOWNLOAD") != "" {
+		return "", errors.New("ai-jail download disabled by NEMONS_DISABLE_AIJAIL_DOWNLOAD env")
 	}
 	installDir := filepath.Join(os.Getenv("HOME"), ".local", "bin")
 	destPath := filepath.Join(installDir, "ai-jail")

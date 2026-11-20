@@ -7,7 +7,7 @@ import (
 )
 
 func TestCurrentClientModelEmpty(t *testing.T) {
-	for _, key := range []string{"YESMEM_MODEL_ID", "CODEX_MODEL", "OPENAI_MODEL", "ANTHROPIC_MODEL", "CLAUDE_MODEL", "MODEL"} {
+	for _, key := range []string{"NEMONS_MODEL_ID", "CODEX_MODEL", "OPENAI_MODEL", "ANTHROPIC_MODEL", "CLAUDE_MODEL", "MODEL"} {
 		t.Setenv(key, "")
 	}
 
@@ -28,29 +28,29 @@ func TestCurrentClientModelPriority(t *testing.T) {
 	}
 }
 
-// TestCurrentClientModelYesmemModelIDWins verifies that YESMEM_MODEL_ID takes
+// TestCurrentClientModelNemonsModelIDWins verifies that NEMONS_MODEL_ID takes
 // priority over the generic vendor env vars. This gives direct-MCP clients
 // (opencode, codex) a clean, unambiguous way to declare their model without
 // colliding with vendor-specific vars they may not own. See learning #76567.
-func TestCurrentClientModelYesmemModelIDWins(t *testing.T) {
+func TestCurrentClientModelNemonsModelIDWins(t *testing.T) {
 	t.Setenv("MODEL", "generic")
 	t.Setenv("CLAUDE_MODEL", "claude-sonnet")
-	t.Setenv("YESMEM_MODEL_ID", " glm-5.2 ")
+	t.Setenv("NEMONS_MODEL_ID", " glm-5.2 ")
 
 	if got := currentClientModel(); got != "glm-5.2" {
-		t.Fatalf("currentClientModel(): got %q, want %q (YESMEM_MODEL_ID must win)", got, "glm-5.2")
+		t.Fatalf("currentClientModel(): got %q, want %q (NEMONS_MODEL_ID must win)", got, "glm-5.2")
 	}
 }
 
 func TestBuildProxyParamsPreservesAuthoritativeContext(t *testing.T) {
 	for _, key := range []string{
-		"YESMEM_SOURCE_AGENT",
-		"YESMEM_SESSION_ID",
+		"NEMONS_SOURCE_AGENT",
+		"NEMONS_SESSION_ID",
 		"CODEX_THREAD_ID",
 		"CLAUDE_SESSION_ID",
 		"CLAUDE_CODE_SESSION_ID",
 		"OPENCODE",
-		"YESMEM_MODEL_ID",
+		"NEMONS_MODEL_ID",
 		"CODEX_MODEL",
 		"OPENAI_MODEL",
 		"ANTHROPIC_MODEL",
@@ -90,8 +90,8 @@ func TestBuildProxyParamsPreservesAuthoritativeContext(t *testing.T) {
 
 func TestBuildProxyParamsSequentialSessionsDoNotLeak(t *testing.T) {
 	for _, key := range []string{
-		"YESMEM_SOURCE_AGENT",
-		"YESMEM_SESSION_ID",
+		"NEMONS_SOURCE_AGENT",
+		"NEMONS_SESSION_ID",
 		"CODEX_THREAD_ID",
 		"CLAUDE_SESSION_ID",
 		"CLAUDE_CODE_SESSION_ID",
@@ -134,7 +134,7 @@ func TestFormatRememberIncludesModel(t *testing.T) {
 	raw := []byte(`{
 		"id": 42,
 		"category": "decision",
-		"project": "yesmem",
+		"project": "nemons",
 		"content": "Model provenance should be visible",
 		"model_used": "gpt-5.4-mini"
 	}`)
@@ -144,7 +144,7 @@ func TestFormatRememberIncludesModel(t *testing.T) {
 	for _, want := range []string{
 		"Learning #42 saved",
 		"Category:   decision",
-		"Project:    yesmem",
+		"Project:    nemons",
 		"Model:      gpt-5.4-mini",
 		"Content:    Model provenance should be visible",
 	} {
@@ -198,7 +198,7 @@ func TestFormatRememberRendersBlockedSupersede(t *testing.T) {
 	raw := []byte(`{
 		"id": 79501,
 		"category": "gotcha",
-		"project": "yesmem",
+		"project": "nemons",
 		"content": "sandbox.go hat kein BuildSandboxedCommand",
 		"supersedes_id": 65218,
 		"supersede_outcome": "blocked",
@@ -346,7 +346,7 @@ func TestFormatPersonaDirectiveOnly(t *testing.T) {
 // the marker the daemon cannot tell an injected per-call id from a leaked one.
 func TestBuildProxyParamsMarksEnvDerivedSession(t *testing.T) {
 	for _, key := range []string{
-		"YESMEM_SESSION_ID",
+		"NEMONS_SESSION_ID",
 		"CODEX_THREAD_ID",
 		"CLAUDE_SESSION_ID",
 		"CLAUDE_CODE_SESSION_ID",
@@ -354,8 +354,8 @@ func TestBuildProxyParamsMarksEnvDerivedSession(t *testing.T) {
 	} {
 		t.Setenv(key, "")
 	}
-	t.Setenv("YESMEM_SOURCE_AGENT", "opencode")
-	t.Setenv("YESMEM_SESSION_ID", "ses_last_created")
+	t.Setenv("NEMONS_SOURCE_AGENT", "opencode")
+	t.Setenv("NEMONS_SESSION_ID", "ses_last_created")
 
 	params := buildProxyParams(map[string]any{"query": "needle"}, false)
 	if got := params["_session_id"]; got != "opencode:ses_last_created" {
@@ -369,8 +369,8 @@ func TestBuildProxyParamsMarksEnvDerivedSession(t *testing.T) {
 // A per-call id the caller supplied — the plugin's tool.execute.before
 // injection — is authoritative and must not carry the env marker.
 func TestBuildProxyParamsCallerSessionIsNotMarkedEnv(t *testing.T) {
-	t.Setenv("YESMEM_SOURCE_AGENT", "opencode")
-	t.Setenv("YESMEM_SESSION_ID", "ses_last_created")
+	t.Setenv("NEMONS_SOURCE_AGENT", "opencode")
+	t.Setenv("NEMONS_SESSION_ID", "ses_last_created")
 
 	params := buildProxyParams(map[string]any{"_session_id": "opencode:ses_caller", "_source_agent": "opencode"}, false)
 	if got := params["_session_id"]; got != "opencode:ses_caller" {
@@ -385,7 +385,7 @@ func TestBuildProxyParamsCallerSessionIsNotMarkedEnv(t *testing.T) {
 // Claude Code 2.1.131 does NOT export CLAUDE_SESSION_ID; Claude Code 2.1.132+
 // exports CLAUDE_CODE_SESSION_ID. Both must resolve to source_agent="claude".
 func TestResolveClientSessionID_AllUnset(t *testing.T) {
-	for _, k := range []string{"YESMEM_SOURCE_AGENT", "YESMEM_SESSION_ID", "CODEX_THREAD_ID", "CLAUDE_SESSION_ID", "CLAUDE_CODE_SESSION_ID", "OPENCODE"} {
+	for _, k := range []string{"NEMONS_SOURCE_AGENT", "NEMONS_SESSION_ID", "CODEX_THREAD_ID", "CLAUDE_SESSION_ID", "CLAUDE_CODE_SESSION_ID", "OPENCODE"} {
 		t.Setenv(k, "")
 	}
 	sid, sa := resolveClientSessionID()
@@ -398,7 +398,7 @@ func TestResolveClientSessionID_AllUnset(t *testing.T) {
 }
 
 func TestResolveClientSessionID_LegacyClaudeVar(t *testing.T) {
-	for _, k := range []string{"YESMEM_SOURCE_AGENT", "YESMEM_SESSION_ID", "CODEX_THREAD_ID", "CLAUDE_CODE_SESSION_ID"} {
+	for _, k := range []string{"NEMONS_SOURCE_AGENT", "NEMONS_SESSION_ID", "CODEX_THREAD_ID", "CLAUDE_CODE_SESSION_ID"} {
 		t.Setenv(k, "")
 	}
 	t.Setenv("CLAUDE_SESSION_ID", "legacy-sid-1")
@@ -413,7 +413,7 @@ func TestResolveClientSessionID_LegacyClaudeVar(t *testing.T) {
 }
 
 func TestResolveClientSessionID_NewClaudeCodeVar(t *testing.T) {
-	for _, k := range []string{"YESMEM_SOURCE_AGENT", "YESMEM_SESSION_ID", "CODEX_THREAD_ID", "CLAUDE_SESSION_ID"} {
+	for _, k := range []string{"NEMONS_SOURCE_AGENT", "NEMONS_SESSION_ID", "CODEX_THREAD_ID", "CLAUDE_SESSION_ID"} {
 		t.Setenv(k, "")
 	}
 	t.Setenv("CLAUDE_CODE_SESSION_ID", "cc-new-sid-2")
@@ -428,7 +428,7 @@ func TestResolveClientSessionID_NewClaudeCodeVar(t *testing.T) {
 }
 
 func TestResolveClientSessionID_LegacyTakesPrecedence(t *testing.T) {
-	for _, k := range []string{"YESMEM_SOURCE_AGENT", "YESMEM_SESSION_ID", "CODEX_THREAD_ID"} {
+	for _, k := range []string{"NEMONS_SOURCE_AGENT", "NEMONS_SESSION_ID", "CODEX_THREAD_ID"} {
 		t.Setenv(k, "")
 	}
 	t.Setenv("CLAUDE_SESSION_ID", "legacy-sid-3")
@@ -441,8 +441,8 @@ func TestResolveClientSessionID_LegacyTakesPrecedence(t *testing.T) {
 }
 
 func TestResolveClientSessionID_OpenCodeUnaffected(t *testing.T) {
-	t.Setenv("YESMEM_SOURCE_AGENT", "opencode")
-	t.Setenv("YESMEM_SESSION_ID", "oc-sid-4")
+	t.Setenv("NEMONS_SOURCE_AGENT", "opencode")
+	t.Setenv("NEMONS_SESSION_ID", "oc-sid-4")
 	t.Setenv("CODEX_THREAD_ID", "")
 	t.Setenv("CLAUDE_SESSION_ID", "")
 	t.Setenv("CLAUDE_CODE_SESSION_ID", "should-be-ignored")
@@ -457,7 +457,7 @@ func TestResolveClientSessionID_OpenCodeUnaffected(t *testing.T) {
 }
 
 func TestResolveClientSessionID_OpenCodeAutoDetect(t *testing.T) {
-	for _, k := range []string{"YESMEM_SOURCE_AGENT", "YESMEM_SESSION_ID", "CODEX_THREAD_ID", "CLAUDE_SESSION_ID", "CLAUDE_CODE_SESSION_ID", "OPENCODE"} {
+	for _, k := range []string{"NEMONS_SOURCE_AGENT", "NEMONS_SESSION_ID", "CODEX_THREAD_ID", "CLAUDE_SESSION_ID", "CLAUDE_CODE_SESSION_ID", "OPENCODE"} {
 		t.Setenv(k, "")
 	}
 	t.Setenv("OPENCODE", "1")
@@ -472,8 +472,8 @@ func TestResolveClientSessionID_OpenCodeAutoDetect(t *testing.T) {
 }
 
 func TestResolveClientSessionID_CodexUnaffected(t *testing.T) {
-	t.Setenv("YESMEM_SOURCE_AGENT", "codex")
-	t.Setenv("YESMEM_SESSION_ID", "")
+	t.Setenv("NEMONS_SOURCE_AGENT", "codex")
+	t.Setenv("NEMONS_SESSION_ID", "")
 	t.Setenv("CODEX_THREAD_ID", "cx-sid-5")
 	t.Setenv("CLAUDE_SESSION_ID", "")
 	t.Setenv("CLAUDE_CODE_SESSION_ID", "should-be-ignored")
@@ -488,10 +488,10 @@ func TestResolveClientSessionID_CodexUnaffected(t *testing.T) {
 }
 
 func TestResolveClientSessionID_OpenCodeNoSessionID(t *testing.T) {
-	for _, k := range []string{"YESMEM_SESSION_ID", "CODEX_THREAD_ID", "CLAUDE_SESSION_ID", "CLAUDE_CODE_SESSION_ID", "OPENCODE"} {
+	for _, k := range []string{"NEMONS_SESSION_ID", "CODEX_THREAD_ID", "CLAUDE_SESSION_ID", "CLAUDE_CODE_SESSION_ID", "OPENCODE"} {
 		t.Setenv(k, "")
 	}
-	t.Setenv("YESMEM_SOURCE_AGENT", "opencode")
+	t.Setenv("NEMONS_SOURCE_AGENT", "opencode")
 
 	sid, sa := resolveClientSessionID()
 	if sid != "" {

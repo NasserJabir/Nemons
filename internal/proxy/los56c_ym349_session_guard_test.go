@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // YM-349(6): the OpenAI path guards skill tracking with ThreadIsSession, the
@@ -30,7 +30,7 @@ func TestLos56c_AnthropicSkillTrackingRequiresRealSession(t *testing.T) {
 	s.cfg.FeatureDefaults = &config.FeatureGates{Timestamps: true, SkillEval: false}
 
 	body := `{"model":"claude-opus-4-6","stream":false,"thinking":{"type":"adaptive"},` +
-		`"system":[{"type":"text","text":"Primary working directory: /home/tester/memory/yesmem"}],` +
+		`"system":[{"type":"text","text":"Primary working directory: /home/tester/memory/nemons"}],` +
 		`"messages":[` +
 		`{"role":"user","content":"start the task"},` +
 		`{"role":"assistant","content":[{"type":"tool_use","id":"tu1","name":"Skill","input":{"skill":"yesloop"}}]},` +
@@ -72,7 +72,7 @@ func TestLos56c_AnthropicSkillTrackingKeepsWorkingForSessions(t *testing.T) {
 
 	const sessionID = "ses_los56c_guard"
 	body := `{"model":"claude-opus-4-6","stream":false,"thinking":{"type":"adaptive"},` +
-		`"system":[{"type":"text","text":"Primary working directory: /home/tester/memory/yesmem"}],` +
+		`"system":[{"type":"text","text":"Primary working directory: /home/tester/memory/nemons"}],` +
 		`"messages":[` +
 		`{"role":"user","content":"start the task"},` +
 		`{"role":"assistant","content":[{"type":"tool_use","id":"tu1","name":"Skill","input":{"skill":"yesloop"}}]},` +

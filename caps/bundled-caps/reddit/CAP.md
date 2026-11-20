@@ -31,12 +31,12 @@ async ({url, max_comments}) => {
   const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
   const fetchHtml = async () => {
-    const curlCmd = `curl -sL -A ${JSON.stringify(UA)} -H "Accept-Language: en-US,en;q=0.9" --max-time 20 ${JSON.stringify(rssUrl)} | yesmem cap-blob-put --cap reddit --key ${JSON.stringify(key)}`;
+    const curlCmd = `curl -sL -A ${JSON.stringify(UA)} -H "Accept-Language: en-US,en;q=0.9" --max-time 20 ${JSON.stringify(rssUrl)} | nemons cap-blob-put --cap reddit --key ${JSON.stringify(key)}`;
     const putRes = await sh(curlCmd, 25000);
     if (!putRes || !putRes.includes('"status":"ok"')) return null;
     let rows = [];
     for (let i = 0; i < 50; i++) {
-      const r = await mcp__yesmem__cap_store({capability: 'reddit', action: 'query', table: 'blobs', where: 'key=? AND chunk_idx=?', args: JSON.stringify([key, i]), limit: 1});
+      const r = await mcp__nemons__cap_store({capability: 'reddit', action: 'query', table: 'blobs', where: 'key=? AND chunk_idx=?', args: JSON.stringify([key, i]), limit: 1});
       const parsed = typeof r === 'string' ? JSON.parse(r) : r;
       const arr = Array.isArray(parsed) ? parsed : (parsed.rows || []);
       if (!arr.length) break;
@@ -120,17 +120,17 @@ async ({url, max_comments}) => {
   collect(postBody, 'post_body', postE.author, '');
 
   // === CAP_STORE PERSISTENCE ===
-  await mcp__yesmem__cap_store({capability: 'reddit', action: 'create_table', table: 'posts', columns: JSON.stringify([{name: 'permalink', type: 'TEXT'}, {name: 'subreddit', type: 'TEXT'}, {name: 'author', type: 'TEXT'}, {name: 'title', type: 'TEXT'}, {name: 'body', type: 'TEXT'}, {name: 'score', type: 'INTEGER'}, {name: 'num_comments', type: 'INTEGER'}, {name: 'created_utc', type: 'INTEGER'}, {name: 'external_url', type: 'TEXT'}, {name: 'fetched_at', type: 'INTEGER'}])});
-  await mcp__yesmem__cap_store({capability: 'reddit', action: 'create_table', table: 'comments', columns: JSON.stringify([{name: 'post_permalink', type: 'TEXT'}, {name: 'comment_id', type: 'TEXT'}, {name: 'depth', type: 'INTEGER'}, {name: 'author', type: 'TEXT'}, {name: 'score', type: 'INTEGER'}, {name: 'body', type: 'TEXT'}, {name: 'created_utc', type: 'INTEGER'}, {name: 'parent_id', type: 'TEXT'}, {name: 'fetched_at', type: 'INTEGER'}])});
-  await mcp__yesmem__cap_store({capability: 'reddit', action: 'create_table', table: 'links', columns: JSON.stringify([{name: 'post_permalink', type: 'TEXT'}, {name: 'target_url', type: 'TEXT'}, {name: 'kind', type: 'TEXT'}, {name: 'source_kind', type: 'TEXT'}, {name: 'source_author', type: 'TEXT'}, {name: 'source_comment_id', type: 'TEXT'}, {name: 'fetched_at', type: 'INTEGER'}])});
-  await mcp__yesmem__cap_store({capability: 'reddit', action: 'delete', table: 'posts', where: 'permalink=?', args: JSON.stringify([permalink])});
-  await mcp__yesmem__cap_store({capability: 'reddit', action: 'delete', table: 'comments', where: 'post_permalink=?', args: JSON.stringify([permalink])});
-  await mcp__yesmem__cap_store({capability: 'reddit', action: 'delete', table: 'links', where: 'post_permalink=?', args: JSON.stringify([permalink])});
+  await mcp__nemons__cap_store({capability: 'reddit', action: 'create_table', table: 'posts', columns: JSON.stringify([{name: 'permalink', type: 'TEXT'}, {name: 'subreddit', type: 'TEXT'}, {name: 'author', type: 'TEXT'}, {name: 'title', type: 'TEXT'}, {name: 'body', type: 'TEXT'}, {name: 'score', type: 'INTEGER'}, {name: 'num_comments', type: 'INTEGER'}, {name: 'created_utc', type: 'INTEGER'}, {name: 'external_url', type: 'TEXT'}, {name: 'fetched_at', type: 'INTEGER'}])});
+  await mcp__nemons__cap_store({capability: 'reddit', action: 'create_table', table: 'comments', columns: JSON.stringify([{name: 'post_permalink', type: 'TEXT'}, {name: 'comment_id', type: 'TEXT'}, {name: 'depth', type: 'INTEGER'}, {name: 'author', type: 'TEXT'}, {name: 'score', type: 'INTEGER'}, {name: 'body', type: 'TEXT'}, {name: 'created_utc', type: 'INTEGER'}, {name: 'parent_id', type: 'TEXT'}, {name: 'fetched_at', type: 'INTEGER'}])});
+  await mcp__nemons__cap_store({capability: 'reddit', action: 'create_table', table: 'links', columns: JSON.stringify([{name: 'post_permalink', type: 'TEXT'}, {name: 'target_url', type: 'TEXT'}, {name: 'kind', type: 'TEXT'}, {name: 'source_kind', type: 'TEXT'}, {name: 'source_author', type: 'TEXT'}, {name: 'source_comment_id', type: 'TEXT'}, {name: 'fetched_at', type: 'INTEGER'}])});
+  await mcp__nemons__cap_store({capability: 'reddit', action: 'delete', table: 'posts', where: 'permalink=?', args: JSON.stringify([permalink])});
+  await mcp__nemons__cap_store({capability: 'reddit', action: 'delete', table: 'comments', where: 'post_permalink=?', args: JSON.stringify([permalink])});
+  await mcp__nemons__cap_store({capability: 'reddit', action: 'delete', table: 'links', where: 'post_permalink=?', args: JSON.stringify([permalink])});
 
-  await mcp__yesmem__cap_store({capability: 'reddit', action: 'upsert', table: 'posts', data: JSON.stringify({permalink, subreddit: postE.subreddit.replace(/^r\//, ''), author: postE.author, title: cleanText(postE.title), body: postBody, score: finalScore, num_comments: postNumComments, created_utc, external_url: '', fetched_at: fetchedAt})});
+  await mcp__nemons__cap_store({capability: 'reddit', action: 'upsert', table: 'posts', data: JSON.stringify({permalink, subreddit: postE.subreddit.replace(/^r\//, ''), author: postE.author, title: cleanText(postE.title), body: postBody, score: finalScore, num_comments: postNumComments, created_utc, external_url: '', fetched_at: fetchedAt})});
 
-  for (const row of commentRows) await mcp__yesmem__cap_store({capability: 'reddit', action: 'upsert', table: 'comments', data: JSON.stringify(row)});
-  for (const row of linkRows) await mcp__yesmem__cap_store({capability: 'reddit', action: 'upsert', table: 'links', data: JSON.stringify(row)});
+  for (const row of commentRows) await mcp__nemons__cap_store({capability: 'reddit', action: 'upsert', table: 'comments', data: JSON.stringify(row)});
+  for (const row of linkRows) await mcp__nemons__cap_store({capability: 'reddit', action: 'upsert', table: 'links', data: JSON.stringify(row)});
 
   return {
     post: {title: cleanText(postE.title), author: postE.author, score: 0, subreddit: postE.subreddit.replace(/^r\//, ''), permalink, body: postBody},
@@ -190,19 +190,19 @@ async ({ query, limit = 25, sort = "relevance", t = "week", subreddit, after = "
   let putFail = null;
   for (let attempt = 0; attempt < 3; attempt++) {
     const blobKey = `search:${fetchedAt}_${attempt}_${Math.random().toString(36).slice(2,8)}`;
-    const curlCmd = `curl -sL -A ${JSON.stringify(UA)} -H "Accept-Language: en-US,en;q=0.9" --max-time 20 ${JSON.stringify(url)} | yesmem cap-blob-put --cap reddit --key ${JSON.stringify(blobKey)}`;
+    const curlCmd = `curl -sL -A ${JSON.stringify(UA)} -H "Accept-Language: en-US,en;q=0.9" --max-time 20 ${JSON.stringify(url)} | nemons cap-blob-put --cap reddit --key ${JSON.stringify(blobKey)}`;
     const putRes = await sh(curlCmd, 25000);
     if (!putRes || !putRes.includes('"status":"ok"')) { putFail = String(putRes).slice(0,200); continue; }
     let rows = [];
     for (let i = 0; i < 50; i++) {
-      const r = await mcp__yesmem__cap_store({capability: "reddit", action: "query", table: "blobs", where: "key=? AND chunk_idx=?", args: JSON.stringify([blobKey, i]), limit: 1});
+      const r = await mcp__nemons__cap_store({capability: "reddit", action: "query", table: "blobs", where: "key=? AND chunk_idx=?", args: JSON.stringify([blobKey, i]), limit: 1});
       if (typeof r === "string" && /^Error/i.test(r)) { putFail = r.slice(0,200); break; }
       const parsed = typeof r === "string" ? JSON.parse(r) : r;
       const arr = Array.isArray(parsed) ? parsed : (parsed.rows || []);
       if (!arr.length) break;
       rows.push(arr[0]);
     }
-    await mcp__yesmem__cap_store({capability: "reddit", action: "delete", table: "blobs", where: "key=?", args: JSON.stringify([blobKey])});
+    await mcp__nemons__cap_store({capability: "reddit", action: "delete", table: "blobs", where: "key=?", args: JSON.stringify([blobKey])});
     if (rows.length) { html = rows.map(r => r.data || "").join(""); break; }
     if (attempt < 2) await sh('sleep 6', 8000);
   }
@@ -240,8 +240,8 @@ async ({ query, limit = 25, sort = "relevance", t = "week", subreddit, after = "
   }
 
   // === CAP_STORE PERSISTENCE ===
-  await mcp__yesmem__cap_store({capability: "reddit", action: "create_table", table: "listings", columns: JSON.stringify([{name: "query", type: "TEXT"},{name: "mode", type: "TEXT"},{name: "permalink", type: "TEXT"},{name: "title", type: "TEXT"},{name: "subreddit", type: "TEXT"},{name: "author", type: "TEXT"},{name: "score", type: "INTEGER"},{name: "num_comments", type: "INTEGER"},{name: "url", type: "TEXT"},{name: "created_utc", type: "INTEGER"},{name: "fetched_at", type: "INTEGER"}])});
-  await mcp__yesmem__cap_store({capability: "reddit", action: "create_table", table: "categories", columns: JSON.stringify([{name: "permalink", type: "TEXT"},{name: "category", type: "TEXT"},{name: "confidence", type: "TEXT"},{name: "model", type: "TEXT"},{name: "classified_at", type: "INTEGER"}])});
+  await mcp__nemons__cap_store({capability: "reddit", action: "create_table", table: "listings", columns: JSON.stringify([{name: "query", type: "TEXT"},{name: "mode", type: "TEXT"},{name: "permalink", type: "TEXT"},{name: "title", type: "TEXT"},{name: "subreddit", type: "TEXT"},{name: "author", type: "TEXT"},{name: "score", type: "INTEGER"},{name: "num_comments", type: "INTEGER"},{name: "url", type: "TEXT"},{name: "created_utc", type: "INTEGER"},{name: "fetched_at", type: "INTEGER"}])});
+  await mcp__nemons__cap_store({capability: "reddit", action: "create_table", table: "categories", columns: JSON.stringify([{name: "permalink", type: "TEXT"},{name: "category", type: "TEXT"},{name: "confidence", type: "TEXT"},{name: "model", type: "TEXT"},{name: "classified_at", type: "INTEGER"}])});
 
   let classifications = {};
   let modelUsed = "", classifyErr = null;
@@ -264,10 +264,10 @@ async ({ query, limit = 25, sort = "relevance", t = "week", subreddit, after = "
   const outPosts = [];
   for (const p of posts) {
     const row = { query: q, mode, permalink: p.permalink, title: p.title, subreddit: p.subreddit, author: p.author, score: p.score, num_comments: p.num_comments, url: p.url, created_utc: p.created_utc, fetched_at: fetchedAt };
-    await mcp__yesmem__cap_store({capability: "reddit", action: "upsert", table: "listings", data: JSON.stringify(row)});
+    await mcp__nemons__cap_store({capability: "reddit", action: "upsert", table: "listings", data: JSON.stringify(row)});
     const cls = classifications[p.permalink];
     if (cls) {
-      await mcp__yesmem__cap_store({capability: "reddit", action: "upsert", table: "categories", data: JSON.stringify({permalink: p.permalink, category: cls.category, confidence: cls.confidence, model: modelUsed, classified_at: fetchedAt})});
+      await mcp__nemons__cap_store({capability: "reddit", action: "upsert", table: "categories", data: JSON.stringify({permalink: p.permalink, category: cls.category, confidence: cls.confidence, model: modelUsed, classified_at: fetchedAt})});
     }
     outPosts.push({...p, category: cls?.category || null, confidence: cls?.confidence || null, body: undefined});
   }

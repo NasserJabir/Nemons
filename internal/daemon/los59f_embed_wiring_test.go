@@ -5,7 +5,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/embedding"
+	"github.com/NasserJabir/Nemons/internal/embedding"
 )
 
 // YM-432: the daemon publishes the vector-search wiring from its async startup
@@ -86,7 +86,7 @@ func TestSetEmbeddingKeepsSearchProvider(t *testing.T) {
 // shutdown and has no test.
 func TestSaveIVFWithoutStoreIsNoOp(t *testing.T) {
 	h := &Handler{}
-	h.SetIVFPath("yesmem.ivf")
+	h.SetIVFPath("nemons.ivf")
 	h.SaveIVF()
 }
 

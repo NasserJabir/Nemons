@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/proxy"
+	"github.com/NasserJabir/Nemons/internal/proxy"
 )
 
 // AssembleRequest is the input for the POST /api/assemble endpoint.
@@ -297,7 +297,7 @@ func injectAssociativeContext(messages *[]any, searchResult json.RawMessage, pro
 		return nil
 	}
 
-	contextText := fmt.Sprintf("[yesmem associative context]\n%s\n%s\n[/yesmem context]",
+	contextText := fmt.Sprintf("[nemons associative context]\n%s\n%s\n[/nemons context]",
 		strings.Join(lines, "\n"),
 		proxy.InlineReflectionHint,
 	)
@@ -330,7 +330,7 @@ func injectFreshRemember(messages *[]any, result json.RawMessage) []int64 {
 		}
 	}
 
-	contextText := fmt.Sprintf("[yesmem fresh memory]\nGerade gelernt:\n%s\n%s\n[/yesmem fresh memory]",
+	contextText := fmt.Sprintf("[nemons fresh memory]\nGerade gelernt:\n%s\n%s\n[/nemons fresh memory]",
 		strings.Join(lines, "\n"),
 		proxy.InlineReflectionHint,
 	)

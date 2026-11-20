@@ -20,9 +20,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/channeltext"
-	"github.com/carsteneu/yesmem/internal/orchestrator"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/channeltext"
+	"github.com/NasserJabir/Nemons/internal/orchestrator"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // opencodeUnresumableMsg is the agent-record signal written when an opencode
@@ -590,7 +590,7 @@ var opencodeDBPath = func() string {
 
 // opencodeSessionDir returns the working directory of an opencode session by
 // its bare session id, or "" when the session is unknown. Used to bootstrap
-// agents from ses_* ids that reference no yesmem agent row. Both session tables
+// agents from ses_* ids that reference no nemons agent row. Both session tables
 // are consulted, so v2 sessions resolve as well.
 func opencodeSessionDir(sessionID string) string {
 	// The id may carry the "opencode:" prefix the MCP layer attaches; the table
@@ -820,12 +820,12 @@ func loadCodexAuthEnv() (string, error) {
 
 // buildAgentExtraEnv returns the extra environment variables to inject into
 // the spawned agent's process. For opencode/codex backends we set
-// YESMEM_SOURCE_AGENT + YESMEM_SESSION_ID so the yesmem-mcp child (spawned by
+// NEMONS_SOURCE_AGENT + NEMONS_SESSION_ID so the nemons-mcp child (spawned by
 // the backend) can identify itself to the daemon without relying on the
 // global active_session_opencode proxy-state, which is Last-Writer-Wins
 // across parallel agents. Codex additionally gets CODEX_THREAD_ID because
 // internal/mcp/server.go resolveClientSessionID reads that variable (not
-// YESMEM_SESSION_ID) for the codex branch.
+// NEMONS_SESSION_ID) for the codex branch.
 //
 // NOTE: despite the name this helper is not pure — for the codex backend it
 // reads ~/.codex/auth.json via loadCodexAuthEnv to inject OPENAI_API_KEY.
@@ -846,19 +846,19 @@ func buildAgentExtraEnv(backend, sessionID string) []string {
 	switch backend {
 	case "opencode":
 		env = append(env,
-			"YESMEM_SOURCE_AGENT=opencode",
-			"YESMEM_SESSION_ID="+sessionID,
+			"NEMONS_SOURCE_AGENT=opencode",
+			"NEMONS_SESSION_ID="+sessionID,
 		)
 	case "codex":
 		env = append(env,
-			"YESMEM_SOURCE_AGENT=codex",
-			"YESMEM_SESSION_ID="+sessionID,
+			"NEMONS_SOURCE_AGENT=codex",
+			"NEMONS_SESSION_ID="+sessionID,
 			// Mirror to CODEX_THREAD_ID so resolveClientSessionID's codex
-			// branch (which reads CODEX_THREAD_ID, not YESMEM_SESSION_ID)
+			// branch (which reads CODEX_THREAD_ID, not NEMONS_SESSION_ID)
 			// picks it up. Verified codex CLI does not consume
 			// CODEX_THREAD_ID for its own thread selection (it polls the
 			// filesystem ~2s after spawn in pollCodexSessionID); only
-			// yesmem-mcp children read it.
+			// nemons-mcp children read it.
 			"CODEX_THREAD_ID="+sessionID,
 		)
 	}
@@ -1022,7 +1022,7 @@ func newOpencodeSessionID() string {
 	return fmt.Sprintf("ses_ym%x", b)
 }
 
-// buildAgentTTYArgs assembles the `yesmem agent-tty` argv run inside the new
+// buildAgentTTYArgs assembles the `nemons agent-tty` argv run inside the new
 // terminal window, including the placement sources when there are any.
 func buildAgentTTYArgs(sockPath, terminal string, parentPid int, parentWindow string) []string {
 	args := []string{"agent-tty", "--sock", sockPath}
@@ -1142,7 +1142,7 @@ func (h *Handler) spawnAgentProcess(id, sessionID, project, section, prompt, soc
 	}
 
 	// Build extraEnv: codex OPENAI_API_KEY + identity vars for non-claude
-	// backends so the yesmem-mcp child can resolve its own session without
+	// backends so the nemons-mcp child can resolve its own session without
 	// the global active_session_opencode proxy-state (Last-Writer-Wins across
 	// parallel agents). See resolveClientSessionID in internal/mcp/server.go.
 	extraEnv := buildAgentExtraEnv(backend, sessionID)
@@ -1170,7 +1170,7 @@ func (h *Handler) spawnAgentProcess(id, sessionID, project, section, prompt, soc
 		// wird via +new-window zuverlässig geöffnet.
 		terminal = "ghostty"
 	}
-	title := fmt.Sprintf("yesmem-%s #%s", agentSpawnLabel(section), strings.TrimPrefix(id, "agent-"))
+	title := fmt.Sprintf("nemons-%s #%s", agentSpawnLabel(section), strings.TrimPrefix(id, "agent-"))
 	agentTTYArgs := buildAgentTTYArgs(sockPath, terminal, parentPid, parentWindow)
 	bin, spawnArgs := agentDisplayCommand(terminal, binPath, title, agentTTYArgs...)
 	termCmd := exec.Command(bin, spawnArgs...)
@@ -2667,7 +2667,7 @@ func (h *Handler) existingWorkDir(dir string) string {
 }
 
 // bootstrapOpencodeResume creates a fresh agent row for a bare opencode
-// session id that references no yesmem row, using the session directory from
+// session id that references no nemons row, using the session directory from
 // opencode's DB as the agent workDir.
 func (h *Handler) bootstrapOpencodeResume(sessionID, workDir, project string, parentPid int, parentWindow string) Response {
 	if project == "" {
@@ -2982,7 +2982,7 @@ func generateAgentUUID() string {
 // outlives the run and widens their own interactive sessions there, and through a
 // symlinked .claude it was refused outright, leaving the run without any allowlist
 // until its deadline (YM-295, YM-300).
-const claudeAgentAllowedTools = "mcp__yesmem__*,Read(*),Write(*),Edit(*),Glob(*),Grep(*),Bash(*),Agent(*),WebSearch(*),WebFetch(*)"
+const claudeAgentAllowedTools = "mcp__nemons__*,Read(*),Write(*),Edit(*),Glob(*),Grep(*),Bash(*),Agent(*),WebSearch(*),WebFetch(*)"
 
 // allowedAgentBackends is the set spawnAgentProcess can start. The backend value
 // comes from the caller, and spawnAgentProcess maps anything it does not know to

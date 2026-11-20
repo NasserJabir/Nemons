@@ -80,10 +80,10 @@ func TestPinLearning_RecordsSessionID(t *testing.T) {
 
 // YM-227: an existing installation carries pinned_learnings without session_id
 // in BOTH databases. Open must add the column to both, otherwise permanent pins
-// (yesmem.db) fail while session pins (runtime.db) work.
+// (nemons.db) fail while session pins (runtime.db) work.
 func TestOpenAddsSessionIDToPreMigrationPinnedTables(t *testing.T) {
 	dir := t.TempDir()
-	dbPath := filepath.Join(dir, "yesmem.db")
+	dbPath := filepath.Join(dir, "nemons.db")
 	runtimePath := filepath.Join(dir, "runtime.db")
 	legacyDDL := `CREATE TABLE pinned_learnings (
 		id         INTEGER PRIMARY KEY AUTOINCREMENT,

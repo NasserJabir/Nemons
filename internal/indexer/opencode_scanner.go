@@ -12,9 +12,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/archive"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/archive"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 
 	_ "modernc.org/sqlite"
 )
@@ -69,10 +69,10 @@ func (s *OpencodeScanner) logf(format string, args ...any) {
 
 // sessionExportFormat marks the document written for a session that has no JSONL
 // file of its own, so a later reader can tell layouts apart.
-const sessionExportFormat = "yesmem-session-export/1"
+const sessionExportFormat = "nemons-session-export/1"
 
 // sessionExport is one session's archived record: the indexed row plus its
-// messages, which is everything yesmem knows about the session.
+// messages, which is everything nemons knows about the session.
 type sessionExport struct {
 	Format   string           `json:"format"`
 	Session  *models.Session  `json:"session"`

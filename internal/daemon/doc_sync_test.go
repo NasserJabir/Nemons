@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // YM-25: the doc-sync loop walks every registered source with a path. A rules
@@ -77,9 +77,9 @@ func gitRun(t *testing.T, dir string, args ...string) string {
 	cmd.Env = append(os.Environ(),
 		"GIT_CONFIG_NOSYSTEM=1",
 		"GIT_CONFIG_GLOBAL="+os.DevNull,
-		"GIT_AUTHOR_NAME=yesmem-test",
+		"GIT_AUTHOR_NAME=nemons-test",
 		"GIT_AUTHOR_EMAIL=test@example.com",
-		"GIT_COMMITTER_NAME=yesmem-test",
+		"GIT_COMMITTER_NAME=nemons-test",
 		"GIT_COMMITTER_EMAIL=test@example.com",
 	)
 	out, err := cmd.CombinedOutput()
@@ -145,7 +145,7 @@ func TestTryGitPull_DoesNotPullSourceInsideWorkingRepo(t *testing.T) {
 }
 
 // The clone case must keep working: a source that IS a repository root (a docs
-// clone under ~/.claude/yesmem/docs/<name>) is still updated from upstream.
+// clone under ~/.claude/nemons/docs/<name>) is still updated from upstream.
 func TestTryGitPull_PullsStandaloneSourceRepo(t *testing.T) {
 	_, clone := setupAheadClone(t)
 

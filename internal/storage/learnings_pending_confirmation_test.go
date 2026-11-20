@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // TestGetPendingConfirmationLearnings lists only active learnings that still
@@ -15,7 +15,7 @@ func TestGetPendingConfirmationLearnings(t *testing.T) {
 	now := time.Now()
 
 	parked, err := store.InsertLearning(&models.Learning{
-		Category: "decision", Content: "parked conflict side", Project: "yesmem",
+		Category: "decision", Content: "parked conflict side", Project: "nemons",
 		Confidence: 1.0, CreatedAt: now, ModelUsed: "test", Source: "user_stated",
 	})
 	if err != nil {
@@ -25,7 +25,7 @@ func TestGetPendingConfirmationLearnings(t *testing.T) {
 	// column holds a full path and canonical_project is empty. Live rows look
 	// like this; an exact canonical comparison would hide them.
 	legacy, err := store.InsertLearning(&models.Learning{
-		Category: "decision", Content: "legacy parked row", Project: "/work/yesmem",
+		Category: "decision", Content: "legacy parked row", Project: "/work/nemons",
 		Confidence: 1.0, CreatedAt: now, ModelUsed: "test", Source: "user_stated",
 	})
 	if err != nil {
@@ -42,13 +42,13 @@ func TestGetPendingConfirmationLearnings(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err := store.InsertLearning(&models.Learning{
-		Category: "decision", Content: "unrelated active decision", Project: "yesmem",
+		Category: "decision", Content: "unrelated active decision", Project: "nemons",
 		Confidence: 1.0, CreatedAt: now, ModelUsed: "test", Source: "user_stated",
 	}); err != nil {
 		t.Fatal(err)
 	}
 	alreadySuperseded, err := store.InsertLearning(&models.Learning{
-		Category: "decision", Content: "parked but already superseded", Project: "yesmem",
+		Category: "decision", Content: "parked but already superseded", Project: "nemons",
 		Confidence: 1.0, CreatedAt: now, ModelUsed: "test", Source: "user_stated",
 	})
 	if err != nil {
@@ -64,7 +64,7 @@ func TestGetPendingConfirmationLearnings(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got, total, err := store.GetPendingConfirmationLearnings("yesmem", 0)
+	got, total, err := store.GetPendingConfirmationLearnings("nemons", 0)
 	if err != nil {
 		t.Fatalf("query: %v", err)
 	}
@@ -89,7 +89,7 @@ func TestGetPendingConfirmationLearnings(t *testing.T) {
 	}
 
 	// The page is capped, but the total must stay the true match count.
-	page, total, err := store.GetPendingConfirmationLearnings("yesmem", 1)
+	page, total, err := store.GetPendingConfirmationLearnings("nemons", 1)
 	if err != nil {
 		t.Fatalf("paged query: %v", err)
 	}

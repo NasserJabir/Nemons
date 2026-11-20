@@ -17,7 +17,7 @@ func ProjectMatches(a, b string) bool {
 }
 
 // worktreeMarkers are the directory segments that put a path inside a worktree
-// checkout of a repository. Both layouts are in use: yesmem spawns under
+// checkout of a repository. Both layouts are in use: nemons spawns under
 // ".worktrees/", other tooling nests under ".claude/worktrees/".
 var worktreeMarkers = []string{"/.worktrees/", "/.claude/worktrees/"}
 

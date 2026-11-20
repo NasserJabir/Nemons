@@ -16,7 +16,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 const tablePersonaTraitsAgent = `CREATE TABLE IF NOT EXISTS persona_traits_agent (

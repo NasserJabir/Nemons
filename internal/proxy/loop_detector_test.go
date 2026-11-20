@@ -258,8 +258,8 @@ func TestFormatLoopWarning_Level1(t *testing.T) {
 		Description: "same error repeated 3 times",
 	}
 	w := FormatLoopWarning(sig, 1)
-	if !strings.Contains(w, "[YesMem Loop Detection]") {
-		t.Errorf("expected [YesMem Loop Detection] prefix, got: %q", w)
+	if !strings.Contains(w, "[Nemons Loop Detection]") {
+		t.Errorf("expected [Nemons Loop Detection] prefix, got: %q", w)
 	}
 	if !strings.Contains(w, "Step back") {
 		t.Errorf("expected 'Step back' in level-1 warning, got: %q", w)
@@ -274,8 +274,8 @@ func TestFormatLoopWarning_Level2(t *testing.T) {
 		Description: "Edit→Test→Error cycle on main.go repeated 3 times",
 	}
 	w := FormatLoopWarning(sig, 2)
-	if !strings.Contains(w, "[YesMem Loop Detection]") {
-		t.Errorf("expected [YesMem Loop Detection] prefix, got: %q", w)
+	if !strings.Contains(w, "[Nemons Loop Detection]") {
+		t.Errorf("expected [Nemons Loop Detection] prefix, got: %q", w)
 	}
 	if !strings.Contains(w, "previous warning") {
 		t.Errorf("expected 'previous warning' in level-2 warning, got: %q", w)
@@ -293,8 +293,8 @@ func TestFormatLoopWarning_Level3Plus(t *testing.T) {
 		Description: "identical 2-step cycle repeated 4 times",
 	}
 	w := FormatLoopWarning(sig, 3)
-	if !strings.Contains(w, "[YesMem Loop Detection]") {
-		t.Errorf("expected [YesMem Loop Detection] prefix, got: %q", w)
+	if !strings.Contains(w, "[Nemons Loop Detection]") {
+		t.Errorf("expected [Nemons Loop Detection] prefix, got: %q", w)
 	}
 	if !strings.Contains(w, "persistent loop") {
 		t.Errorf("expected 'persistent loop' in level-3 warning, got: %q", w)
@@ -378,8 +378,8 @@ func TestCheckLoopAndFormat_DetectsAndFormats(t *testing.T) {
 	if s.WarningCount != 1 {
 		t.Errorf("expected WarningCount=1 after detection, got %d", s.WarningCount)
 	}
-	if !strings.Contains(w, "[YesMem Loop Detection]") {
-		t.Errorf("expected [YesMem Loop Detection] in warning, got: %q", w)
+	if !strings.Contains(w, "[Nemons Loop Detection]") {
+		t.Errorf("expected [Nemons Loop Detection] in warning, got: %q", w)
 	}
 }
 

@@ -14,7 +14,7 @@ func TestLos56dPlanPersistReadsASnapshotUnderTheLock(t *testing.T) {
 	h, _ := mustHandler(t)
 	defer cleanupPlans()
 
-	if resp := h.handleSetPlan(map[string]any{"plan": "Step 1", "thread_id": "t-los56d-race", "project": "yesmem"}); resp.Error != "" {
+	if resp := h.handleSetPlan(map[string]any{"plan": "Step 1", "thread_id": "t-los56d-race", "project": "nemons"}); resp.Error != "" {
 		t.Fatalf("set plan: %s", resp.Error)
 	}
 

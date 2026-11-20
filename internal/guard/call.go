@@ -16,7 +16,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/guardmodel"
+	"github.com/NasserJabir/Nemons/internal/guardmodel"
 )
 
 // guardTTL is the response cache: identical calls within this window reuse the judgement. The hook runs once

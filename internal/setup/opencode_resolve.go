@@ -111,7 +111,7 @@ func resolveOpenCodeProvider(home string) (baseURL, apiKey, providerID, extracti
 	for i, p := range providers {
 		options[i] = p.Label
 	}
-	fmt.Println("  Which provider should YesMem use for extraction?")
+	fmt.Println("  Which provider should Nemons use for extraction?")
 	idx := promptChoice(options, 0)
 	selected := providers[idx]
 	fmt.Println()
@@ -169,7 +169,7 @@ func resolveOpenCodeProvider(home string) (baseURL, apiKey, providerID, extracti
 		extractionModel = extractionOpts[extractionIdx]
 	} else {
 		// Other providers: one model for everything
-		fmt.Println("  Which model should YesMem use?")
+		fmt.Println("  Which model should Nemons use?")
 		modelIdx := promptChoice(modelIDs, 0)
 		fmt.Println()
 

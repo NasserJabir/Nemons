@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestMergeCodexConfigContent_AddsYesmemIntegration(t *testing.T) {
+func TestMergeCodexConfigContent_AddsNemonsIntegration(t *testing.T) {
 	content := strings.TrimSpace(`
 model = "gpt-5.4"
 
@@ -13,55 +13,55 @@ model = "gpt-5.4"
 trust_level = "trusted"
 `) + "\n"
 
-	merged := mergeCodexConfigContent(content, "/home/testuser/.local/bin/yesmem", "/home/testuser/.codex/instructions/yesmem.md")
+	merged := mergeCodexConfigContent(content, "/home/testuser/.local/bin/nemons", "/home/testuser/.codex/instructions/nemons.md")
 
-	if !strings.Contains(merged, `model_provider = "yesmem"`) {
+	if !strings.Contains(merged, `model_provider = "nemons"`) {
 		t.Fatalf("missing model_provider in:\n%s", merged)
 	}
-	if !strings.Contains(merged, `developer_instructions_file = "/home/testuser/.codex/instructions/yesmem.md"`) {
+	if !strings.Contains(merged, `developer_instructions_file = "/home/testuser/.codex/instructions/nemons.md"`) {
 		t.Fatalf("missing developer_instructions_file in:\n%s", merged)
 	}
-	if !strings.Contains(merged, `[model_providers.yesmem]`) {
+	if !strings.Contains(merged, `[model_providers.nemons]`) {
 		t.Fatalf("missing provider section in:\n%s", merged)
 	}
 	if !strings.Contains(merged, `base_url = "http://127.0.0.1:9099/v1"`) {
 		t.Fatalf("missing proxy base_url in:\n%s", merged)
 	}
-	if !strings.Contains(merged, `[mcp_servers.yesmem]`) {
+	if !strings.Contains(merged, `[mcp_servers.nemons]`) {
 		t.Fatalf("missing mcp section in:\n%s", merged)
 	}
-	if !strings.Contains(merged, `command = "/home/testuser/.local/bin/yesmem"`) {
-		t.Fatalf("missing yesmem command in:\n%s", merged)
+	if !strings.Contains(merged, `command = "/home/testuser/.local/bin/nemons"`) {
+		t.Fatalf("missing nemons command in:\n%s", merged)
 	}
 	if !strings.Contains(merged, `[projects."/home/testuser/projects/myapp"]`) {
 		t.Fatalf("unrelated config was lost:\n%s", merged)
 	}
 }
 
-func TestMergeCodexConfigContent_ReplacesExistingYesmemBlocks(t *testing.T) {
+func TestMergeCodexConfigContent_ReplacesExistingNemonsBlocks(t *testing.T) {
 	content := strings.TrimSpace(`
 model_provider = "openai"
 developer_instructions_file = "/tmp/old.md"
 
-[model_providers.yesmem]
+[model_providers.nemons]
 name = "Old"
 base_url = "http://127.0.0.1:9100/v1"
 env_key = "OLD_KEY"
 
-[mcp_servers.yesmem]
-command = "/tmp/old-yesmem"
+[mcp_servers.nemons]
+command = "/tmp/old-nemons"
 args = ["old"]
 `) + "\n"
 
-	merged := mergeCodexConfigContent(content, "/home/testuser/.local/bin/yesmem", "/home/testuser/.codex/instructions/yesmem.md")
+	merged := mergeCodexConfigContent(content, "/home/testuser/.local/bin/nemons", "/home/testuser/.codex/instructions/nemons.md")
 
-	if strings.Count(merged, `[model_providers.yesmem]`) != 1 {
+	if strings.Count(merged, `[model_providers.nemons]`) != 1 {
 		t.Fatalf("provider section duplicated:\n%s", merged)
 	}
-	if strings.Count(merged, `[mcp_servers.yesmem]`) != 1 {
+	if strings.Count(merged, `[mcp_servers.nemons]`) != 1 {
 		t.Fatalf("mcp section duplicated:\n%s", merged)
 	}
-	if !strings.Contains(merged, `model_provider = "yesmem"`) {
+	if !strings.Contains(merged, `model_provider = "nemons"`) {
 		t.Fatalf("model_provider not updated:\n%s", merged)
 	}
 	if !strings.Contains(merged, `env_key = "OPENAI_API_KEY"`) {
@@ -74,35 +74,35 @@ args = ["old"]
 
 func TestRemoveCodexConfigContent_PreservesUnrelatedSettings(t *testing.T) {
 	content := strings.TrimSpace(`
-model_provider = "yesmem"
-developer_instructions_file = "/home/testuser/.codex/instructions/yesmem.md"
+model_provider = "nemons"
+developer_instructions_file = "/home/testuser/.codex/instructions/nemons.md"
 model = "gpt-5.4"
 
-[model_providers.yesmem]
-name = "OpenAI via YesMem Proxy"
+[model_providers.nemons]
+name = "OpenAI via Nemons Proxy"
 base_url = "http://127.0.0.1:9099/v1"
 env_key = "OPENAI_API_KEY"
 
-[mcp_servers.yesmem]
-command = "/home/testuser/.local/bin/yesmem"
+[mcp_servers.nemons]
+command = "/home/testuser/.local/bin/nemons"
 args = ["mcp"]
 
 [projects."/home/testuser/projects"]
 trust_level = "trusted"
 `) + "\n"
 
-	cleaned := removeCodexConfigContent(content, "/home/testuser/.codex/instructions/yesmem.md")
+	cleaned := removeCodexConfigContent(content, "/home/testuser/.codex/instructions/nemons.md")
 
-	if strings.Contains(cleaned, `model_provider = "yesmem"`) {
+	if strings.Contains(cleaned, `model_provider = "nemons"`) {
 		t.Fatalf("model_provider was not removed:\n%s", cleaned)
 	}
-	if strings.Contains(cleaned, `developer_instructions_file = "/home/testuser/.codex/instructions/yesmem.md"`) {
+	if strings.Contains(cleaned, `developer_instructions_file = "/home/testuser/.codex/instructions/nemons.md"`) {
 		t.Fatalf("instructions line was not removed:\n%s", cleaned)
 	}
-	if strings.Contains(cleaned, `[model_providers.yesmem]`) {
+	if strings.Contains(cleaned, `[model_providers.nemons]`) {
 		t.Fatalf("provider section was not removed:\n%s", cleaned)
 	}
-	if strings.Contains(cleaned, `[mcp_servers.yesmem]`) {
+	if strings.Contains(cleaned, `[mcp_servers.nemons]`) {
 		t.Fatalf("mcp section was not removed:\n%s", cleaned)
 	}
 	if !strings.Contains(cleaned, `model = "gpt-5.4"`) {
@@ -114,8 +114,8 @@ trust_level = "trusted"
 }
 
 func TestInspectCodexConfigContent_DetectsConfiguredState(t *testing.T) {
-	content := mergeCodexConfigContent("", "/home/testuser/.local/bin/yesmem", "/home/testuser/.codex/instructions/yesmem.md")
-	state := inspectCodexConfigContent(content, "/home/testuser/.codex/instructions/yesmem.md")
+	content := mergeCodexConfigContent("", "/home/testuser/.local/bin/nemons", "/home/testuser/.codex/instructions/nemons.md")
+	state := inspectCodexConfigContent(content, "/home/testuser/.codex/instructions/nemons.md")
 
 	if !state.ConfigPresent {
 		t.Fatal("expected config to be present")

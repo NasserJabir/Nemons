@@ -7,9 +7,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 const gapReviewSystemPrompt = `You review Knowledge Gaps from an AI assistant memory system.

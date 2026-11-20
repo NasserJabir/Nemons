@@ -143,17 +143,17 @@ func planToolUseMessage(name string) map[string]any {
 }
 
 // YM-100: the plan reset recognized only the Claude Code spelling
-// (mcp__yesmem__set_plan). opencode qualifies MCP tools as yesmem_<tool>
-// (plugins/opencode-yesmem-v2/context.ts:2), codex uses a dot, so the checkpoint
+// (mcp__nemons__set_plan). opencode qualifies MCP tools as nemons_<tool>
+// (plugins/opencode-nemons-v2/context.ts:2), codex uses a dot, so the checkpoint
 // counter never reset on those backends.
 func TestDetectPlanToolCall_AllBackendToolNames(t *testing.T) {
 	names := []string{
-		"mcp__yesmem__set_plan",
-		"mcp__yesmem__update_plan",
-		"mcp_yesmem_update_plan",
-		"yesmem_set_plan",
-		"yesmem_update_plan",
-		"yesmem.set_plan",
+		"mcp__nemons__set_plan",
+		"mcp__nemons__update_plan",
+		"mcp_nemons_update_plan",
+		"nemons_set_plan",
+		"nemons_update_plan",
+		"nemons.set_plan",
 		"set_plan",
 	}
 
@@ -179,7 +179,7 @@ func TestDetectPlanToolCall_AllBackendToolNames(t *testing.T) {
 // complete_plan drops the counter instead of moving it, so a later checkpoint
 // does not fire for a plan that no longer exists.
 func TestDetectPlanToolCall_CompletePlanDropsCounter(t *testing.T) {
-	for _, name := range []string{"mcp__yesmem__complete_plan", "yesmem_complete_plan"} {
+	for _, name := range []string{"mcp__nemons__complete_plan", "nemons_complete_plan"} {
 		t.Run(name, func(t *testing.T) {
 			threadID := "tid-complete-" + name
 			planCheckpointReset(threadID, 1000)
@@ -200,7 +200,7 @@ func TestDetectPlanToolCall_CompletePlanDropsCounter(t *testing.T) {
 
 // A read of the plan must not be mistaken for a plan mutation.
 func TestDetectPlanToolCall_IgnoresNonPlanTools(t *testing.T) {
-	for _, name := range []string{"yesmem_get_plan", "mcp__yesmem__get_plan", "yesmem_search", "grep"} {
+	for _, name := range []string{"nemons_get_plan", "mcp__nemons__get_plan", "nemons_search", "grep"} {
 		t.Run(name, func(t *testing.T) {
 			threadID := "tid-ignore-" + name
 			planCheckpointReset(threadID, 1000)
@@ -234,7 +234,7 @@ func TestDetectPlanToolCall_OpenAIWireFormat(t *testing.T) {
 			"id":   "call_1",
 			"type": "function",
 			"function": map[string]any{
-				"name":      "yesmem_update_plan",
+				"name":      "nemons_update_plan",
 				"arguments": "{}",
 			},
 		}},

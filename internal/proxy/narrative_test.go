@@ -398,7 +398,7 @@ func TestRender_AllSystemReminderDecisionsFiltered(t *testing.T) {
 func TestIsNarrativeMessage_DoesNotMatchUserContentWithNarrativeSubstring(t *testing.T) {
 	m := map[string]any{
 		"role":    "user",
-		"content": "hi how are you?\n\n<system-reminder>[yesmem-narrative]\nSession-Kontext (auto-generiert, Request 5):\nZiel: test\n</system-reminder>",
+		"content": "hi how are you?\n\n<system-reminder>[nemons-narrative]\nSession-Kontext (auto-generiert, Request 5):\nZiel: test\n</system-reminder>",
 	}
 	if isNarrativeMessage(m) {
 		t.Error("isNarrativeMessage must NOT match when narrative substring is embedded in real user content — that would cause StripOldNarratives to wipe the user message")

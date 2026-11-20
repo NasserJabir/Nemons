@@ -5,21 +5,21 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // YM-260 (Los 11d): the PostToolUse commit hook resolved the first hit of an OR
 // search. These tests pin the live case that closed learning #66092 and the
 // positive case that must keep working.
 
-const los11dHookProject = "/home/tester/memory/yesmem"
+const los11dHookProject = "/home/tester/memory/nemons"
 
 func insertHookTask(t *testing.T, store *storage.Store, content string) int64 {
 	t.Helper()
 	id, err := store.InsertLearning(&models.Learning{
 		Category: "unfinished", Content: content, Project: los11dHookProject,
-		CanonicalProject: "yesmem", Confidence: 1.0, CreatedAt: time.Now(), ModelUsed: "test",
+		CanonicalProject: "nemons", Confidence: 1.0, CreatedAt: time.Now(), ModelUsed: "test",
 	})
 	if err != nil {
 		t.Fatalf("insert task: %v", err)

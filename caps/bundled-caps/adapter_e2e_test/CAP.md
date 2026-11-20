@@ -22,7 +22,7 @@ sandbox: standard
 
 ```javascript
 async ({table}) => {
-  let r = await mcp__yesmem__cap_store({capability:'adapter_e2e_test', action:'list_tables'});
+  let r = await mcp__nemons__cap_store({capability:'adapter_e2e_test', action:'list_tables'});
   return r;
 }
 ```

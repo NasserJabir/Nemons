@@ -3,7 +3,7 @@ package proxy
 import (
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // messagesRequestProfile names the prompt profile behind a /v1/messages

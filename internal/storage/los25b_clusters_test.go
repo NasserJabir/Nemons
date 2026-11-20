@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func los25bCluster(label string) models.LearningCluster {
@@ -22,8 +22,8 @@ func los25bCluster(label string) models.LearningCluster {
 func TestLos25b_ClusterRowsDoNotMixSameBasenameRepos(t *testing.T) {
 	s := mustOpen(t)
 
-	const repoA = "/home/tester/memory/yesmem"
-	const repoB = "/home/tester/archive/yesmem"
+	const repoA = "/home/tester/memory/nemons"
+	const repoB = "/home/tester/archive/nemons"
 	const worktreeA = repoA + "/.worktrees/yesloop-los-25b"
 
 	if err := s.ReplaceLearningClusters(repoA, []models.LearningCluster{los25bCluster("a")}); err != nil {
@@ -65,13 +65,13 @@ func TestLos25b_ClusterRowsDoNotMixSameBasenameRepos(t *testing.T) {
 func TestLos25b_BareProjectNameResolvesToTheOnlyMatchingRepository(t *testing.T) {
 	s := mustOpen(t)
 
-	const repoA = "/home/tester/memory/yesmem"
-	const repoB = "/home/tester/archive/yesmem"
+	const repoA = "/home/tester/memory/nemons"
+	const repoB = "/home/tester/archive/nemons"
 
 	if err := s.ReplaceLearningClusters(repoA, []models.LearningCluster{los25bCluster("a")}); err != nil {
 		t.Fatalf("replace clusters for repo A: %v", err)
 	}
-	got, err := s.GetLearningClusters("yesmem")
+	got, err := s.GetLearningClusters("nemons")
 	if err != nil {
 		t.Fatalf("get clusters by bare name: %v", err)
 	}
@@ -82,7 +82,7 @@ func TestLos25b_BareProjectNameResolvesToTheOnlyMatchingRepository(t *testing.T)
 	if err := s.ReplaceLearningClusters(repoB, []models.LearningCluster{los25bCluster("b")}); err != nil {
 		t.Fatalf("replace clusters for repo B: %v", err)
 	}
-	ambiguous, err := s.GetLearningClusters("yesmem")
+	ambiguous, err := s.GetLearningClusters("nemons")
 	if err != nil {
 		t.Fatalf("get clusters by ambiguous bare name: %v", err)
 	}
@@ -95,27 +95,27 @@ func TestLos25b_BareProjectNameResolvesToTheOnlyMatchingRepository(t *testing.T)
 // repositories that share a basename no longer share a cluster set.
 func TestLos25b_GroupByCanonicalProjectSeparatesSameBasenameRepos(t *testing.T) {
 	projects := []ProjectSummary{
-		{Project: "/home/tester/memory/yesmem", ProjectShort: "/home/tester/memory/yesmem", SessionCount: 7},
-		{Project: "/home/tester/memory/yesmem/.worktrees/yesloop-los-25b", ProjectShort: "/home/tester/memory/yesmem/.worktrees/yesloop-los-25b", SessionCount: 4},
-		{Project: "/home/tester/archive/yesmem", ProjectShort: "/home/tester/archive/yesmem", SessionCount: 5},
+		{Project: "/home/tester/memory/nemons", ProjectShort: "/home/tester/memory/nemons", SessionCount: 7},
+		{Project: "/home/tester/memory/nemons/.worktrees/yesloop-los-25b", ProjectShort: "/home/tester/memory/nemons/.worktrees/yesloop-los-25b", SessionCount: 4},
+		{Project: "/home/tester/archive/nemons", ProjectShort: "/home/tester/archive/nemons", SessionCount: 5},
 	}
 
 	groups := GroupByCanonicalProject(projects)
 	if len(groups) != 2 {
-		t.Fatalf("got %d groups, want 2 (memory/yesmem + archive/yesmem): %+v", len(groups), groups)
+		t.Fatalf("got %d groups, want 2 (memory/nemons + archive/nemons): %+v", len(groups), groups)
 	}
 	perKey := make(map[string]int, len(groups))
 	for _, g := range groups {
-		if g.Canonical != "yesmem" {
-			t.Fatalf("group %q carries canonical %q, want the learnings scope %q", g.ClusterKey, g.Canonical, "yesmem")
+		if g.Canonical != "nemons" {
+			t.Fatalf("group %q carries canonical %q, want the learnings scope %q", g.ClusterKey, g.Canonical, "nemons")
 		}
 		perKey[g.ClusterKey] = g.Sessions
 	}
-	if perKey["/home/tester/memory/yesmem"] != 11 {
-		t.Fatalf("memory/yesmem sessions = %d, want 11 (7 main + 4 worktree): %+v", perKey["/home/tester/memory/yesmem"], perKey)
+	if perKey["/home/tester/memory/nemons"] != 11 {
+		t.Fatalf("memory/nemons sessions = %d, want 11 (7 main + 4 worktree): %+v", perKey["/home/tester/memory/nemons"], perKey)
 	}
-	if perKey["/home/tester/archive/yesmem"] != 5 {
-		t.Fatalf("archive/yesmem sessions = %d, want 5: %+v", perKey["/home/tester/archive/yesmem"], perKey)
+	if perKey["/home/tester/archive/nemons"] != 5 {
+		t.Fatalf("archive/nemons sessions = %d, want 5: %+v", perKey["/home/tester/archive/nemons"], perKey)
 	}
 }
 
@@ -124,16 +124,16 @@ func TestLos25b_GroupByCanonicalProjectSeparatesSameBasenameRepos(t *testing.T) 
 // opening a second cluster set.
 func TestLos25b_BareProjectNameJoinsTheOnlyMatchingRepository(t *testing.T) {
 	projects := []ProjectSummary{
-		{Project: "/home/tester/memory/yesmem", ProjectShort: "/home/tester/memory/yesmem", SessionCount: 7},
-		{Project: "yesmem", ProjectShort: "yesmem", SessionCount: 2},
+		{Project: "/home/tester/memory/nemons", ProjectShort: "/home/tester/memory/nemons", SessionCount: 7},
+		{Project: "nemons", ProjectShort: "nemons", SessionCount: 2},
 	}
 
 	groups := GroupByCanonicalProject(projects)
 	if len(groups) != 1 {
-		t.Fatalf("got %d groups, want 1 (the bare row belongs to the only yesmem root): %+v", len(groups), groups)
+		t.Fatalf("got %d groups, want 1 (the bare row belongs to the only nemons root): %+v", len(groups), groups)
 	}
-	if groups[0].ClusterKey != "/home/tester/memory/yesmem" || groups[0].Sessions != 9 {
-		t.Fatalf("group = %+v, want key /home/tester/memory/yesmem with 9 sessions", groups[0])
+	if groups[0].ClusterKey != "/home/tester/memory/nemons" || groups[0].Sessions != 9 {
+		t.Fatalf("group = %+v, want key /home/tester/memory/nemons with 9 sessions", groups[0])
 	}
 }
 
@@ -143,7 +143,7 @@ func TestLos25b_BareProjectNameJoinsTheOnlyMatchingRepository(t *testing.T) {
 func TestLos25b_ClusterFingerprintIgnoresGlobalLearnings(t *testing.T) {
 	s := mustOpen(t)
 
-	const repo = "/home/tester/memory/yesmem"
+	const repo = "/home/tester/memory/nemons"
 	insert := func(content, project string) {
 		t.Helper()
 		if _, err := s.InsertLearning(&models.Learning{
@@ -190,7 +190,7 @@ func TestLos25b_ClusterFingerprintIgnoresGlobalLearnings(t *testing.T) {
 func TestLos25b_OrphanClusterRowsAreReportedBeforeDeletion(t *testing.T) {
 	s := mustOpen(t)
 
-	const repo = "/home/tester/memory/yesmem"
+	const repo = "/home/tester/memory/nemons"
 	if err := s.UpsertSession(&models.Session{ID: "los25b-live-session", Project: repo, StartedAt: time.Now()}); err != nil {
 		t.Fatalf("upsert session: %v", err)
 	}
@@ -200,7 +200,7 @@ func TestLos25b_OrphanClusterRowsAreReportedBeforeDeletion(t *testing.T) {
 		t.Fatalf("replace live clusters: %v", err)
 	}
 	// Two rows from the old key spaces: the basename and a worktree path.
-	for _, legacy := range []string{"yesmem", repo + "/.worktrees/yesloop-los-25"} {
+	for _, legacy := range []string{"nemons", repo + "/.worktrees/yesloop-los-25"} {
 		if _, err := s.DB().Exec(`INSERT INTO learning_clusters (project, label, learning_count, learning_ids)
 			VALUES (?, 'legacy', 3, '[1,2,3]')`, legacy); err != nil {
 			t.Fatalf("insert legacy cluster row %q: %v", legacy, err)
@@ -256,7 +256,7 @@ func TestLos25b_OrphanClusterRowsAreReportedBeforeDeletion(t *testing.T) {
 func TestLos25b_OrphanPruneIsNoOpWithoutLiveProjects(t *testing.T) {
 	s := mustOpen(t)
 
-	const repo = "/home/tester/memory/yesmem"
+	const repo = "/home/tester/memory/nemons"
 	// No sessions at all, so no project is live; the cluster row is still the only
 	// state there is.
 	if err := s.ReplaceLearningClusters(repo, []models.LearningCluster{los25bCluster("orphan")}); err != nil {
@@ -286,10 +286,10 @@ func TestLos25b_OrphanPruneIsNoOpWithoutLiveProjects(t *testing.T) {
 func TestLos25b_OrphanPruneDropsTheClusterHash(t *testing.T) {
 	s := mustOpen(t)
 
-	const live = "/home/tester/memory/yesmem"
+	const live = "/home/tester/memory/nemons"
 	// The old key space used basenames; such a key is its own root and stays
 	// unreachable, which is exactly what the sweep has to collect.
-	const legacy = "yesmem"
+	const legacy = "nemons"
 	if err := s.UpsertSession(&models.Session{ID: "los25b-hash-session", Project: live, StartedAt: time.Now()}); err != nil {
 		t.Fatalf("upsert session: %v", err)
 	}
@@ -328,13 +328,13 @@ func TestLos25b_OrphanPruneDropsTheClusterHash(t *testing.T) {
 func TestLos25b_MigrateProjectMovesClusterRows(t *testing.T) {
 	s := mustOpen(t)
 
-	const fromPath = "/home/tester/memory/yesmem"
-	const toPath = "/home/tester/memory/yesmem-next"
+	const fromPath = "/home/tester/memory/nemons"
+	const toPath = "/home/tester/memory/nemons-next"
 	if err := s.ReplaceLearningClusters(fromPath, []models.LearningCluster{los25bCluster("moved")}); err != nil {
 		t.Fatalf("replace clusters: %v", err)
 	}
 
-	if _, err := s.MigrateProject(fromPath, toPath, "yesmem", "yesmem-next"); err != nil {
+	if _, err := s.MigrateProject(fromPath, toPath, "nemons", "nemons-next"); err != nil {
 		t.Fatalf("migrate project: %v", err)
 	}
 

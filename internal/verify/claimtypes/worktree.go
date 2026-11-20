@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // maxWorktreeFiles bounds the file list a refutation names. A tree with a
@@ -22,7 +22,7 @@ const maxWorktreeFiles = 20
 //
 // `git status --porcelain` lists tracked modifications and untracked files and
 // leaves out what .gitignore excludes: an ignored file is the project's statement
-// that it is not part of its history, and the .yesmem directory is the ordinary
+// that it is not part of its history, and the .nemons directory is the ordinary
 // case. The exclusion is read from the repository and from the machine, so a
 // checkout can also hide a file from this criterion; that is outside what a status
 // read can see, and the commit-bound claims remain the boundary.

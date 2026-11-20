@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // newTestStore opens an in-memory SQLite store for testing.
@@ -174,8 +174,8 @@ func TestLos14bFindBlockableGotchaSkipsImportedRows(t *testing.T) {
 }
 
 func TestHashInputDeterministic(t *testing.T) {
-	h1 := hashInput("cp yesmem /usr/local/bin/yesmem")
-	h2 := hashInput("cp yesmem /usr/local/bin/yesmem")
+	h1 := hashInput("cp nemons /usr/local/bin/nemons")
+	h2 := hashInput("cp nemons /usr/local/bin/nemons")
 	if h1 != h2 {
 		t.Errorf("hashInput not deterministic: %q != %q", h1, h2)
 	}
@@ -183,7 +183,7 @@ func TestHashInputDeterministic(t *testing.T) {
 		t.Errorf("hashInput should return 16-char hex, got %d chars: %q", len(h1), h1)
 	}
 	// Different input → different hash
-	h3 := hashInput("mv -f yesmem-new /usr/local/bin/yesmem")
+	h3 := hashInput("mv -f nemons-new /usr/local/bin/nemons")
 	if h1 == h3 {
 		t.Error("different inputs should produce different hashes")
 	}
@@ -227,10 +227,10 @@ func TestSaveCountHeuristic(t *testing.T) {
 	idsJSON, _ := json.Marshal([]int64{id})
 	store.SetProxyState(saveCountStateKey("last_gotcha_ids", "sess-test"), string(idsJSON))
 	store.SetProxyState(saveCountStateKey("last_gotcha_tool", "sess-test"), "Bash")
-	store.SetProxyState(saveCountStateKey("last_gotcha_input_hash", "sess-test"), hashInput("cp yesmem /usr/local/bin/yesmem"))
+	store.SetProxyState(saveCountStateKey("last_gotcha_input_hash", "sess-test"), hashInput("cp nemons /usr/local/bin/nemons"))
 
 	// Next call: DIFFERENT command — gotcha saved us
-	checkSaveCount(store, "sess-test", "Bash", hashInput("mv -f yesmem-new /usr/local/bin/yesmem"))
+	checkSaveCount(store, "sess-test", "Bash", hashInput("mv -f nemons-new /usr/local/bin/nemons"))
 
 	l, err := store.GetLearning(id)
 	if err != nil {
@@ -248,10 +248,10 @@ func TestSaveCountNotBumpedWhenIgnored(t *testing.T) {
 	idsJSON, _ := json.Marshal([]int64{id})
 	store.SetProxyState(saveCountStateKey("last_gotcha_ids", "sess-test"), string(idsJSON))
 	store.SetProxyState(saveCountStateKey("last_gotcha_tool", "sess-test"), "Bash")
-	store.SetProxyState(saveCountStateKey("last_gotcha_input_hash", "sess-test"), hashInput("cp yesmem /usr/local/bin/"))
+	store.SetProxyState(saveCountStateKey("last_gotcha_input_hash", "sess-test"), hashInput("cp nemons /usr/local/bin/"))
 
 	// Same command — user ignored
-	checkSaveCount(store, "sess-test", "Bash", hashInput("cp yesmem /usr/local/bin/"))
+	checkSaveCount(store, "sess-test", "Bash", hashInput("cp nemons /usr/local/bin/"))
 
 	l, err := store.GetLearning(id)
 	if err != nil {
@@ -671,7 +671,7 @@ func TestRunCheckSaveCountIsSessionScoped(t *testing.T) {
 
 	readSaveCount := func() int {
 		t.Helper()
-		store, err := storage.Open(filepath.Join(dir, "yesmem.db"))
+		store, err := storage.Open(filepath.Join(dir, "nemons.db"))
 		if err != nil {
 			t.Fatalf("reopen store: %v", err)
 		}
@@ -727,7 +727,7 @@ func TestRunCheckWebFetchHostChangeDoesNotCountSave(t *testing.T) {
 
 	saveCount := func() int {
 		t.Helper()
-		store, err := storage.Open(filepath.Join(dir, "yesmem.db"))
+		store, err := storage.Open(filepath.Join(dir, "nemons.db"))
 		if err != nil {
 			t.Fatalf("reopen store: %v", err)
 		}
@@ -762,7 +762,7 @@ func TestRunCheckWebFetchHostChangeDoesNotCountSave(t *testing.T) {
 // TestRunCheckBashInWorktreeNotInjectedByWorktreeSegment keeps the command path in
 // line with the file path. Since YM-226 a gotcha naming .worktrees no longer fires
 // on an edit below it, but a Bash command that merely ran inside the worktree still
-// produced ".worktrees", "yesmem" and "memory" as keywords, and
+// produced ".worktrees", "nemons" and "memory" as keywords, and
 // hasLongKeywordMatch admits any one of them alone. YM-269 closes that path.
 func TestRunCheckBashInWorktreeNotInjectedByWorktreeSegment(t *testing.T) {
 	dir := openTempStore(t, func(s *storage.Store) {
@@ -770,8 +770,8 @@ func TestRunCheckBashInWorktreeNotInjectedByWorktreeSegment(t *testing.T) {
 	})
 	out := runCheckWithHook(t, dir, HookInput{
 		ToolName:  "Bash",
-		CWD:       "/home/tester/memory/yesmem",
-		ToolInput: json.RawMessage(`{"command":"cd /home/tester/memory/yesmem/.worktrees/feature-x && go build ./..."}`),
+		CWD:       "/home/tester/memory/nemons",
+		ToolInput: json.RawMessage(`{"command":"cd /home/tester/memory/nemons/.worktrees/feature-x && go build ./..."}`),
 	})
 	if out != "" {
 		t.Errorf("gotcha naming .worktrees injected on a Bash call that only runs there, got: %s", out)
@@ -782,15 +782,15 @@ func TestRunCheckBashInWorktreeNotInjectedByWorktreeSegment(t *testing.T) {
 // in the other direction: a command that is nothing but a path into this
 // installation must still reach the gotcha lookup. With the filter alone the keyword
 // set was empty, RunCheck returned at its empty-set gate, and neither the warning
-// nor the hard block for "rm -rf <home>/.claude/yesmem" was produced any more.
+// nor the hard block for "rm -rf <home>/.claude/nemons" was produced any more.
 func TestRunCheckPathOnlyCommandStillMatches(t *testing.T) {
 	dir := openTempStore(t, func(s *storage.Store) {
-		insertGotcha(t, s, "rm -rf /home/tester/.claude/yesmem loescht alle Learnings", "claude_suggested", "")
+		insertGotcha(t, s, "rm -rf /home/tester/.claude/nemons loescht alle Learnings", "claude_suggested", "")
 	})
 	out := runCheckWithHook(t, dir, HookInput{
 		ToolName:  "Bash",
-		CWD:       "/home/tester/memory/yesmem",
-		ToolInput: json.RawMessage(`{"command":"rm -rf /home/tester/.claude/yesmem"}`),
+		CWD:       "/home/tester/memory/nemons",
+		ToolInput: json.RawMessage(`{"command":"rm -rf /home/tester/.claude/nemons"}`),
 	})
 	if !strings.Contains(out, "loescht alle Learnings") {
 		t.Errorf("a path-only command must still reach the gotcha lookup, got: %q", out)
@@ -807,8 +807,8 @@ func TestRunCheckEditOfDotfileKeepsItsGotcha(t *testing.T) {
 	})
 	out := runCheckWithHook(t, dir, HookInput{
 		ToolName:  "Edit",
-		CWD:       "/home/tester/memory/yesmem",
-		ToolInput: json.RawMessage(`{"file_path":"/home/tester/memory/yesmem/.env"}`),
+		CWD:       "/home/tester/memory/nemons",
+		ToolInput: json.RawMessage(`{"file_path":"/home/tester/memory/nemons/.env"}`),
 	})
 	if !strings.Contains(out, "Produktions-Credentials") {
 		t.Errorf("a gotcha naming the edited .env must still be injected, got: %q", out)
@@ -827,7 +827,7 @@ func TestRunCheckRelativeSettingsPathStillWarns(t *testing.T) {
 		CWD:       home,
 		ToolInput: json.RawMessage(`{"file_path":".claude/settings.json"}`),
 	})
-	if !strings.Contains(out, "yesmem setup") {
+	if !strings.Contains(out, "nemons setup") {
 		t.Errorf("a relative settings path must still warn, got: %q", out)
 	}
 }
@@ -849,7 +849,7 @@ func TestResolveHookPathDropsDiscardedSegments(t *testing.T) {
 
 // TestIsProtectedSettingsFileProtectsClaudeSettings covers the fifth finding of
 // YM-269. ~/.claude/settings.json carries the hook registration, the mcpServers
-// entry and the proxy env block that `yesmem setup` writes. A whole-file write drops
+// entry and the proxy env block that `nemons setup` writes. A whole-file write drops
 // whichever part the caller does not reproduce, and with the hook registration it
 // drops the guard itself. Only that exact path is protected: a settings.json inside
 // a repository is an ordinary project file. The guard decides per tool at the call
@@ -883,10 +883,10 @@ func TestIsProtectedSettingsFileProtectsClaudeSettings(t *testing.T) {
 	if isProtectedFile(filepath.Join(home, "project", "settings.json")) {
 		t.Error("isProtectedFile must not match a settings.json by name")
 	}
-	if !isProtectedFile(filepath.Join(home, ".claude", "yesmem-ops.md")) {
+	if !isProtectedFile(filepath.Join(home, ".claude", "nemons-ops.md")) {
 		t.Error("isProtectedFile must still match the generated ops file")
 	}
-	if isProtectedFile(filepath.Join(home, "yesmem-ops.md")) {
+	if isProtectedFile(filepath.Join(home, "nemons-ops.md")) {
 		t.Error("isProtectedFile must not match a same-named file outside .claude")
 	}
 }
@@ -904,7 +904,7 @@ func TestRunCheckWebFetchClearsPendingSaveState(t *testing.T) {
 
 	saveCount := func() int {
 		t.Helper()
-		store, err := storage.Open(filepath.Join(dir, "yesmem.db"))
+		store, err := storage.Open(filepath.Join(dir, "nemons.db"))
 		if err != nil {
 			t.Fatalf("reopen store: %v", err)
 		}
@@ -937,7 +937,7 @@ func TestRunCheckWebFetchClearsPendingSaveState(t *testing.T) {
 
 // TestRunCheckEditOfClaudeSettingsWarnsInsteadOfBlocking covers the shape the fifth
 // finding took after the cold review: a whole-file Write of ~/.claude/settings.json
-// is blocked (that is what loses yesmem's keys), a surgical Edit only gets a
+// is blocked (that is what loses nemons's keys), a surgical Edit only gets a
 // warning, because an Edit can only touch what it targets.
 func TestRunCheckEditOfClaudeSettingsWarnsInsteadOfBlocking(t *testing.T) {
 	home := t.TempDir()
@@ -952,8 +952,8 @@ func TestRunCheckEditOfClaudeSettingsWarnsInsteadOfBlocking(t *testing.T) {
 	if strings.Contains(out, `"decision":"block"`) {
 		t.Errorf("a surgical Edit of the settings file must not be blocked, got: %s", out)
 	}
-	if !strings.Contains(out, "yesmem setup") {
-		t.Errorf("expected a warning naming yesmem setup, got: %s", out)
+	if !strings.Contains(out, "nemons setup") {
+		t.Errorf("expected a warning naming nemons setup, got: %s", out)
 	}
 }
 
@@ -1191,7 +1191,7 @@ func insertNullProjectRow(t *testing.T, store *storage.Store) {
 // filter was empty, so gotchas from OTHER projects leaked into every session.
 func TestRunCheckScopesGotchasToProjectCWD(t *testing.T) {
 	dir := t.TempDir()
-	store, err := storage.Open(filepath.Join(dir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -1237,7 +1237,7 @@ func TestRunCheckWorktreeCWDSeesCanonicalProject(t *testing.T) {
 	parent := filepath.Join(dir, "testproj")
 	worktreeCwd := filepath.Join(parent, ".worktrees", "fix-hook-check-cwd")
 
-	store, err := storage.Open(filepath.Join(dir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -1378,12 +1378,12 @@ func insertGotcha(t *testing.T, store *storage.Store, content, source, originToo
 	return id
 }
 
-// openTempStore creates a temp dataDir with a seeded yesmem.db and returns the
+// openTempStore creates a temp dataDir with a seeded nemons.db and returns the
 // dataDir. The store is closed before RunCheck reopens it, matching production.
 func openTempStore(t *testing.T, seed func(*storage.Store)) string {
 	t.Helper()
 	dir := t.TempDir()
-	store, err := storage.Open(filepath.Join(dir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -1437,8 +1437,8 @@ func TestRunCheckBashGotchaNotInjectedOnFileOpByFilenameAlone(t *testing.T) {
 		{
 			name:    "Write hidden-directory echo",
 			tool:    "Write",
-			file:    "/x/.yesmem/tmp/report.md",
-			content: "Bash error: `rm -rf .yesmem/tmp/report.md` → Operation not permitted",
+			file:    "/x/.nemons/tmp/report.md",
+			content: "Bash error: `rm -rf .nemons/tmp/report.md` → Operation not permitted",
 		},
 	}
 	for _, tt := range tests {
@@ -1473,14 +1473,14 @@ func TestRunCheckExtensionlessFilenameNotInjectedByFilenameAlone(t *testing.T) {
 		{
 			name:    "Write Makefile",
 			tool:    "Write",
-			file:    "/home/u/yesmem/Makefile",
-			content: "Bash error: `make deploy` in /home/u/yesmem → make: *** [Makefile:12: deploy] Error 1",
+			file:    "/home/u/nemons/Makefile",
+			content: "Bash error: `make deploy` in /home/u/nemons → make: *** [Makefile:12: deploy] Error 1",
 		},
 		{
 			name:    "Edit Dockerfile",
 			tool:    "Edit",
-			file:    "/home/u/yesmem/Dockerfile",
-			content: "Bash error: `docker build .` in /home/u/yesmem → ERROR: failed to solve: Dockerfile:7: unknown instruction",
+			file:    "/home/u/nemons/Dockerfile",
+			content: "Bash error: `docker build .` in /home/u/nemons → ERROR: failed to solve: Dockerfile:7: unknown instruction",
 		},
 	}
 	for _, tt := range tests {
@@ -1490,7 +1490,7 @@ func TestRunCheckExtensionlessFilenameNotInjectedByFilenameAlone(t *testing.T) {
 			})
 			out := runCheckWithHook(t, dir, HookInput{
 				ToolName:  tt.tool,
-				CWD:       "/home/u/yesmem",
+				CWD:       "/home/u/nemons",
 				ToolInput: json.RawMessage(`{"file_path":"` + tt.file + `"}`),
 			})
 			if out != "" {
@@ -1511,8 +1511,8 @@ func TestRunCheckBashGotchaNotInjectedOnEditOfItsOwnFile(t *testing.T) {
 	})
 	out := runCheckWithHook(t, dir, HookInput{
 		ToolName:  "Edit",
-		CWD:       "/workspaces/yesmem",
-		ToolInput: json.RawMessage(`{"file_path":"/workspaces/yesmem/internal/hooks/check.go"}`),
+		CWD:       "/workspaces/nemons",
+		ToolInput: json.RawMessage(`{"file_path":"/workspaces/nemons/internal/hooks/check.go"}`),
 	})
 	if out != "" {
 		t.Errorf("Bash transcript naming only the file name and path must not be injected on Edit, got: %s", out)
@@ -1531,8 +1531,8 @@ func TestRunCheckBashGotchaInjectedOnFileOpWithContentOverlap(t *testing.T) {
 	})
 	out := runCheckWithHook(t, dir, HookInput{
 		ToolName:  "Write",
-		CWD:       "/workspaces/yesmem",
-		ToolInput: json.RawMessage(`{"file_path":"/workspaces/yesmem/internal/hooks/check.go"}`),
+		CWD:       "/workspaces/nemons",
+		ToolInput: json.RawMessage(`{"file_path":"/workspaces/nemons/internal/hooks/check.go"}`),
 	})
 	if !strings.Contains(out, "build failed") {
 		t.Errorf("Bash-origin gotcha with real content overlap should still fire on Write, got: %s", out)
@@ -1541,17 +1541,17 @@ func TestRunCheckBashGotchaInjectedOnFileOpWithContentOverlap(t *testing.T) {
 
 // TestRunCheckRepoNameIsNotContentOverlap is the file-op half of YM-160. The
 // checkout directory name was a path keyword, so a Bash transcript that only
-// mentions the repository ("in yesmem") passed as content overlap for every file
+// mentions the repository ("in nemons") passed as content overlap for every file
 // below it and was injected on each edit of that file.
 func TestRunCheckRepoNameIsNotContentOverlap(t *testing.T) {
 	dir := openTempStore(t, func(s *storage.Store) {
-		insertGotcha(t, s, "Bash error: `go test ./hooks/` in yesmem → build failed",
+		insertGotcha(t, s, "Bash error: `go test ./hooks/` in nemons → build failed",
 			"hook_auto_learned", "")
 	})
 	out := runCheckWithHook(t, dir, HookInput{
 		ToolName:  "Write",
-		CWD:       "/workspaces/yesmem",
-		ToolInput: json.RawMessage(`{"file_path":"/workspaces/yesmem/internal/hooks/check.go"}`),
+		CWD:       "/workspaces/nemons",
+		ToolInput: json.RawMessage(`{"file_path":"/workspaces/nemons/internal/hooks/check.go"}`),
 	})
 	if out != "" {
 		t.Errorf("the repository name alone must not admit a Bash transcript on a file op, got: %s", out)
@@ -1596,8 +1596,8 @@ func TestRunCheckBashOriginFileOpV2EntityStillMatches(t *testing.T) {
 	})
 	out := runCheckWithHook(t, dir, HookInput{
 		ToolName:  "Write",
-		CWD:       "/workspaces/yesmem",
-		ToolInput: json.RawMessage(`{"file_path":"/workspaces/yesmem/internal/hooks/check.go"}`),
+		CWD:       "/workspaces/nemons",
+		ToolInput: json.RawMessage(`{"file_path":"/workspaces/nemons/internal/hooks/check.go"}`),
 	})
 	if !strings.Contains(out, "rebuild failed") {
 		t.Errorf("V2 entity match should still inject on a file op, got: %s", out)
@@ -1610,7 +1610,7 @@ func TestRunCheckBashOriginFileOpV2EntityStillMatches(t *testing.T) {
 // contains it — editing .../check.go was enough, and the gotcha has nothing to do
 // with check.go. The positive half pins that a real path entity still matches.
 func TestRunCheckShortEntityDoesNotMatchUnrelatedKeyword(t *testing.T) {
-	const file = "/workspaces/yesmem/internal/hooks/check.go"
+	const file = "/workspaces/nemons/internal/hooks/check.go"
 
 	newDir := func(t *testing.T, entity string) string {
 		t.Helper()
@@ -1634,7 +1634,7 @@ func TestRunCheckShortEntityDoesNotMatchUnrelatedKeyword(t *testing.T) {
 		return runCheckWithHook(t, newDir(t, entity), HookInput{
 			SessionID: "sess-entity",
 			ToolName:  "Edit",
-			CWD:       "/workspaces/yesmem",
+			CWD:       "/workspaces/nemons",
 			ToolInput: json.RawMessage(`{"file_path":"` + file + `"}`),
 		})
 	}
@@ -1727,7 +1727,7 @@ func TestRunCheckBashGotchaNotInjectedWithExplicitOriginTool(t *testing.T) {
 // was confirmed against real binaries for this branch — the same seeded gotcha
 // exits 2 on the pre-fix binary and 0 here.
 func TestRunCheckBashOriginFileOpBlockUsesTheSameAdmission(t *testing.T) {
-	const content = "Bash error: `make deploy` in /workspaces/yesmem/.worktrees → make: *** [Makefile:12: deploy] Error 1"
+	const content = "Bash error: `make deploy` in /workspaces/nemons/.worktrees → make: *** [Makefile:12: deploy] Error 1"
 	seed := func(s *storage.Store) {
 		id := insertGotcha(t, s, content, "hook_auto_learned", "bash")
 		for i := 0; i < blockThreshold; i++ {
@@ -1741,8 +1741,8 @@ func TestRunCheckBashOriginFileOpBlockUsesTheSameAdmission(t *testing.T) {
 		dir := openTempStore(t, seed)
 		out := runCheckWithHook(t, dir, HookInput{
 			ToolName:  "Edit",
-			CWD:       "/workspaces/yesmem",
-			ToolInput: json.RawMessage(`{"file_path":"/workspaces/yesmem/.worktrees/Makefile"}`),
+			CWD:       "/workspaces/nemons",
+			ToolInput: json.RawMessage(`{"file_path":"/workspaces/nemons/.worktrees/Makefile"}`),
 		})
 		if strings.Contains(out, `"decision":"block"`) {
 			t.Errorf("escalated Bash-origin gotcha blocked an Edit by file name alone, got: %s", out)
@@ -1756,7 +1756,7 @@ func TestRunCheckBashOriginFileOpBlockUsesTheSameAdmission(t *testing.T) {
 		dir := openTempStore(t, seed)
 		out := runCheckWithHook(t, dir, HookInput{
 			ToolName:  "Bash",
-			CWD:       "/workspaces/yesmem",
+			CWD:       "/workspaces/nemons",
 			ToolInput: json.RawMessage(`{"command":"make deploy"}`),
 		})
 		if !strings.Contains(out, "make deploy") {
@@ -1770,7 +1770,7 @@ func TestRunCheckBashOriginFileOpBlockUsesTheSameAdmission(t *testing.T) {
 // intentionally project-agnostic.
 func TestRunCheckCWDKeepsGlobalGotchas(t *testing.T) {
 	dir := t.TempDir()
-	store, err := storage.Open(filepath.Join(dir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -1790,15 +1790,15 @@ func TestRunCheckCWDKeepsGlobalGotchas(t *testing.T) {
 }
 
 // TestRunCheckRegistersPIDForMCPDialogTool is the regression guard for the dead
-// dialog branch. Claude Code qualifies MCP tool names as mcp__yesmem__<tool>, so
+// dialog branch. Claude Code qualifies MCP tool names as mcp__nemons__<tool>, so
 // the PreToolUse payload for a dialog call never carries the bare name — the
 // branch that registers the calling session's PID just before the call (so the
 // daemon knows who is sending when send_to arrives) was unreachable (YM-158).
 func TestRunCheckRegistersPIDForMCPDialogTool(t *testing.T) {
 	tests := []struct{ name, tool string }{
-		{"qualified send_to", "mcp__yesmem__send_to"},
-		{"qualified start_dialog", "mcp__yesmem__start_dialog"},
-		{"qualified end_dialog", "mcp__yesmem__end_dialog"},
+		{"qualified send_to", "mcp__nemons__send_to"},
+		{"qualified start_dialog", "mcp__nemons__start_dialog"},
+		{"qualified end_dialog", "mcp__nemons__end_dialog"},
 		{"bare send_to", "send_to"},
 	}
 	for _, tt := range tests {
@@ -1852,8 +1852,8 @@ func linkedWorktree(t *testing.T, base, repoName, wtName string) (main, worktree
 // YM-277, not the repository name.
 func TestProjectFromCWD_WorktreeUsesItsCheckoutKey(t *testing.T) {
 	// A linked worktree outside a ".worktrees" path component — the shape a
-	// plain `git worktree add ../yesmem-fix` produces.
-	main, wt := linkedWorktree(t, t.TempDir(), "yesmem", "yesmem-fix")
+	// plain `git worktree add ../nemons-fix` produces.
+	main, wt := linkedWorktree(t, t.TempDir(), "nemons", "nemons-fix")
 	// projectFromCWD answers with the resolved path, and macOS reaches its temp
 	// root through /tmp -> /private/tmp.
 	if resolved, err := filepath.EvalSymlinks(main); err == nil {
@@ -1882,7 +1882,7 @@ func TestProjectFromCWD_WorktreeUsesItsCheckoutKey(t *testing.T) {
 // worktree root, which ascends to that root.
 func TestProjectFromCWD_DotWorktreesLayout(t *testing.T) {
 	base := t.TempDir()
-	main := filepath.Join(base, "yesmem")
+	main := filepath.Join(base, "nemons")
 	gitDir := filepath.Join(main, ".git")
 	if err := os.MkdirAll(filepath.Join(gitDir, "worktrees", "loop-02"), 0755); err != nil {
 		t.Fatal(err)

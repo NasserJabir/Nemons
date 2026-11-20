@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/extraction"
 )
 
 // TestSetupLLMClientsAreRedacted haelt die Redactor-Deckung in internal/setup.

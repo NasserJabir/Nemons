@@ -18,7 +18,7 @@ import (
 // that start with it, and why the call itself has to carry the guard.
 //
 // The static shape is the contract here: the reply body is 300 lines and parses
-// JSON through the yesmem CLI, so a full run would need a stub per call and
+// JSON through the nemons CLI, so a full run would need a stub per call and
 // would still not pin this property better than the line itself.
 func TestLos38qTelegramReplyHasNoBareCurl(t *testing.T) {
 	body := bundledScript(t, telegramCapPath, "telegram_reply")

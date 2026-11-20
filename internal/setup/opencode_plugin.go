@@ -16,8 +16,8 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/carsteneu/yesmem/internal/buildinfo"
-	yesmemPlugins "github.com/carsteneu/yesmem/plugins"
+	"github.com/NasserJabir/Nemons/internal/buildinfo"
+	nemonsPlugins "github.com/NasserJabir/Nemons/plugins"
 )
 
 // isOpencodePluginRuntimeFile reports whether a bundled name belongs in the installed plugin
@@ -29,7 +29,7 @@ func isOpencodePluginRuntimeFile(name string) bool {
 	if strings.HasSuffix(name, "_test.ts") || strings.HasSuffix(name, ".test.ts") {
 		return false
 	}
-	return name != "opencode-yesmem-fixture.ts"
+	return name != "opencode-nemons-fixture.ts"
 }
 
 // installEmbeddedPluginDir mirrors an embedded plugin bundle into dstDir and
@@ -225,7 +225,7 @@ func parseOpencodeMajorVersion(out string) int {
 // decision the file count cannot express. Empty means "nothing to add".
 func installOpencodePluginFor(home string, major int) (int, string, error) {
 	if major != opencodeVersionUnknown && major < opencodeV2Major {
-		versionErr := fmt.Errorf("opencode %d.x is no longer supported, YesMem requires opencode %d or newer", major, opencodeV2Major)
+		versionErr := fmt.Errorf("opencode %d.x is no longer supported, Nemons requires opencode %d or newer", major, opencodeV2Major)
 		return 0, "", errors.Join(versionErr, removeOpencodeV1Install(home))
 	}
 	// A build with the plugin compiled in registers the built-in copy first and
@@ -246,13 +246,13 @@ func installOpencodePluginFor(home string, major int) (int, string, error) {
 
 // opencodePluginV2Dir is where the v2 plugin bundle is mirrored to.
 func opencodePluginV2Dir(home string) string {
-	return filepath.Join(home, opencodePluginsRelDir, "opencode-yesmem")
+	return filepath.Join(home, opencodePluginsRelDir, "opencode-nemons")
 }
 
 // redundantOpencodePluginCopy reports an external copy that a build with the
 // built-in plugin does not need. It is named, not deleted: opencode keeps the
 // built-in copy and drops the external one regardless of version, so the
-// leftovers are cosmetic, and deleting a directory an older yesmem wrote is not
+// leftovers are cosmetic, and deleting a directory an older nemons wrote is not
 // this step's call.
 func redundantOpencodePluginCopy(home string) string {
 	dir := opencodePluginV2Dir(home)
@@ -263,7 +263,7 @@ func redundantOpencodePluginCopy(home string) string {
 }
 
 // installOpencodePluginV2 mirrors the v2 server plugin into
-// ~/.config/opencode/plugins/opencode-yesmem/. opencode v2 discovers plugin
+// ~/.config/opencode/plugins/opencode-nemons/. opencode v2 discovers plugin
 // directories there, so no configuration entry is needed (and a configured file
 // target would be dropped).
 //
@@ -273,7 +273,7 @@ func redundantOpencodePluginCopy(home string) string {
 // vehicle for builds that do not.
 func installOpencodePluginV2(home string) (int, error) {
 	dstDir := opencodePluginV2Dir(home)
-	n, err := installEmbeddedPluginDir(yesmemPlugins.BundledOpencodePluginV2, "opencode-yesmem-v2", dstDir)
+	n, err := installEmbeddedPluginDir(nemonsPlugins.BundledOpencodePluginV2, "opencode-nemons-v2", dstDir)
 	if err != nil {
 		return n, err
 	}
@@ -286,7 +286,7 @@ func installOpencodePluginV2(home string) (int, error) {
 
 // opencodePluginManifestName is the id opencode reports for the installed
 // plugin directory.
-const opencodePluginManifestName = "opencode-yesmem"
+const opencodePluginManifestName = "opencode-nemons"
 
 // opencodePluginManifest is the package.json of the installed plugin directory. Two verified effects:
 // the host includes it in the mtime set it watches for a directory plugin
@@ -325,12 +325,12 @@ func writeOpencodePluginManifest(dstDir string) (int, error) {
 	return 1, nil
 }
 
-// removeOpencodeV1Install deletes everything an opencode v1 install of yesmem
-// left behind: the yesmem.ts symlink, the plugin entry pointing at the v1
+// removeOpencodeV1Install deletes everything an opencode v1 install of nemons
+// left behind: the nemons.ts symlink, the plugin entry pointing at the v1
 // index.ts, and the source tree. opencode v2 also discovers .ts files in the
 // plugin directory, so a leftover v1 entry is not inert there.
 //
-// The sources stay when the config entry cannot be removed (a config yesmem
+// The sources stay when the config entry cannot be removed (a config nemons
 // cannot parse): deleting both would leave the config pointing at a path that
 // no longer exists.
 func removeOpencodeV1Install(home string) error {
@@ -344,11 +344,11 @@ func removeOpencodeV1Install(home string) error {
 }
 
 // removeOpencodeV1PluginArtifacts deletes what a v1 install left in opencode's
-// plugin directory and config: the yesmem.ts symlink and the plugin entry that
+// plugin directory and config: the nemons.ts symlink and the plugin entry that
 // points at the v1 index.ts. A config that cannot be parsed is left alone; the
 // caller reports the error instead of rewriting it.
 func removeOpencodeV1PluginArtifacts(home string) error {
-	symlinkPath := filepath.Join(home, opencodePluginsRelDir, "yesmem.ts")
+	symlinkPath := filepath.Join(home, opencodePluginsRelDir, "nemons.ts")
 	if _, err := os.Lstat(symlinkPath); err == nil {
 		if err := os.Remove(symlinkPath); err != nil {
 			return fmt.Errorf("remove v1 plugin symlink: %w", err)
@@ -366,7 +366,7 @@ func removeOpencodeV1PluginArtifacts(home string) error {
 	if err != nil {
 		return err
 	}
-	if !dropYesmemPluginEntry(cfg, home) {
+	if !dropNemonsPluginEntry(cfg, home) {
 		return nil
 	}
 	return writeOpencodeConfig(cfgPath, cfg)
@@ -374,14 +374,14 @@ func removeOpencodeV1PluginArtifacts(home string) error {
 
 // v1PluginPersistentRelPath is the install path a v1 plugin entry names,
 // relative to the home directory.
-const v1PluginPersistentRelPath = ".local/share/yesmem/plugins/opencode-yesmem/index.ts"
+const v1PluginPersistentRelPath = ".local/share/nemons/plugins/opencode-nemons/index.ts"
 
-// isV1PluginEntry reports whether a config plugin entry points at a yesmem
+// isV1PluginEntry reports whether a config plugin entry points at a nemons
 // plugin file. Accepted: our own persistent install path, the v2 install dir
-// and the dev fallback the v1 installer wrote (<bin>/../plugins/opencode-yesmem/
-// index.ts) inside our home, and a system-wide install under share/yesmem. The
+// and the dev fallback the v1 installer wrote (<bin>/../plugins/opencode-nemons/
+// index.ts) inside our home, and a system-wide install under share/nemons. The
 // same shape under another home's persistent install dir belongs to someone
-// else and stays, and neither does a bare directory named opencode-yesmem
+// else and stays, and neither does a bare directory named opencode-nemons
 // outside our home belong to us: claiming every such path deleted another
 // project's registration on uninstall and reported it as our install in status.
 func isV1PluginEntry(entry, home string) bool {
@@ -409,7 +409,7 @@ func isV1PluginEntryFrom(entry, home, executable string) bool {
 	if rest, ok := strings.CutSuffix(clean, "/"+v1PluginPersistentRelPath); ok {
 		return sameHome(rest, home)
 	}
-	if !strings.HasSuffix(clean, "/plugins/opencode-yesmem/index.ts") {
+	if !strings.HasSuffix(clean, "/plugins/opencode-nemons/index.ts") {
 		return false
 	}
 	// A path inside a persistent install belongs to that install, not to the
@@ -445,7 +445,7 @@ func opencodePluginV2EntryPaths(home string) []string {
 }
 
 // isDevTreeEntry reports the shape the v1 installer wrote next to the binary it
-// ran from: <bin>/../plugins/opencode-yesmem/index.ts. Anchoring on the running
+// ran from: <bin>/../plugins/opencode-nemons/index.ts. Anchoring on the running
 // binary keeps it a proof instead of a tail match.
 func isDevTreeEntry(clean, executable string) bool {
 	if executable == "" {
@@ -458,7 +458,7 @@ func isDevTreeEntry(clean, executable string) bool {
 		}
 	}
 	for _, dir := range dirs {
-		if clean == filepath.Join(dir, "..", "plugins", "opencode-yesmem", "index.ts") {
+		if clean == filepath.Join(dir, "..", "plugins", "opencode-nemons", "index.ts") {
 			return true
 		}
 	}
@@ -466,12 +466,12 @@ func isDevTreeEntry(clean, executable string) bool {
 }
 
 // systemInstallShareRoots are the roots a system-wide install writes its
-// share/yesmem tree under. The list is exact: a share/yesmem tree below any
+// share/nemons tree under. The list is exact: a share/nemons tree below any
 // other directory (/home/other, /opt/vendor-x) is a copy, not an install of ours.
 var systemInstallShareRoots = []string{"/usr", "/usr/local", "/opt", "/opt/local", "/opt/homebrew"}
 
 func isSystemInstallEntry(clean string) bool {
-	const tail = "/share/yesmem/plugins/opencode-yesmem/index.ts"
+	const tail = "/share/nemons/plugins/opencode-nemons/index.ts"
 	if !strings.HasSuffix(clean, tail) {
 		return false
 	}
@@ -502,9 +502,9 @@ func sameHome(a, b string) bool {
 	return resolvedA == resolvedB
 }
 
-// dropYesmemPluginEntry removes yesmem's v1 file target from cfg["plugin"] and
+// dropNemonsPluginEntry removes nemons's v1 file target from cfg["plugin"] and
 // reports whether it changed anything. Entries for other plugins stay.
-func dropYesmemPluginEntry(cfg map[string]any, home string) bool {
+func dropNemonsPluginEntry(cfg map[string]any, home string) bool {
 	entries, ok := cfg["plugin"].([]any)
 	if !ok || len(entries) == 0 {
 		return false

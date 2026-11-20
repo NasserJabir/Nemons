@@ -4,7 +4,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/proxy"
+	"github.com/NasserJabir/Nemons/internal/proxy"
 )
 
 // defaultOpencodeSpawnModel was removed — opencode now behaves like all other

@@ -213,9 +213,9 @@ func TestDeepMergeJSON_PreservesOpenCodeScenario(t *testing.T) {
 			}
 		},
 		"mcp": {
-			"yesmem": {
+			"nemons": {
 				"type": "local",
-				"command": ["yesmem", "mcp"],
+				"command": ["nemons", "mcp"],
 				"enabled": true,
 								"timeout": 60000
 			}
@@ -262,10 +262,10 @@ func TestDeepMergeJSON_PreservesOpenCodeScenario(t *testing.T) {
 		t.Error("openai provider not added")
 	}
 
-	// Verify yesmem MCP was added but custom_server preserved
+	// Verify nemons MCP was added but custom_server preserved
 	mcpMap := existing["mcp"].(map[string]any)
-	if mcpMap["yesmem"] == nil {
-		t.Error("yesmem MCP not added")
+	if mcpMap["nemons"] == nil {
+		t.Error("nemons MCP not added")
 	}
 	if mcpMap["custom_server"] == nil {
 		t.Error("custom_server MCP lost")

@@ -39,7 +39,7 @@ func TestLos32fOpenAITransportErrorIsLogged(t *testing.T) {
 	req := httptest.NewRequest("POST", "/v1/chat/completions", bytes.NewReader(body))
 	w := httptest.NewRecorder()
 
-	s.forwardOpenAIWithTracking(w, req, body, 1, nil, "yesmem", "", 0, 1, false, nil)
+	s.forwardOpenAIWithTracking(w, req, body, 1, nil, "nemons", "", 0, 1, false, nil)
 
 	if got := w.Result().StatusCode; got != http.StatusBadGateway {
 		t.Errorf("client status = %d, want %d", got, http.StatusBadGateway)
@@ -61,14 +61,14 @@ func TestLos32fEmptyUpstreamErrorBodyIsLogged(t *testing.T) {
 			name: "openai path",
 			forwar: func(s *Server, w http.ResponseWriter, r *http.Request) {
 				body := []byte(`{"model":"deepseek-chat","messages":[{"role":"user","content":"hi"}],"stream":false}`)
-				s.forwardOpenAIWithTracking(w, r, body, 1, nil, "yesmem", "", 0, 1, false, nil)
+				s.forwardOpenAIWithTracking(w, r, body, 1, nil, "nemons", "", 0, 1, false, nil)
 			},
 		},
 		{
 			name: "anthropic path",
 			forwar: func(s *Server, w http.ResponseWriter, r *http.Request) {
 				body := []byte(`{"model":"claude-sonnet-4","messages":[{"role":"user","content":"hi"}]}`)
-				s.forwardWithAnnotation(w, r, body, 1, nil, "yesmem", "/home/tester/memory/yesmem", "", 1, false)
+				s.forwardWithAnnotation(w, r, body, 1, nil, "nemons", "/home/tester/memory/nemons", "", 1, false)
 			},
 		},
 	} {
@@ -115,7 +115,7 @@ func TestLos32fCancelledRequestIsNotAnUpstreamError(t *testing.T) {
 	req := httptest.NewRequest("POST", "/v1/chat/completions", bytes.NewReader(body)).WithContext(ctx)
 	w := httptest.NewRecorder()
 
-	s.forwardOpenAIWithTracking(w, req, body, 1, nil, "yesmem", "", 0, 1, false, nil)
+	s.forwardOpenAIWithTracking(w, req, body, 1, nil, "nemons", "", 0, 1, false, nil)
 
 	if strings.Contains(logged.String(), "upstream error:") {
 		t.Errorf("a cancelled request was logged as a provider failure:\n%s", logged.String())
@@ -148,7 +148,7 @@ func TestLos32fOpenAIReadErrorIsLogged(t *testing.T) {
 	req := httptest.NewRequest("POST", "/v1/chat/completions", bytes.NewReader(body))
 	w := httptest.NewRecorder()
 
-	s.forwardOpenAIWithTracking(w, req, body, 1, nil, "yesmem", "", 0, 1, false, nil)
+	s.forwardOpenAIWithTracking(w, req, body, 1, nil, "nemons", "", 0, 1, false, nil)
 
 	if !strings.Contains(logged.String(), "upstream error:") {
 		t.Errorf("a truncated upstream body left no provider-failure line, journal was:\n%s", logged.String())
@@ -201,7 +201,7 @@ func TestLos32fUpstreamBodyStaysOnOneLine(t *testing.T) {
 	req := httptest.NewRequest("POST", "/v1/chat/completions", bytes.NewReader(body))
 	w := httptest.NewRecorder()
 
-	s.forwardOpenAIWithTracking(w, req, body, 1, nil, "yesmem", "", 0, 1, false, nil)
+	s.forwardOpenAIWithTracking(w, req, body, 1, nil, "nemons", "", 0, 1, false, nil)
 
 	lines := strings.Split(strings.TrimRight(logged.String(), "\n"), "\n")
 	if len(lines) != 1 {
@@ -257,7 +257,7 @@ func TestLos32fTransportErrorLogDropsTheQuery(t *testing.T) {
 	req := httptest.NewRequest("POST", "/v1/chat/completions?api_key=sk-live-secret", bytes.NewReader(body))
 	w := httptest.NewRecorder()
 
-	s.forwardOpenAIWithTracking(w, req, body, 1, nil, "yesmem", "", 0, 1, false, nil)
+	s.forwardOpenAIWithTracking(w, req, body, 1, nil, "nemons", "", 0, 1, false, nil)
 
 	if strings.Contains(logged.String(), "sk-live-secret") {
 		t.Errorf("the query reached the journal:\n%s", logged.String())

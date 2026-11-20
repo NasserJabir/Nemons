@@ -13,7 +13,7 @@ import (
 // ends with the requested one, never the other way round, so such a row stayed
 // unreachable for exactly the commands the key was built for.
 func TestLos60cLookupReachesASubtreeRootedScan(t *testing.T) {
-	s, err := Open(filepath.Join(t.TempDir(), "yesmem.db"))
+	s, err := Open(filepath.Join(t.TempDir(), "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -48,7 +48,7 @@ func TestLos60cLookupReachesASubtreeRootedScan(t *testing.T) {
 // under their bare name ("version.go"), which is the shortest tail of the checkout
 // spelling. Round one matched it, and the shorter spelling must not get lost.
 func TestLos60cLookupReachesABareNameOfASubtreeRootedScan(t *testing.T) {
-	s, err := Open(filepath.Join(t.TempDir(), "yesmem.db"))
+	s, err := Open(filepath.Join(t.TempDir(), "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}

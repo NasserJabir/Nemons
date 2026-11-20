@@ -18,21 +18,21 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/caps"
-	"github.com/carsteneu/yesmem/skills"
+	"github.com/NasserJabir/Nemons/caps"
+	"github.com/NasserJabir/Nemons/skills"
 	"gopkg.in/yaml.v3"
 
-	"github.com/carsteneu/yesmem/internal/capfile"
+	"github.com/NasserJabir/Nemons/internal/capfile"
 
-	"github.com/carsteneu/yesmem/internal/orchestrator"
+	"github.com/NasserJabir/Nemons/internal/orchestrator"
 
-	"github.com/carsteneu/yesmem/internal/briefing"
-	"github.com/carsteneu/yesmem/internal/buildinfo"
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/daemon"
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/sanitize"
-	"github.com/carsteneu/yesmem/internal/textutil"
+	"github.com/NasserJabir/Nemons/internal/briefing"
+	"github.com/NasserJabir/Nemons/internal/buildinfo"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/sanitize"
+	"github.com/NasserJabir/Nemons/internal/textutil"
 )
 
 // Run executes the install. Non-interactive by default (uses sensible defaults).
@@ -43,10 +43,10 @@ func Run(interactive bool) error {
 		return err
 	}
 	binaryPath, _ := os.Executable()
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 
 	fmt.Println()
-	fmt.Println("  YesMem Install", buildinfo.Version)
+	fmt.Println("  Nemons Install", buildinfo.Version)
 	fmt.Println("  ====================")
 	fmt.Println("  Long-term memory for coding agents")
 	fmt.Println()
@@ -88,7 +88,7 @@ func runDefaults(home, dataDir, binaryPath string) error {
 		if hasCodex {
 			options = append(options, "Codex (GPT-5.5)")
 		}
-		fmt.Println("  Which backend should YesMem use?")
+		fmt.Println("  Which backend should Nemons use?")
 		idx := promptChoice(options, 0)
 		fmt.Println()
 		switch idx {
@@ -354,20 +354,20 @@ func runInteractive(home, dataDir, binaryPath string) error {
 			fmt.Sprintf("Claude Haiku  — fast, ~$%.0f/month", costs[0].CostUSD),
 			fmt.Sprintf("Claude Sonnet — balanced, ~$%.0f/month", costs[1].CostUSD),
 			fmt.Sprintf("Claude Opus   — best quality, ~$%.0f/month", costs[2].CostUSD),
-			"DeepSeek V4 Pro  — best via YesMem Proxy (opencode)",
-			"DeepSeek V4 Flash — faster via YesMem Proxy (opencode)",
-			"GPT-5 Mini       — cheapest via YesMem Proxy (opencode)",
-			"GPT-5.2          — balanced via YesMem Proxy (opencode)",
+			"DeepSeek V4 Pro  — best via Nemons Proxy (opencode)",
+			"DeepSeek V4 Flash — faster via Nemons Proxy (opencode)",
+			"GPT-5 Mini       — cheapest via Nemons Proxy (opencode)",
+			"GPT-5.2          — balanced via Nemons Proxy (opencode)",
 		}
 	} else {
 		options = []string{
 			"Claude Haiku  — fast",
 			"Claude Sonnet — balanced",
 			"Claude Opus   — best quality",
-			"DeepSeek V4 Pro  — best via YesMem Proxy (opencode)",
-			"DeepSeek V4 Flash — faster via YesMem Proxy (opencode)",
-			"GPT-5 Mini       — cheapest via YesMem Proxy (opencode)",
-			"GPT-5.2          — balanced via YesMem Proxy (opencode)",
+			"DeepSeek V4 Pro  — best via Nemons Proxy (opencode)",
+			"DeepSeek V4 Flash — faster via Nemons Proxy (opencode)",
+			"GPT-5 Mini       — cheapest via Nemons Proxy (opencode)",
+			"GPT-5.2          — balanced via Nemons Proxy (opencode)",
 		}
 	}
 	modelIdx := promptChoice(options, 1)
@@ -490,9 +490,9 @@ func runInteractive(home, dataDir, binaryPath string) error {
 	fmt.Println()
 
 	modelChoices := []string{
-		"DeepSeek V4 Pro (via YesMem Proxy) — recommended, 1M context",
-		"DeepSeek V4 Flash (via YesMem Proxy) — faster, lighter",
-		"GPT-5.5 (via YesMem Proxy) — OpenAI-compatible",
+		"DeepSeek V4 Pro (via Nemons Proxy) — recommended, 1M context",
+		"DeepSeek V4 Flash (via Nemons Proxy) — faster, lighter",
+		"GPT-5.5 (via Nemons Proxy) — OpenAI-compatible",
 	}
 	type modelSel struct{ model, small string }
 	modelOpts := []modelSel{
@@ -705,10 +705,10 @@ func executeSetup(home, dataDir, binaryPath, model, apiKey, provider, terminal s
 	// winning over the user's selection (step 7d2 alone cannot overwrite
 	// because deepMergeJSON preserves existing scalars).
 	if detectOpencodeBinary() != "" {
-		// 7d-pre. Migrate any legacy opencode.json (yesmem-managed) to
+		// 7d-pre. Migrate any legacy opencode.json (nemons-managed) to
 		// opencode.jsonc so opencode actually reads what we write. opencode's
 		// globalConfigFile() prefers jsonc; without this step, a user upgrading
-		// from an older yesmem (which wrote opencode.json) would have their
+		// from an older nemons (which wrote opencode.json) would have their
 		// provider/MCP config silently ignored on next opencode start.
 		withSpinner("Migrating opencode config", func() (string, error) {
 			if err := migrateOpencodeJsonToJsonc(home); err != nil {
@@ -755,7 +755,7 @@ func executeSetup(home, dataDir, binaryPath, model, apiKey, provider, terminal s
 			if err := ensureCodexSetup(home, binaryPath); err != nil {
 				return "", err
 			}
-			return fmt.Sprintf("%d tools", len(yesmemCodexToolNames)), nil
+			return fmt.Sprintf("%d tools", len(nemonsCodexToolNames)), nil
 		})
 	}
 
@@ -784,7 +784,7 @@ func executeSetup(home, dataDir, binaryPath, model, apiKey, provider, terminal s
 			return "", err
 		}
 		if path != "" {
-			return filepath.Join("yesmem", filepath.Base(path)), nil
+			return filepath.Join("nemons", filepath.Base(path)), nil
 		}
 		return "kept", nil
 	})
@@ -817,13 +817,13 @@ func executeSetup(home, dataDir, binaryPath, model, apiKey, provider, terminal s
 	// 11. Start daemon + proxy
 	withSpinner("Starting daemon", func() (string, error) {
 		if autoStart && runtime.GOOS == "linux" {
-			if err := exec.Command("systemctl", "--user", "start", "yesmem").Run(); err != nil {
+			if err := exec.Command("systemctl", "--user", "start", "nemons").Run(); err != nil {
 				startDaemonDirect(binaryPath)
 				return "direct", nil
 			}
 			return "systemd", nil
 		} else if autoStart && runtime.GOOS == "darwin" {
-			plist := filepath.Join(home, "Library", "LaunchAgents", "com.yesmem.daemon.plist")
+			plist := filepath.Join(home, "Library", "LaunchAgents", "com.nemons.daemon.plist")
 			if err := exec.Command("launchctl", "load", plist).Run(); err != nil {
 				startDaemonDirect(binaryPath)
 				return "direct", nil
@@ -836,13 +836,13 @@ func executeSetup(home, dataDir, binaryPath, model, apiKey, provider, terminal s
 
 	withSpinner("Starting proxy", func() (string, error) {
 		if autoStart && runtime.GOOS == "linux" {
-			if err := exec.Command("systemctl", "--user", "start", "yesmem-proxy").Run(); err != nil {
+			if err := exec.Command("systemctl", "--user", "start", "nemons-proxy").Run(); err != nil {
 				startProxyDirect(binaryPath)
 				return "direct", nil
 			}
 			return "systemd", nil
 		} else if autoStart && runtime.GOOS == "darwin" {
-			proxyPlist := filepath.Join(home, "Library", "LaunchAgents", "com.yesmem.proxy.plist")
+			proxyPlist := filepath.Join(home, "Library", "LaunchAgents", "com.nemons.proxy.plist")
 			if err := exec.Command("launchctl", "load", proxyPlist).Run(); err != nil {
 				startProxyDirect(binaryPath)
 				return "direct", nil
@@ -875,16 +875,16 @@ func executeSetup(home, dataDir, binaryPath, model, apiKey, provider, terminal s
 	fmt.Println("  Setup complete! Daemon is running.")
 	fmt.Println()
 	fmt.Println("  Next: Open a new Claude Code session.")
-	fmt.Println("  YesMem tools are automatically available.")
+	fmt.Println("  Nemons tools are automatically available.")
 	fmt.Println()
 	fmt.Printf("  Config:  %s/config.yaml\n", dataDir)
 	fmt.Printf("  Logs:    %s/logs/\n", dataDir)
 
-	// Check if yesmem is reachable in current PATH
-	if _, err := exec.LookPath("yesmem"); err != nil {
+	// Check if nemons is reachable in current PATH
+	if _, err := exec.LookPath("nemons"); err != nil {
 		fmt.Println()
 		fmt.Println("  ┌─────────────────────────────────────────────┐")
-		fmt.Println("  │  To use 'yesmem' in this terminal, run:     │")
+		fmt.Println("  │  To use 'nemons' in this terminal, run:     │")
 		fmt.Println("  │                                             │")
 		fmt.Println("  │    source ~/.bashrc                         │")
 		fmt.Println("  │                                             │")
@@ -988,7 +988,7 @@ func providerEnvVar(providerID string) string {
 	}
 }
 
-// mergeMcpJSON reads existing .mcp.json, adds/updates the yesmem entry,
+// mergeMcpJSON reads existing .mcp.json, adds/updates the nemons entry,
 // and writes back. If the file doesn't exist or is corrupt, creates from scratch.
 func mergeMcpJSON(path string, binaryPath string) error {
 	var cfg map[string]any
@@ -1007,7 +1007,7 @@ func mergeMcpJSON(path string, binaryPath string) error {
 	if !ok {
 		servers = map[string]any{}
 	}
-	servers["yesmem"] = map[string]any{
+	servers["nemons"] = map[string]any{
 		"command": binaryPath,
 		"args":    []string{"mcp"},
 	}
@@ -1146,7 +1146,7 @@ func generateConfig(model string, autoExtract bool, apiKey, openaiKey, openaiBas
 	}
 
 	return fmt.Sprintf(`# ============================================================================
-# YesMem Configuration
+# Nemons Configuration
 # Long-term memory system for coding agents
 # ============================================================================
 
@@ -1190,7 +1190,7 @@ extraction:
   chunk_size: 25000
 
   # Auto-extract learnings when a new session ends?
-  # If false: manual extraction via "yesmem extract" required.
+  # If false: manual extraction via "nemons extract" required.
   auto_extract: %v
 
   # Only extract sessions from the last N days. 0 = all sessions.
@@ -1299,7 +1299,7 @@ briefing:
   user_profile: true
 
 # --- Auto-Update ---
-# Automatically check for and install new YesMem versions from GitHub Releases.
+# Automatically check for and install new Nemons versions from GitHub Releases.
 update:
 
   # Enable automatic updates. When true, the daemon periodically checks
@@ -1476,7 +1476,7 @@ proxy:
     enabled_opencode: true
     enabled_claude_code: false
     enabled_codex: false
-    template_path: ~/.claude/yesmem/SYSTEM.md
+    template_path: ~/.claude/nemons/SYSTEM.md
     model_templates: {}
 
 # --- Forked Agents (Background Learning Extraction) ---
@@ -1561,7 +1561,7 @@ signals:
   every_n_turns: 1
 
 # --- ClaudeMD (Operative Reference) ---
-# Auto-generates a per-project operative reference file (yesmem-ops.md) that gets
+# Auto-generates a per-project operative reference file (nemons-ops.md) that gets
 # included in CLAUDE.md. Contains architecture decisions, known pitfalls, patterns
 # and deployment notes distilled from session history.
 claudemd:
@@ -1587,7 +1587,7 @@ claudemd:
   min_sessions: 3
 
   # Output filename (placed in project's .claude/ directory).
-  output_file: "yesmem-ops.md"
+  output_file: "nemons-ops.md"
 
   # Model for operative reference generation. Empty = use narrative_model.
   model: ""
@@ -1619,18 +1619,18 @@ http:
 # --- Diagnostics (optional) ---
 # Debug endpoints for troubleshooting memory growth. Off by default.
 # pprof binds loopback only (never 0.0.0.0) and exposes allocation sites and
-# goroutine stacks, not session content. YESMEM_PPROF=1 in the environment
+# goroutine stacks, not session content. NEMONS_PPROF=1 in the environment
 # overrides the pprof flag.
 diagnostics:
   pprof: false
   pprof_listen: "127.0.0.1:7071"
 
 # --- Paths ---
-# All paths have sensible defaults under ~/.claude/yesmem/.
+# All paths have sensible defaults under ~/.claude/nemons/.
 # Only set these if you need a custom location.
 paths:
-  db: ~/.claude/yesmem/yesmem.db
-  archive: ~/.claude/yesmem/archive
+  db: ~/.claude/nemons/nemons.db
+  archive: ~/.claude/nemons/archive
   claude_projects: ~/.claude/projects
   opencode_db: ~/.local/share/opencode/opencode.db
 
@@ -1649,7 +1649,7 @@ agents:
   # Default backend for spawned agents: claude or opencode
   default_backend: %s
 
-  # Terminal for showing yesmem-agents session output (viewer).
+  # Terminal for showing nemons-agents session output (viewer).
   # Falls back to terminal if empty.
   viewer_terminal: ""
 
@@ -1662,14 +1662,14 @@ agents:
   # agent after a few turns. 0 = no limit (nothing applies a default).
   token_budget: 0
 
-  # TUI theme per agent type (section prefix). The yesmem theme family is
+  # TUI theme per agent type (section prefix). The nemons theme family is
   # installed to ~/.config/opencode/themes; any opencode theme name works,
   # an empty value disables the theme for that type.
   themes:
-    yesloop: yesmem-loop
-    yesresearch: yesmem-research
-    subresearch: yesmem-subresearch
-    orchestrator: yesmem-dark
+    yesloop: nemons-loop
+    yesresearch: nemons-research
+    subresearch: nemons-subresearch
+    orchestrator: nemons-dark
   `, summarizeModel, model, narrativeModel, qualityModel, autoExtract, llmBlock, langs, apiBlock, terminal, agentsBackend)
 }
 
@@ -1703,7 +1703,7 @@ func testAPIKeyForSonnet(apiKey string) bool {
 // redactedForDataDir wraps c in the secret redactor when the user enabled
 // secrets_sanitization. Setup builds its own clients outside the daemon factory
 // (internal/daemon/llm_client_factory.go), so the switch has to be applied here
-// too. dataDir is the yesmem data directory that holds config.yaml.
+// too. dataDir is the nemons data directory that holds config.yaml.
 //
 // A missing or unreadable config.yaml leaves the client unwrapped, same as
 // redacted() in package main: config.Load falls back to its defaults there, and
@@ -1809,7 +1809,7 @@ func translateStrings(dataDir, langCode, apiKey, model, provider string) error {
 // (the post-update migration runs the new binary).
 func buildDaemonUnit(binaryPath, display, xauth, dbus, proxyURL string) string {
 	return fmt.Sprintf(`[Unit]
-Description=YesMem — Long-term memory for coding agents
+Description=Nemons — Long-term memory for coding agents
 
 [Service]
 Type=notify
@@ -1872,7 +1872,7 @@ func migrateDaemonProxyEnv(content, proxyURL string) string {
 // on localhost and forwards on demand, so it must not block on network setup.
 func buildProxyUnit(binaryPath string) string {
 	return fmt.Sprintf(`[Unit]
-Description=YesMem Proxy — Infinite-thread context for coding agents
+Description=Nemons Proxy — Infinite-thread context for coding agents
 
 [Service]
 Type=simple
@@ -1889,13 +1889,13 @@ WantedBy=default.target
 // installed unit files (both services are local-first) and upgrades the daemon
 // unit to the notify type. Idempotent — only rewrites files that still carry the
 // obsolete network dependency or the old type. Called from the post-update
-// migration so existing installs heal on the next `yesmem update`.
+// migration so existing installs heal on the next `nemons update`.
 func MigrateSystemdUnits(home, dataDir string) (int, error) {
 	serviceDir := filepath.Join(home, ".config", "systemd", "user")
 	cfg, _ := config.Load(filepath.Join(dataDir, "config.yaml"))
 	proxyURL := proxyBaseURL(cfg.Proxy.Listen)
 	changed := 0
-	for _, name := range []string{"yesmem.service", "yesmem-proxy.service"} {
+	for _, name := range []string{"nemons.service", "nemons-proxy.service"} {
 		path := filepath.Join(serviceDir, name)
 		data, err := os.ReadFile(path)
 		if err != nil {
@@ -1909,7 +1909,7 @@ func MigrateSystemdUnits(home, dataDir string) (int, error) {
 		if strings.Contains(updated, "network-online.target") {
 			updated = stripNetworkOneline(updated)
 		}
-		if name == "yesmem.service" {
+		if name == "nemons.service" {
 			notifyUnit := migrateDaemonUnitWatchdog(updated)
 			if notifyUnit != updated {
 				// Type=notify is a one-way door: a downgraded binary never sends
@@ -2088,7 +2088,7 @@ func migrateDaemonUnitWatchdog(content string) string {
 // notifyRollbackHint sits in the migrated unit because that is where the person
 // looks when the service will not start after a downgrade. It names the copy the
 // migration kept (UnitBackupSuffix) and the reload that makes systemd read it.
-const notifyRollbackHint = "# yesmem: notify type and watchdog added; to run an older binary put back yesmem.service.pre-migrate.bak and call systemctl --user daemon-reload"
+const notifyRollbackHint = "# nemons: notify type and watchdog added; to run an older binary put back nemons.service.pre-migrate.bak and call systemctl --user daemon-reload"
 
 // indexOfDirective returns the index of the first line that sets a directive.
 func indexOfDirective(content, directive string) int {
@@ -2147,19 +2147,19 @@ func setupSystemd(home, binaryPath, dataDir string) error {
 
 	// Daemon unit
 	daemonUnit := buildDaemonUnit(binaryPath, display, xauth, dbus, proxyBaseURL(cfg.Proxy.Listen))
-	if err := os.WriteFile(filepath.Join(serviceDir, "yesmem.service"), []byte(daemonUnit), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(serviceDir, "nemons.service"), []byte(daemonUnit), 0644); err != nil {
 		return err
 	}
 
 	// Proxy unit — separate process, survives terminal closes
 	proxyUnit := buildProxyUnit(binaryPath)
-	if err := os.WriteFile(filepath.Join(serviceDir, "yesmem-proxy.service"), []byte(proxyUnit), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(serviceDir, "nemons-proxy.service"), []byte(proxyUnit), 0644); err != nil {
 		return err
 	}
 
 	exec.Command("systemctl", "--user", "daemon-reload").Run()
-	exec.Command("systemctl", "--user", "enable", "yesmem").Run()
-	exec.Command("systemctl", "--user", "enable", "yesmem-proxy").Run()
+	exec.Command("systemctl", "--user", "enable", "nemons").Run()
+	exec.Command("systemctl", "--user", "enable", "nemons-proxy").Run()
 	return nil
 }
 
@@ -2173,7 +2173,7 @@ func setupLaunchd(home, binaryPath string) error {
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.yesmem.daemon</string>
+	<string>com.nemons.daemon</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>%s</string>
@@ -2186,7 +2186,7 @@ func setupLaunchd(home, binaryPath string) error {
 </dict>
 </plist>
 `, binaryPath)
-	if err := os.WriteFile(filepath.Join(plistDir, "com.yesmem.daemon.plist"), []byte(daemonPlist), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(plistDir, "com.nemons.daemon.plist"), []byte(daemonPlist), 0644); err != nil {
 		return err
 	}
 
@@ -2196,7 +2196,7 @@ func setupLaunchd(home, binaryPath string) error {
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.yesmem.proxy</string>
+	<string>com.nemons.proxy</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>%s</string>
@@ -2209,7 +2209,7 @@ func setupLaunchd(home, binaryPath string) error {
 </dict>
 </plist>
 `, binaryPath)
-	return os.WriteFile(filepath.Join(plistDir, "com.yesmem.proxy.plist"), []byte(proxyPlist), 0644)
+	return os.WriteFile(filepath.Join(plistDir, "com.nemons.proxy.plist"), []byte(proxyPlist), 0644)
 }
 
 // ensureProxyEnvVar adds ANTHROPIC_BASE_URL to shell profiles (Unix) or user env (Windows).
@@ -2243,7 +2243,7 @@ func ensureProxyEnvVar(home string) error {
 		if err != nil {
 			return fmt.Errorf("append to %s: %w", rcFile, err)
 		}
-		fmt.Fprintf(f, "\n# YesMem infinite-thread proxy\n%s\n", envLine)
+		fmt.Fprintf(f, "\n# Nemons infinite-thread proxy\n%s\n", envLine)
 		f.Close()
 	}
 	return nil
@@ -2452,12 +2452,12 @@ func InstallOpencodeCommands(home string) (int, error) {
 // los35eCapsDirForSetup resolves the CAP.md directory for the install at dataDir.
 // The configured caps_dir is deliberately not read here: step 2 of this same run
 // rewrites config.yaml from the template (caps_dir: ""), so the file on disk at
-// this point is the one this run just wrote. yesmem update resolves it from the
+// this point is the one this run just wrote. nemons update resolves it from the
 // live config instead.
 //
 // The data dir case the YM-353 commit named, a data dir outside ~/.claude moving
 // the installer's default, cannot occur on this path: Run pins dataDir to
-// ~/.claude/yesmem. The derivation is shared with the daemon and the update path
+// ~/.claude/nemons. The derivation is shared with the daemon and the update path
 // because those do run against a configured data dir, and because two derivations
 // of the same path drift apart silently, which they had (YM-359).
 func los35eCapsDirForSetup(dataDir string) string {

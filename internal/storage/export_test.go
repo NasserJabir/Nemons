@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 	"modernc.org/sqlite"
 )
 
@@ -79,7 +79,7 @@ func los14bCountExportQueries(t *testing.T, path string) int32 {
 // an export of ~11k learnings issued ~45k statements. The query count must not
 // depend on the number of exported learnings.
 func TestLos14bExportLoadsJunctionDataInConstantQueries(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "yesmem.db")
+	path := filepath.Join(t.TempDir(), "nemons.db")
 	seed, err := Open(path)
 	if err != nil {
 		t.Fatalf("open seed: %v", err)
@@ -92,7 +92,7 @@ func TestLos14bExportLoadsJunctionDataInConstantQueries(t *testing.T) {
 				Project:            "los14b",
 				Source:             "user_stated",
 				CreatedAt:          time.Now(),
-				Entities:           []string{"yesmem", "export"},
+				Entities:           []string{"nemons", "export"},
 				Actions:            []string{"export"},
 				Keywords:           []string{"n1"},
 				AnticipatedQueries: []string{"why does export load junction data"},
@@ -417,7 +417,7 @@ func TestExportSkipsLearningsWithoutSource(t *testing.T) {
 	}
 }
 
-// An older yesmem wrote the export world-readable. os.WriteFile only applies its
+// An older nemons wrote the export world-readable. os.WriteFile only applies its
 // perm on creation, so overwriting such a file has to tighten it explicitly.
 func TestExportTightensExistingFilePermissions(t *testing.T) {
 	store := mustOpen(t)
@@ -443,7 +443,7 @@ func TestExportTightensExistingFilePermissions(t *testing.T) {
 	}
 }
 
-// A file written by a newer yesmem may use fields this version would silently
+// A file written by a newer nemons may use fields this version would silently
 // misread, so a future format version is refused instead of half-imported.
 func TestImportRejectsNewerFormatVersion(t *testing.T) {
 	store := mustOpen(t)
@@ -453,7 +453,7 @@ func TestImportRejectsNewerFormatVersion(t *testing.T) {
 		ExportedAt: time.Now(),
 		Learnings: []ExportLearning{{
 			Category:  "decision",
-			Content:   "written by a newer yesmem",
+			Content:   "written by a newer nemons",
 			Project:   "test",
 			Source:    "agreed_upon",
 			CreatedAt: time.Now(),
@@ -678,9 +678,9 @@ func TestExportImportRoundTripV2Fields(t *testing.T) {
 		CreatedAt:          now,
 		Context:            "while auditing the export path",
 		Domain:             "code",
-		TriggerRule:        "when running yesmem export",
+		TriggerRule:        "when running nemons export",
 		Attribution:        "from a long debug session",
-		Entities:           []string{"yesmem", "export"},
+		Entities:           []string{"nemons", "export"},
 		Actions:            []string{"export"},
 		Keywords:           []string{"loss14"},
 		AnticipatedQueries: []string{"why does export lose fields"},
@@ -720,14 +720,14 @@ func TestExportImportRoundTripV2Fields(t *testing.T) {
 	if got.Domain != "code" {
 		t.Errorf("domain = %q", got.Domain)
 	}
-	if got.TriggerRule != "when running yesmem export" {
+	if got.TriggerRule != "when running nemons export" {
 		t.Errorf("trigger_rule = %q", got.TriggerRule)
 	}
 	if got.Attribution != "from a long debug session" {
 		t.Errorf("attribution = %q", got.Attribution)
 	}
 	for label, pair := range map[string][2][]string{
-		"entities":            {got.Entities, {"yesmem", "export"}},
+		"entities":            {got.Entities, {"nemons", "export"}},
 		"actions":             {got.Actions, {"export"}},
 		"keywords":            {got.Keywords, {"loss14"}},
 		"anticipated_queries": {got.AnticipatedQueries, {"why does export lose fields"}},

@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 func runBenchmark() {
@@ -35,8 +35,8 @@ func runBenchmark() {
 		Before:  beforeArg,
 	}
 
-	dataDir := yesmemDataDir()
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	dataDir := nemonsDataDir()
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		log.Fatalf("open db: %v", err)
 	}
@@ -93,7 +93,7 @@ func runBenchmark() {
 	}
 
 	// Header
-	header := "=== YesMem Benchmark"
+	header := "=== Nemons Benchmark"
 	if *since != "" || *before != "" {
 		parts := []string{}
 		if *since != "" {
@@ -230,20 +230,20 @@ func runBenchmark() {
 
 	// API Cost Savings
 	if spendSummary != nil && spendSummary.TotalCalls > 0 {
-		yesmemOwn := spendSummary.ExtractUSD + spendSummary.QualityUSD + spendSummary.ForkUSD
+		nemonsOwn := spendSummary.ExtractUSD + spendSummary.QualityUSD + spendSummary.ForkUSD
 		ownPerDay := 0.0
 		if spendSummary.Days > 0 {
-			ownPerDay = yesmemOwn / float64(spendSummary.Days)
+			ownPerDay = nemonsOwn / float64(spendSummary.Days)
 		}
 		fmt.Fprintf(os.Stderr, "\nAPI Cost (%dd):\n", spendSummary.Days)
-		fmt.Fprintf(os.Stderr, "  YesMem-eigen:            $%.2f ($%.2f/Tag)\n", yesmemOwn, ownPerDay)
+		fmt.Fprintf(os.Stderr, "  Nemons-eigen:            $%.2f ($%.2f/Tag)\n", nemonsOwn, ownPerDay)
 		fmt.Fprintf(os.Stderr, "    Extraction:            $%.2f\n", spendSummary.ExtractUSD)
 		fmt.Fprintf(os.Stderr, "    Quality/Reflection:    $%.2f\n", spendSummary.QualityUSD)
 		fmt.Fprintf(os.Stderr, "    Fork (real-time):      $%.2f\n", spendSummary.ForkUSD)
 		fmt.Fprintf(os.Stderr, "  Proxy-Durchlauf (User):  $%.2f ($%.2f/Tag)\n", spendSummary.ProxyUSD, spendSummary.ProxyUSD/float64(max(spendSummary.Days, 1)))
 		if stats.TotalSaveCount > 0 {
-			costPerSave := yesmemOwn / float64(stats.TotalSaveCount)
-			fmt.Fprintf(os.Stderr, "  Cost per Error Prevented: $%.4f (nur YesMem-eigen)\n", costPerSave)
+			costPerSave := nemonsOwn / float64(stats.TotalSaveCount)
+			fmt.Fprintf(os.Stderr, "  Cost per Error Prevented: $%.4f (nur Nemons-eigen)\n", costPerSave)
 		}
 	}
 

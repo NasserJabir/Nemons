@@ -19,7 +19,7 @@ Der Adapter besitzt die Verdrahtung und die Darstellung, der Kern das Urteil. Be
 Anschlüsse urteilen deshalb mit demselben Modell, demselben Prompt und derselben
 Regelmenge.
 
-Das opencode-Plugin (`plugins/opencode-yesmem-v2/rule_guard.ts` und `skill_nudge.ts`)
+Das opencode-Plugin (`plugins/opencode-nemons-v2/rule_guard.ts` und `skill_nudge.ts`)
 ist ein solcher Adapter und haelt keine eigene Aufloesung mehr. Es waehlt das Ereignis,
 baut den Kontext, den der Daemon nicht sieht (letzte sechs Gespraechszeilen,
 Feature-Branch-Notiz, `_test.go`-Notiz, zusammen gekappt), ruft `guard_check` und
@@ -40,11 +40,11 @@ und welches Modell an diesem Endpunkt.
 
 Endpunkt und Schlüssel, in dieser Reihenfolge:
 
-1. `YESMEM_GUARD_URL` mit `YESMEM_GUARD_KEY` (und optional `YESMEM_GUARD_NPM`): ein
+1. `NEMONS_GUARD_URL` mit `NEMONS_GUARD_KEY` (und optional `NEMONS_GUARD_NPM`): ein
    ausdrücklicher Override gewinnt gegen alles, was die Installation hält.
 2. Die Provider-Suche über `~/.cache/opencode/models.json` und
    `~/.local/share/opencode/auth.json`. Gesucht wird nach dem Modell, das der Guard
-   genannt bekommt: `YESMEM_GUARD_MODEL`, dann `rule_guard.model`, dann
+   genannt bekommt: `NEMONS_GUARD_MODEL`, dann `rule_guard.model`, dann
    `extraction.model`, zuletzt der eingebaute Standard. Ein Kandidat zählt nur, wenn
    sein Provider auch einen Schlüssel trägt.
 3. `proxy.provider_targets` aus `config.yaml` mit dem opencode-Schlüssel `gateway`: so
@@ -54,11 +54,11 @@ Endpunkt und Schlüssel, in dieser Reihenfolge:
 
 Das Modell, in dieser Reihenfolge:
 
-1. `YESMEM_GUARD_MODEL`
+1. `NEMONS_GUARD_MODEL`
 2. `rule_guard.model`
 3. Die Modellliste des Kontos: `GET /v1/models?limit=100`, die neuesten Haikus zuerst.
    Die Antwort wird 24 Stunden lang zwischengespeichert
-   (`~/.claude/yesmem/guard_models.json`), und auch ein Fehlschlag wird als leere Liste
+   (`~/.claude/nemons/guard_models.json`), und auch ein Fehlschlag wird als leere Liste
    für dieselbe Frist gemerkt: ein Endpunkt, der ausfällt, darf nicht bei jedem
    Werkzeugaufruf einen Timeout kosten. Der Schritt fällt eine Stufe die Liste hinunter,
    wenn der Endpunkt das gewählte Modell mit 404 oder 403 abweist.
@@ -178,17 +178,17 @@ als eigenen Abschnitt mitnimmt, gerade weil er nicht nummeriert sein darf.
 ### Welche `RULES.md` die installierte ist
 
 `LoadInstalledRules` liest der Reihe nach `dataDir/RULES.md`, dann den
-Entwicklungs-Checkout daneben und zuletzt `$HOME/memory/yesmem/RULES.md`. Die erste
-lesbare Datei gewinnt. `yesmem setup` legt die eigene Kopie unter `dataDir/RULES.md` an,
+Entwicklungs-Checkout daneben und zuletzt `$HOME/memory/nemons/RULES.md`. Die erste
+lesbare Datei gewinnt. `nemons setup` legt die eigene Kopie unter `dataDir/RULES.md` an,
 damit eine frische Installation überhaupt eine durchsetzbare Policy hat.
 
 Ob eine vorhandene Kopie ersetzt wird, entscheidet ihre Herkunft, nicht der Zufall: die
-erste Zeile trägt `<!-- yesmem-rules version=… body=sha256:… -->` mit dem Hash des
+erste Zeile trägt `<!-- nemons-rules version=… body=sha256:… -->` mit dem Hash des
 Rumpfes. Stimmt der Hash zum Rumpf, hat niemand die Datei angefasst, und eine neue
 Standardregel darf sie ersetzen; sonst gehört sie dem Betreiber und bleibt unberührt —
 auch ohne `.new`-Datei daneben. Eine Datei ohne diese Zeile (alles, was vor dieser
 Änderung entstand) gilt als bearbeitet und wird nie überschrieben. Wer eine alte Kopie
-einmal auf den Standardstand ziehen will, löscht sie und lässt `yesmem setup` erneut
+einmal auf den Standardstand ziehen will, löscht sie und lässt `nemons setup` erneut
 laufen.
 
 Zwei Folgen, die man kennen muss:
@@ -269,7 +269,7 @@ die Antwort nennt den Grund, und der Hook rendert ihn.
   Ausnahme ist der Lösch-Zähler: er liegt in `guard_state.db` und überlebt den Neustart,
   damit der erste verweigerte Versuch einer Sitzung nicht mit dem Prozess verschwindet.
 - Ein Wechsel des Modells oder des Endpunkts ist an der Antwort ablesbar (`model`), und
-  `yesmem setup` berichtet am Ende einer Installation, was der Guard fragen wird.
+  `nemons setup` berichtet am Ende einer Installation, was der Guard fragen wird.
 - Ein Endpunkt, der Weiterleitungen beantwortet, wird nicht verfolgt. Weder der
   Urteilsaufruf noch die Modellliste folgen einem Redirect: sonst würde das Credential
   an den Host wiederholt, den die Weiterleitung nennt.

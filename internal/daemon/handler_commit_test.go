@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/embedding"
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/embedding"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // mockCommitEvalClient mocks the LLM client for commit evaluation tests.
@@ -160,7 +160,7 @@ func TestHandleInvalidateOnCommit_NoClient(t *testing.T) {
 		Method: "invalidate_on_commit",
 		Params: map[string]any{
 			"hash":    "abc1234",
-			"project": "yesmem",
+			"project": "nemons",
 		},
 	})
 
@@ -179,7 +179,7 @@ func TestHandleInvalidateOnCommit_MissingHash(t *testing.T) {
 	resp := h.Handle(Request{
 		Method: "invalidate_on_commit",
 		Params: map[string]any{
-			"project": "yesmem",
+			"project": "nemons",
 		},
 	})
 
@@ -202,7 +202,7 @@ func TestHandleInvalidateOnCommit_NoAffectedLearnings(t *testing.T) {
 	_, err := s.InsertLearning(&models.Learning{
 		Content:   "some unrelated knowledge",
 		Category:  "gotcha",
-		Project:   "yesmem",
+		Project:   "nemons",
 		CreatedAt: time.Now(),
 		Source:    "test",
 		ModelUsed: "test",
@@ -216,7 +216,7 @@ func TestHandleInvalidateOnCommit_NoAffectedLearnings(t *testing.T) {
 		Method: "invalidate_on_commit",
 		Params: map[string]any{
 			"hash":    "abc1234567890",
-			"project": "yesmem",
+			"project": "nemons",
 		},
 	})
 

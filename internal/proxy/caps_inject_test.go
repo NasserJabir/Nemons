@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func TestDecodeCapabilitiesResponse_ConvertsToInjection(t *testing.T) {
@@ -542,7 +542,7 @@ func TestRenderCapabilitiesCatalog_ShortOutput(t *testing.T) {
 		t.Error("catalog must NOT contain full handler code")
 	}
 
-	if !strings.Contains(catalog, "mcp__yesmem__activate_cap") {
+	if !strings.Contains(catalog, "mcp__nemons__activate_cap") {
 		t.Error("catalog should include direct MCP activation instruction")
 	}
 	if strings.Contains(catalog, "registerTool") {

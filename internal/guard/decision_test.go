@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/guardmodel"
+	"github.com/NasserJabir/Nemons/internal/guardmodel"
 )
 
 const policyRulesFile = `# Rules
@@ -38,7 +38,7 @@ You are a rule enforcement system.
 
 ## Skill Catalog
 
-- yesmem-remember: store a decision
+- nemons-remember: store a decision
 `
 
 // The prompt is the contract the model sees: the numbered catalogue plus the policy as its own block. The
@@ -55,7 +55,7 @@ func TestPromptRulesBuildsCatalogueAndPolicy(t *testing.T) {
 		"## End of Decision Policy",
 		"- **BLOCK** only on objectively detectable",
 		"## Skill Catalog",
-		"yesmem-remember: store a decision",
+		"nemons-remember: store a decision",
 	} {
 		if !strings.Contains(prompt, want) {
 			t.Errorf("prompt is missing %q:\n%s", want, prompt)
@@ -182,7 +182,7 @@ func TestCheckReportsTheModelAndTruncation(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 	t.Setenv("ANTHROPIC_API_KEY", "")
-	t.Setenv("YESMEM_GUARD_MODEL", "")
+	t.Setenv("NEMONS_GUARD_MODEL", "")
 	writeGuardJSON(t, home, server.URL)
 
 	decision := Check(Request{
@@ -276,12 +276,12 @@ func TestRepositoryPolicyCannotNarrowTheEnforceableSet(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 	t.Setenv("ANTHROPIC_API_KEY", "")
-	t.Setenv("YESMEM_GUARD_MODEL", "")
+	t.Setenv("NEMONS_GUARD_MODEL", "")
 	writeGuardJSON(t, home, server.URL)
-	dataDir := home + "/.claude/yesmem"
+	dataDir := home + "/.claude/nemons"
 	writeGuardFileAt(t, dataDir+"/config.yaml", "extraction:\n  model: deepseek-v4-flash\n")
 	// The installation's policy blocks on the shell rules.
-	writeGuardFileAt(t, home+"/memory/yesmem/RULES.md", policyRulesFile)
+	writeGuardFileAt(t, home+"/memory/nemons/RULES.md", policyRulesFile)
 
 	// The repository declares all of them advisory.
 	repo := t.TempDir()
@@ -353,9 +353,9 @@ func TestEnforceableSetReadsDataDirRulesFirst(t *testing.T) {
 			home := t.TempDir()
 			t.Setenv("HOME", home)
 			t.Setenv("ANTHROPIC_API_KEY", "")
-			t.Setenv("YESMEM_GUARD_MODEL", "")
+			t.Setenv("NEMONS_GUARD_MODEL", "")
 			writeGuardJSON(t, home, server.URL)
-			dataDir := home + "/.claude/yesmem"
+			dataDir := home + "/.claude/nemons"
 			writeGuardFileAt(t, dataDir+"/config.yaml", "extraction:\n  model: deepseek-v4-flash\n")
 			if tc.install != "" {
 				writeGuardFileAt(t, dataDir+"/RULES.md", tc.install)

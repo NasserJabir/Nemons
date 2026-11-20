@@ -115,10 +115,10 @@ func digestOf(b []byte) string {
 // A stale pinned digest would make a fresh machine unable to install ai-jail at
 // all, so verify the map against the real release. Opt-in network test:
 //
-//	YESMEM_TEST_AIJAIL_NETWORK=1 go test ./internal/daemon/ -run PinnedReleaseDigests
+//	NEMONS_TEST_AIJAIL_NETWORK=1 go test ./internal/daemon/ -run PinnedReleaseDigests
 func TestPinnedReleaseDigestsMatchUpstream(t *testing.T) {
-	if os.Getenv("YESMEM_TEST_AIJAIL_NETWORK") == "" {
-		t.Skip("set YESMEM_TEST_AIJAIL_NETWORK=1 to check the pinned digests against GitHub")
+	if os.Getenv("NEMONS_TEST_AIJAIL_NETWORK") == "" {
+		t.Skip("set NEMONS_TEST_AIJAIL_NETWORK=1 to check the pinned digests against GitHub")
 	}
 	assetName, err := aiJailAssetName(runtime.GOOS, runtime.GOARCH)
 	if err != nil {

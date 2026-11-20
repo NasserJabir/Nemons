@@ -20,7 +20,7 @@ func los30PadTo(head []any, total int) []any {
 	return append(msgs, map[string]any{"role": "user", "content": "latest"})
 }
 
-const los30FileChangeDiff = "Note: /home/user/memory/yesmem/internal/proxy/proxy.go was modified, either by the user or by a linter.\nHere are the relevant changes (shown with line numbers):\n     1→package proxy\n     2→import (\n     3→    \"bytes\"\n"
+const los30FileChangeDiff = "Note: /home/user/memory/nemons/internal/proxy/proxy.go was modified, either by the user or by a linter.\nHere are the relevant changes (shown with line numbers):\n     1→package proxy\n     2→import (\n     3→    \"bytes\"\n"
 
 // YM-139: the reminder age must be a property of this thread's own history.
 // Before the fix the age was computed from the proxy-wide request counter, so

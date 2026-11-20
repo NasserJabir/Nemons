@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// SnapshotFile is the JSON file name inside the yesmem data dir.
+// SnapshotFile is the JSON file name inside the nemons data dir.
 const SnapshotFile = "terminals.json"
 
 const snapshotVersion = 1

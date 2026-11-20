@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func seedExperience(t *testing.T, h *Handler, task, outcome, attribution, evidence, agent string) *models.Learning {

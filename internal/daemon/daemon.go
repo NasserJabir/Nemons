@@ -18,23 +18,23 @@ import (
 
 	"net/http"
 
-	"github.com/carsteneu/yesmem/internal/archive"
-	"github.com/carsteneu/yesmem/internal/bloom"
-	"github.com/carsteneu/yesmem/internal/briefing"
-	"github.com/carsteneu/yesmem/internal/buildinfo"
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/embedding"
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/graph"
-	"github.com/carsteneu/yesmem/internal/httpapi"
-	"github.com/carsteneu/yesmem/internal/indexer"
-	"github.com/carsteneu/yesmem/internal/ingest"
-	"github.com/carsteneu/yesmem/internal/ivf"
-	"github.com/carsteneu/yesmem/internal/logrotate"
-	"github.com/carsteneu/yesmem/internal/repo"
-	"github.com/carsteneu/yesmem/internal/sanitize"
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/update"
+	"github.com/NasserJabir/Nemons/internal/archive"
+	"github.com/NasserJabir/Nemons/internal/bloom"
+	"github.com/NasserJabir/Nemons/internal/briefing"
+	"github.com/NasserJabir/Nemons/internal/buildinfo"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/embedding"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/graph"
+	"github.com/NasserJabir/Nemons/internal/httpapi"
+	"github.com/NasserJabir/Nemons/internal/indexer"
+	"github.com/NasserJabir/Nemons/internal/ingest"
+	"github.com/NasserJabir/Nemons/internal/ivf"
+	"github.com/NasserJabir/Nemons/internal/logrotate"
+	"github.com/NasserJabir/Nemons/internal/repo"
+	"github.com/NasserJabir/Nemons/internal/sanitize"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/update"
 )
 
 type briefingRefreshTarget struct {
@@ -138,14 +138,14 @@ func hardenSecretFileMode(path string) {
 
 // Config holds daemon configuration.
 type Config struct {
-	DataDir          string // ~/.claude/yesmem/
+	DataDir          string // ~/.claude/nemons/
 	ProjectsDir      string // ~/.claude/projects/
 	CodexSessionsDir string // ~/.codex/sessions/
 	SessionSources   []string
 	Replace          bool   // Kill existing daemon before starting
 	HTTPEnabled      bool   // --http flag or config: start HTTP API server
 	HTTPListen       string // from config, default "127.0.0.1:9377"
-	PprofEnabled     bool   // config diagnostics.pprof or YESMEM_PPROF: start the localhost pprof endpoint
+	PprofEnabled     bool   // config diagnostics.pprof or NEMONS_PPROF: start the localhost pprof endpoint
 	PprofListen      string // from config, default "127.0.0.1:7071"
 	CapsDir          string // CAP.md file directory — defaults to DataDir/../caps
 
@@ -182,7 +182,7 @@ func Run(cfg Config) error {
 	}
 
 	log.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-	log.Println("  YesMem Daemon", buildinfo.Version)
+	log.Println("  Nemons Daemon", buildinfo.Version)
 	log.Printf("  Log: %s", logPath)
 	log.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
@@ -198,7 +198,7 @@ func Run(cfg Config) error {
 	}
 
 	// Open storage (has data from previous runs — MCP can serve immediately)
-	store, err := storage.Open(filepath.Join(cfg.DataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(cfg.DataDir, "nemons.db"))
 	if err != nil {
 		return err
 	}
@@ -539,7 +539,7 @@ func Run(cfg Config) error {
 		defer shutdownServer(srv)
 	}
 
-	// Proxy runs as separate systemd unit (yesmem-proxy.service), not embedded here.
+	// Proxy runs as separate systemd unit (nemons-proxy.service), not embedded here.
 
 	// Context for graceful shutdown of background workers
 	daemonCtx, daemonCancel := context.WithCancel(context.Background())
@@ -918,7 +918,7 @@ func Run(cfg Config) error {
 			}
 			method := ac.Embedding.Search.Method
 			if method == "ivf" || (method == "" && vecCount >= ivfThreshold) {
-				ivfPath := filepath.Join(cfg.DataDir, "yesmem.ivf")
+				ivfPath := filepath.Join(cfg.DataDir, "nemons.ivf")
 				nProbe := ac.Embedding.Search.IVF.NProbe
 				if nProbe <= 0 {
 					nProbe = 5
@@ -953,7 +953,7 @@ func Run(cfg Config) error {
 
 			embedIndexer := embedding.NewIndexer(embedProv, vecStore)
 			handler.SetEmbedding(embedIndexer, vecStore, embedProv)
-			handler.SetIVFPath(filepath.Join(cfg.DataDir, "yesmem.ivf"))
+			handler.SetIVFPath(filepath.Join(cfg.DataDir, "nemons.ivf"))
 			handler.StartEmbedWorker(daemonCtx)
 			log.Printf("Embedding enabled: %s (%dd vectors, %d docs in vec_learnings)", ac.Embedding.Provider, embedProv.Dimensions(), vecStore.Count())
 

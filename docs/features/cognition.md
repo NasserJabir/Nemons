@@ -26,8 +26,8 @@ Builds a persistent identity profile from session history.
 `validDimensions` (`internal/daemon/persona.go`) accepts exactly these six. Live rows additionally carry labels outside that set (`general`, `decision_style`, `technical_preference`), written by paths that do not validate against it, so treat the list as the write contract, not as a closed description of the table.
 
 ### Pipeline
-1. **Bootstrap** (`yesmem bootstrap-persona`) — analyzes session history, extracts traits
-2. **Synthesis** (`yesmem synthesize-persona`) — converts traits → structured directive (uses Opus)
+1. **Bootstrap** (`nemons bootstrap-persona`) — analyzes session history, extracts traits
+2. **Synthesis** (`nemons synthesize-persona`) — converts traits → structured directive (uses Opus)
 3. **Injection** — the directive renders after the awakening narrative, the state-brief line and the user profile, ahead of the learnings blocks. It is not "before all sections" and it does not disappear when a profile exists: with a profile it is cut to 5 rules, without one it keeps 10 rules and the preference learnings render as well (D8)
 4. **Trait storage:** `persona_traits` table (dimension, trait_key, value, confidence, source)
 5. **Trait normalization:** Prefix stripping on save — `expertise.go` → `go`, `communication.language` → `language`. Prevents dimension prefix leaking into trait keys.
@@ -58,7 +58,7 @@ Pin important instructions, rules, or context that must survive every compressio
 - **`get_pins(project?)`** — list all active pins
 - **Two scopes:**
   - `session` (default) — survives until `/clear`; stored in `runtime.db` (`pinned_learnings`, per session and project, purged by `PurgeSessionPinsBefore`), not in proxy memory
-  - `permanent` — survives everything; stored in `yesmem.db` across sessions
+  - `permanent` — survives everything; stored in `nemons.db` across sessions
 - **Injection:** pins are rendered via `FormatPinnedBlock()` in the briefing system block (message index 0) — never collapsed, never stubbed
 - **Format:** `- [pin:42] The instruction...` / `- [pin:17 permanent] Permanent instruction...`
 - **Use cases:** temporary coding rules, debug reminders, project constraints, anything that must not be lost mid-session

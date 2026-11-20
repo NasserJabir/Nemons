@@ -1,6 +1,6 @@
 {
   "cwd": "/proj",
-  "note": "Shared navigation fixtures for the Claude Code hook (internal/hooks) and the opencode plugin (plugins/opencode-yesmem-v2). Both must resolve the same targets for the same shell line, otherwise a command blocks on one side and slips through on the other (YM-409). Files are absolute and carry no trailing separator.",
+  "note": "Shared navigation fixtures for the Claude Code hook (internal/hooks) and the opencode plugin (plugins/opencode-nemons-v2). Both must resolve the same targets for the same shell line, otherwise a command blocks on one side and slips through on the other (YM-409). Files are absolute and carry no trailing separator.",
   "cases": [
     {
       "command": "grep -n \"func Run\" internal/proxy/proxy.go",

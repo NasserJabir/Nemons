@@ -3,7 +3,7 @@ package storage
 import (
 	"fmt"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // InsertSelfFeedback stores a self-feedback entry.

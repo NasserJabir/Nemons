@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // --- Plan CRUD ---
@@ -18,7 +18,7 @@ func TestHandleSetPlan(t *testing.T) {
 		"plan":      "⬜ Step 1\n⬜ Step 2",
 		"scope":     "session",
 		"thread_id": "thread-plan-1",
-		"project":   "yesmem",
+		"project":   "nemons",
 	})
 	if resp.Error != "" {
 		t.Fatalf("set plan error: %s", resp.Error)

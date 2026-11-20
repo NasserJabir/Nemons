@@ -71,7 +71,7 @@ func TestLos56i_MigrateConfigDoesNotWriteThroughASymlink(t *testing.T) {
 }
 
 // YM-392 Teil 2: SetValue ist ungesichertes Read-Modify-Write. Zwei Schreiber
-// (CLI "yesmem config set" und der Daemon via set_config) lesen denselben Stand
+// (CLI "nemons config set" und der Daemon via set_config) lesen denselben Stand
 // und der zweite ueberschreibt die Aenderung des ersten. Der Test haelt den
 // Schreib-Lock selbst und belegt, dass SetValue wartet, statt daneben zu
 // schreiben.

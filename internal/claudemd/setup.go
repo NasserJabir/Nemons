@@ -16,7 +16,7 @@ func SetupProject(projectDir, outputFileName string) error {
 		return err
 	}
 	if outputFileName == "" {
-		outputFileName = "yesmem-ops.md"
+		outputFileName = "nemons-ops.md"
 	}
 	importRef := fmt.Sprintf("@.claude/%s", outputFileName)
 

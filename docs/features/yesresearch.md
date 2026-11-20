@@ -17,11 +17,11 @@ YesResearch exists because research work has different failure modes than coding
 ```
 User's session (setup only)
   │
-  └─ yesmem_spawn_agent(orchestrator)  ──── TUI agent, owns the pipeline
+  └─ nemons_spawn_agent(orchestrator)  ──── TUI agent, owns the pipeline
        │
        ├─ READ       — master plan (## headings = clusters)
        ├─ DECOMPOSE  — 5-8 file groups per Bereichs-Agent
-       ├─ DISPATCH   — yesmem_spawn_agent × ≤6 Bereichs-Agents (parallel TUI)
+       ├─ DISPATCH   — nemons_spawn_agent × ≤6 Bereichs-Agents (parallel TUI)
        ├─ MONITOR    — get_agent + scratchpad polling, stream_active as primary signal
        ├─ INTEGRATE  — cross-links, INDEX.md, citation audit, bibliography
        └─ DELIVER    — commit + scratchpad DONE
@@ -53,7 +53,7 @@ From an opencode or claude-code session:
 The user's session only does setup: create worktree, write master plan, write orchestrator briefing to scratchpad, spawn the orchestrator agent. The orchestrator then owns all 7 phases and spawns its own Bereichs-Agents.
 
 ```
-yesmem_spawn_agent(
+nemons_spawn_agent(
   backend="opencode",
   model="zai-coding-plan/glm-5.2",
   project="<project>",
@@ -142,7 +142,7 @@ yesdocs/<topic>/wiki/
 | Multi-file research with master plan, citations needed | YesResearch |
 | Single-question lookup | Interactive (no skill needed) |
 | Mixed research + code (e.g. "evaluate library X, then integrate") | YesResearch then YesLoop |
-| Recurring monitor/topic watch | yesmem_schedule with headless mode |
+| Recurring monitor/topic watch | nemons_schedule with headless mode |
 
 ## First live test
 

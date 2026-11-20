@@ -34,10 +34,10 @@ func sanitizeListenAddr(addr string) string {
 // isBypassed checks if the proxy should be bypassed for this request.
 // Two mechanisms: ENV var (global) and request header (per-request).
 func isBypassed(header http.Header) bool {
-	if os.Getenv("YESMEM_PROXY_BYPASS") != "" {
+	if os.Getenv("NEMONS_PROXY_BYPASS") != "" {
 		return true
 	}
-	if header != nil && header.Get("X-Yesmem-Bypass") != "" {
+	if header != nil && header.Get("X-Nemons-Bypass") != "" {
 		return true
 	}
 	return false

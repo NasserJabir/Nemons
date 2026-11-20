@@ -6,14 +6,14 @@ import (
 	"testing"
 )
 
-// yesmem.db holds learnings, persona traits and session content, runtime.db and
+// nemons.db holds learnings, persona traits and session content, runtime.db and
 // messages.db their own slices of it. Open used to let SQLite create them with
 // the umask, so on a host with umask 022 the whole knowledge base was
 // world-readable in a 0755 directory (audit 16.10.2026, YM-328). Only the owner
 // may read them; every client runs as the same user.
 func TestOpen_HardensDatabaseFilePermissions(t *testing.T) {
 	dir := t.TempDir()
-	path := filepath.Join(dir, "yesmem.db")
+	path := filepath.Join(dir, "nemons.db")
 
 	// An existing installation: the file is already there with 0644.
 	if err := os.WriteFile(path, nil, 0o644); err != nil {

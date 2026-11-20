@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // Ein yesloop-Agent plant unter seiner Backend-Session, waehrend seine Zeile
@@ -66,7 +66,7 @@ func TestPlanItemsClaimResolvesAcrossAgentThreads(t *testing.T) {
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
 			ctx := &engine.Ctx{Plans: test.plans, PlanThread: test.thread, PlanThreads: test.threads}
-			verdict := CheckPlanItems(engine.Claim{Kind: "plan_items", Plan: "yesmem"}, ctx)
+			verdict := CheckPlanItems(engine.Claim{Kind: "plan_items", Plan: "nemons"}, ctx)
 
 			if verdict.Status != test.want {
 				t.Fatalf("Status = %s (%s), want %s", verdict.Status, verdict.Reason, test.want)
@@ -105,7 +105,7 @@ func TestPlanItemsClaimDoesNotConfirmPastAReadFailure(t *testing.T) {
 		plans:  fakePlans{"daemon-uuid": {{Content: "do the work", Status: "completed"}}},
 	}
 
-	verdict := CheckPlanItems(engine.Claim{Kind: "plan_items", Plan: "yesmem"},
+	verdict := CheckPlanItems(engine.Claim{Kind: "plan_items", Plan: "nemons"},
 		&engine.Ctx{Plans: plans, PlanThread: "daemon-uuid", PlanThreads: []string{"opencode:ses_live", "daemon-uuid"}})
 
 	if verdict.Status != engine.StatusUnverifiable || verdict.Class != engine.ClassEnvironment {
@@ -119,7 +119,7 @@ func TestPlanItemsClaimDoesNotConfirmPastAReadFailure(t *testing.T) {
 // Ein Aufrufer ohne Kandidatenliste nennt genau einen Thread; die Meldung spricht
 // dann von diesem Thread und nicht von einem Agenten, den es hier nicht gibt.
 func TestPlanItemsClaimWithoutACandidateListNamesTheThread(t *testing.T) {
-	verdict := CheckPlanItems(engine.Claim{Kind: "plan_items", Plan: "yesmem"},
+	verdict := CheckPlanItems(engine.Claim{Kind: "plan_items", Plan: "nemons"},
 		&engine.Ctx{Plans: fakePlans{}, PlanThread: "t-inline"})
 
 	if verdict.Status != engine.StatusUnverifiable || verdict.Class != engine.ClassEnvironment {

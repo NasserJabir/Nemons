@@ -3,7 +3,7 @@ package claimtypes
 import (
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // A run that exits non-zero without printing anything never reached the code.

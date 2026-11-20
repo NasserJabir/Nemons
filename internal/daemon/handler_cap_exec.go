@@ -13,11 +13,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/capfile"
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/proxy"
-	"github.com/carsteneu/yesmem/internal/repo"
+	"github.com/NasserJabir/Nemons/internal/capfile"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/proxy"
+	"github.com/NasserJabir/Nemons/internal/repo"
 )
 
 func (h *Handler) handleExecuteCap(params map[string]any) Response {
@@ -122,7 +122,7 @@ func (h *Handler) capRowFor(name, project string) (models.Learning, CapMeta, err
 			continue
 		}
 		// A retired cap is not runnable, even while its row is still active: a
-		// fresh binary must not keep executing a capability yesmem dropped
+		// fresh binary must not keep executing a capability nemons dropped
 		// (YM-181, YM-197).
 		if capfile.IsRetiredCap(meta.Name) {
 			continue
@@ -213,14 +213,14 @@ func (h *Handler) fireCapHandler(meta CapMeta, project, fn, argsJSON, sessionID 
 		// ai-jail 2.x does not inherit the environment, so every variable the run
 		// needs has to be spelled out as a forward; 0.9.x inherits it from cmd.Env.
 		Env: capExecSandboxEnv(jobSock, argsJSON, sessionID),
-		// On 2.x the sandbox has its own loopback: a cap that reaches the yesmem
+		// On 2.x the sandbox has its own loopback: a cap that reaches the nemons
 		// proxy (a bash cap running `claude -p`) needs the same relay the bash-job
 		// and headless paths already declare.
 		ForwardPorts: h.agentForwardPorts(),
 	})
 	// A cap that runs without a sandbox leaves no trace of that fact otherwise
 	// (YM-346): the bundled caps whose profile is none are the ones that touch the
-	// journal, the yesmem databases and the host toolchain, so the run is worth a
+	// journal, the nemons databases and the host toolchain, so the run is worth a
 	// log line.
 	if profile == ProfileNone {
 		// The same lock the job path carries (YM-346): a row that predates the
@@ -246,12 +246,12 @@ func (h *Handler) fireCapHandler(meta CapMeta, project, fn, argsJSON, sessionID 
 		// Sandboxed bash: inject polyfills + args as shell variables before handler code.
 		var sb strings.Builder
 		sb.WriteString("set -e\n")
-		// Polyfill: store() — routes cap_store calls via yesmem CLI to daemon socket
-		sb.WriteString(fmt.Sprintf("YESMEM_SOCK=%s\nexport YESMEM_SOCK\n", sockPath))
-		sb.WriteString(`store() { yesmem store "$1"; }
+		// Polyfill: store() — routes cap_store calls via nemons CLI to daemon socket
+		sb.WriteString(fmt.Sprintf("NEMONS_SOCK=%s\nexport NEMONS_SOCK\n", sockPath))
+		sb.WriteString(`store() { nemons store "$1"; }
 llm() {
-  _body=$(yesmem json -n --arg model "${1:-}" --arg system "${2:-}" --arg prompt "${3:-}" --arg session "${4:-}" --arg tools "${5:-}" 'if $tools == "tools" then {model:$model,system:$system,prompt:$prompt,session:$session,tools:true} else {model:$model,system:$system,prompt:$prompt,session:$session} end')
-  yesmem llm-complete "$_body"
+  _body=$(nemons json -n --arg model "${1:-}" --arg system "${2:-}" --arg prompt "${3:-}" --arg session "${4:-}" --arg tools "${5:-}" 'if $tools == "tools" then {model:$model,system:$system,prompt:$prompt,session:$session,tools:true} else {model:$model,system:$system,prompt:$prompt,session:$session} end')
+  nemons llm-complete "$_body"
   return $?
 }
 `)
@@ -263,11 +263,11 @@ llm() {
 		sb.WriteString(handlerCode)
 		// The socket and the CLI binaries the polyfills call, registered on the
 		// sandbox so the mask filter applies to them like to every other mount.
-		// A dropped yesmem CLI or socket mount would break store()/llm() later
+		// A dropped nemons CLI or socket mount would break store()/llm() later
 		// with a symptom that names nothing, so the run is refused here.
-		yesmemCLI := lookPathOrEmpty("yesmem")
-		dropped := sandbox.AddReadOnlyMounts(capExecMountPaths(sockPath, yesmemCLI, lookPathOrEmpty("curl"), lookPathOrEmpty("bash"))...)
-		if err := requiredMountErr(dropped, []string{yesmemCLI, sockPath}, profile); err != nil {
+		nemonsCLI := lookPathOrEmpty("nemons")
+		dropped := sandbox.AddReadOnlyMounts(capExecMountPaths(sockPath, nemonsCLI, lookPathOrEmpty("curl"), lookPathOrEmpty("bash"))...)
+		if err := requiredMountErr(dropped, []string{nemonsCLI, sockPath}, profile); err != nil {
 			log.Printf("[cap-exec] cap=%s script=%s: %v", meta.Name, sc.Name, err)
 			return errorResponse(maskRefusalForCaller(err))
 		}
@@ -282,7 +282,7 @@ llm() {
 		cmd.Dir = sandbox.runWorkDir()
 		// mergeEnv drops the inherited entry the override replaces: on Linux the
 		// first match wins, so appending alone would keep a stale value.
-		// The sandbox's own env carries YESMEM_SOCK, the proxy URL, the pinned XDG
+		// The sandbox's own env carries NEMONS_SOCK, the proxy URL, the pinned XDG
 		// dirs and the model list. It has to sit on the command: 2.x only forwards a
 		// variable's NAME and reads the value from the process environment, and
 		// 0.9.x inherits it from here.
@@ -312,7 +312,7 @@ globalThis.registerTool = function(name, desc, schema, handler) { _toolHandler =
 globalThis.llm = async function(prompt, schema) {
   var body = {prompt: String(prompt || '')};
   if (schema) body.schema = schema;
-  var result = await sh('yesmem llm-complete ' + shQuote(JSON.stringify(body)));
+  var result = await sh('nemons llm-complete ' + shQuote(JSON.stringify(body)));
   try {
     var parsed = JSON.parse(result.trim());
     return parsed.result || '';
@@ -343,11 +343,11 @@ var _mcpCall = async function(tool, body) {
     sock.write(JSON.stringify({method: tool, params: body}) + "\n");
   });
 };
-globalThis.mcp__yesmem__cap_store = function(args) { return _mcpCall("cap_store", args); };
-globalThis.mcp__yesmem__execute_cap = function(args) { return _mcpCall("execute_cap", args); };
-globalThis.mcp__yesmem__broadcast = function(args) { return _mcpCall("broadcast", args); };
-globalThis.mcp__yesmem__cap_blob_put = function(args) { return _mcpCall("cap_store", { action: "upsert", capability: args.capability, table: "blobs", data: { key: args.key, chunk_idx: 0, data: args.data } }); };
-globalThis.mcp__yesmem__cap_blob_get = function(args) { return _mcpCall("cap_store", { action: "query", capability: args.capability, table: "blobs", where: "key=?", args: JSON.stringify([args.key]), limit: args.limit || 1000 }); };
+globalThis.mcp__nemons__cap_store = function(args) { return _mcpCall("cap_store", args); };
+globalThis.mcp__nemons__execute_cap = function(args) { return _mcpCall("execute_cap", args); };
+globalThis.mcp__nemons__broadcast = function(args) { return _mcpCall("broadcast", args); };
+globalThis.mcp__nemons__cap_blob_put = function(args) { return _mcpCall("cap_store", { action: "upsert", capability: args.capability, table: "blobs", data: { key: args.key, chunk_idx: 0, data: args.data } }); };
+globalThis.mcp__nemons__cap_blob_get = function(args) { return _mcpCall("cap_store", { action: "query", capability: args.capability, table: "blobs", where: "key=?", args: JSON.stringify([args.key]), limit: args.limit || 1000 }); };
 // --- end polyfills ---
 
 var _toolHandler = null;
@@ -364,11 +364,11 @@ if (_result && typeof _result.then === 'function') {
 }
 } catch(e) { console.error(e.message || String(e)); process.exit(1); }
 `, sockPath, handlerCode)
-		// Mount daemon socket, yesmem CLI and bun into the sandbox namespace for
+		// Mount daemon socket, nemons CLI and bun into the sandbox namespace for
 		// the sh()/llm()/MCP polyfills the REPL runtime needs.
-		yesmemCLI := lookPathOrEmpty("yesmem")
-		dropped := sandbox.AddReadOnlyMounts(capExecMountPaths(sockPath, yesmemCLI, lookPathOrEmpty("bun"), lookPathOrEmpty("curl"))...)
-		if err := requiredMountErr(dropped, []string{yesmemCLI, sockPath}, profile); err != nil {
+		nemonsCLI := lookPathOrEmpty("nemons")
+		dropped := sandbox.AddReadOnlyMounts(capExecMountPaths(sockPath, nemonsCLI, lookPathOrEmpty("bun"), lookPathOrEmpty("curl"))...)
+		if err := requiredMountErr(dropped, []string{nemonsCLI, sockPath}, profile); err != nil {
 			log.Printf("[cap-exec] cap=%s script=%s: %v", meta.Name, sc.Name, err)
 			return errorResponse(maskRefusalForCaller(err))
 		}
@@ -381,7 +381,7 @@ if (_result && typeof _result.then === 'function') {
 		// home with a writable bind of the real one, and ai-jail reads a .ai-jail
 		// from there. runWorkDir is empty on 0.9.x, which keeps that path as it was.
 		cmd.Dir = sandbox.runWorkDir()
-		// The sandbox's own env carries YESMEM_SOCK, the proxy URL, the pinned XDG
+		// The sandbox's own env carries NEMONS_SOCK, the proxy URL, the pinned XDG
 		// dirs, the model list and the cap wrapper's inputs. It has to sit on the
 		// command: 2.x only forwards a variable's NAME and reads the value from the
 		// process environment, and 0.9.x inherits it from here.
@@ -504,8 +504,8 @@ func (h *Handler) capExecWorkDir(capName string) string {
 }
 
 // newSandbox builds the sandbox used for cap and job execution. It fills in the
-// host paths a sandboxed bash cap needs (the yesmem CLI and the daemon socket,
-// read-only) and the secret paths that must stay unreadable — the yesmem install
+// host paths a sandboxed bash cap needs (the nemons CLI and the daemon socket,
+// read-only) and the secret paths that must stay unreadable — the nemons install
 // state holds an API key.
 func (h *Handler) newSandbox(cfg SandboxConfig) *Sandbox {
 	if h.dataDir == "" {
@@ -513,7 +513,7 @@ func (h *Handler) newSandbox(cfg SandboxConfig) *Sandbox {
 	}
 	if cfg.ReadOnlyMounts == nil {
 		// The restricted socket, not the daemon's own (YM-267): see handleJobSocket.
-		cfg.ReadOnlyMounts = []string{lookPathOrEmpty("yesmem"), JobSocketPath(h.dataDir)}
+		cfg.ReadOnlyMounts = []string{lookPathOrEmpty("nemons"), JobSocketPath(h.dataDir)}
 	}
 	// A caller that brings its own masks must not lose the defaults behind them.
 	// Its own paths are materialised first: ai-jail ignores a missing --mask path,
@@ -603,13 +603,13 @@ func (h *Handler) newSandbox(cfg SandboxConfig) *Sandbox {
 	// an empty list.
 	if configRoot, _ := xdgDirs(); configRoot != "" {
 		if models := proxy.OpencodeModelEntries(filepath.Join(configRoot, "opencode")); len(models) > 0 {
-			cfg.Env = append(cfg.Env, "YESMEM_OPENCODE_MODELS="+strings.Join(models, "\n"))
+			cfg.Env = append(cfg.Env, "NEMONS_OPENCODE_MODELS="+strings.Join(models, "\n"))
 		}
 	}
 	// The data dir as a whole, not single files inside it (YM-276). ai-jail 0.9.x
 	// leaves the standard profile without a filesystem policy, so a job could reach
 	// agent-*.sock.inject (the inject socket feeds a PTY master verbatim — key
-	// injection into an unsandboxed agent), yesmem.db and config.yaml. The agent
+	// injection into an unsandboxed agent), nemons.db and config.yaml. The agent
 	// sockets only come into existence while the daemon runs, so no fixed file list
 	// can cover them; masking the directory replaces all of it with an empty,
 	// writable-but-ephemeral dir. Everything a run needs from there (the restricted
@@ -642,7 +642,7 @@ func (h *Handler) newSandbox(cfg SandboxConfig) *Sandbox {
 		maskErr = errors.Join(maskErr, noWorkDirErr(cfg.WorkDir))
 	}
 	// A work dir that is the home or an ancestor of it is refused: ai-jail binds it
-	// read-write after the mounts registered below, so the maps of the yesmem CLI
+	// read-write after the mounts registered below, so the maps of the nemons CLI
 	// and the job socket would be void and the run could rewrite the CLI that
 	// executes outside the sandbox (YM-428). Recorded as PrepareErr rather than
 	// returned: none starts the command directly and binds nothing, and a work dir
@@ -669,7 +669,7 @@ func (h *Handler) newSandbox(cfg SandboxConfig) *Sandbox {
 	// dir was the only case until YM-303; with the agent-state paths masked the same
 	// holds for every one of them. The filter runs after the project-local masks
 	// are on the list: a caller mount below a project config is the same gap.
-	requiredMounts := []string{lookPathOrEmpty("yesmem"), JobSocketPath(h.dataDir)}
+	requiredMounts := []string{lookPathOrEmpty("nemons"), JobSocketPath(h.dataDir)}
 	beforeMounts := cfg.ReadOnlyMounts
 	cfg.ReadOnlyMounts = dropMountsInside(cfg.ReadOnlyMounts, cfg.MaskedPaths)
 	cfg.RWMapPaths = dropMountsInside(cfg.RWMapPaths, cfg.MaskedPaths)
@@ -691,7 +691,7 @@ func (h *Handler) newSandbox(cfg SandboxConfig) *Sandbox {
 			// would claim a mask that could not be applied, while here a mask applied
 			// fine and took a required mount with it. That reading is what an operator
 			// greps for, so the line names the actual cause instead.
-			log.Printf("[sandbox] a mask took a mount the run needs (the yesmem CLI or the job socket), store() and llm() would fail for this run")
+			log.Printf("[sandbox] a mask took a mount the run needs (the nemons CLI or the job socket), store() and llm() would fail for this run")
 		}
 	}
 	// Every sandboxed run sees the restricted socket at its own path, so the CLI
@@ -699,7 +699,7 @@ func (h *Handler) newSandbox(cfg SandboxConfig) *Sandbox {
 	// name is forwarded into the sandbox (ai-jail 2.x inherits no environment),
 	// and the value travels in the run's own environment — so the caller sets it
 	// on the command as well, which Run/RunWithProfile do with cfg.Env.
-	cfg.Env = dedupeEnv(append(cfg.Env, "YESMEM_SOCK="+JobSocketPath(h.dataDir)))
+	cfg.Env = dedupeEnv(append(cfg.Env, "NEMONS_SOCK="+JobSocketPath(h.dataDir)))
 	// A mask ai-jail cannot apply is a silent no-op, so the run is refused rather
 	// than started with a channel the list meant to close (SandboxConfig.PrepareErr).
 	// Quoted, not printed verbatim: the text carries a mask path from the caller's
@@ -853,7 +853,7 @@ func findBun() (string, error) {
 // wrapper reads its arguments from CAP_ARGS and the caller from CAP_SESSION_ID
 // (YM-206).
 func capExecSandboxEnv(jobSock, argsJSON, sessionID string) []string {
-	env := []string{"YESMEM_SOCK=" + jobSock, "CAP_ARGS=" + argsJSON}
+	env := []string{"NEMONS_SOCK=" + jobSock, "CAP_ARGS=" + argsJSON}
 	if sessionID != "" {
 		env = append(env, "CAP_SESSION_ID="+sessionID)
 	}

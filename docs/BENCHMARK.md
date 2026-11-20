@@ -1,6 +1,6 @@
-# YesMem LoCoMo Benchmark
+# Nemons LoCoMo Benchmark
 
-Reproducible evaluation of YesMem's memory retrieval against the [LoCoMo benchmark](https://arxiv.org/abs/2402.14780) (Long Conversation Memory).
+Reproducible evaluation of Nemons's memory retrieval against the [LoCoMo benchmark](https://arxiv.org/abs/2402.14780) (Long Conversation Memory).
 
 ## Dataset
 
@@ -42,7 +42,7 @@ The agentic mode improves overall score by +0.20 compared to a single static sea
 ### Pipeline
 
 1. **Ingest** — LoCoMo conversations are loaded into a dedicated benchmark SQLite database (separate from production). 10 samples, 272 sessions, 5882 messages.
-2. **Extract** — YesMem's extraction pipeline processes each session: chunking → LLM summarization → structured learning extraction → dedup → embedding (SSE, 512d).
+2. **Extract** — Nemons's extraction pipeline processes each session: chunking → LLM summarization → structured learning extraction → dedup → embedding (SSE, 512d).
 3. **Query** — Each of the 1540 questions is answered using tiered search:
    - **Agentic mode** (`--agentic-eval`): The eval LLM iteratively calls search tools (hybrid_search, deep_search, keyword_search) with forced rotation in rounds 0-2, then auto-selects in round 3+.
    - **Static mode**: Single tiered search pass (BM25 + vector + entity boost via RRF).
@@ -83,7 +83,7 @@ The gpt-4o vs gpt-5.4 comparison shows identical retrieval (same database, same 
 
 ### Agentic iteration adds +0.20
 
-Giving the LLM iterative access to search tools (3+ rounds) improves scores by ~0.20 compared to a single search pass, consistently across both models. This validates YesMem's multi-tool search architecture.
+Giving the LLM iterative access to search tools (3+ rounds) improves scores by ~0.20 compared to a single search pass, consistently across both models. This validates Nemons's multi-tool search architecture.
 
 ### Tool diversity alone doesn't close the model gap
 
@@ -91,7 +91,7 @@ Forced tool rotation (hybrid → deep → keyword) has no measurable effect on g
 
 ### Corrected dataset matters
 
-The original LoCoMo dataset contains 99 errors in gold answers. Using the uncorrected dataset would penalize correct answers. All YesMem scores are measured against the corrected dataset.
+The original LoCoMo dataset contains 99 errors in gold answers. Using the uncorrected dataset would penalize correct answers. All Nemons scores are measured against the corrected dataset.
 
 ### Retrieval ceiling at ~0.87
 
@@ -101,7 +101,7 @@ Claude Opus and gpt-5.4 score nearly identically (0.87 vs 0.86), suggesting a re
 
 ### Requirements
 
-- YesMem binary (built from source or release)
+- Nemons binary (built from source or release)
 - `ANTHROPIC_API_KEY` (for extraction, Opus/Sonnet eval, if not using `--skip-extract`)
 - `OPENAI_API_KEY` (for gpt-4o / gpt-5.4 eval)
 - LoCoMo dataset: `testdata/locomo/locomo10_corrected.json`
@@ -116,34 +116,34 @@ make build
 
 ```bash
 # Full run with extraction (first time, ~$6 with Haiku extraction)
-yesmem locomo-bench run \
+nemons locomo-bench run \
   --data testdata/locomo/locomo10_corrected.json \
   --hybrid --tiered --agentic-eval \
   --eval-llm gpt-5.4 --judge-llm gpt-5.4-mini
 
 # Subsequent runs (skip extraction, reuse benchmark DB)
-yesmem locomo-bench run \
+nemons locomo-bench run \
   --data testdata/locomo/locomo10_corrected.json \
   --hybrid --tiered --agentic-eval \
   --eval-llm gpt-4o --judge-llm gpt-4o-mini \
   --skip-extract
 
 # Static mode (no agentic iteration, cheaper)
-yesmem locomo-bench run \
+nemons locomo-bench run \
   --data testdata/locomo/locomo10_corrected.json \
   --hybrid --tiered \
   --eval-llm gpt-5.4 --judge-llm gpt-5.4-mini \
   --skip-extract
 
 # Dry run (cost estimate only)
-yesmem locomo-bench run \
+nemons locomo-bench run \
   --data testdata/locomo/locomo10_corrected.json \
   --hybrid --tiered --agentic-eval \
   --eval-llm gpt-5.4 --judge-llm gpt-5.4-mini \
   --dry-run
 
 # Dump per-question results for analysis
-yesmem locomo-bench run \
+nemons locomo-bench run \
   --data testdata/locomo/locomo10_corrected.json \
   --hybrid --tiered --agentic-eval \
   --eval-llm gpt-4o --judge-llm gpt-4o-mini \
@@ -161,16 +161,16 @@ yesmem locomo-bench run \
 
 ### Benchmark Database
 
-Results are stored in `~/.claude/yesmem/bench/locomo.db` — completely separate from the production database. No production data is touched.
+Results are stored in `~/.claude/nemons/bench/locomo.db` — completely separate from the production database. No production data is touched.
 
 ### CLI Reference
 
 ```
-yesmem locomo-bench run [flags]
+nemons locomo-bench run [flags]
 
 Flags:
   --data <path>         Path to LoCoMo JSON dataset (required)
-  --db <path>           Benchmark database path (default: ~/.claude/yesmem/bench/locomo.db)
+  --db <path>           Benchmark database path (default: ~/.claude/nemons/bench/locomo.db)
   --eval-llm <model>    LLM for answering queries (default: haiku)
   --judge-llm <model>   LLM for judging answers (default: same as --eval-llm)
   --hybrid              Use local hybrid search (BM25+vector+RRF)
@@ -197,4 +197,4 @@ gpt-* model names → OpenAI models (requires OPENAI_API_KEY)
 
 ## Run Date
 
-All scores reported above were measured on 2026-04-07/08 using YesMem v1.0.1 on the `feature/benchmark-to-prod` branch.
+All scores reported above were measured on 2026-04-07/08 using Nemons v1.0.1 on the `feature/benchmark-to-prod` branch.

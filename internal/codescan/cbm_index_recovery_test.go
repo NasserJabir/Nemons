@@ -11,7 +11,7 @@ const legacyGitdirContent = "gitdir: /somewhere/.git/worktrees/wt\n"
 func setupSwapFixture(t *testing.T) (root, bak, dotGit string) {
 	t.Helper()
 	root = t.TempDir()
-	bak = filepath.Join(root, ".git.yesmem-bak")
+	bak = filepath.Join(root, ".git.nemons-bak")
 	dotGit = filepath.Join(root, ".git")
 	if err := os.WriteFile(bak, []byte(legacyGitdirContent), 0o644); err != nil {
 		t.Fatal(err)
@@ -20,7 +20,7 @@ func setupSwapFixture(t *testing.T) (root, bak, dotGit string) {
 }
 
 // A legacy crash leftover: .git is a symlink, the original content sits in
-// .git.yesmem-bak. Restore must move the content back and remove the backup.
+// .git.nemons-bak. Restore must move the content back and remove the backup.
 func TestRestoreLegacyGitSwap_SymlinkedGit(t *testing.T) {
 	root, bak, dotGit := setupSwapFixture(t)
 	if err := os.Symlink("/nowhere/worktrees/wt/.git", dotGit); err != nil {
@@ -61,7 +61,7 @@ func TestRestoreLegacyGitSwap_MissingGit(t *testing.T) {
 	}
 }
 
-// A symlink planted as .git.yesmem-bak must not be followed.
+// A symlink planted as .git.nemons-bak must not be followed.
 func TestRestoreLegacyGitSwap_SkipsSymlinkBackup(t *testing.T) {
 	root, bak, dotGit := setupSwapFixture(t)
 	if err := os.Remove(bak); err != nil {
@@ -82,7 +82,7 @@ func TestRestoreLegacyGitSwap_SkipsSymlinkBackup(t *testing.T) {
 // A healthy worktree (.git as regular file) must stay untouched.
 func TestRestoreLegacyGitSwap_HealthyUntouched(t *testing.T) {
 	root, _, dotGit := setupSwapFixture(t)
-	if err := os.Remove(filepath.Join(root, ".git.yesmem-bak")); err != nil {
+	if err := os.Remove(filepath.Join(root, ".git.nemons-bak")); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(dotGit, []byte(legacyGitdirContent), 0o644); err != nil {

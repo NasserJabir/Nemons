@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // MigrateResult holds per-table row counts affected by a project migration.

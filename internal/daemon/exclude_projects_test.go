@@ -3,7 +3,7 @@ package daemon
 import (
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // The daemon start read the exclusion list at two places and guarded the config

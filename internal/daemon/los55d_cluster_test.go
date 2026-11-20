@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/embedding"
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/embedding"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // los55dCheckout creates a repository directory with a .git entry, so the root

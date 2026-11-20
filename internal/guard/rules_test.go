@@ -20,9 +20,9 @@ func TestLoadRulesPrefersTheProject(t *testing.T) {
 	td := t.TempDir()
 	t.Setenv("HOME", t.TempDir())
 	writeRules(t, filepath.Join(td, "RULES.md"), "cwd rules")
-	writeRules(t, filepath.Join(td, "memory", "yesmem", "RULES.md"), "install rules")
+	writeRules(t, filepath.Join(td, "memory", "nemons", "RULES.md"), "install rules")
 
-	if rules := LoadRules(filepath.Join(td, ".claude", "yesmem"), td); rules != "cwd rules" {
+	if rules := LoadRules(filepath.Join(td, ".claude", "nemons"), td); rules != "cwd rules" {
 		t.Fatalf("rules = %q, want the project's catalogue", rules)
 	}
 }
@@ -30,9 +30,9 @@ func TestLoadRulesPrefersTheProject(t *testing.T) {
 func TestLoadRulesFallsBackToTheInstallation(t *testing.T) {
 	td := t.TempDir()
 	t.Setenv("HOME", t.TempDir())
-	writeRules(t, filepath.Join(td, "memory", "yesmem", "RULES.md"), "install rules")
+	writeRules(t, filepath.Join(td, "memory", "nemons", "RULES.md"), "install rules")
 
-	if rules := LoadRules(filepath.Join(td, ".claude", "yesmem"), ""); rules != "install rules" {
+	if rules := LoadRules(filepath.Join(td, ".claude", "nemons"), ""); rules != "install rules" {
 		t.Fatalf("rules = %q, want the installation copy", rules)
 	}
 }
@@ -41,7 +41,7 @@ func TestLoadRulesWithoutAnyCatalogue(t *testing.T) {
 	td := t.TempDir()
 	t.Setenv("HOME", t.TempDir())
 
-	if rules := LoadRules(filepath.Join(td, ".claude", "yesmem"), td); rules != "" {
+	if rules := LoadRules(filepath.Join(td, ".claude", "nemons"), td); rules != "" {
 		t.Fatalf("rules = %q, want none", rules)
 	}
 }
@@ -51,7 +51,7 @@ func TestLoadRulesWithoutAnyCatalogue(t *testing.T) {
 // or the file the guard reads is decoration. A project copy must not be able to do this
 // (see LoadInstalledRules), which is why the file lives in the data directory.
 func TestInstalledRulesGovernTheBlockSet(t *testing.T) {
-	dataDir := filepath.Join(t.TempDir(), ".claude", "yesmem")
+	dataDir := filepath.Join(t.TempDir(), ".claude", "nemons")
 	t.Setenv("HOME", t.TempDir())
 	writeRules(t, filepath.Join(dataDir, "RULES.md"), `# Rules
 
@@ -96,7 +96,7 @@ func TestTheShippedMasterKeepsTheBlockSet(t *testing.T) {
 func TestBlockSetWithoutAnInstalledPolicyIsTheLiteralSet(t *testing.T) {
 	t.Setenv("HOME", t.TempDir())
 
-	set := blockableRuleNumbers(LoadInstalledRules(filepath.Join(t.TempDir(), "yesmem")))
+	set := blockableRuleNumbers(LoadInstalledRules(filepath.Join(t.TempDir(), "nemons")))
 	if len(set) != len(policyBlockRules) {
 		t.Fatalf("block set = %v, want the literal set %v", set, policyBlockRules)
 	}
@@ -113,9 +113,9 @@ func TestBlockSetWithoutAnInstalledPolicyIsTheLiteralSet(t *testing.T) {
 func TestLoadInstalledRulesPrefersTheDataDirCopy(t *testing.T) {
 	td := t.TempDir()
 	t.Setenv("HOME", t.TempDir())
-	dataDir := filepath.Join(td, ".claude", "yesmem")
+	dataDir := filepath.Join(td, ".claude", "nemons")
 	writeRules(t, filepath.Join(dataDir, "RULES.md"), "installed rules")
-	writeRules(t, filepath.Join(td, "memory", "yesmem", "RULES.md"), "checkout rules")
+	writeRules(t, filepath.Join(td, "memory", "nemons", "RULES.md"), "checkout rules")
 
 	if rules := LoadInstalledRules(dataDir); rules != "installed rules" {
 		t.Fatalf("rules = %q, want the data dir copy", rules)

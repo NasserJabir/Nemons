@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/embedding"
+	"github.com/NasserJabir/Nemons/internal/embedding"
 )
 
 // TestLos56eDecayAppliesToBoundedTTL covers the review finding on YM-348: the

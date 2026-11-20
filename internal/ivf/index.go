@@ -9,8 +9,8 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/carsteneu/yesmem/internal/embedding"
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/embedding"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // IVFIndex is an Inverted File Index for approximate nearest neighbor search.

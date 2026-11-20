@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-// Los 38o / YM-333: without /proc `yesmem stop` signalled nothing and `yesmem
+// Los 38o / YM-333: without /proc `nemons stop` signalled nothing and `nemons
 // restart` aborted, because the identity check had exactly one source (the process
 // table). These tests drive the two sources that exist on such a platform (launchd,
 // then the process listing) through seams, so they run on Linux too.
@@ -55,12 +55,12 @@ func writeDaemonPlist(t *testing.T, home, role, program string) string {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	plist := filepath.Join(dir, "com.yesmem."+role+".plist")
+	plist := filepath.Join(dir, "com.nemons."+role+".plist")
 	body := fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.yesmem.%s</string>
+	<string>com.nemons.%s</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>%s</string>
@@ -84,13 +84,13 @@ func TestStopRoleStopsTheLaunchdServiceThatOwnsThisInstallation(t *testing.T) {
 	home := t.TempDir()
 	isolateHomeAt(t, home)
 	prevExe := selfBinaryPath
-	selfBinaryPath = "/opt/yesmem/yesmem"
+	selfBinaryPath = "/opt/nemons/nemons"
 	t.Cleanup(func() { selfBinaryPath = prevExe })
 	stubServicePlatform(t, "darwin")
-	writeDaemonPlist(t, home, "daemon", "/opt/yesmem/yesmem")
+	writeDaemonPlist(t, home, "daemon", "/opt/nemons/nemons")
 	calls := stubLaunchctl(t, nil)
 
-	pids, stopped, err := StopRole("daemon", filepath.Join(home, ".claude", "yesmem"))
+	pids, stopped, err := StopRole("daemon", filepath.Join(home, ".claude", "nemons"))
 	if err != nil {
 		t.Fatalf("StopRole: %v", err)
 	}
@@ -100,7 +100,7 @@ func TestStopRoleStopsTheLaunchdServiceThatOwnsThisInstallation(t *testing.T) {
 	if !stopped {
 		t.Errorf("stopped = false, want true: the launchd agent was booted out")
 	}
-	want := fmt.Sprintf("bootout gui/%d/com.yesmem.daemon", os.Getuid())
+	want := fmt.Sprintf("bootout gui/%d/com.nemons.daemon", os.Getuid())
 	if len(*calls) != 1 || (*calls)[0] != want {
 		t.Fatalf("launchctl calls = %v, want exactly [%s]", *calls, want)
 	}
@@ -112,14 +112,14 @@ func TestStopRoleRefusesAPlistThatStartsAnotherBinary(t *testing.T) {
 	home := t.TempDir()
 	isolateHomeAt(t, home)
 	prevExe := selfBinaryPath
-	selfBinaryPath = "/opt/yesmem/yesmem"
+	selfBinaryPath = "/opt/nemons/nemons"
 	t.Cleanup(func() { selfBinaryPath = prevExe })
 	stubServicePlatform(t, "darwin")
-	writeDaemonPlist(t, home, "daemon", "/usr/local/bin/yesmem")
+	writeDaemonPlist(t, home, "daemon", "/usr/local/bin/nemons")
 	calls := stubLaunchctl(t, nil)
-	stubProcessListing(t, []string{"  4711 /usr/local/bin/yesmem daemon"})
+	stubProcessListing(t, []string{"  4711 /usr/local/bin/nemons daemon"})
 
-	if _, _, err := StopRole("daemon", filepath.Join(home, ".claude", "yesmem")); err == nil {
+	if _, _, err := StopRole("daemon", filepath.Join(home, ".claude", "nemons")); err == nil {
 		t.Fatal("StopRole stopped a service whose plist starts another binary")
 	}
 	if len(*calls) != 0 {
@@ -135,20 +135,20 @@ func TestStopRoleFindsTheDaemonInTheProcessListingWithoutAPlist(t *testing.T) {
 	home := t.TempDir()
 	isolateHomeAt(t, home)
 	prevExe := selfBinaryPath
-	selfBinaryPath = "/opt/yesmem/yesmem"
+	selfBinaryPath = "/opt/nemons/nemons"
 	t.Cleanup(func() { selfBinaryPath = prevExe })
 	stubServicePlatform(t, "darwin")
 	calls := stubLaunchctl(t, nil)
 	stubProcessListing(t, []string{
-		"  4100 /opt/yesmem/yesmem daemon --replace", // ours
-		"  4101 /opt/yesmem/yesmem proxy",            // the other role
-		"  4102 /bin/bash -c grep yesmem daemon",     // only mentions the words
-		"  4103 /opt/yesmem/yesmem.test daemon",      // a worktree test binary
-		"  4104 /usr/local/bin/yesmem daemon",        // another installation
+		"  4100 /opt/nemons/nemons daemon --replace", // ours
+		"  4101 /opt/nemons/nemons proxy",            // the other role
+		"  4102 /bin/bash -c grep nemons daemon",     // only mentions the words
+		"  4103 /opt/nemons/nemons.test daemon",      // a worktree test binary
+		"  4104 /usr/local/bin/nemons daemon",        // another installation
 	})
 	signals := stubRoleStopSeams(t, func(pid int) bool { return pid == 4100 }, nil)
 
-	pids, stopped, err := StopRole("daemon", filepath.Join(home, ".claude", "yesmem"))
+	pids, stopped, err := StopRole("daemon", filepath.Join(home, ".claude", "nemons"))
 	if err != nil {
 		t.Fatalf("StopRole: %v", err)
 	}
@@ -179,10 +179,10 @@ func TestStopRoleKeepsTheProcessTablePathOnLinux(t *testing.T) {
 
 	root := t.TempDir()
 	useProcRoot(t, root)
-	writeProcFixture(t, root, 20, []string{"/opt/yesmem/yesmem", "daemon"}, []string{"HOME=" + t.TempDir()})
+	writeProcFixture(t, root, 20, []string{"/opt/nemons/nemons", "daemon"}, []string{"HOME=" + t.TempDir()})
 	signals := stubRoleStopSeams(t, func(int) bool { return true }, nil)
 
-	StopRole("daemon", filepath.Join(t.TempDir(), ".claude", "yesmem"))
+	StopRole("daemon", filepath.Join(t.TempDir(), ".claude", "nemons"))
 	if listingUsed {
 		t.Error("the process listing was used on a platform with a process table")
 	}
@@ -199,10 +199,10 @@ func TestStartRoleBootstrapsTheServiceAgain(t *testing.T) {
 	home := t.TempDir()
 	isolateHomeAt(t, home)
 	prevExe := selfBinaryPath
-	selfBinaryPath = "/opt/yesmem/yesmem"
+	selfBinaryPath = "/opt/nemons/nemons"
 	t.Cleanup(func() { selfBinaryPath = prevExe })
 	stubServicePlatform(t, "darwin")
-	plist := writeDaemonPlist(t, home, "daemon", "/opt/yesmem/yesmem")
+	plist := writeDaemonPlist(t, home, "daemon", "/opt/nemons/nemons")
 	calls := stubLaunchctl(t, nil)
 
 	started, err := StartRole("daemon")
@@ -224,10 +224,10 @@ func TestStartRoleFallsBackToLoad(t *testing.T) {
 	home := t.TempDir()
 	isolateHomeAt(t, home)
 	prevExe := selfBinaryPath
-	selfBinaryPath = "/opt/yesmem/yesmem"
+	selfBinaryPath = "/opt/nemons/nemons"
 	t.Cleanup(func() { selfBinaryPath = prevExe })
 	stubServicePlatform(t, "darwin")
-	plist := writeDaemonPlist(t, home, "daemon", "/opt/yesmem/yesmem")
+	plist := writeDaemonPlist(t, home, "daemon", "/opt/nemons/nemons")
 	calls := stubLaunchctl(t, map[string]error{"bootstrap": fmt.Errorf("unknown subcommand")})
 
 	if _, err := StartRole("daemon"); err != nil {

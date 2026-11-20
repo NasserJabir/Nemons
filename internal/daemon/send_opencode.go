@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/channeltext"
-	"github.com/carsteneu/yesmem/internal/opencode"
+	"github.com/NasserJabir/Nemons/internal/channeltext"
+	"github.com/NasserJabir/Nemons/internal/opencode"
 )
 
 // opencodeAddressPrefix namespaces an opencode session in a channel address.

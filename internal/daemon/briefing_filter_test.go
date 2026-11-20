@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 func insertSessionRow(t *testing.T, s *storage.Store, id, projectPath, startedAt string) {
@@ -39,7 +39,7 @@ func TestListProjectsNeedingBriefingRefresh_FiltersDeadAndInactive(t *testing.T)
 	if err != nil {
 		t.Fatalf("userhomedir: %v", err)
 	}
-	inactiveDir, err := os.MkdirTemp(home, ".yesmem-test-inactive-*")
+	inactiveDir, err := os.MkdirTemp(home, ".nemons-test-inactive-*")
 	if err != nil {
 		t.Fatalf("mkdir inactive: %v", err)
 	}
@@ -101,11 +101,11 @@ func TestListProjectsNeedingBriefingRefresh_InactiveThreshold(t *testing.T) {
 	}
 
 	// Two real existing dirs — the dead-path filter must NOT be what excludes these.
-	dir29, err := os.MkdirTemp(home, ".yesmem-test-29d-*")
+	dir29, err := os.MkdirTemp(home, ".nemons-test-29d-*")
 	if err != nil {
 		t.Fatalf("mkdir 29d: %v", err)
 	}
-	dir31, err := os.MkdirTemp(home, ".yesmem-test-31d-*")
+	dir31, err := os.MkdirTemp(home, ".nemons-test-31d-*")
 	if err != nil {
 		t.Fatalf("mkdir 31d: %v", err)
 	}

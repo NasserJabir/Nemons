@@ -31,7 +31,7 @@ func sevenBlockContent(phase6, phase7 string) string {
 
 // acceptedPhase6 is Phase 6 in the shape the contract asks for.
 const acceptedPhase6 = "### Phase 6: DAEMON-VERIFY\n**Status:** COMPLETE\n" +
-	"**Vorab-Prüfung:** yesmem verify-claims -> exit 0 (accepted)\n"
+	"**Vorab-Prüfung:** nemons verify-claims -> exit 0 (accepted)\n"
 
 // handoffPhase7 is Phase 7 in the shape the old Phase 6 had.
 const handoffPhase7 = "### Phase 7: FINISH\n**Status:** COMPLETE\n" +

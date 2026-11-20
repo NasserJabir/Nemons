@@ -36,10 +36,10 @@ func TestDownloadAndReplace_LargeArchive(t *testing.T) {
 	rng := rand.New(rand.NewSource(1))
 	payload := make([]byte, payloadSize)
 	rng.Read(payload)
-	binaryContent := append([]byte("fake-yesmem-binary-"), payload...)
-	archive := createTarGz(t, "yesmem", binaryContent)
+	binaryContent := append([]byte("fake-nemons-binary-"), payload...)
+	archive := createTarGz(t, "nemons", binaryContent)
 	hash := sha256.Sum256(archive)
-	checksumLine := fmt.Sprintf("%x  yesmem_large.tar.gz\n", hash)
+	checksumLine := fmt.Sprintf("%x  nemons_large.tar.gz\n", hash)
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
@@ -52,9 +52,9 @@ func TestDownloadAndReplace_LargeArchive(t *testing.T) {
 	defer srv.Close()
 
 	tmpDir := t.TempDir()
-	dest := filepath.Join(tmpDir, "yesmem")
+	dest := filepath.Join(tmpDir, "nemons")
 
-	err := DownloadAndReplace(srv.URL+"/binary", srv.URL+"/checksums", "yesmem_large.tar.gz", dest)
+	err := DownloadAndReplace(srv.URL+"/binary", srv.URL+"/checksums", "nemons_large.tar.gz", dest)
 	if err != nil {
 		t.Fatalf("DownloadAndReplace for %d-byte archive failed: %v", len(archive), err)
 	}
@@ -70,10 +70,10 @@ func TestDownloadAndReplace_LargeArchive(t *testing.T) {
 
 func TestDownloadAndReplace_Success(t *testing.T) {
 	allowLocalDownloads(t)
-	binaryContent := []byte("fake-yesmem-binary-content")
-	archive := createTarGz(t, "yesmem", binaryContent)
+	binaryContent := []byte("fake-nemons-binary-content")
+	archive := createTarGz(t, "nemons", binaryContent)
 	hash := sha256.Sum256(archive)
-	checksumLine := fmt.Sprintf("%x  yesmem_linux_amd64.tar.gz\n", hash)
+	checksumLine := fmt.Sprintf("%x  nemons_linux_amd64.tar.gz\n", hash)
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
@@ -86,9 +86,9 @@ func TestDownloadAndReplace_Success(t *testing.T) {
 	defer srv.Close()
 
 	tmpDir := t.TempDir()
-	dest := filepath.Join(tmpDir, "yesmem")
+	dest := filepath.Join(tmpDir, "nemons")
 
-	err := DownloadAndReplace(srv.URL+"/binary", srv.URL+"/checksums", "yesmem_linux_amd64.tar.gz", dest)
+	err := DownloadAndReplace(srv.URL+"/binary", srv.URL+"/checksums", "nemons_linux_amd64.tar.gz", dest)
 	if err != nil {
 		t.Fatalf("DownloadAndReplace failed: %v", err)
 	}
@@ -105,8 +105,8 @@ func TestDownloadAndReplace_Success(t *testing.T) {
 func TestDownloadAndReplace_ChecksumMismatch(t *testing.T) {
 	allowLocalDownloads(t)
 	binaryContent := []byte("fake-binary")
-	archive := createTarGz(t, "yesmem", binaryContent)
-	checksumLine := "0000000000000000000000000000000000000000000000000000000000000000  yesmem_linux_amd64.tar.gz\n"
+	archive := createTarGz(t, "nemons", binaryContent)
+	checksumLine := "0000000000000000000000000000000000000000000000000000000000000000  nemons_linux_amd64.tar.gz\n"
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
@@ -119,9 +119,9 @@ func TestDownloadAndReplace_ChecksumMismatch(t *testing.T) {
 	defer srv.Close()
 
 	tmpDir := t.TempDir()
-	dest := filepath.Join(tmpDir, "yesmem")
+	dest := filepath.Join(tmpDir, "nemons")
 
-	err := DownloadAndReplace(srv.URL+"/binary", srv.URL+"/checksums", "yesmem_linux_amd64.tar.gz", dest)
+	err := DownloadAndReplace(srv.URL+"/binary", srv.URL+"/checksums", "nemons_linux_amd64.tar.gz", dest)
 	if err == nil {
 		t.Fatal("should fail on checksum mismatch")
 	}
@@ -132,7 +132,7 @@ func TestDownloadAndReplace_ChecksumMismatch(t *testing.T) {
 // the final rename fail without any permission setup.
 func TestAtomicReplace_FailedReplaceKeepsDestination(t *testing.T) {
 	tmpDir := t.TempDir()
-	dest := filepath.Join(tmpDir, "yesmem")
+	dest := filepath.Join(tmpDir, "nemons")
 	if err := os.Mkdir(dest, 0755); err != nil {
 		t.Fatalf("seed dest dir: %v", err)
 	}
@@ -155,7 +155,7 @@ func TestAtomicReplace_FailedReplaceKeepsDestination(t *testing.T) {
 // instead of failing the link with EEXIST and silently keeping an ancient .bak.
 func TestAtomicReplace_RecoversFromLeftoverTempBackup(t *testing.T) {
 	tmpDir := t.TempDir()
-	dest := filepath.Join(tmpDir, "yesmem")
+	dest := filepath.Join(tmpDir, "nemons")
 	os.WriteFile(dest, []byte("old"), 0755)
 	os.WriteFile(dest+".bak.tmp", []byte("leftover"), 0755)
 	os.WriteFile(dest+".bak", []byte("ancient"), 0755)
@@ -178,7 +178,7 @@ func TestAtomicReplace_RecoversFromLeftoverTempBackup(t *testing.T) {
 
 func TestAtomicReplace(t *testing.T) {
 	tmpDir := t.TempDir()
-	dest := filepath.Join(tmpDir, "yesmem")
+	dest := filepath.Join(tmpDir, "nemons")
 
 	os.WriteFile(dest, []byte("old"), 0755)
 

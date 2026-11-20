@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // YM-231: remove-docs derived the clone directory from the caller-supplied name
@@ -31,7 +31,7 @@ func TestDocsCloneDir_RejectsNamesThatEscapeTheDocsDir(t *testing.T) {
 	if err != nil {
 		t.Fatalf("docsCloneDir(\"go-stdlib\"): %v", err)
 	}
-	if want := filepath.Join(home, ".claude", "yesmem", "docs", "go-stdlib"); dir != want {
+	if want := filepath.Join(home, ".claude", "nemons", "docs", "go-stdlib"); dir != want {
 		t.Errorf("docsCloneDir = %q, want %q", dir, want)
 	}
 }
@@ -52,7 +52,7 @@ func TestGitCloneArgs_TerminatesOptionsBeforeURL(t *testing.T) {
 	}
 }
 
-// YM-27: 'yesmem sync-docs' used to walk up from the source path to the nearest
+// YM-27: 'nemons sync-docs' used to walk up from the source path to the nearest
 // .git and run 'git pull' there — for the rules source (<repo>/CLAUDE.md) that
 // is the repository the user is working in. Only a source that is itself a
 // repository root (a docs clone) may be pulled.
@@ -64,9 +64,9 @@ func cliGit(t *testing.T, dir string, args ...string) string {
 	cmd.Env = append(os.Environ(),
 		"GIT_CONFIG_NOSYSTEM=1",
 		"GIT_CONFIG_GLOBAL="+os.DevNull,
-		"GIT_AUTHOR_NAME=yesmem-test",
+		"GIT_AUTHOR_NAME=nemons-test",
 		"GIT_AUTHOR_EMAIL=test@example.com",
-		"GIT_COMMITTER_NAME=yesmem-test",
+		"GIT_COMMITTER_NAME=nemons-test",
 		"GIT_COMMITTER_EMAIL=test@example.com",
 	)
 	out, err := cmd.CombinedOutput()
@@ -161,7 +161,7 @@ func captureOutput(t *testing.T, fn func()) string {
 func TestDocsCLI_MissingPathsAreFlaggedAndPruned(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	if err := os.MkdirAll(filepath.Join(home, ".claude", "yesmem"), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Join(home, ".claude", "nemons"), 0755); err != nil {
 		t.Fatalf("mkdir data dir: %v", err)
 	}
 
@@ -174,7 +174,7 @@ func TestDocsCLI_MissingPathsAreFlaggedAndPruned(t *testing.T) {
 	}
 	stalePath := filepath.Join(t.TempDir(), "gone", "go-stdlib")
 
-	store, err := storage.Open(filepath.Join(home, ".claude", "yesmem", "yesmem.db"))
+	store, err := storage.Open(filepath.Join(home, ".claude", "nemons", "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -202,7 +202,7 @@ func TestDocsCLI_MissingPathsAreFlaggedAndPruned(t *testing.T) {
 	// ... and sync-docs --prune must remove it, leaving the healthy source alone.
 	captureOutput(t, func() { runSyncDocs([]string{"--all", "--prune"}) })
 
-	store2, err := storage.Open(filepath.Join(home, ".claude", "yesmem", "yesmem.db"))
+	store2, err := storage.Open(filepath.Join(home, ".claude", "nemons", "nemons.db"))
 	if err != nil {
 		t.Fatalf("reopen store: %v", err)
 	}
@@ -226,10 +226,10 @@ func lineContaining(out, needle string) (string, bool) {
 
 func seedDocsDB(t *testing.T, home string, sources ...storage.DocSource) {
 	t.Helper()
-	if err := os.MkdirAll(filepath.Join(home, ".claude", "yesmem"), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Join(home, ".claude", "nemons"), 0755); err != nil {
 		t.Fatalf("mkdir data dir: %v", err)
 	}
-	store, err := storage.Open(filepath.Join(home, ".claude", "yesmem", "yesmem.db"))
+	store, err := storage.Open(filepath.Join(home, ".claude", "nemons", "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -249,7 +249,7 @@ func seedDocsDB(t *testing.T, home string, sources ...storage.DocSource) {
 
 func openDocsDB(t *testing.T, home string) *storage.Store {
 	t.Helper()
-	store, err := storage.Open(filepath.Join(home, ".claude", "yesmem", "yesmem.db"))
+	store, err := storage.Open(filepath.Join(home, ".claude", "nemons", "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}

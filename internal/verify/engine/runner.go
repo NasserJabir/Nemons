@@ -19,7 +19,7 @@ const (
 	// shorten it, never lengthen it. It carries headroom rather than a measured
 	// minimum: a project that checks its whole Go suite spends over five minutes
 	// inside the sandbox once the machine is busy (measured 2026-11-10 on a
-	// loaded box, yesmem profile with 44 packages), and the same run finishes
+	// loaded box, nemons profile with 44 packages), and the same run finishes
 	// under five on an idle one. A cap that is merely tight turns a green
 	// project into an unverifiable DONE, which is the worse failure of the two.
 	DefaultTestTimeout = 900 * time.Second

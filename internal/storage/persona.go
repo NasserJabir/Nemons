@@ -7,7 +7,7 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // personaDimensionNames lists the key prefixes that normalizeTraitKey may strip:
@@ -21,7 +21,7 @@ var personaDimensionNames = map[string]bool{
 }
 
 // normalizeTraitKey strips dimension prefixes from trait keys and trims whitespace.
-// "communication.directness" → "directness", "context.context.context.yesmem_depth" → "yesmem_depth"
+// "communication.directness" → "directness", "context.context.context.nemons_depth" → "nemons_depth"
 // Only leading segments that name a known dimension are stripped, so dotted key names
 // ("node.js", "next.js") survive intact.
 func normalizeTraitKey(dimension, key string) (string, string) {

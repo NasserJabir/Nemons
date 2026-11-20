@@ -3,8 +3,8 @@ package daemon
 import (
 	"encoding/json"
 
-	"github.com/carsteneu/yesmem/internal/proxy"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/proxy"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // readRateLimits returns the last rate-limit snapshot the proxy persisted, or

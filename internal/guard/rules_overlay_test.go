@@ -14,7 +14,7 @@ import (
 func TestLoadRulesComposesTheMasterWithTheProjectOverlay(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	projectDir := t.TempDir()
 	writeRules(t, filepath.Join(dataDir, "RULES.md"), "# Rules\n\n1. Never auto-commit.\n2. Never commit secrets.\n")
 	writeRules(t, filepath.Join(projectDir, "PROJECT_RULES.md"), "Deploy target is staging; production is off limits outside a release.\n")
@@ -40,7 +40,7 @@ func TestLoadRulesComposesTheMasterWithTheProjectOverlay(t *testing.T) {
 func TestLoadRulesKeepsACompleteProjectFileAlone(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	projectDir := t.TempDir()
 	writeRules(t, filepath.Join(dataDir, "RULES.md"), "1. Never auto-commit.\n")
 	writeRules(t, filepath.Join(projectDir, "RULES.md"), "1. Project rule that wins.\n")
@@ -56,7 +56,7 @@ func TestLoadRulesKeepsACompleteProjectFileAlone(t *testing.T) {
 func TestLoadRulesWithoutAProjectOverlayIsTheMaster(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	writeRules(t, filepath.Join(dataDir, "RULES.md"), "1. Never auto-commit.\n")
 
 	if rules := LoadRules(dataDir, t.TempDir()); rules != "1. Never auto-commit.\n" {
@@ -174,7 +174,7 @@ func TestAnOverlayCannotSupplyTheDecisionPolicy(t *testing.T) {
 func TestLoadRulesBoundsTheDeviationFile(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	projectDir := t.TempDir()
 	writeRules(t, filepath.Join(dataDir, "RULES.md"), "1. Never auto-commit.\n")
 	writeRules(t, filepath.Join(projectDir, "PROJECT_RULES.md"), strings.Repeat("x", 4*maxRulesChars))
@@ -254,7 +254,7 @@ func TestAHeadingWithoutTheEndMarkerIsNotAProjectBlock(t *testing.T) {
 func TestAWorktreeReadsTheProjectRulesFromTheMainCheckout(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	writeRules(t, filepath.Join(dataDir, "RULES.md"), "1. Never auto-commit.\n")
 	_, worktree := writeWorktree(t, "Deploy target is staging.\n")
 
@@ -273,7 +273,7 @@ func TestAWorktreeReadsTheProjectRulesFromTheMainCheckout(t *testing.T) {
 func TestAWorktreeOverlayWinsOverTheMainOne(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	writeRules(t, filepath.Join(dataDir, "RULES.md"), "1. Never auto-commit.\n")
 	_, worktree := writeWorktree(t, "Deploy target is staging.\n")
 	writeRules(t, filepath.Join(worktree, "PROJECT_RULES.md"), "Deploy target is this branch's sandbox.\n")
@@ -294,7 +294,7 @@ func TestAWorktreeOverlayWinsOverTheMainOne(t *testing.T) {
 func TestASubdirectoryReadsTheProjectRulesOfItsCheckout(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	writeRules(t, filepath.Join(dataDir, "RULES.md"), "1. Never auto-commit.\n")
 	repo := t.TempDir()
 	writeRules(t, filepath.Join(repo, "PROJECT_RULES.md"), "Migrations never run against production.\n")
@@ -316,7 +316,7 @@ func TestASubdirectoryReadsTheProjectRulesOfItsCheckout(t *testing.T) {
 func TestADirectoryOutsideAnyCheckoutReadsTheStandardSet(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	writeRules(t, filepath.Join(dataDir, "RULES.md"), "1. Never auto-commit.\n")
 
 	rules := LoadRules(dataDir, filepath.Join(t.TempDir(), "loose"))

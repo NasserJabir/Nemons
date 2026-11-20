@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/textutil"
+	"github.com/NasserJabir/Nemons/internal/textutil"
 )
 
 // createSchema creates all tables if they don't exist.
@@ -130,7 +130,7 @@ func (s *Store) createSchema() error {
 
 	// The messages sequence index is a UNIQUE one and is created by its own
 	// guard, because upgrading a database that still holds duplicates needs a
-	// purge first (see ensureUniqueMessageSequence). yesmem.db carries a mirror
+	// purge first (see ensureUniqueMessageSequence). nemons.db carries a mirror
 	// of the messages table, so it gets the same treatment as messages.db.
 	//
 	// A failure is not fatal: the repair runs again on the next Open, and refusing
@@ -243,7 +243,7 @@ func renameAlreadyApplied(db *sql.DB, err error, stmt string) bool {
 }
 
 // ensureColumn adds a column to a table when it is missing. Both call sites run
-// after the table's CREATE TABLE, and pinned_learnings is created in yesmem.db
+// after the table's CREATE TABLE, and pinned_learnings is created in nemons.db
 // and runtime.db, so the add has to run against each database.
 //
 // Two processes can pass the existence check together (a swarm start opens the
@@ -662,7 +662,7 @@ var migrations = []string{
 	// what kept that damage invisible. canonical_project is derived on every insert, and
 	// the readers treat '' as "no canonical" (learnings.go:378, :564), so a database
 	// without the backfill behaves exactly as it does today.
-	`UPDATE learnings SET canonical_project = 'yesmem' WHERE project IN ('checkcodebase', 'bridge-langgraph-bridge', 'opencode-proxy', 'feat+capability-memory', 'feat+security-hardening', 'codex-anpassungen', 'worktree-scoring-fixes', 'forked-agent-proxy', 'briefing-injection')`,
+	`UPDATE learnings SET canonical_project = 'nemons' WHERE project IN ('checkcodebase', 'bridge-langgraph-bridge', 'opencode-proxy', 'feat+capability-memory', 'feat+security-hardening', 'codex-anpassungen', 'worktree-scoring-fixes', 'forked-agent-proxy', 'briefing-injection')`,
 	`CREATE INDEX IF NOT EXISTS idx_learnings_canonical ON learnings(canonical_project, superseded_by)`,
 	// v0.62: Attribution field for external source tracking
 	`ALTER TABLE learnings ADD COLUMN attribution TEXT NOT NULL DEFAULT ''`,
@@ -799,7 +799,7 @@ var migrations = []string{
 	`ALTER TABLE learnings ADD COLUMN scope TEXT NOT NULL DEFAULT ''`,
 }
 
-// messagesMigrations runs against messages.db (separate from yesmem.db migrations).
+// messagesMigrations runs against messages.db (separate from nemons.db migrations).
 var messagesMigrations = []string{
 	// v0.42: Persist source agent on messages for transparent mixed-agent histories
 	`ALTER TABLE messages ADD COLUMN source_agent TEXT DEFAULT 'claude'`,
@@ -1011,7 +1011,7 @@ const tableSessionTracking = `CREATE TABLE IF NOT EXISTS session_tracking (
 )`
 
 var indices = []string{
-	// Mirror of the messages.db index set: yesmem.db carries a legacy messages
+	// Mirror of the messages.db index set: nemons.db carries a legacy messages
 	// table, and createSchema must not fail on it. The (session_id, sequence)
 	// index is deliberately not part of this list — it is UNIQUE and owned by
 	// ensureUniqueMessageSequence, which can repair a database that predates it.

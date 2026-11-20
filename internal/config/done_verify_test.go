@@ -16,7 +16,7 @@ func TestDoneVerifyIsEnabledByDefault(t *testing.T) {
 	}
 
 	path := filepath.Join(t.TempDir(), "config.yaml")
-	if err := os.WriteFile(path, []byte("data_dir: ~/.claude/yesmem\n"), 0o600); err != nil {
+	if err := os.WriteFile(path, []byte("data_dir: ~/.claude/nemons\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	loaded, err := Load(path)
@@ -32,7 +32,7 @@ func TestDoneVerifyIsEnabledByDefault(t *testing.T) {
 // survive the load: an unreadable switch cannot be audited.
 func TestDoneVerifyCanBeSwitchedOff(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.yaml")
-	body := "data_dir: ~/.claude/yesmem\ndone_verify:\n  enabled: false\n  model: deepseek-chat\n"
+	body := "data_dir: ~/.claude/nemons\ndone_verify:\n  enabled: false\n  model: deepseek-chat\n"
 	if err := os.WriteFile(path, []byte(body), 0o600); err != nil {
 		t.Fatal(err)
 	}

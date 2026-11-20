@@ -19,7 +19,7 @@ var (
 	reComplete = regexp.MustCompile(`━━━\s+Quickstart complete`)
 )
 
-// quickExtract runs "yesmem quickstart --last N" as a subprocess and shows progress.
+// quickExtract runs "nemons quickstart --last N" as a subprocess and shows progress.
 // Returns true if quickstart completed successfully.
 func quickExtract(binaryPath string, limit int, timeout time.Duration) bool {
 	cmd := exec.Command(binaryPath, "quickstart", "--last", fmt.Sprintf("%d", limit))

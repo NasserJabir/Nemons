@@ -10,8 +10,8 @@ package daemon
 import (
 	"fmt"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // handleCheckRegression walks the golden reference set through the caller's

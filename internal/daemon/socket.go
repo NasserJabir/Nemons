@@ -43,13 +43,13 @@ func JobSocketPath(dataDir string) string {
 	return filepath.Join(RuntimeDir(dataDir), jobSockName)
 }
 
-// clientSocketPath resolves the socket a CLI client dials. YESMEM_SOCK
+// clientSocketPath resolves the socket a CLI client dials. NEMONS_SOCK
 // redirects it: a sandboxed run only has the restricted socket mounted, so the
-// yesmem binary it calls has to be pointed at that one. The variable can only
+// nemons binary it calls has to be pointed at that one. The variable can only
 // narrow what its own process reaches — the value never grants a path the
 // caller could not already use.
 func clientSocketPath(dataDir string) string {
-	if path := os.Getenv("YESMEM_SOCK"); path != "" {
+	if path := os.Getenv("NEMONS_SOCK"); path != "" {
 		return path
 	}
 	return SocketPath(dataDir)

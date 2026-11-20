@@ -9,7 +9,7 @@ import (
 // is what made resolveAgentWorkDir invent $HOME/projects/<basename>.
 func TestLos32dResolveProjectPathKeepsAnAbsolutePath(t *testing.T) {
 	s := mustOpen(t)
-	const project = "/srv/los32d/projects/yesmem"
+	const project = "/srv/los32d/projects/nemons"
 
 	if got := s.ResolveProjectPath(project); got != project {
 		t.Fatalf("ResolveProjectPath(%q) = %q, want the path itself", project, got)
@@ -21,11 +21,11 @@ func TestLos32dResolveProjectPathKeepsAnAbsolutePath(t *testing.T) {
 // basename match against sessions.project.
 func TestLos32dResolveProjectPathResolvesALegacyShortName(t *testing.T) {
 	s := mustOpen(t)
-	const project = "/srv/los32d/memory/yesmem"
+	const project = "/srv/los32d/memory/nemons"
 	seedSession(t, s, "ses-los32d-short", project)
 
-	if got := s.ResolveProjectPath("yesmem"); got != project {
-		t.Fatalf("ResolveProjectPath(\"yesmem\") = %q, want %q", got, project)
+	if got := s.ResolveProjectPath("nemons"); got != project {
+		t.Fatalf("ResolveProjectPath(\"nemons\") = %q, want %q", got, project)
 	}
 }
 
@@ -33,11 +33,11 @@ func TestLos32dResolveProjectPathResolvesALegacyShortName(t *testing.T) {
 // spawned agent lands in the wrong repository; the resolver has to refuse.
 func TestLos32dResolveProjectPathRefusesAnAmbiguousShortName(t *testing.T) {
 	s := mustOpen(t)
-	seedSession(t, s, "ses-los32d-amb-a", "/srv/los32d/a/yesmem")
-	seedSession(t, s, "ses-los32d-amb-b", "/srv/los32d/b/yesmem")
+	seedSession(t, s, "ses-los32d-amb-a", "/srv/los32d/a/nemons")
+	seedSession(t, s, "ses-los32d-amb-b", "/srv/los32d/b/nemons")
 
-	if got := s.ResolveProjectPath("yesmem"); got != "" {
-		t.Fatalf("ResolveProjectPath(\"yesmem\") = %q, want \"\" for an ambiguous name", got)
+	if got := s.ResolveProjectPath("nemons"); got != "" {
+		t.Fatalf("ResolveProjectPath(\"nemons\") = %q, want \"\" for an ambiguous name", got)
 	}
 }
 

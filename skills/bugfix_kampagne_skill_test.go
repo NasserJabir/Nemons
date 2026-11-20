@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-// The campaign skill is the entry point for the yesmem bugfix campaign: where to
+// The campaign skill is the entry point for the nemons bugfix campaign: where to
 // start, in which order to work, what the orchestrator must check, and what it
 // may not do without asking. Its value is exactly the part a rewrite drops
 // first, so the anchors are pinned here instead of trusted. Progress and dates
@@ -136,7 +136,7 @@ func TestBugfixKampagneSkillCarriesTheChecks(t *testing.T) {
 func TestBugfixKampagneSkillCarriesTheApprovalLimits(t *testing.T) {
 	limits := kampagneSection(t, readKampagneSkill(t), "## Freigabegrenzen")
 
-	for _, want := range []string{"GitHub", "yesmem setup", "gh pr merge", "Bitbucket"} {
+	for _, want := range []string{"GitHub", "nemons setup", "gh pr merge", "Bitbucket"} {
 		if !strings.Contains(limits, want) {
 			t.Errorf("approval limits do not name %q", want)
 		}

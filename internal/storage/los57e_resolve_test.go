@@ -79,7 +79,7 @@ func TestLos57eResolveProjectShortReducesARelativePathToItsBasename(t *testing.T
 }
 
 // A short name must match the last path element only. The substring match routed
-// "yesmem" into every checkout whose path happened to contain the name.
+// "nemons" into every checkout whose path happened to contain the name.
 func TestLos57eResolveProjectShortMatchesTheBasenameOnly(t *testing.T) {
 	// File-backed: the substring branch this test judges used to query under its
 	// own cursor, which on a single-connection store hides the match it makes.
@@ -89,14 +89,14 @@ func TestLos57eResolveProjectShortMatchesTheBasenameOnly(t *testing.T) {
 	}
 	t.Cleanup(func() { s.Close() })
 	base := time.Now()
-	// Only this checkout carries "yesmem" as its last path element.
-	insertSessionForResolve(t, s, "s1", "/srv/a/yesmem", "yesmem-wt", base)
+	// Only this checkout carries "nemons" as its last path element.
+	insertSessionForResolve(t, s, "s1", "/srv/a/nemons", "nemons-wt", base)
 	// This one merely contains the name, and it is the more recent session, so the
 	// substring match would prefer it.
-	insertSessionForResolve(t, s, "s2", "/srv/yesmem-old", "yesmem-old", base.Add(time.Minute))
+	insertSessionForResolve(t, s, "s2", "/srv/nemons-old", "nemons-old", base.Add(time.Minute))
 
-	if got := s.ResolveProjectShort("yesmem"); got != "yesmem-wt" {
-		t.Fatalf("ResolveProjectShort(%q) = %q, want only the basename hit", "yesmem", got)
+	if got := s.ResolveProjectShort("nemons"); got != "nemons-wt" {
+		t.Fatalf("ResolveProjectShort(%q) = %q, want only the basename hit", "nemons", got)
 	}
 	// "yes" is a prefix of the basename, not the basename: no row may match.
 	if got := s.ResolveProjectShort("yes"); got != "yes" {
@@ -111,15 +111,15 @@ func TestLos57eResolveProjectShortDoesNotQueryUnderItsOwnCursor(t *testing.T) {
 	s := mustOpen(t)
 	// project_short differs from the path's basename, so the exact fast path
 	// misses and the basename match has to walk a cursor.
-	insertSessionForResolve(t, s, "s1", "/srv/a/yesmem", "yesmem-wt", time.Now())
+	insertSessionForResolve(t, s, "s1", "/srv/a/nemons", "nemons-wt", time.Now())
 
 	done := make(chan string, 1)
-	go func() { done <- s.ResolveProjectShort("yesmem") }()
+	go func() { done <- s.ResolveProjectShort("nemons") }()
 
 	select {
 	case got := <-done:
-		if got != "yesmem-wt" {
-			t.Fatalf("ResolveProjectShort(%q) = %q, want the resolved short name", "yesmem", got)
+		if got != "nemons-wt" {
+			t.Fatalf("ResolveProjectShort(%q) = %q, want the resolved short name", "nemons", got)
 		}
 	case <-time.After(5 * time.Second):
 		t.Fatal("ResolveProjectShort blocked on a single-connection store: it queries while its cursor is open")

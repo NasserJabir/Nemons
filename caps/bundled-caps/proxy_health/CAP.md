@@ -34,7 +34,7 @@ async ({hours, alert, project}) => {
   // (YM-281). Callers pass an absolute path.
   project = project || '';
   const since = `${hours} hour${hours>1?'s':''} ago`;
-  const plog = `journalctl --user -u yesmem-proxy --since "${since}" --no-pager 2>&1`;
+  const plog = `journalctl --user -u nemons-proxy --since "${since}" --no-pager 2>&1`;
 
   // Only text the proxy wrote for this request counts: the message after the
   // closing bracket of its own "[req ...]" prefix, or after the journal header
@@ -55,8 +55,8 @@ async ({hours, alert, project}) => {
       // a line read from a plain log file starts with the own date already
       body = line;
     } else {
-      // "Mon DD HH:MM:SS host yesmem-proxy[pid]: " ends at the first ": "
-      const header = /^\S+ +\d+ \d\d:\d\d:\d\d \S+ yesmem[^ :]*(?:\[\d+\])?: /.exec(line);
+      // "Mon DD HH:MM:SS host nemons-proxy[pid]: " ends at the first ": "
+      const header = /^\S+ +\d+ \d\d:\d\d:\d\d \S+ nemons[^ :]*(?:\[\d+\])?: /.exec(line);
       if (!header) return '';
       body = line.slice(header[0].length);
     }
@@ -178,16 +178,16 @@ async ({hours, alert, project}) => {
   const ts = new Date().toISOString().slice(0,19);
   const result = {timestamp: ts, status, hours, api_errors: apiErrors, forks, keepalive, general};
 
-  await mcp__yesmem__cap_store({capability:'proxy_health',action:'create_table',table:'reports',columns:JSON.stringify([{name:'timestamp',type:'TEXT'},{name:'status',type:'TEXT'},{name:'summary',type:'TEXT'},{name:'issues_json',type:'TEXT'},{name:'hours',type:'INTEGER'}])});
+  await mcp__nemons__cap_store({capability:'proxy_health',action:'create_table',table:'reports',columns:JSON.stringify([{name:'timestamp',type:'TEXT'},{name:'status',type:'TEXT'},{name:'summary',type:'TEXT'},{name:'issues_json',type:'TEXT'},{name:'hours',type:'INTEGER'}])});
   const summary = `${status}: ${apiErrors.total} API err, ${forks.count} forks (${totalLearnings} learnings), ${keepalive.total} pings (${kaOver1k} over 1k cw)${keepalive.timeouts > 0 ? `, ${keepalive.timeouts} ping timeouts (up to ${kaMaxCtx} tokens)` : ''}, ${daemonTimeouts} daemon timeouts`;
-  await mcp__yesmem__cap_store({capability:'proxy_health',action:'upsert',table:'reports',data:JSON.stringify({timestamp:ts, status, summary, issues_json: JSON.stringify(result), hours})});
+  await mcp__nemons__cap_store({capability:'proxy_health',action:'upsert',table:'reports',data:JSON.stringify({timestamp:ts, status, summary, issues_json: JSON.stringify(result), hours})});
 
   if (alert && status !== 'healthy') {
     const lines = [`PROXY HEALTH [${status.toUpperCase()}] (${since}):`, summary];
     if (kaOver1k > 0) lines.push(`${kaOver1k} keepalive pings with cache_write >= 1k`);
     if (keepalive.timeouts > 0) lines.push(`${keepalive.timeouts} keepalive pings timed out (largest context ${kaMaxCtx} tokens): the prompt outgrew the ping budget, not an upstream error`);
     if (apiErrors.total > 0) lines.push(`API errors: ${JSON.stringify(apiErrors.by_type)}`);
-    await mcp__yesmem__broadcast({project, content: lines.join('\n')});
+    await mcp__nemons__broadcast({project, content: lines.join('\n')});
   }
 
   return result;
@@ -224,12 +224,12 @@ if [ -z "$HOURS" ] || [ "${#HOURS}" -gt 3 ] || [ "$HOURS" -gt 168 ]; then
   HOURS=1
 fi
 ALERT=${ALERT:-true}
-# The daemon refuses a bare basename once two checkouts share it (live: "yesmem"
-# matched /home/tester/memory/yesmem and /home/tester/projects/yesmem, and the
+# The daemon refuses a bare basename once two checkouts share it (live: "nemons"
+# matched /home/tester/memory/nemons and /home/tester/projects/nemons, and the
 # broadcast came back as an error). Scheduled runs get their own project as an
-# absolute path in YESMEM_PROJECT; no fallback, because any other source is a
+# absolute path in NEMONS_PROJECT; no fallback, because any other source is a
 # guess about who should receive the alert.
-PROJECT=${YESMEM_PROJECT:-}
+PROJECT=${NEMONS_PROJECT:-}
 # PROJECT is interpolated into the broadcast JSON; quotes, backslashes, line
 # breaks and control characters would let it add fields or corrupt the payload
 # (nc drops the error).
@@ -239,14 +239,14 @@ PROJECT=$(printf '%s' "$PROJECT" | tr -d '\000-\037\177')
 SINCE="$HOURS hour ago"
 [ "$HOURS" != "1" ] && SINCE="$HOURS hours ago"
 # The broadcast goes to the daemon socket. A sandboxed run only has the
-# restricted job socket mounted, and it is told so in YESMEM_SOCK — a hardcoded
+# restricted job socket mounted, and it is told so in NEMONS_SOCK — a hardcoded
 # daemon.sock is masked inside the sandbox and the report would go nowhere.
-SOCK="${YESMEM_SOCK:-$HOME/.claude/yesmem/daemon.sock}"
+SOCK="${NEMONS_SOCK:-$HOME/.claude/nemons/daemon.sock}"
 
 # One journalctl pass per unit. The counters used to run one journalctl per
 # metric, fourteen passes over the same window at roughly thirty seconds each,
 # so the job could never meet a sane timeout.
-PROXY_COUNTS=$(journalctl --user -u yesmem-proxy --since "$SINCE" --no-pager 2>/dev/null | awk '
+PROXY_COUNTS=$(journalctl --user -u nemons-proxy --since "$SINCE" --no-pager 2>/dev/null | awk '
   # The proxy colours its own lines ("%supstream error: ..." carries colorRed in
   # front of the message), so the escape sequence is decoration that sits where
   # the frame starts. Built from the code point: the octal escape is not portable
@@ -282,8 +282,8 @@ PROXY_COUNTS=$(journalctl --user -u yesmem-proxy --since "$SINCE" --no-pager 2>/
       if (match(seg, /^[^]]*\]/)) body = substr(seg, RSTART + RLENGTH)
     } else if (rest ~ /^[0-9][0-9][0-9][0-9]\//) {
       # a line read from a plain log file starts with the own date already
-    } else if (match(rest, /^[^ ]+ +[0-9]+ [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [^ ]+ yesmem[^ :]*(\[[0-9]+\])?: /)) {
-      # "Mon DD HH:MM:SS host yesmem-proxy[pid]: " — the header of the unit
+    } else if (match(rest, /^[^ ]+ +[0-9]+ [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [^ ]+ nemons[^ :]*(\[[0-9]+\])?: /)) {
+      # "Mon DD HH:MM:SS host nemons-proxy[pid]: " — the header of the unit
       body = substr(rest, RSTART + RLENGTH)
     } else {
       # Neither prefix nor header: the continuation of a foreign value that
@@ -375,7 +375,7 @@ PROXY_COUNTS=$(journalctl --user -u yesmem-proxy --since "$SINCE" --no-pager 2>/
 ')
 read -r API_TOTAL API_OVLD API_RATE FORK_COUNT KA_TOTAL KA_OV1K KA_TIMEOUT KA_MAX_TOKENS RESTARTS DAEMON_TO CACHE_TOTAL CACHE_LOW DS_ERR CONN_ERR <<< "$PROXY_COUNTS"
 
-DAEMON_COUNTS=$(journalctl --user -u yesmem --since "$SINCE" --no-pager 2>/dev/null | awk '
+DAEMON_COUNTS=$(journalctl --user -u nemons --since "$SINCE" --no-pager 2>/dev/null | awk '
   # A job that prints nothing is not a finding: two scheduled jobs answer every
   # 15 seconds with "OK (0 bytes)" by design, and counting them put a four-digit
   # number into the alert line (YM-289). A failure is only the FAILED line.
@@ -497,7 +497,7 @@ REPORT=$(printf '{"capability":"proxy_health","action":"upsert","table":"reports
 safe_log() { printf '%s' "$1" | tr -d '\000-\037\177' | cut -c1-200; }
 
 # A failed store has two causes that need different words: the write was
-# refused (bookkeeping), or the socket the yesmem CLI talks to is gone after a
+# refused (bookkeeping), or the socket the nemons CLI talks to is gone after a
 # daemon restart, which is an outage of its own. Both used to read only as
 # "report not stored", which hid the second one (YM-337).
 STORE_FAILED=0
@@ -515,14 +515,14 @@ fi
 
 if [ "$ALERT" = "true" ] && [ "$STATUS" != "healthy" ]; then
   if [ -z "$PROJECT" ]; then
-    printf 'proxy_health: no project for the alert broadcast, YESMEM_PROJECT is unset\n' >&2
+    printf 'proxy_health: no project for the alert broadcast, NEMONS_PROJECT is unset\n' >&2
     exit 1
   fi
   BODY=$(printf '{"sender":"HealthChecker","project":"%s","content":"PROXY HEALTH [%s] (%s): %s"}' "$PROJECT" "$(echo "$STATUS" | tr a-z A-Z)" "$SINCE" "$SUMMARY")
   # The daemon answers one request and leaves the connection open, so a bare
   # "nc -U" waits for an EOF that never comes and the run dies on the job
   # timeout. -N shuts the write side after stdin, -w is the backstop. "--" ends
-  # the options: YESMEM_SOCK is set by the daemon and a path starting with "-"
+  # the options: NEMONS_SOCK is set by the daemon and a path starting with "-"
   # would otherwise be read as an nc option and the alert would never leave.
   # nc names the socket in its own diagnostics and that text is not ours, so its
   # stderr is dropped; the exit code rides in our own message instead.

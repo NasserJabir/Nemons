@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // evidenceMarkerRe matches an evidence marker: one body of key=value slots.
@@ -87,7 +87,7 @@ func CheckEvidence(claim engine.Claim, ctx *engine.Ctx) engine.Verdict {
 // slot allows, and no id serves two slots.
 //
 // This is the single implementation of the rule. The DONE gate reaches it over
-// the yesmem session store, the verification operation over whatever store its
+// the nemons session store, the verification operation over whatever store its
 // caller wired; neither carries a copy.
 func EvidenceFindings(refs []engine.EvidenceRef, reportSession string, store engine.SessionStore, policy engine.EvidencePolicy) []engine.Finding {
 	byKey, unknown, duplicated := evidenceByKey(refs, policy.Order)

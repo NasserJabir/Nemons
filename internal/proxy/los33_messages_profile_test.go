@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // YM-136: handleMessages resolved the prompt flags for ProfileClaude
@@ -54,10 +54,10 @@ func TestLos33MessagesPathUsesClientProfile(t *testing.T) {
 			if body == "" {
 				t.Fatal("backend received no body")
 			}
-			if got := strings.Contains(body, "[yesmem-tool-prefs]"); got != tc.wantToolPref {
+			if got := strings.Contains(body, "[nemons-tool-prefs]"); got != tc.wantToolPref {
 				t.Errorf("claude-only tool-prefs block present = %v, want %v", got, tc.wantToolPref)
 			}
-			if !strings.Contains(body, "[yesmem-output-discipline]") {
+			if !strings.Contains(body, "[nemons-output-discipline]") {
 				t.Error("a shared_prompt flag must reach every profile")
 			}
 		})

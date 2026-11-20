@@ -11,7 +11,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/carsteneu/yesmem/internal/buildinfo"
+	"github.com/NasserJabir/Nemons/internal/buildinfo"
 	mcplib "github.com/mark3labs/mcp-go/mcp"
 	mcpserver "github.com/mark3labs/mcp-go/server"
 )
@@ -45,7 +45,7 @@ func New(dataDir string) (*Server, error) {
 	initErrorLog(dataDir)
 
 	s.srv = mcpserver.NewMCPServer(
-		"yesmem",
+		"nemons",
 		buildinfo.Version,
 		mcpserver.WithToolCapabilities(false),
 	)
@@ -101,7 +101,7 @@ func (s *Server) ServeStdio(originPpid int) error {
 // sessionIDSourceEnv marks an _session_id that the MCP layer read from its own
 // environment. The daemon's resolveSessionID may only trust such an id for
 // opencode when the caller PID is a daemon-spawned agent's: under opencode v2
-// the `yesmem mcp` children belong to the shared service process, so their
+// the `nemons mcp` children belong to the shared service process, so their
 // environment carries the id of whichever session was created last.
 const sessionIDSourceEnv = "env"
 
@@ -180,13 +180,13 @@ func (s *Server) proxyCall(method string) mcpserver.ToolHandlerFunc {
 }
 
 // currentClientModel resolves the calling agent's model from environment.
-// Priority: YESMEM_MODEL_ID (explicit yesmem-native declaration, wins over
+// Priority: NEMONS_MODEL_ID (explicit nemons-native declaration, wins over
 // vendor vars — gives direct-MCP clients like opencode a clean injection point),
 // then vendor-specific CODEX_MODEL / OPENAI_MODEL / ANTHROPIC_MODEL / CLAUDE_MODEL,
 // then generic MODEL as last resort. Empty string if none set.
 func currentClientModel() string {
 	for _, key := range []string{
-		"YESMEM_MODEL_ID",
+		"NEMONS_MODEL_ID",
 		"CODEX_MODEL",
 		"OPENAI_MODEL",
 		"ANTHROPIC_MODEL",
@@ -204,20 +204,20 @@ func currentClientModel() string {
 // a normalized session ID with the agent prefix. Also returns the source agent label.
 //
 // Detection order (first match wins):
-//  1. YESMEM_SOURCE_AGENT=opencode + YESMEM_SESSION_ID  → opencode:<id>, "opencode"
-//  2. YESMEM_SOURCE_AGENT=codex + CODEX_THREAD_ID       → codex:<id>,    "codex"
+//  1. NEMONS_SOURCE_AGENT=opencode + NEMONS_SESSION_ID  → opencode:<id>, "opencode"
+//  2. NEMONS_SOURCE_AGENT=codex + CODEX_THREAD_ID       → codex:<id>,    "codex"
 //  3. CODEX_THREAD_ID (legacy, no source_agent marker)  → codex:<id>,    "codex"
 //  4. CLAUDE_SESSION_ID                                 → raw id,        "claude"  (unchanged)
 //
-// If YESMEM_SOURCE_AGENT is set but the corresponding session ID is missing,
+// If NEMONS_SOURCE_AGENT is set but the corresponding session ID is missing,
 // the function returns empty sessionID with the detected source agent.
 //
 // MCP tool descriptions are NOT modified — they remain Claude-specific for all clients.
 func resolveClientSessionID() (sessionID, sourceAgent string) {
-	sa := strings.TrimSpace(os.Getenv("YESMEM_SOURCE_AGENT"))
+	sa := strings.TrimSpace(os.Getenv("NEMONS_SOURCE_AGENT"))
 	switch sa {
 	case "opencode":
-		if sid := strings.TrimSpace(os.Getenv("YESMEM_SESSION_ID")); sid != "" {
+		if sid := strings.TrimSpace(os.Getenv("NEMONS_SESSION_ID")); sid != "" {
 			return "opencode:" + sid, "opencode"
 		}
 		return "", "opencode"
@@ -228,7 +228,7 @@ func resolveClientSessionID() (sessionID, sourceAgent string) {
 		return "", "codex"
 	}
 
-	// Fallback: codex might use CODEX_THREAD_ID even without YESMEM_SOURCE_AGENT
+	// Fallback: codex might use CODEX_THREAD_ID even without NEMONS_SOURCE_AGENT
 	if tid := strings.TrimSpace(os.Getenv("CODEX_THREAD_ID")); tid != "" {
 		return "codex:" + tid, "codex"
 	}
@@ -1146,7 +1146,7 @@ func (s *Server) registerTools() {
 
 	s.srv.AddTool(
 		mcplib.NewTool("remember",
-			mcplib.WithDescription("Save a lasting learning to persistent memory. Use after discovering a gotcha, making a decision, identifying a pattern, or receiving user feedback. Include structured metadata (entities, actions, trigger, anticipated_queries) for better retrieval. Model auto-resolved via param/YESMEM_MODEL_ID/proxy_state."+contentLangDirective),
+			mcplib.WithDescription("Save a lasting learning to persistent memory. Use after discovering a gotcha, making a decision, identifying a pattern, or receiving user feedback. Include structured metadata (entities, actions, trigger, anticipated_queries) for better retrieval. Model auto-resolved via param/NEMONS_MODEL_ID/proxy_state."+contentLangDirective),
 			mcplib.WithString("text", mcplib.Required(), mcplib.Description("Content to remember")),
 			mcplib.WithString("category", mcplib.Description("gotcha|decision|pattern|preference|explicit_teaching|strategic")),
 			mcplib.WithString("project", mcplib.Description(projectFilterDesc)),
@@ -1271,10 +1271,10 @@ func (s *Server) registerTools() {
 	// invalidation, and the governed proposal loop — reachable by agents
 	// through the canonical transport, not only through the dispatch table.
 	// The governed feature set (stages 6/8/10 + change integrity), opt-in
-	// through YESMEM_FEATURE_TOOLS=1. The default surface stays inside the tool
+	// through NEMONS_FEATURE_TOOLS=1. The default surface stays inside the tool
 	// budget (server_budget_test): every registered definition costs tokens in
 	// every agent session — the tool-economy discipline this project enforces.
-	if os.Getenv("YESMEM_FEATURE_TOOLS") == "1" {
+	if os.Getenv("NEMONS_FEATURE_TOOLS") == "1" {
 		registerFeatureTools(s)
 	}
 
@@ -1621,7 +1621,7 @@ func (s *Server) registerTools() {
 			mcplib.WithNumber("token_budget", mcplib.Description("Max output tokens per agent (0=no limit). The unit is output tokens: input tokens are cumulative and include cache reads")),
 			mcplib.WithNumber("max_turns", mcplib.Description("Max turns (0=unlimited)")),
 			mcplib.WithString("model", mcplib.Description("Model override")),
-			mcplib.WithString("theme", mcplib.Description("TUI theme for this agent (empty = the theme of the agent type, e.g. yesmem-loop for a yesloop section)")),
+			mcplib.WithString("theme", mcplib.Description("TUI theme for this agent (empty = the theme of the agent type, e.g. nemons-loop for a yesloop section)")),
 			mcplib.WithString("work_dir", mcplib.Description("Working directory")),
 			mcplib.WithString("backend", mcplib.Description("claude|codex|opencode")),
 			mcplib.WithString("permission_kick", mcplib.Description("Permission-kick setting for the agent: on|off (empty = inherit config default)")),
@@ -1775,7 +1775,7 @@ func (s *Server) registerTools() {
 			mcplib.WithString("mode", mcplib.Description("Execution mode: 'agent' (default), 'headless', or 'bash'")),
 			mcplib.WithString("cap_name", mcplib.Description("Cap name for bash mode (resolves handler_bash from saved cap)")),
 			mcplib.WithString("script_name", mcplib.Description("Script name within the cap to invoke (bash mode). When empty, the first handler/bash script wins; pass an explicit name to target a specific script (e.g. 'telegram_poll').")),
-			mcplib.WithString("project", mcplib.Description("Project the job belongs to, as an absolute path (create). The daemon hands it to the run as YESMEM_PROJECT so a cap can name a project to the daemon; a bare basename is refused as ambiguous. Defaults to the caller's working directory.")),
+			mcplib.WithString("project", mcplib.Description("Project the job belongs to, as an absolute path (create). The daemon hands it to the run as NEMONS_PROJECT so a cap can name a project to the daemon; a bare basename is refused as ambiguous. Defaults to the caller's working directory.")),
 			mcplib.WithBoolean("auto_correct", mcplib.Description("Auto-correct failed bash jobs via Sonnet (default true)")),
 			mcplib.WithString("allowed_ports", mcplib.Description("Comma-separated ports for sandbox network access (default '80,443')")),
 			mcplib.WithString("allowed_hosts", mcplib.Description("Comma-separated hosts for the standard sandbox profile's egress allowlist. Takes effect under ai-jail 2.x; under 0.9.x the standard profile has an open network and this list is not applied.")),
@@ -1923,7 +1923,7 @@ var _ json.Marshaler = (*json.RawMessage)(nil)
 
 // registerFeatureTools exposes the governed feature ops (context pack,
 // experience, citation, golden baselines, regression, lineage, proposals) as
-// MCP tools. Called only when YESMEM_FEATURE_TOOLS=1 — see the call site.
+// MCP tools. Called only when NEMONS_FEATURE_TOOLS=1 — see the call site.
 func registerFeatureTools(s *Server) {
 	featureTools := []struct {
 		name, desc string

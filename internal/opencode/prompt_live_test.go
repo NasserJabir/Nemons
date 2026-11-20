@@ -14,7 +14,7 @@ import (
 //
 // The session is created for the run and cannot be removed — the v2 API the
 // spec describes has no session.delete — so the run logs its id.
-const liveDeliveryEnv = "YESMEM_LIVE_OPENCODE_DELIVERY"
+const liveDeliveryEnv = "NEMONS_LIVE_OPENCODE_DELIVERY"
 
 // TestLiveOpencodeV2_PromptUserTurnIsAccepted is the acceptance proof that the
 // live service accepts the body the daemon sends. Everywhere else the request
@@ -47,7 +47,7 @@ func TestLiveOpencodeV2_PromptUserTurnIsAccepted(t *testing.T) {
 			ID string `json:"id"`
 		} `json:"data"`
 	}
-	if err := c.post(ctx, "/api/session", map[string]any{"title": "[yesmem live test] send_to delivery"}, &created); err != nil {
+	if err := c.post(ctx, "/api/session", map[string]any{"title": "[nemons live test] send_to delivery"}, &created); err != nil {
 		t.Fatalf("session.create: %v", err)
 	}
 	if created.Data.ID == "" {

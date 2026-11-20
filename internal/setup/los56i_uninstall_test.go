@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/skills"
+	"github.com/NasserJabir/Nemons/skills"
 )
 
 // YM-350 [PLG-F30] Teil 1 (Los 56i): removeBundledSkills loeschte jedes
@@ -26,7 +26,7 @@ func TestLos56i_RemoveBundledSkillsKeepsAForeignSkillOfTheSameName(t *testing.T)
 		t.Fatal(err)
 	}
 	foreign := filepath.Join(dir, "SKILL.md")
-	if err := os.WriteFile(foreign, []byte("# my own skill, unrelated to yesmem\n"), 0644); err != nil {
+	if err := os.WriteFile(foreign, []byte("# my own skill, unrelated to nemons\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -79,17 +79,17 @@ func TestLos56i_RemoveBundledSkillsRemovesTheInstalledCopy(t *testing.T) {
 }
 
 // YM-350 Teil 3: cleanMCPJSON loeschte .mcp.json komplett, sobald der letzte
-// MCP-Server der yesmem-Eintrag war. Die Datei ist geteilt und kann weitere
+// MCP-Server der nemons-Eintrag war. Die Datei ist geteilt und kann weitere
 // Top-Level-Schluessel tragen; die duerfen nicht mitverschwinden.
 func TestLos56i_CleanMCPJSONKeepsForeignTopLevelKeys(t *testing.T) {
 	home := t.TempDir()
 	path := filepath.Join(home, ".mcp.json")
 	body := `{
   "mcpServers": {
-    "yesmem": {"command": "yesmem", "args": ["mcp"]}
+    "nemons": {"command": "nemons", "args": ["mcp"]}
   },
   "projects": {
-    "/home/user/work": {"enabledMcpjsonServers": ["yesmem"]}
+    "/home/user/work": {"enabledMcpjsonServers": ["nemons"]}
   }
 }`
 	if err := os.WriteFile(path, []byte(body), 0644); err != nil {
@@ -107,8 +107,8 @@ func TestLos56i_CleanMCPJSONKeepsForeignTopLevelKeys(t *testing.T) {
 		t.Fatalf("parse the cleaned file: %v", err)
 	}
 	if servers, ok := doc["mcpServers"].(map[string]any); ok {
-		if _, has := servers["yesmem"]; has {
-			t.Errorf("the yesmem server entry survived: %v", servers)
+		if _, has := servers["nemons"]; has {
+			t.Errorf("the nemons server entry survived: %v", servers)
 		}
 	}
 	if _, ok := doc["projects"]; !ok {
@@ -116,12 +116,12 @@ func TestLos56i_CleanMCPJSONKeepsForeignTopLevelKeys(t *testing.T) {
 	}
 }
 
-// Eine Datei, in der yesmem der einzige Inhalt ist, bleibt nicht als leeres
+// Eine Datei, in der nemons der einzige Inhalt ist, bleibt nicht als leeres
 // Gerippe stehen.
 func TestLos56i_CleanMCPJSONRemovesAnEmptyFile(t *testing.T) {
 	home := t.TempDir()
 	path := filepath.Join(home, ".mcp.json")
-	if err := os.WriteFile(path, []byte(`{"mcpServers": {"yesmem": {"command": "yesmem"}}}`), 0644); err != nil {
+	if err := os.WriteFile(path, []byte(`{"mcpServers": {"nemons": {"command": "nemons"}}}`), 0644); err != nil {
 		t.Fatal(err)
 	}
 

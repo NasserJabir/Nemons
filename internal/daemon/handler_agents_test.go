@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/orchestrator"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/orchestrator"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // --- Spawn Agent ---
@@ -1008,7 +1008,7 @@ func (r *restartSpawn) set(pid int, workDir string) {
 	r.mu.Unlock()
 }
 
-// setArgs records the `yesmem agent-tty` argv the spawn handed to the terminal.
+// setArgs records the `nemons agent-tty` argv the spawn handed to the terminal.
 func (r *restartSpawn) setArgs(args []string) {
 	r.mu.Lock()
 	r.args = append([]string(nil), args...)
@@ -1172,7 +1172,7 @@ func TestRestartAgentProcess_UsesTheRecordedWorkDir(t *testing.T) {
 // falling back to the project resolver or the daemon's run dir. Rationale: a row
 // whose recorded tree is gone is the shape of a finished task (a loop worktree is
 // removed after its branch is merged). Observed 18.10.2026: the replacement came
-// up in ~/.claude/yesmem-run/workdir, without a repository, and redid the phases
+// up in ~/.claude/nemons-run/workdir, without a repository, and redid the phases
 // of a merged task. The row is closed with the reason instead, so the
 // orchestrator sees that nothing is running there.
 func TestRestartAgentProcess_VanishedWorkDirIsRefused(t *testing.T) {
@@ -3351,12 +3351,12 @@ func TestRelayAgent_RunningAllowed(t *testing.T) {
 
 // --- buildAgentExtraEnv (parallel-safe agent identity injection) ---
 // spawnAgentProcess builds extraEnv for the spawned backend's environment.
-// For opencode/codex we inject YESMEM_SOURCE_AGENT + YESMEM_SESSION_ID so the
-// yesmem-mcp child (spawned by the backend) can resolve its own session id
+// For opencode/codex we inject NEMONS_SOURCE_AGENT + NEMONS_SESSION_ID so the
+// nemons-mcp child (spawned by the backend) can resolve its own session id
 // without relying on the global active_session_opencode proxy-state, which is
 // Last-Writer-Wins across parallel agents. Codex additionally gets
 // CODEX_THREAD_ID because internal/mcp/server.go resolveClientSessionID reads
-// CODEX_THREAD_ID for the codex path (not YESMEM_SESSION_ID).
+// CODEX_THREAD_ID for the codex path (not NEMONS_SESSION_ID).
 
 func containsEnv(kv []string, key string) (string, bool) {
 	prefix := key + "="
@@ -3370,11 +3370,11 @@ func containsEnv(kv []string, key string) (string, bool) {
 
 func TestBuildAgentExtraEnv_OpenCode(t *testing.T) {
 	env := buildAgentExtraEnv("opencode", "synthetic-oc-uuid")
-	if v, ok := containsEnv(env, "YESMEM_SOURCE_AGENT"); !ok || v != "opencode" {
-		t.Errorf("YESMEM_SOURCE_AGENT: want opencode, got %q (present=%v)", v, ok)
+	if v, ok := containsEnv(env, "NEMONS_SOURCE_AGENT"); !ok || v != "opencode" {
+		t.Errorf("NEMONS_SOURCE_AGENT: want opencode, got %q (present=%v)", v, ok)
 	}
-	if v, ok := containsEnv(env, "YESMEM_SESSION_ID"); !ok || v != "synthetic-oc-uuid" {
-		t.Errorf("YESMEM_SESSION_ID: want synthetic-oc-uuid, got %q (present=%v)", v, ok)
+	if v, ok := containsEnv(env, "NEMONS_SESSION_ID"); !ok || v != "synthetic-oc-uuid" {
+		t.Errorf("NEMONS_SESSION_ID: want synthetic-oc-uuid, got %q (present=%v)", v, ok)
 	}
 	if _, ok := containsEnv(env, "CODEX_THREAD_ID"); ok {
 		t.Error("CODEX_THREAD_ID must NOT be set for opencode backend")
@@ -3386,11 +3386,11 @@ func TestBuildAgentExtraEnv_OpenCode(t *testing.T) {
 
 func TestBuildAgentExtraEnv_Codex(t *testing.T) {
 	env := buildAgentExtraEnv("codex", "synthetic-cx-uuid")
-	if v, ok := containsEnv(env, "YESMEM_SOURCE_AGENT"); !ok || v != "codex" {
-		t.Errorf("YESMEM_SOURCE_AGENT: want codex, got %q (present=%v)", v, ok)
+	if v, ok := containsEnv(env, "NEMONS_SOURCE_AGENT"); !ok || v != "codex" {
+		t.Errorf("NEMONS_SOURCE_AGENT: want codex, got %q (present=%v)", v, ok)
 	}
-	if v, ok := containsEnv(env, "YESMEM_SESSION_ID"); !ok || v != "synthetic-cx-uuid" {
-		t.Errorf("YESMEM_SESSION_ID: want synthetic-cx-uuid, got %q (present=%v)", v, ok)
+	if v, ok := containsEnv(env, "NEMONS_SESSION_ID"); !ok || v != "synthetic-cx-uuid" {
+		t.Errorf("NEMONS_SESSION_ID: want synthetic-cx-uuid, got %q (present=%v)", v, ok)
 	}
 	// resolveClientSessionID in internal/mcp/server.go reads CODEX_THREAD_ID
 	// for the codex branch, so we must mirror the value there.
@@ -3402,7 +3402,7 @@ func TestBuildAgentExtraEnv_Codex(t *testing.T) {
 func TestBuildAgentExtraEnv_ClaudeNoInjection(t *testing.T) {
 	// Claude backend owns its session via --session-id flag; no ENV needed.
 	env := buildAgentExtraEnv("claude", "claude-sess")
-	for _, key := range []string{"YESMEM_SOURCE_AGENT", "YESMEM_SESSION_ID", "CODEX_THREAD_ID"} {
+	for _, key := range []string{"NEMONS_SOURCE_AGENT", "NEMONS_SESSION_ID", "CODEX_THREAD_ID"} {
 		if v, ok := containsEnv(env, key); ok {
 			t.Errorf("%s must not be set for claude backend, got %q", key, v)
 		}
@@ -3415,8 +3415,8 @@ func TestBuildAgentExtraEnv_CodexAuthKeyMerged(t *testing.T) {
 	// the helper continues without OPENAI_API_KEY — but the identity vars
 	// must still be present so the MCP child can self-identify.
 	env := buildAgentExtraEnv("codex", "uuid-with-no-auth")
-	if v, ok := containsEnv(env, "YESMEM_SOURCE_AGENT"); !ok || v != "codex" {
-		t.Errorf("YESMEM_SOURCE_AGENT missing even without auth file: %q (ok=%v)", v, ok)
+	if v, ok := containsEnv(env, "NEMONS_SOURCE_AGENT"); !ok || v != "codex" {
+		t.Errorf("NEMONS_SOURCE_AGENT missing even without auth file: %q (ok=%v)", v, ok)
 	}
 	if v, ok := containsEnv(env, "CODEX_THREAD_ID"); !ok || v != "uuid-with-no-auth" {
 		t.Errorf("CODEX_THREAD_ID missing without auth file: %q (ok=%v)", v, ok)
@@ -3424,16 +3424,16 @@ func TestBuildAgentExtraEnv_CodexAuthKeyMerged(t *testing.T) {
 }
 
 func TestBuildAgentExtraEnv_EmptySessionID(t *testing.T) {
-	// Defensive: empty sessionID must not inject empty YESMEM_SESSION_ID=, as
+	// Defensive: empty sessionID must not inject empty NEMONS_SESSION_ID=, as
 	// that would make resolveClientSessionID return "" with sa="opencode" —
 	// causing resolveSessionID to skip the MCP _session_id path and fall
 	// through to proxy-state, defeating the fix.
 	env := buildAgentExtraEnv("opencode", "")
-	if _, ok := containsEnv(env, "YESMEM_SESSION_ID"); ok {
-		t.Errorf("YESMEM_SESSION_ID must be omitted when sessionID is empty, got %v", env)
+	if _, ok := containsEnv(env, "NEMONS_SESSION_ID"); ok {
+		t.Errorf("NEMONS_SESSION_ID must be omitted when sessionID is empty, got %v", env)
 	}
-	if _, ok := containsEnv(env, "YESMEM_SOURCE_AGENT"); ok {
-		t.Errorf("YESMEM_SOURCE_AGENT must also be omitted when sessionID is empty (no partial identity)")
+	if _, ok := containsEnv(env, "NEMONS_SOURCE_AGENT"); ok {
+		t.Errorf("NEMONS_SOURCE_AGENT must also be omitted when sessionID is empty (no partial identity)")
 	}
 }
 

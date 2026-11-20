@@ -8,7 +8,7 @@ import (
 
 // YM-350 [PLG-F30] Teil 2 (Los 56i): die Selbstloeschung entfernt das Binary,
 // auf das os.Executable zeigt (auf Linux /proc/self/exe, also den aufgeloesten
-// Pfad). Ein Link, ueber den der Nutzer yesmem tatsaechlich aufruft, liegt
+// Pfad). Ein Link, ueber den der Nutzer nemons tatsaechlich aufruft, liegt
 // danach als haengender Eintrag im PATH.
 func TestLos56i_RemoveStaleBinaryLinksRemovesOnlyLinksToTheRemovedBinary(t *testing.T) {
 	home := t.TempDir()
@@ -17,11 +17,11 @@ func TestLos56i_RemoveStaleBinaryLinksRemovesOnlyLinksToTheRemovedBinary(t *test
 		t.Fatal(err)
 	}
 
-	target := filepath.Join(t.TempDir(), "yesmem")
+	target := filepath.Join(t.TempDir(), "nemons")
 	if err := os.WriteFile(target, []byte("binary"), 0755); err != nil {
 		t.Fatal(err)
 	}
-	link := filepath.Join(binDir, "yesmem")
+	link := filepath.Join(binDir, "nemons")
 	if err := os.Symlink(target, link); err != nil {
 		t.Fatal(err)
 	}

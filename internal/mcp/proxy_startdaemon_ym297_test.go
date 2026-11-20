@@ -15,9 +15,9 @@ import (
 func TestYm297StartDaemonLeavesActiveUnitAlone(t *testing.T) {
 	var spawned, systemctlCalls int
 	deps := daemonStartDeps{
-		unitState:  func() yesmemUnitState { return yesmemUnitActive },
+		unitState:  func() nemonsUnitState { return nemonsUnitActive },
 		systemctl:  func(...string) error { systemctlCalls++; return nil },
-		executable: func() (string, error) { return "/opt/yesmem/yesmem", nil },
+		executable: func() (string, error) { return "/opt/nemons/nemons", nil },
 		spawn: func(string, string, []string, []string) error {
 			spawned++
 			return nil
@@ -28,7 +28,7 @@ func TestYm297StartDaemonLeavesActiveUnitAlone(t *testing.T) {
 	if !errors.Is(err, errDaemonOwnedBySystemd) {
 		t.Fatalf("active unit: startDaemonWith = %v, want an errDaemonOwnedBySystemd error so the caller fails fast instead of waiting out the dial timeout", err)
 	}
-	if !strings.Contains(err.Error(), "systemctl --user restart yesmem") {
+	if !strings.Contains(err.Error(), "systemctl --user restart nemons") {
 		t.Errorf("active unit: error %q does not tell the operator how to recover", err)
 	}
 	if spawned != 0 {
@@ -46,9 +46,9 @@ func TestYm297StartDaemonStartsStoppedUnit(t *testing.T) {
 	var spawned int
 	var got []string
 	deps := daemonStartDeps{
-		unitState:  func() yesmemUnitState { return yesmemUnitInactive },
+		unitState:  func() nemonsUnitState { return nemonsUnitInactive },
 		systemctl:  func(args ...string) error { got = args; return nil },
-		executable: func() (string, error) { return "/opt/yesmem/yesmem", nil },
+		executable: func() (string, error) { return "/opt/nemons/nemons", nil },
 		spawn: func(string, string, []string, []string) error {
 			spawned++
 			return nil
@@ -61,8 +61,8 @@ func TestYm297StartDaemonStartsStoppedUnit(t *testing.T) {
 	if spawned != 0 {
 		t.Errorf("inactive unit: spawned %d daemon process(es), want 0", spawned)
 	}
-	if strings.Join(got, " ") != "start yesmem" {
-		t.Errorf("systemctl args = %v, want [start yesmem]", got)
+	if strings.Join(got, " ") != "start nemons" {
+		t.Errorf("systemctl args = %v, want [start nemons]", got)
 	}
 }
 
@@ -74,9 +74,9 @@ func TestYm297StartDaemonNeverReplaces(t *testing.T) {
 	var gotExe string
 	var gotArgs []string
 	deps := daemonStartDeps{
-		unitState:  func() yesmemUnitState { return yesmemUnitAbsent },
+		unitState:  func() nemonsUnitState { return nemonsUnitAbsent },
 		systemctl:  func(...string) error { return nil },
-		executable: func() (string, error) { return "/opt/yesmem/yesmem", nil },
+		executable: func() (string, error) { return "/opt/nemons/nemons", nil },
 		spawn: func(_ string, exe string, args, _ []string) error {
 			gotExe, gotArgs = exe, args
 			return nil
@@ -86,8 +86,8 @@ func TestYm297StartDaemonNeverReplaces(t *testing.T) {
 	if err := startDaemonWith(t.TempDir(), deps); err != nil {
 		t.Fatalf("no unit: startDaemonWith returned %v, want nil", err)
 	}
-	if gotExe != "/opt/yesmem/yesmem" {
-		t.Errorf("spawned exe = %q, want /opt/yesmem/yesmem", gotExe)
+	if gotExe != "/opt/nemons/nemons" {
+		t.Errorf("spawned exe = %q, want /opt/nemons/nemons", gotExe)
 	}
 	if len(gotArgs) != 1 || gotArgs[0] != "daemon" {
 		t.Fatalf("spawned args = %v, want exactly [daemon]", gotArgs)
@@ -104,9 +104,9 @@ func TestYm297StartDaemonNeverReplaces(t *testing.T) {
 func TestYm297StartDaemonPropagatesSpawnError(t *testing.T) {
 	want := errors.New("no exec")
 	deps := daemonStartDeps{
-		unitState:  func() yesmemUnitState { return yesmemUnitAbsent },
+		unitState:  func() nemonsUnitState { return nemonsUnitAbsent },
 		systemctl:  func(...string) error { return nil },
-		executable: func() (string, error) { return "/opt/yesmem/yesmem", nil },
+		executable: func() (string, error) { return "/opt/nemons/nemons", nil },
 		spawn:      func(string, string, []string, []string) error { return want },
 	}
 	if err := startDaemonWith(t.TempDir(), deps); !errors.Is(err, want) {
@@ -120,18 +120,18 @@ func TestYm297DetectUnitStateParsesSystemd(t *testing.T) {
 	cases := []struct {
 		name string
 		out  string
-		want yesmemUnitState
+		want nemonsUnitState
 	}{
-		{"active", "LoadState=loaded\nActiveState=active\n", yesmemUnitActive},
-		{"activating", "LoadState=loaded\nActiveState=activating\n", yesmemUnitActive},
-		{"inactive", "LoadState=loaded\nActiveState=inactive\n", yesmemUnitInactive},
-		{"failed", "LoadState=loaded\nActiveState=failed\n", yesmemUnitInactive},
-		{"not-found", "LoadState=not-found\nActiveState=inactive\n", yesmemUnitAbsent},
-		{"empty", "", yesmemUnitAbsent},
+		{"active", "LoadState=loaded\nActiveState=active\n", nemonsUnitActive},
+		{"activating", "LoadState=loaded\nActiveState=activating\n", nemonsUnitActive},
+		{"inactive", "LoadState=loaded\nActiveState=inactive\n", nemonsUnitInactive},
+		{"failed", "LoadState=loaded\nActiveState=failed\n", nemonsUnitInactive},
+		{"not-found", "LoadState=not-found\nActiveState=inactive\n", nemonsUnitAbsent},
+		{"empty", "", nemonsUnitAbsent},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			if got := parseYesmemUnitState(tc.out); got != tc.want {
+			if got := parseNemonsUnitState(tc.out); got != tc.want {
 				t.Errorf("parse(%q) = %v, want %v", tc.out, got, tc.want)
 			}
 		})

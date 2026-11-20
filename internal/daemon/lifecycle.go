@@ -165,7 +165,7 @@ const daemonTermPoll = 100 * time.Millisecond
 
 // selfBinaryPath is this process's own executable, resolved through symlinks.
 // The daemon stop compares it against /proc/<pid>/exe: a process that merely
-// carries "yesmem" and "daemon" in its argv (a *.test binary from a yesmem
+// carries "nemons" and "daemon" in its argv (a *.test binary from a nemons
 // worktree, another installation, another data dir's instance) is not ours.
 // Resolved once — a test pins it to a fixture path.
 var selfBinaryPath = func() string {
@@ -224,8 +224,8 @@ func waitDaemonGone(pid int, grace time.Duration) bool {
 // SIGKILL.
 //
 // Why so narrow: the former killByProcessName killed every process whose cmdline
-// contained "yesmem" and "daemon" — the systemd instance, another data dir's
-// daemon, a *.test binary from a yesmem worktree. On 2026-10-17 22:52 that took
+// contained "nemons" and "daemon" — the systemd instance, another data dir's
+// daemon, a *.test binary from a nemons worktree. On 2026-10-17 22:52 that took
 // the live daemon down, and every restart repeated it until the recovery deleted
 // the running agents (YM-297). The PID file is the only identity a starting
 // process can verify.

@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/codescan"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/codescan"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // YM-436 finding 1: code_nav_mode knows three values, but only "off" was ever
@@ -64,7 +64,7 @@ func los60cRunHookWithMode(t *testing.T, mode string) string {
 	if err := os.WriteFile(filepath.Join(dir, "config.yaml"), []byte(config), 0o644); err != nil {
 		t.Fatalf("write config: %v", err)
 	}
-	store, err := storage.Open(filepath.Join(dir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -153,7 +153,7 @@ func TestLos60cCodeNavBlocksWithASubtreeRootedIndex(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(root, ".git"), 0o755); err != nil {
 		t.Fatalf("create git dir: %v", err)
 	}
-	store, err := storage.Open(filepath.Join(root, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(root, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}

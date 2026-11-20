@@ -5,12 +5,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // YM-267 (5): the auto-correct pass ran the corrected script in a sandbox built
 // from a bare literal: work dir yes, job dir no. The verification then differed
-// from the run it was verifying — a fix whose log write needs YESMEM_JOB_DIR
+// from the run it was verifying — a fix whose log write needs NEMONS_JOB_DIR
 // failed verification, and one that only works because it silently logs into the
 // sandbox's throwaway /tmp passed it while still writing nowhere in production.
 func TestAutoCorrectVerificationSeesTheJobDir(t *testing.T) {
@@ -30,8 +30,8 @@ func TestAutoCorrectVerificationSeesTheJobDir(t *testing.T) {
 		t.Fatalf("job dir %q does not exist: %v", cfg.RWMapPaths[0], err)
 	}
 	env := strings.Join(cfg.Env, " ")
-	if !strings.Contains(env, "YESMEM_JOB_DIR="+cfg.RWMapPaths[0]) {
-		t.Fatalf("verification run must get YESMEM_JOB_DIR for the same dir, env = %v", cfg.Env)
+	if !strings.Contains(env, "NEMONS_JOB_DIR="+cfg.RWMapPaths[0]) {
+		t.Fatalf("verification run must get NEMONS_JOB_DIR for the same dir, env = %v", cfg.Env)
 	}
 	if cfg.WorkDir == "" {
 		t.Fatal("verification run must keep a work dir")
@@ -53,7 +53,7 @@ func TestAutoCorrectVerificationSkipsTheJobDirUnderStrict(t *testing.T) {
 	if len(cfg.RWMapPaths) != 0 {
 		t.Fatalf("strict mounts nothing: rw=%v", cfg.RWMapPaths)
 	}
-	if _, ok := los32cEnvValue(cfg.Env, "YESMEM_JOB_DIR"); ok {
+	if _, ok := los32cEnvValue(cfg.Env, "NEMONS_JOB_DIR"); ok {
 		t.Fatalf("strict cannot reach the job dir: env=%v", cfg.Env)
 	}
 }

@@ -56,7 +56,7 @@ func fixtureForTest(t *testing.T) *fixture {
 // the worktree carries its own scratch space.
 func fixtureTmpRoot(t *testing.T) string {
 	t.Helper()
-	root, err := filepath.Abs(filepath.Join("..", "..", ".yesmem", "tmp"))
+	root, err := filepath.Abs(filepath.Join("..", "..", ".nemons", "tmp"))
 	if err != nil {
 		t.Fatalf("cannot resolve the project temp root: %v", err)
 	}

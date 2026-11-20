@@ -273,8 +273,8 @@ func TestComputeContextualScore_ProjectMatch(t *testing.T) {
 func TestComputeContextualScore_EntityMatch(t *testing.T) {
 	l := &Learning{Category: "gotcha", Importance: 3, Stability: 30.0, CreatedAt: time.Now(),
 		Entities: []string{"schema", "proxy_server"}}
-	ctx := QueryContext{FilePaths: []string{"/home/user/memory/yesmem/internal/storage/schema.go"}}
-	ctxNoMatch := QueryContext{FilePaths: []string{"/home/user/memory/yesmem/cmd/main.go"}}
+	ctx := QueryContext{FilePaths: []string{"/home/user/memory/nemons/internal/storage/schema.go"}}
+	ctxNoMatch := QueryContext{FilePaths: []string{"/home/user/memory/nemons/cmd/main.go"}}
 
 	if ComputeContextualScore(l, ctx) <= ComputeContextualScore(l, ctxNoMatch) {
 		t.Error("entity match in file paths should score higher than no match")

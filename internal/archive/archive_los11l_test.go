@@ -29,7 +29,7 @@ func TestEnsureBaseDirCreatesOwnerOnlyBase_Los11l(t *testing.T) {
 }
 
 // Ein vorhandenes Basisverzeichnis wird gemeldet, nicht veraendert: ein
-// konfigurierter Pfad kann ein Verzeichnis sein, das yesmem nicht angelegt hat, und
+// konfigurierter Pfad kann ein Verzeichnis sein, das nemons nicht angelegt hat, und
 // ein stilles chmod auf ein geteiltes Ziel waere schlimmer als eine Warnung.
 func TestEnsureBaseDirLeavesExistingModeAlone_Los11l(t *testing.T) {
 	base := filepath.Join(t.TempDir(), "archive")

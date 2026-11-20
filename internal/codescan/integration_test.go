@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-// TestIntegration_ScanOwnRepo scans the YesMem repository
+// TestIntegration_ScanOwnRepo scans the Nemons repository
 // and validates that CBMScanner + CodeGraph + RenderCodeMap produce coherent results.
 func TestIntegration_ScanOwnRepo(t *testing.T) {
 	if FindCBMBinary() == "" {

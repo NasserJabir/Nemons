@@ -18,9 +18,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/opencode"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/opencode"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 func mustStore(t *testing.T) *storage.Store {
@@ -258,7 +258,7 @@ func stubHelpExec(t *testing.T, fn func(bin string) (string, error)) {
 }
 
 // stubUserHome points userHomeDir at a temporary home and installs the given
-// yesmem theme names under ~/.config/opencode/themes (empty = nothing
+// nemons theme names under ~/.config/opencode/themes (empty = nothing
 // installed).
 func stubUserHome(t *testing.T, themes ...string) {
 	t.Helper()
@@ -307,14 +307,14 @@ func mustHandler(t *testing.T) (*Handler, *storage.Store) {
 }
 
 // mustFileHandler opens a handler on a file-backed store: session pins live in
-// runtime.db, permanent pins in yesmem.db — separate tables with independent ID
+// runtime.db, permanent pins in nemons.db — separate tables with independent ID
 // sequences, as in production. Reach for it whenever a test reads a row back that
 // another connection just wrote: a :memory: store opens a fresh image per
 // connection, so the reader pool would not see the writer's rows.
 func mustFileHandler(t *testing.T) (*Handler, *storage.Store) {
 	t.Helper()
 	dir := t.TempDir()
-	s, err := storage.Open(filepath.Join(dir, "yesmem.db"))
+	s, err := storage.Open(filepath.Join(dir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}

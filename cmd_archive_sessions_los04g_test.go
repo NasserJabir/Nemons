@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // The session id listed under "left unwritten" comes from the sessions table. A
@@ -18,13 +18,13 @@ import (
 func TestRunArchiveSessions_QuotesTheIncompleteSessionID(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	if err := os.MkdirAll(dataDir, 0o700); err != nil {
 		t.Fatal(err)
 	}
 
 	forgedID := "sess\nwarn: forged archive line"
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -53,7 +53,7 @@ func TestRunArchiveSessions_QuotesTheIncompleteSessionID(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	os.Args = []string{"yesmem", "archive-sessions", "--dry-run"}
+	os.Args = []string{"nemons", "archive-sessions", "--dry-run"}
 	os.Stdout = writer
 	runArchiveSessions()
 	if err := writer.Close(); err != nil {

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/wikidir"
+	"github.com/NasserJabir/Nemons/internal/wikidir"
 )
 
 // --- StripOutputEfficiency ---
@@ -162,8 +162,8 @@ func TestInjectAntDirectives_AddsBlock(t *testing.T) {
 	last := blocks[len(blocks)-1].(map[string]any)
 	text, _ := last["text"].(string)
 
-	if !strings.HasPrefix(text, "[yesmem-directives]") {
-		t.Errorf("block should be tagged yesmem-directives, got: %s", text[:min(50, len(text))])
+	if !strings.HasPrefix(text, "[nemons-directives]") {
+		t.Errorf("block should be tagged nemons-directives, got: %s", text[:min(50, len(text))])
 	}
 	if !strings.Contains(text, "verify it actually works") {
 		t.Error("should contain verification directive")
@@ -198,8 +198,8 @@ func TestInjectCLAUDEMDAuthority_AddsBlock(t *testing.T) {
 	last := blocks[len(blocks)-1].(map[string]any)
 	text, _ := last["text"].(string)
 
-	if !strings.HasPrefix(text, "[yesmem-enhance]") {
-		t.Errorf("block should be tagged yesmem-enhance, got: %s", text[:min(50, len(text))])
+	if !strings.HasPrefix(text, "[nemons-enhance]") {
+		t.Errorf("block should be tagged nemons-enhance, got: %s", text[:min(50, len(text))])
 	}
 	if !strings.Contains(text, "CLAUDE.md") {
 		t.Error("should mention CLAUDE.md")
@@ -224,8 +224,8 @@ func TestInjectClaudeToolPrefs_AddsBlock(t *testing.T) {
 	}
 	last := blocks[len(blocks)-1].(map[string]any)
 	text, _ := last["text"].(string)
-	if !strings.HasPrefix(text, "[yesmem-tool-prefs]") {
-		t.Errorf("block should be tagged yesmem-tool-prefs, got: %s", text[:min(50, len(text))])
+	if !strings.HasPrefix(text, "[nemons-tool-prefs]") {
+		t.Errorf("block should be tagged nemons-tool-prefs, got: %s", text[:min(50, len(text))])
 	}
 	for _, keyword := range []string{"Edit", "Write", "REPL", "soft-fail", "await Read", "file-tracker", "Agent", "TaskCreate"} {
 		if !strings.Contains(text, keyword) {
@@ -249,8 +249,8 @@ func TestInjectOutputDiscipline_AddsBlock(t *testing.T) {
 	}
 	last := blocks[len(blocks)-1].(map[string]any)
 	text, _ := last["text"].(string)
-	if !strings.HasPrefix(text, "[yesmem-output-discipline]") {
-		t.Errorf("block should be tagged yesmem-output-discipline, got: %s", text[:min(50, len(text))])
+	if !strings.HasPrefix(text, "[nemons-output-discipline]") {
+		t.Errorf("block should be tagged nemons-output-discipline, got: %s", text[:min(50, len(text))])
 	}
 	for _, keyword := range []string{"preamble", "skill-eval", "exploratory", "set_plan", "timestamps", "msg:N"} {
 		if !strings.Contains(text, keyword) {
@@ -274,8 +274,8 @@ func TestInjectCodingDiscipline_AddsBlock(t *testing.T) {
 	}
 	last := blocks[len(blocks)-1].(map[string]any)
 	text, _ := last["text"].(string)
-	if !strings.HasPrefix(text, "[yesmem-coding-discipline]") {
-		t.Errorf("block should be tagged yesmem-coding-discipline, got: %s", text[:min(50, len(text))])
+	if !strings.HasPrefix(text, "[nemons-coding-discipline]") {
+		t.Errorf("block should be tagged nemons-coding-discipline, got: %s", text[:min(50, len(text))])
 	}
 	for _, keyword := range []string{"read", "AskUserQuestion", "half-finished", "browser", "TDD"} {
 		if !strings.Contains(text, keyword) {
@@ -334,8 +334,8 @@ func TestInjectPersonaTone_Verbose(t *testing.T) {
 	last := blocks[len(blocks)-1].(map[string]any)
 	text, _ := last["text"].(string)
 
-	if !strings.HasPrefix(text, "[yesmem-tone]") {
-		t.Errorf("block should be tagged yesmem-tone, got: %s", text[:min(50, len(text))])
+	if !strings.HasPrefix(text, "[nemons-tone]") {
+		t.Errorf("block should be tagged nemons-tone, got: %s", text[:min(50, len(text))])
 	}
 	if !strings.Contains(text, "explanation") {
 		t.Error("verbose tone should mention explanation")
@@ -743,7 +743,7 @@ func TestInjectBeweislast_AddsBlock(t *testing.T) {
 		t.Fatalf("expected 2 blocks, got %d", len(blocks))
 	}
 	text, _ := blocks[1].(map[string]any)["text"].(string)
-	if !strings.HasPrefix(text, "[yesmem-beweislast]") {
+	if !strings.HasPrefix(text, "[nemons-beweislast]") {
 		t.Errorf("block should be tagged: %s", text)
 	}
 	for _, keyword := range []string{"Fabrication", "Claim-vs-proof", "Stance-under-challenge", "Tool-result-honesty", "Long-context-erosion", "Self-check", "mental self-check", "Propagated-claim honesty", "I verify the artifact independently", "Command-exit-0"} {
@@ -769,10 +769,10 @@ func TestInjectFable_AddsBlock(t *testing.T) {
 		t.Fatalf("expected 2 blocks, got %d", len(blocks))
 	}
 	text, _ := blocks[1].(map[string]any)["text"].(string)
-	if !strings.HasPrefix(text, "[yesmem-fable]") {
+	if !strings.HasPrefix(text, "[nemons-fable]") {
 		t.Errorf("block should be tagged: %s", text)
 	}
-	for _, keyword := range []string{"baseline", "rollback", "readback-check", "high-stakes", "overlays [yesmem-beweislast]"} {
+	for _, keyword := range []string{"baseline", "rollback", "readback-check", "high-stakes", "overlays [nemons-beweislast]"} {
 		if !strings.Contains(text, keyword) {
 			t.Errorf("fable block should mention %q", keyword)
 		}
@@ -795,7 +795,7 @@ func TestInjectScopeDiscipline_AddsBlock(t *testing.T) {
 		t.Fatalf("expected 2 blocks, got %d", len(blocks))
 	}
 	text, _ := blocks[1].(map[string]any)["text"].(string)
-	if !strings.HasPrefix(text, "[yesmem-scope-discipline]") {
+	if !strings.HasPrefix(text, "[nemons-scope-discipline]") {
 		t.Errorf("block should be tagged: %s", text)
 	}
 	for _, keyword := range []string{"deliver A", "MUST be surfaced", "scope-drift", "Authorization covers doing"} {
@@ -821,7 +821,7 @@ func TestInjectDelegationContract_AddsBlock(t *testing.T) {
 		t.Fatalf("expected 2 blocks, got %d", len(blocks))
 	}
 	text, _ := blocks[1].(map[string]any)["text"].(string)
-	if !strings.HasPrefix(text, "[yesmem-delegation-contract]") {
+	if !strings.HasPrefix(text, "[nemons-delegation-contract]") {
 		t.Errorf("block should be tagged: %s", text)
 	}
 	for _, keyword := range []string{"self-contained", "goal in one sentence", "parallel dispatch", "Opus", "Sonnet", "Haiku", "structured outputs"} {
@@ -847,7 +847,7 @@ func TestInjectClarifyFirst_AddsBlock(t *testing.T) {
 		t.Fatalf("expected 2 blocks, got %d", len(blocks))
 	}
 	text, _ := blocks[1].(map[string]any)["text"].(string)
-	if !strings.HasPrefix(text, "[yesmem-clarify-first]") {
+	if !strings.HasPrefix(text, "[nemons-clarify-first]") {
 		t.Errorf("block should be tagged: %s", text)
 	}
 	for _, keyword := range []string{"materially different work", "state your assumption", "fire-and-forget"} {
@@ -871,10 +871,10 @@ func TestInjectWikiFirst_AddsBlock(t *testing.T) {
 		t.Fatalf("expected 2 blocks, got %d", len(blocks))
 	}
 	text, _ := blocks[1].(map[string]any)["text"].(string)
-	if !strings.HasPrefix(text, "[yesmem-wiki-first]") {
+	if !strings.HasPrefix(text, "[nemons-wiki-first]") {
 		t.Errorf("block should be tagged: %s", text)
 	}
-	for _, keyword := range []string{"~/.claude/yesmem/wiki/", "BEFORE editing", "gotchas", "learnings", "search_code_index"} {
+	for _, keyword := range []string{"~/.claude/nemons/wiki/", "BEFORE editing", "gotchas", "learnings", "search_code_index"} {
 		if !strings.Contains(text, keyword) {
 			t.Errorf("wiki-first block should mention %q", keyword)
 		}
@@ -891,20 +891,20 @@ func TestInjectWikiFirst_AddsBlockWithProject(t *testing.T) {
 		},
 	}
 
-	InjectWikiFirst(req, "/home/user/projects/yesmem", "~/.claude/yesmem/wiki/yesmem")
+	InjectWikiFirst(req, "/home/user/projects/nemons", "~/.claude/nemons/wiki/nemons")
 
 	blocks := req["system"].([]any)
 	if len(blocks) != 2 {
 		t.Fatalf("expected 2 blocks, got %d", len(blocks))
 	}
 	text, _ := blocks[1].(map[string]any)["text"].(string)
-	if !strings.HasPrefix(text, "[yesmem-wiki-first]") {
+	if !strings.HasPrefix(text, "[nemons-wiki-first]") {
 		t.Errorf("block should be tagged: %s", text)
 	}
 	if !strings.Contains(text, "Project:") {
 		t.Errorf("block should contain Project prefix when project is set: %s", text)
 	}
-	if !strings.Contains(text, "/home/user/projects/yesmem") {
+	if !strings.Contains(text, "/home/user/projects/nemons") {
 		t.Errorf("block should contain project path: %s", text)
 	}
 }
@@ -918,11 +918,11 @@ func TestInjectWikiFirst_NamesConcreteWikiDir(t *testing.T) {
 		},
 	}
 
-	InjectWikiFirst(req, "/home/user/projects/yesmem", "~/.claude/yesmem/wiki/yesmem")
+	InjectWikiFirst(req, "/home/user/projects/nemons", "~/.claude/nemons/wiki/nemons")
 
 	blocks := req["system"].([]any)
 	text, _ := blocks[1].(map[string]any)["text"].(string)
-	if !strings.Contains(text, "wiki/yesmem/files/<path>.md") {
+	if !strings.Contains(text, "wiki/nemons/files/<path>.md") {
 		t.Errorf("block should name the concrete wiki dir for the project: %s", text)
 	}
 	if strings.Contains(text, "wiki/<project>") {
@@ -966,15 +966,15 @@ func TestInjectDirectives_Idempotent(t *testing.T) {
 		tag  string
 		fn   func(map[string]any)
 	}{
-		{"AntDirectives", "yesmem-directives", InjectAntDirectives},
-		{"CLAUDEMDAuthority", "yesmem-enhance", InjectCLAUDEMDAuthority},
-		{"ToolPrefs", "yesmem-tool-prefs", InjectClaudeToolPrefs},
-		{"OutputDiscipline", "yesmem-output-discipline", InjectOutputDiscipline},
-		{"CodingDiscipline", "yesmem-coding-discipline", InjectCodingDiscipline},
-		{"Beweislast", "yesmem-beweislast", InjectBeweislast},
-		{"ScopeDiscipline", "yesmem-scope-discipline", InjectScopeDiscipline},
-		{"DelegationContract", "yesmem-delegation-contract", InjectDelegationContract},
-		{"ClarifyFirst", "yesmem-clarify-first", InjectClarifyFirst},
+		{"AntDirectives", "nemons-directives", InjectAntDirectives},
+		{"CLAUDEMDAuthority", "nemons-enhance", InjectCLAUDEMDAuthority},
+		{"ToolPrefs", "nemons-tool-prefs", InjectClaudeToolPrefs},
+		{"OutputDiscipline", "nemons-output-discipline", InjectOutputDiscipline},
+		{"CodingDiscipline", "nemons-coding-discipline", InjectCodingDiscipline},
+		{"Beweislast", "nemons-beweislast", InjectBeweislast},
+		{"ScopeDiscipline", "nemons-scope-discipline", InjectScopeDiscipline},
+		{"DelegationContract", "nemons-delegation-contract", InjectDelegationContract},
+		{"ClarifyFirst", "nemons-clarify-first", InjectClarifyFirst},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -1023,11 +1023,11 @@ func TestInjectPersonaTone_Idempotent(t *testing.T) {
 	count := 0
 	for _, b := range blocks {
 		text, _ := b.(map[string]any)["text"].(string)
-		if strings.HasPrefix(text, "[yesmem-tone]") {
+		if strings.HasPrefix(text, "[nemons-tone]") {
 			count++
 		}
 	}
 	if count != 1 {
-		t.Errorf("expected exactly one [yesmem-tone] block, found %d", count)
+		t.Errorf("expected exactly one [nemons-tone] block, found %d", count)
 	}
 }

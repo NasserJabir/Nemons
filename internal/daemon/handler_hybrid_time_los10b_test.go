@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // los10bOffset is deliberately ahead of UTC: a lexicographic comparison against

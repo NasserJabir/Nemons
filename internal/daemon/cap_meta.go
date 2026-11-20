@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/capfile"
+	"github.com/NasserJabir/Nemons/internal/capfile"
 )
 
 // ScriptMeta holds one callable script within a cap.

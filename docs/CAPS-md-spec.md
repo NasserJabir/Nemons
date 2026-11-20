@@ -137,7 +137,7 @@ Scripts use **generic function names** instead of provider-specific MCP tools:
 
 | Generic function | Provider maps to (example) | Purpose |
 |---|---|---|
-| `store(...)` | `mcp__yesmem__cap_store` | Per-cap CRUD tables + blob storage |
+| `store(...)` | `mcp__nemons__cap_store` | Per-cap CRUD tables + blob storage |
 | `web(...)` | `WebFetch` / `WebSearch` | HTTP fetch + web search |
 | `file(...)` | `Read` / `Write` / `Glob` | Filesystem I/O |
 

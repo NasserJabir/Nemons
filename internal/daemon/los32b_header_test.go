@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/channeltext"
+	"github.com/NasserJabir/Nemons/internal/channeltext"
 )
 
 // los32bDialogHeaderLines counts the lines a receiving agent reads as a message header.

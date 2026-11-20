@@ -124,7 +124,7 @@ func runGuardWithInput(t *testing.T, stdin string) string {
 	td := t.TempDir()
 	t.Setenv("HOME", td)
 	t.Setenv("ANTHROPIC_API_KEY", "")
-	return runGuardCapture(t, filepath.Join(td, ".claude", "yesmem"), stdin)
+	return runGuardCapture(t, filepath.Join(td, ".claude", "nemons"), stdin)
 }
 
 // runGuardCapture swaps os.Stdin/os.Stdout for pipes, runs RunGuard with the
@@ -210,18 +210,18 @@ func guardEnv(t *testing.T, apiURL string) string {
 	td := t.TempDir()
 	t.Setenv("HOME", td)
 	t.Setenv("ANTHROPIC_API_KEY", "")
-	writeFile(t, filepath.Join(td, ".claude", "yesmem", "config.yaml"),
+	writeFile(t, filepath.Join(td, ".claude", "nemons", "config.yaml"),
 		"extraction:\n  model: deepseek-v4-flash\n")
 	writeFile(t, filepath.Join(td, ".cache", "opencode", "models.json"),
 		fmt.Sprintf(`{"deepseek":{"api":%q,"models":{"deepseek-v4-flash":{}}}}`, apiURL))
 	writeFile(t, filepath.Join(td, ".local", "share", "opencode", "auth.json"),
 		`{"deepseek":{"key":"sk-test123"}}`)
-	// RunGuard resolves RULES.md as dataDir/../../memory/yesmem/RULES.md. The catalogue carries the rules the
+	// RunGuard resolves RULES.md as dataDir/../../memory/nemons/RULES.md. The catalogue carries the rules the
 	// mocked answers cite: a BLOCK that cites a rule the catalogue does not hold is a model invention and is
 	// dropped in the core, which is a different case and is covered there.
-	writeFile(t, filepath.Join(td, "memory", "yesmem", "RULES.md"),
+	writeFile(t, filepath.Join(td, "memory", "nemons", "RULES.md"),
 		"1. Never run destructive commands.\n7. Never force-push a shared branch.\n14. Verify before overwriting a file.\n25. No destructive shell commands.\n32. Never merge pull requests via CLI or API.\n")
-	return filepath.Join(td, ".claude", "yesmem")
+	return filepath.Join(td, ".claude", "nemons")
 }
 
 // guardDecisionServer returns an httptest server that answers every guard

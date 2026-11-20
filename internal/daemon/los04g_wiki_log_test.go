@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/codescan"
+	"github.com/NasserJabir/Nemons/internal/codescan"
 )
 
 const los04gForgedProject = "los04g\nwarn: forged wiki line"

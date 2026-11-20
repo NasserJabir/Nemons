@@ -359,7 +359,7 @@ func TestTranslateAnthropicUserMsg_TextOnlyArrayPreserved(t *testing.T) {
 
 // Vision: an Anthropic image block (type:"image" with source.{media_type,data})
 // must survive reverse translation as an OpenAI image_url part. Without this,
-// opencode → yesmem-proxy → DeepSeek silently strips images and DeepSeek
+// opencode → nemons-proxy → DeepSeek silently strips images and DeepSeek
 // responds "I can't see an image" even though the user attached one.
 func TestTranslateAnthropicUserMsg_PreservesImageBlock(t *testing.T) {
 	m := map[string]any{

@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // runClusterGC reports cluster rows no live project maps to and deletes them with
@@ -19,14 +19,14 @@ import (
 // reason.
 //
 // The stale change-detection hashes live in runtime.db, which a read-only handle
-// cannot reach (it maps the proxy state onto yesmem.db), so they are collected with
+// cannot reach (it maps the proxy state onto nemons.db), so they are collected with
 // --apply only. Reporting an empty list from the wrong file would be a false "all
 // clean".
 func runClusterGC(args []string) {
 	apply := hasFlag(args, "--apply")
 	migrate := hasFlag(args, "--migrate")
 
-	path := filepath.Join(yesmemDataDir(), "yesmem.db")
+	path := filepath.Join(nemonsDataDir(), "nemons.db")
 	if !apply {
 		// Nothing to report on a store that was never created, and the read-only
 		// open cannot create it.

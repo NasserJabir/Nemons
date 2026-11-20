@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/codescan"
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/wikidir"
+	"github.com/NasserJabir/Nemons/internal/codescan"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/wikidir"
 )
 
 // scanDouble fails every scan so runWikiOnce renders without a code graph.
@@ -71,11 +71,11 @@ func worktreeRoot(t *testing.T) string {
 // design, so these fixtures cannot use it.
 func fixtureProjectDir(t *testing.T, name string) string {
 	t.Helper()
-	dir := filepath.Join(worktreeRoot(t), ".yesmem", "tmp", "wikipath", name)
+	dir := filepath.Join(worktreeRoot(t), ".nemons", "tmp", "wikipath", name)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		t.Fatalf("mkdir fixture %s: %v", dir, err)
 	}
-	t.Cleanup(func() { os.RemoveAll(filepath.Join(worktreeRoot(t), ".yesmem", "tmp", "wikipath")) })
+	t.Cleanup(func() { os.RemoveAll(filepath.Join(worktreeRoot(t), ".nemons", "tmp", "wikipath")) })
 	return dir
 }
 
@@ -90,11 +90,11 @@ func sameNameFixtures(t *testing.T) (string, string) {
 // --- YM-6: the writer must use the same wiki directory as the readers ---
 
 // Regression YM-6: the writer used the full project path, so the wiki landed in
-// wiki/home/tester/memory/yesmem/ while every reader (code map, wiki-first
-// directive, docs) points at wiki/yesmem/.
+// wiki/home/tester/memory/nemons/ while every reader (code map, wiki-first
+// directive, docs) points at wiki/nemons/.
 func TestRunWikiOnce_WritesToProjectShortNameDir(t *testing.T) {
 	s := mustStore(t)
-	projDir := fixtureProjectDir(t, "single/yesmemtest")
+	projDir := fixtureProjectDir(t, "single/nemonstest")
 	insertLearningForProject(t, s, projDir)
 	insertSessionForProject(t, s, projDir, time.Now().Format(time.RFC3339))
 

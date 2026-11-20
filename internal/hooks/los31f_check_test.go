@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // los31fBlocked asserts that a Bash command is blocked and that the block names the
@@ -80,8 +80,8 @@ func TestLos31fClobberRedirectReachesTheGuard(t *testing.T) {
 		{"settings file", `echo '{}' >| $HOME/.claude/settings.json`, settings},
 		{"settings file with an attached target", `echo '{}' >|$HOME/.claude/settings.json`, settings},
 		{"settings file behind an fd prefix", `echo '{}' 1>| $HOME/.claude/settings.json`, settings},
-		{"generated ops file", `echo x >| $HOME/.claude/yesmem-ops.md`, "yesmem-ops.md"},
-		{"generated ops file with an attached target", `echo x >|$HOME/.claude/yesmem-ops.md`, "yesmem-ops.md"},
+		{"generated ops file", `echo x >| $HOME/.claude/nemons-ops.md`, "nemons-ops.md"},
+		{"generated ops file with an attached target", `echo x >|$HOME/.claude/nemons-ops.md`, "nemons-ops.md"},
 		{"relative target after cd", `cd $HOME/.claude && echo '{}' >| settings.json`, settings},
 	}
 	for _, tt := range blocked {
@@ -118,11 +118,11 @@ func TestLos31fQuotedHomeReachesTheGuard(t *testing.T) {
 	}{
 		{"quoted home", `echo '{}' > "$HOME"/.claude/settings.json`, settings},
 		{"quoted brace home", `echo '{}' > "${HOME}"/.claude/settings.json`, settings},
-		{"quoted ops file", `echo x > "$HOME"/.claude/yesmem-ops.md`, "yesmem-ops.md"},
+		{"quoted ops file", `echo x > "$HOME"/.claude/nemons-ops.md`, "nemons-ops.md"},
 		{"quoted directory part", `echo '{}' > "$HOME/.claude"/settings.json`, settings},
 		{"quote opened after the prefix", `echo '{}' > $HOME"/.claude/settings.json"`, settings},
 		{"cd into a quoted home", `cd "$HOME"/.claude && echo '{}' > settings.json`, settings},
-		{"copy into a quoted home", `cp /x/yesmem-ops.md "$HOME"/.claude/`, "yesmem-ops.md"},
+		{"copy into a quoted home", `cp /x/nemons-ops.md "$HOME"/.claude/`, "nemons-ops.md"},
 	}
 	for _, tt := range blocked {
 		t.Run(tt.name, func(t *testing.T) {
@@ -158,7 +158,7 @@ func TestLos31fLineContinuationReachesTheGuard(t *testing.T) {
 		{"continuation inside the file name", "echo '{}' > $HOME/.claude/settings.j\\\nson", settings},
 		{"continuation inside the directory name", "echo '{}' > $HOME/\\\n.claude/settings.json", settings},
 		{"continuation behind the operator", "echo '{}' >\\\n$HOME/.claude/settings.json", settings},
-		{"continuation inside the ops file name", "echo x > $HOME/.claude/yesmem-op\\\ns.md", "yesmem-ops.md"},
+		{"continuation inside the ops file name", "echo x > $HOME/.claude/nemons-op\\\ns.md", "nemons-ops.md"},
 		{"continuation after a clobber redirect", "echo '{}' >|\\\n$HOME/.claude/settings.json", settings},
 		{"continuation after an apostrophe in double quotes", "echo \"it's\" > $HOME/.claude/settings.j\\\nson", settings},
 		{"continuation inside a quoted path", "echo '{}' > \"$HOME/.claude/settings.j\\\nson\"", settings},
@@ -166,7 +166,7 @@ func TestLos31fLineContinuationReachesTheGuard(t *testing.T) {
 		{"continuation behind a comment after a semicolon", "echo x;# c \\\ncp y $HOME/.claude/settings.json", settings},
 		{"continuation behind a comment after &&", "echo x&&# c \\\ncp y $HOME/.claude/settings.json", settings},
 		{"continuation behind a comment after a parenthesis", "(echo x)# c \\\ncp y $HOME/.claude/settings.json", settings},
-		{"continuation behind a comment after a semicolon into the ops file", "echo x;# c \\\ntee $HOME/.claude/yesmem-ops.md", "yesmem-ops.md"},
+		{"continuation behind a comment after a semicolon into the ops file", "echo x;# c \\\ntee $HOME/.claude/nemons-ops.md", "nemons-ops.md"},
 		{"continuation inside a brace expansion", "echo ${zz:- #} > $HOME/.claude/settings.j\\\nson", settings},
 		{"continuation between the dollar and its brace", "echo $\\\n{zz:- #} > $HOME/.claude/settings.j\\\nson", settings},
 		// A heredoc body is not executed: its unbalanced "${" must not swallow the
@@ -192,10 +192,10 @@ func TestLos31fLineContinuationReachesTheGuard(t *testing.T) {
 	}{
 		{"continuation into an unrelated file", "echo x > " + filepath.Join(home, ".claude", "other.j") + "\\\nson"},
 		{"continuation inside a single quoted body", "printf 'a\\\nb' > " + filepath.Join(home, "out.txt")},
-		// The shell names a file "yesmem-ops.m\" here; a join that swallowed the escaped
+		// The shell names a file "nemons-ops.m\" here; a join that swallowed the escaped
 		// backslash would invent the protected name and block.
-		{"an escaped backslash does not continue the line", "echo A > " + filepath.Join(home, ".claude", "yesmem-ops.m") + "\\\\\nd"},
-		{"a continued comment is not an operand", "cp a b # \\\n$HOME/.claude/yesmem-ops.md"},
+		{"an escaped backslash does not continue the line", "echo A > " + filepath.Join(home, ".claude", "nemons-ops.m") + "\\\\\nd"},
+		{"a continued comment is not an operand", "cp a b # \\\n$HOME/.claude/nemons-ops.md"},
 	}
 	for _, tt := range allowed {
 		t.Run(tt.name, func(t *testing.T) {

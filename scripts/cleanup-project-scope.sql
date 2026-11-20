@@ -6,7 +6,7 @@
 -- pre-first-user-message context (briefing doc index, docs-hint, caps
 -- catalog), so a mis-scoped row leaks across projects.
 --
--- Target DB: ~/.claude/yesmem/yesmem.db  (only DB holding learnings/doc_sources)
+-- Target DB: ~/.claude/nemons/nemons.db  (only DB holding learnings/doc_sources)
 -- Idempotent: every statement writes a fixed value, so a second run is a no-op.
 -- Rows that already carry a non-empty project are never touched.
 --
@@ -28,7 +28,7 @@
 --   | id  | name      | proposed project                            | evidence                                                                 | conf |
 --   |-----|-----------|---------------------------------------------|--------------------------------------------------------------------------|------|
 --   | 122 | sulu-docs | /var/www/html/GreenWashProjekt/greenWebsite | path = /var/www/html/GreenWashProjekt/greenWebsite/docs/sulu-official     | high |
---   | 106 | rules     | /home/chief/memory/yesmem                   | path = /home/chief/memory/yesmem/CLAUDE.md, is_rules=1                    | high |
+--   | 106 | rules     | /home/chief/memory/nemons                   | path = /home/chief/memory/nemons/CLAUDE.md, is_rules=1                    | high |
 --   | 112 | go-effective | '' (global)                              | generic Go style reference, no project path                              | high |
 --   | 113 | go-stdlib | '' (global)                                | generic Go stdlib reference, no project path                             | high |
 --   | cinnamon-* (15, ids 87..101) | both cinnamon projects | see R3-3 below                                  | med  |
@@ -81,18 +81,18 @@ UPDATE learnings SET project='/var/www/html/GreenWashProjekt/greenwashCCm19/cook
  WHERE id=91447 AND category='cap' AND superseded_by IS NULL AND (project='' OR project IS NULL);
 
 -- --- doc_sources ------------------------------------------------------------
--- R3-1: rows stranded on the archived project string 'yesmem-projects-ghost'
--- (sessions under /home/chief/archiv/yesmem-projects-ghost, last 2026-08-18).
+-- R3-1: rows stranded on the archived project string 'nemons-projects-ghost'
+-- (sessions under /home/chief/archiv/nemons-projects-ghost, last 2026-08-18).
 -- A dead project value makes them invisible in every project; two of them are
--- genuinely global Go references, one belongs to the yesmem repo itself.
-UPDATE doc_sources SET project='/home/chief/memory/yesmem'
- WHERE id=106 AND name='rules' AND project='yesmem-projects-ghost';
+-- genuinely global Go references, one belongs to the nemons repo itself.
+UPDATE doc_sources SET project='/home/chief/memory/nemons'
+ WHERE id=106 AND name='rules' AND project='nemons-projects-ghost';
 
 UPDATE doc_sources SET project=''
- WHERE id=112 AND name='go-effective' AND project='yesmem-projects-ghost';
+ WHERE id=112 AND name='go-effective' AND project='nemons-projects-ghost';
 
 UPDATE doc_sources SET project=''
- WHERE id=113 AND name='go-stdlib' AND project='yesmem-projects-ghost';
+ WHERE id=113 AND name='go-stdlib' AND project='nemons-projects-ghost';
 
 UPDATE doc_sources SET project='/var/www/html/GreenWashProjekt/greenWebsite'
  WHERE id=122 AND name='sulu-docs' AND (project='' OR project IS NULL);
@@ -132,7 +132,7 @@ UPDATE doc_sources SET project='/home/chief/performance/cinnamon'
 
 -- --- R4-5: remove the orphaned cap reddit_reminder_today (learnings.id=71692) --
 -- User decision 2026-10-02: the cap can go. capProjectVisible() matches the exact
--- project string, so on the dead 'yesmem-projects-ghost' it is invisible to every
+-- project string, so on the dead 'nemons-projects-ghost' it is invisible to every
 -- session; its one-shot Telegram reminder job is done.
 -- Mirrors cap_delete's semantics for the learnings row + FK children. Note:
 -- cap_delete writes `session_active_caps WHERE capability_name=...`, but the real
@@ -161,7 +161,7 @@ DELETE FROM session_active_caps          WHERE cap_name='reddit_reminder_today' 
 
 -- LIMITATION: when a session-cap store exists, activated caps live in caps.db
 -- (storage/session_caps.go capDB()), not here — so this statement is a no-op for
--- the authoritative store. Verified 0 rows for this cap in both yesmem.db and
+-- the authoritative store. Verified 0 rows for this cap in both nemons.db and
 -- caps.db, so nothing is left dangling; a future "remove cap" migration must
 -- target caps.db as well.
 
@@ -204,4 +204,4 @@ SELECT 'sulu_docs_still_global' AS check_name, count(*) AS n
   FROM doc_sources WHERE id=122 AND (project='' OR project IS NULL);
 
 SELECT 'ghost_rows_remaining' AS check_name, count(*) AS n
-  FROM doc_sources WHERE id IN (106, 112, 113) AND project='yesmem-projects-ghost';
+  FROM doc_sources WHERE id IN (106, 112, 113) AND project='nemons-projects-ghost';

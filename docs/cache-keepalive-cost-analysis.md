@@ -2,7 +2,7 @@
 
 **Model:** Claude Opus 4.6
 **Basis:** 81 sessions, 22,356 requests over 33 days (March 12 – April 13, 2026)
-**Source:** YesMem proxy logs (yesmem TIDs only, subagents and test sessions filtered)
+**Source:** Nemons proxy logs (nemons TIDs only, subagents and test sessions filtered)
 
 ## Anthropic Prompt Cache Pricing
 
@@ -52,7 +52,7 @@ A "Cache Miss" converts what would be a $0.50/MTok Read into a $6.25/MTok (5min)
 
 Two additional cache invalidation mechanisms exist regardless of TTL (see [#47098](https://github.com/anthropics/claude-code/issues/47098), [#47107](https://github.com/anthropics/claude-code/issues/47107)):
 
-1. **System prompt ordering instability**: Skills, CLAUDE.md, MCP blocks in `messages[0]` reorder non-deterministically between sessions. YesMem's `ReplaceSystemBlock` stabilizes this.
+1. **System prompt ordering instability**: Skills, CLAUDE.md, MCP blocks in `messages[0]` reorder non-deterministically between sessions. Nemons's `ReplaceSystemBlock` stabilizes this.
 2. **git status changes**: File status updates in the system prompt change the byte prefix, busting cache on every file change.
 
 ## Empirical Data
@@ -140,7 +140,7 @@ All subscription tiers share the same 1h cache TTL (when working correctly). The
 1. **No write surcharge**: 1h writes cost the same budget weight as 5min writes (~2.0x). The factor that makes 1h a trap for API/Pro does not exist.
 2. **Keepalive pings are FREE** (Max): Reads = 0.0x quota weight. There is zero cost to keeping the cache alive. For Team/Enterprise, pings are cheap reads.
 3. **37.5% budget savings** (Max): 5min without keepalive burns 37.5% more budget than 1h + keepalive. This explains the Max users on Reddit exhausting their 5h quota in 1.5 hours.
-4. **Currently broken**: As of April 2026, some users report 5min TTL instead of the intended 1h. YesMem's proxy forces 1h via `UpgradeCacheTTL`, working around this regression.
+4. **Currently broken**: As of April 2026, some users report 5min TTL instead of the intended 1h. Nemons's proxy forces 1h via `UpgradeCacheTTL`, working around this regression.
 
 ## Recommended Configuration
 
@@ -174,7 +174,7 @@ proxy:
 
 4. **TTL rarely matters within sessions**: 96.4% of gaps are under 5 minutes. The 3.6% that exceed 5min cause disproportionate cost.
 
-5. **System prompt instability may matter more than TTL**: Non-deterministic block ordering and git-status changes bust cache regardless of TTL. Stabilizing the prefix (which YesMem's proxy does) is a prerequisite for any TTL strategy to work.
+5. **System prompt instability may matter more than TTL**: Non-deterministic block ordering and git-status changes bust cache regardless of TTL. Stabilizing the prefix (which Nemons's proxy does) is a prerequisite for any TTL strategy to work.
 
 6. **Diminishing returns above 6 pings**: Gaps >27min are rare enough that additional pings don't pay for themselves (API/Pro) or are free but prevent very few additional busts (Max).
 

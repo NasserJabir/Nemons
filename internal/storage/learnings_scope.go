@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // GetLearningForViewer reads one learning as the viewer's agent would see it.

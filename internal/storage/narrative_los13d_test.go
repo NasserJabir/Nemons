@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // los13dSeedSession writes a session row plus its messages. textMsgs become
@@ -66,7 +66,7 @@ func los13dInsertNarrative(t *testing.T, s *Store, sessionID, project, content s
 // one project on the live DB).
 func TestDeleteOldNarratives_ReachesTheCallersProject(t *testing.T) {
 	s := mustOpen(t)
-	project := "/home/tester/memory/yesmem"
+	project := "/home/tester/memory/nemons"
 	base := time.Now().Truncate(time.Second).Add(-4 * time.Hour)
 	for i := 0; i < 4; i++ {
 		los13dInsertNarrative(t, s, fmt.Sprintf("sess-%d", i), project, fmt.Sprintf("story %d", i), base.Add(time.Duration(i)*time.Minute))
@@ -104,7 +104,7 @@ func TestDeleteOldNarratives_ReachesTheCallersProject(t *testing.T) {
 // exist and are recallable.
 func TestCoverageStats_NarrativeDoneCountsActiveRows(t *testing.T) {
 	s := mustOpen(t)
-	project := "/home/tester/memory/yesmem"
+	project := "/home/tester/memory/nemons"
 	now := time.Now().Truncate(time.Second)
 
 	gone := los13dSeedSession(t, s, "sess-gone", project, 6, 0)
@@ -208,7 +208,7 @@ func TestSupersedeShortNarratives_SurvivesWithoutReadHandle(t *testing.T) {
 // and a marker without a narrative keeps the session unnarrated for good.
 func TestDeleteOldNarratives_KeepsTheRowJustWritten(t *testing.T) {
 	s := mustOpen(t)
-	project := "/home/tester/memory/yesmem"
+	project := "/home/tester/memory/nemons"
 	base := time.Now().Truncate(time.Second).Add(-4 * time.Hour)
 
 	// An old session: its narrative is written now but carries the old start time.
@@ -238,7 +238,7 @@ func TestDeleteOldNarratives_KeepsTheRowJustWritten(t *testing.T) {
 // first victim just because it describes an old session.
 func TestDeleteOldNarratives_SparesTheRowWrittenLast(t *testing.T) {
 	s := mustOpen(t)
-	project := "/home/tester/memory/yesmem"
+	project := "/home/tester/memory/nemons"
 	base := time.Now().Truncate(time.Second).Add(-4 * time.Hour)
 
 	los13dInsertNarrative(t, s, "sess-newest", project, "newest story", base.Add(2*time.Minute))
@@ -260,13 +260,13 @@ func TestDeleteOldNarratives_StaysInsideTheRepository(t *testing.T) {
 	s := mustOpen(t)
 	base := time.Now().Truncate(time.Second).Add(-4 * time.Hour)
 	for i := 0; i < 3; i++ {
-		los13dInsertNarrative(t, s, fmt.Sprintf("own-%d", i), "/work/a/yesmem", fmt.Sprintf("own %d", i), base.Add(time.Duration(i)*time.Minute))
+		los13dInsertNarrative(t, s, fmt.Sprintf("own-%d", i), "/work/a/nemons", fmt.Sprintf("own %d", i), base.Add(time.Duration(i)*time.Minute))
 	}
 	// Same basename, different repository, oldest session time: a canonical
 	// projection would rank it out and delete it.
-	foreign := los13dInsertNarrative(t, s, "foreign", "/work/b/yesmem", "foreign story", base.Add(-time.Hour))
+	foreign := los13dInsertNarrative(t, s, "foreign", "/work/b/nemons", "foreign story", base.Add(-time.Hour))
 
-	deleted, err := s.DeleteOldNarratives("/work/a/yesmem", 2, 0)
+	deleted, err := s.DeleteOldNarratives("/work/a/nemons", 2, 0)
 	if err != nil {
 		t.Fatalf("delete old narratives: %v", err)
 	}

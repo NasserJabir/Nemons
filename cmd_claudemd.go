@@ -7,10 +7,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/carsteneu/yesmem/internal/claudemd"
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/claudemd"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 func runClaudeMd() {
@@ -18,12 +18,12 @@ func runClaudeMd() {
 	project := flags.String("project", "", "project short name (DB key)")
 	projectDir := flags.String("dir", "", "project filesystem path")
 	doSetup := flags.Bool("setup", false, "inject @-import into CLAUDE.md and update .gitignore")
-	opencode := flags.Bool("opencode", false, "write AGENTS.md at the project root instead of .claude/yesmem-ops.md")
+	opencode := flags.Bool("opencode", false, "write AGENTS.md at the project root instead of .claude/nemons-ops.md")
 	all := flags.Bool("all", false, "regenerate all known projects")
 	dryRun := flags.Bool("dry-run", false, "show what would be regenerated (with --all)")
 	flags.Parse(os.Args[2:])
 
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 	cfg, err := config.Load(filepath.Join(dataDir, "config.yaml"))
 	if err != nil {
 		log.Fatalf("config: %v", err)
@@ -41,8 +41,8 @@ func runClaudeMd() {
 	}
 
 	if *project == "" || *projectDir == "" {
-		fmt.Fprintln(os.Stderr, "usage: yesmem claudemd --project <name> --dir <path> [--setup] [--opencode]")
-		fmt.Fprintln(os.Stderr, "       yesmem claudemd --all [--dry-run] [--opencode]")
+		fmt.Fprintln(os.Stderr, "usage: nemons claudemd --project <name> --dir <path> [--setup] [--opencode]")
+		fmt.Fprintln(os.Stderr, "       nemons claudemd --all [--dry-run] [--opencode]")
 		os.Exit(1)
 	}
 

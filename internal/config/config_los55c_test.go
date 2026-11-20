@@ -79,7 +79,7 @@ func TestLos55c_ConfigBackupsStayBounded(t *testing.T) {
 	}
 }
 
-// Befund 7: rule_guard.model wird von plugins/opencode-yesmem-v2/rule_guard.ts
+// Befund 7: rule_guard.model wird von plugins/opencode-nemons-v2/rule_guard.ts
 // gelesen, stand aber in keinem Go-Schema. Damit war der Key per Hand
 // editierbar, aber nicht adressierbar: NormalizeSetPath wies ihn ab, und
 // checkKeys fuehrte ihn nur ueber eine Sonderliste als fremd.

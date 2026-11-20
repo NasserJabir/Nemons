@@ -6,12 +6,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/daemon"
 )
 
 func runLLMComplete(args []string) {
 	if len(args) < 1 {
-		fmt.Fprintln(os.Stderr, "usage: yesmem llm-complete '{json}'")
+		fmt.Fprintln(os.Stderr, "usage: nemons llm-complete '{json}'")
 		os.Exit(1)
 	}
 
@@ -21,7 +21,7 @@ func runLLMComplete(args []string) {
 		os.Exit(1)
 	}
 
-	client, err := daemon.DialTimeout(yesmemDataDir(), 30*time.Second)
+	client, err := daemon.DialTimeout(nemonsDataDir(), 30*time.Second)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "llm-complete: connect to daemon:", err)
 		os.Exit(1)

@@ -18,7 +18,7 @@ func TestJournalSizeLimit_TruncatesWalAfterCheckpoint(t *testing.T) {
 	const walLimit = 10 * 1024 * 1024 // 10 MB, must match openSQLite() value
 
 	dir := t.TempDir()
-	dbPath := filepath.Join(dir, "yesmem.db")
+	dbPath := filepath.Join(dir, "nemons.db")
 	walPath := dbPath + "-wal"
 
 	s, err := Open(dbPath)

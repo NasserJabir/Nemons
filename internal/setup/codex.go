@@ -25,10 +25,10 @@ type codexConfigState struct {
 	InstructionsPresent    bool
 }
 
-// yesmemCodexToolNames is the authoritative list of YesMem MCP tools
+// nemonsCodexToolNames is the authoritative list of Nemons MCP tools
 // for which codex per-tool approvals are generated.
 // Updated from internal/mcp/server.go registerTools().
-var yesmemCodexToolNames = []string{
+var nemonsCodexToolNames = []string{
 	"activate_cap", "broadcast", "cap_proposal_decide", "cap_store",
 	"complete_plan", "deactivate_cap", "deep_search", "dismiss_code_nav",
 	"dismiss_repl_pattern", "docs_search", "execute_cap", "expand_context",
@@ -54,7 +54,7 @@ func codexConfigPath(home string) string {
 }
 
 func codexInstructionsPath(home string) string {
-	return filepath.Join(home, ".codex", "instructions", "yesmem.md")
+	return filepath.Join(home, ".codex", "instructions", "nemons.md")
 }
 
 func ensureCodexSetup(home, binaryPath string) error {
@@ -142,16 +142,16 @@ func inspectCodexConfigContent(content, instructionsPath string) codexConfigStat
 	}
 
 	modelProvider, _ := topLevelStringValue(content, "model_provider")
-	providerSection, hasProviderSection := sectionText(content, "model_providers.yesmem")
-	state.ProviderConfigured = modelProvider == "yesmem" &&
+	providerSection, hasProviderSection := sectionText(content, "model_providers.nemons")
+	state.ProviderConfigured = modelProvider == "nemons" &&
 		hasProviderSection &&
 		strings.Contains(providerSection, `base_url = "http://127.0.0.1:9099/v1"`) &&
 		strings.Contains(providerSection, `env_key = "OPENAI_API_KEY"`)
 
-	mcpSection, hasMCPSection := sectionText(content, "mcp_servers.yesmem")
+	mcpSection, hasMCPSection := sectionText(content, "mcp_servers.nemons")
 	state.MCPConfigured = hasMCPSection &&
 		strings.Contains(mcpSection, "command = ") &&
-		strings.Contains(strings.ToLower(mcpSection), "yesmem") &&
+		strings.Contains(strings.ToLower(mcpSection), "nemons") &&
 		strings.Contains(mcpSection, `args = ["mcp"]`)
 
 	instructionsValue, hasInstructions := topLevelStringValue(content, "developer_instructions_file")
@@ -175,12 +175,12 @@ func codexProxyReachable() bool {
 
 func mergeCodexConfigContent(content, binaryPath, instructionsPath string) string {
 	content = normalizeTOMLContent(content)
-	content = upsertTopLevelString(content, "model_provider", "yesmem")
+	content = upsertTopLevelString(content, "model_provider", "nemons")
 	content = upsertTopLevelString(content, "developer_instructions_file", instructionsPath)
 	// Remove old approval_policy = "never" (doesn't work for MCP tool calls, see Learning #45002)
 	content = removeTopLevelKeyMatching(content, "approval_policy", func(value string) bool { return true })
-	content = upsertSection(content, "model_providers.yesmem", renderCodexProviderSection())
-	content = upsertSection(content, "mcp_servers.yesmem", renderCodexMCPSection(binaryPath))
+	content = upsertSection(content, "model_providers.nemons", renderCodexProviderSection())
+	content = upsertSection(content, "mcp_servers.nemons", renderCodexMCPSection(binaryPath))
 	content = upsertCodexToolApprovalSections(content)
 	return normalizeTOMLContent(content)
 }
@@ -188,22 +188,22 @@ func mergeCodexConfigContent(content, binaryPath, instructionsPath string) strin
 func removeCodexConfigContent(content, instructionsPath string) string {
 	content = normalizeTOMLContent(content)
 	content = removeTopLevelKeyMatching(content, "model_provider", func(value string) bool {
-		return value == "yesmem"
+		return value == "nemons"
 	})
 	content = removeTopLevelKeyMatching(content, "developer_instructions_file", func(value string) bool {
 		return matchesCodexInstructionsPath(value, instructionsPath)
 	})
 	content = removeTopLevelKeyMatching(content, "approval_policy", func(value string) bool { return true })
-	content = removeSection(content, "model_providers.yesmem")
+	content = removeSection(content, "model_providers.nemons")
 	content = removeCodexToolApprovalSections(content)
-	content = removeSection(content, "mcp_servers.yesmem")
+	content = removeSection(content, "mcp_servers.nemons")
 	return normalizeTOMLContent(content)
 }
 
 func renderCodexProviderSection() string {
 	return strings.Join([]string{
-		"[model_providers.yesmem]",
-		`name = "OpenAI via YesMem Proxy"`,
+		"[model_providers.nemons]",
+		`name = "OpenAI via Nemons Proxy"`,
 		`base_url = "http://127.0.0.1:9099/v1"`,
 		`env_key = "OPENAI_API_KEY"`,
 	}, "\n")
@@ -211,7 +211,7 @@ func renderCodexProviderSection() string {
 
 func renderCodexMCPSection(binaryPath string) string {
 	return strings.Join([]string{
-		"[mcp_servers.yesmem]",
+		"[mcp_servers.nemons]",
 		fmt.Sprintf("command = %s", strconv.Quote(binaryPath)),
 		`args = ["mcp"]`,
 	}, "\n")
@@ -220,9 +220,9 @@ func renderCodexMCPSection(binaryPath string) string {
 // renderCodexToolApprovals returns TOML sections for per-tool auto-approval.
 func renderCodexToolApprovals() string {
 	var out []string
-	for _, name := range yesmemCodexToolNames {
+	for _, name := range nemonsCodexToolNames {
 		out = append(out, "")
-		out = append(out, fmt.Sprintf("[mcp_servers.yesmem.tools.%s]", name))
+		out = append(out, fmt.Sprintf("[mcp_servers.nemons.tools.%s]", name))
 		out = append(out, `approval_mode = "approve"`)
 	}
 	return strings.Join(out, "\n") + "\n"
@@ -250,7 +250,7 @@ func detectCodexBinary() string {
 	return ""
 }
 
-// upsertCodexToolApprovalSections ensures all yesmem tools have approval sections.
+// upsertCodexToolApprovalSections ensures all nemons tools have approval sections.
 func upsertCodexToolApprovalSections(content string) string {
 	content = removeCodexToolApprovalSections(content)
 	content = normalizeTOMLContent(content)
@@ -261,14 +261,14 @@ func upsertCodexToolApprovalSections(content string) string {
 	return normalizeTOMLContent(content)
 }
 
-// removeCodexToolApprovalSections strips all [mcp_servers.yesmem.tools.*] sections.
+// removeCodexToolApprovalSections strips all [mcp_servers.nemons.tools.*] sections.
 func removeCodexToolApprovalSections(content string) string {
 	lines := splitTOMLLines(content)
 	var out []string
 	skip := false
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
-		if strings.HasPrefix(trimmed, "[mcp_servers.yesmem.tools.") {
+		if strings.HasPrefix(trimmed, "[mcp_servers.nemons.tools.") {
 			skip = true
 			continue
 		}
@@ -283,10 +283,10 @@ func removeCodexToolApprovalSections(content string) string {
 	return normalizeTOMLContent(strings.Join(out, "\n"))
 }
 
-// codexToolApprovalsPresent returns true if all yesmem tools have approval sections.
+// codexToolApprovalsPresent returns true if all nemons tools have approval sections.
 func codexToolApprovalsPresent(content string) bool {
-	for _, name := range yesmemCodexToolNames {
-		needle := fmt.Sprintf("[mcp_servers.yesmem.tools.%s]", name)
+	for _, name := range nemonsCodexToolNames {
+		needle := fmt.Sprintf("[mcp_servers.nemons.tools.%s]", name)
 		if !strings.Contains(content, needle) {
 			return false
 		}
@@ -296,9 +296,9 @@ func codexToolApprovalsPresent(content string) bool {
 
 func defaultCodexInstructions() string {
 	return strings.TrimSpace(`
-# YesMem Memory Integration
+# Nemons Memory Integration
 
-YesMem is available through MCP tools and a local proxy.
+Nemons is available through MCP tools and a local proxy.
 
 Before substantial work, check existing memory:
 - use hybrid_search or search for prior context
@@ -531,10 +531,10 @@ func unquoteTOMLString(value string) string {
 func matchesCodexInstructionsPath(value, instructionsPath string) bool {
 	value = filepath.ToSlash(strings.TrimSpace(value))
 	instructionsPath = filepath.ToSlash(strings.TrimSpace(instructionsPath))
-	if value == instructionsPath || value == "~/.codex/instructions/yesmem.md" {
+	if value == instructionsPath || value == "~/.codex/instructions/nemons.md" {
 		return true
 	}
-	return strings.HasSuffix(value, "/.codex/instructions/yesmem.md")
+	return strings.HasSuffix(value, "/.codex/instructions/nemons.md")
 }
 
 func fileExists(path string) bool {

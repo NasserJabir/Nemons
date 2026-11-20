@@ -9,7 +9,7 @@ func TestLos32cScheduledJobKeepsItsProject(t *testing.T) {
 	s := mustOpen(t)
 	defer s.Close()
 
-	const project = "/home/tester/memory/yesmem"
+	const project = "/home/tester/memory/nemons"
 	if err := s.SaveScheduledJob(ScheduledJobRow{
 		ID: "sched-los32c-storage", Name: "los32c-storage", Cron: "*/5 * * * *",
 		Mode: "bash", CapName: "proxy_health", Project: project,

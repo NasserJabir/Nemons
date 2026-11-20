@@ -46,7 +46,7 @@ func TestCleanProjectMemoryFilesUsesTheGivenDirectory_Los11k(t *testing.T) {
 		t.Fatalf("mkdir: %v", err)
 	}
 	memPath := filepath.Join(projDir, "MEMORY.md")
-	body := "User text\n" + yesmemMemoryMarker + "\nGenerated block\n"
+	body := "User text\n" + nemonsMemoryMarker + "\nGenerated block\n"
 	if err := os.WriteFile(memPath, []byte(body), 0o600); err != nil {
 		t.Fatalf("write MEMORY.md: %v", err)
 	}

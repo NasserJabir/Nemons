@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // parseTimeArg parses a time argument: ISO date (2026-03-18), relative (7d, 30d), or empty.
@@ -75,8 +75,8 @@ func runStats() {
 		Before:  beforeArg,
 	}
 
-	dataDir := yesmemDataDir()
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	dataDir := nemonsDataDir()
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		log.Fatalf("open db: %v", err)
 	}
@@ -110,7 +110,7 @@ func runStats() {
 	if *project != "" {
 		projLabel = *project
 	}
-	header := fmt.Sprintf("=== YesMem Health (%s)", projLabel)
+	header := fmt.Sprintf("=== Nemons Health (%s)", projLabel)
 	if *since != "" || *before != "" {
 		parts := []string{}
 		if *since != "" {

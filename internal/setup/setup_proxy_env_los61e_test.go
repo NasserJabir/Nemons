@@ -30,14 +30,14 @@ func TestLos61eProxyBaseURLFromListen(t *testing.T) {
 }
 
 func TestLos61eDaemonUnitCarriesTheProxyBaseURL(t *testing.T) {
-	unit := buildDaemonUnit("/usr/local/bin/yesmem", ":0", "/home/u/.Xauthority", "unix:path=/run/user/1000/bus", "http://localhost:9099")
+	unit := buildDaemonUnit("/usr/local/bin/nemons", ":0", "/home/u/.Xauthority", "unix:path=/run/user/1000/bus", "http://localhost:9099")
 	if !strings.Contains(unit, `Environment="ANTHROPIC_BASE_URL=http://localhost:9099"`) {
 		t.Errorf("daemon unit does not declare ANTHROPIC_BASE_URL:\n%s", unit)
 	}
 }
 
 func TestLos61eMigrateSystemdUnitsAddsTheProxyBaseURL(t *testing.T) {
-	stubMigrationSelf(t, "/usr/local/bin/yesmem")
+	stubMigrationSelf(t, "/usr/local/bin/nemons")
 	home := t.TempDir()
 	dataDir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dataDir, "config.yaml"), []byte("proxy:\n  listen: \":9200\"\n"), 0644); err != nil {
@@ -48,8 +48,8 @@ func TestLos61eMigrateSystemdUnitsAddsTheProxyBaseURL(t *testing.T) {
 		t.Fatalf("mkdir: %v", err)
 	}
 	// A unit as written before this change: notify type present, no proxy URL.
-	unit := "[Unit]\nDescription=YesMem\n\n[Service]\nType=notify\nNotifyAccess=main\nWatchdogSec=90\nTimeoutStartSec=300\nExecStart=/usr/local/bin/yesmem daemon --replace\n\n[Install]\nWantedBy=default.target\n"
-	path := filepath.Join(serviceDir, "yesmem.service")
+	unit := "[Unit]\nDescription=Nemons\n\n[Service]\nType=notify\nNotifyAccess=main\nWatchdogSec=90\nTimeoutStartSec=300\nExecStart=/usr/local/bin/nemons daemon --replace\n\n[Install]\nWantedBy=default.target\n"
+	path := filepath.Join(serviceDir, "nemons.service")
 	if err := os.WriteFile(path, []byte(unit), 0644); err != nil {
 		t.Fatalf("write unit: %v", err)
 	}
@@ -70,15 +70,15 @@ func TestLos61eMigrateSystemdUnitsAddsTheProxyBaseURL(t *testing.T) {
 }
 
 func TestLos61eMigrateSystemdUnitsKeepsAnExplicitProxyBaseURL(t *testing.T) {
-	stubMigrationSelf(t, "/usr/local/bin/yesmem")
+	stubMigrationSelf(t, "/usr/local/bin/nemons")
 	home := t.TempDir()
 	dataDir := t.TempDir()
 	serviceDir := filepath.Join(home, ".config", "systemd", "user")
 	if err := os.MkdirAll(serviceDir, 0755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	unit := "[Service]\nType=notify\nWatchdogSec=90\nTimeoutStartSec=300\nExecStart=/usr/local/bin/yesmem daemon --replace\nEnvironment=\"ANTHROPIC_BASE_URL=http://127.0.0.1:1234\"\n"
-	path := filepath.Join(serviceDir, "yesmem.service")
+	unit := "[Service]\nType=notify\nWatchdogSec=90\nTimeoutStartSec=300\nExecStart=/usr/local/bin/nemons daemon --replace\nEnvironment=\"ANTHROPIC_BASE_URL=http://127.0.0.1:1234\"\n"
+	path := filepath.Join(serviceDir, "nemons.service")
 	if err := os.WriteFile(path, []byte(unit), 0644); err != nil {
 		t.Fatalf("write unit: %v", err)
 	}
@@ -99,7 +99,7 @@ func TestLos61eMigrateSystemdUnitsKeepsAnExplicitProxyBaseURL(t *testing.T) {
 }
 
 func TestLos61eMigrateSystemdUnitsSkipsAForeignBinary(t *testing.T) {
-	stubMigrationSelf(t, "/usr/local/bin/yesmem")
+	stubMigrationSelf(t, "/usr/local/bin/nemons")
 	home := t.TempDir()
 	dataDir := t.TempDir()
 	serviceDir := filepath.Join(home, ".config", "systemd", "user")
@@ -107,7 +107,7 @@ func TestLos61eMigrateSystemdUnitsSkipsAForeignBinary(t *testing.T) {
 		t.Fatalf("mkdir: %v", err)
 	}
 	unit := "[Service]\nExecStart=/opt/other/daemon --replace\nType=notify\nWatchdogSec=90\nTimeoutStartSec=300\n"
-	path := filepath.Join(serviceDir, "yesmem.service")
+	path := filepath.Join(serviceDir, "nemons.service")
 	if err := os.WriteFile(path, []byte(unit), 0644); err != nil {
 		t.Fatalf("write unit: %v", err)
 	}

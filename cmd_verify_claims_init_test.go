@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/verify"
+	"github.com/NasserJabir/Nemons/internal/verify"
 )
 
 // cliRepo is a throwaway project root under the worktree's own temp space, with
@@ -17,7 +17,7 @@ import (
 // not write into the operator's.
 func cliRepo(t *testing.T, name string) (repo, home string) {
 	t.Helper()
-	parent, err := filepath.Abs(filepath.Join(".yesmem", "tmp", "initcli"))
+	parent, err := filepath.Abs(filepath.Join(".nemons", "tmp", "initcli"))
 	if err != nil {
 		t.Fatalf("abs: %v", err)
 	}
@@ -56,7 +56,7 @@ func TestVerifyInitReportsAnUnrecognizedStack(t *testing.T) {
 		t.Fatalf("exit = %d, want 1 (nothing written)\nstdout: %s\nstderr: %s",
 			code, stdout.String(), stderr.String())
 	}
-	for _, want := range []string{"nothing was detected", ".yesmem/verify.yaml", "go.mod", "languages:"} {
+	for _, want := range []string{"nothing was detected", ".nemons/verify.yaml", "go.mod", "languages:"} {
 		if !strings.Contains(stdout.String(), want) {
 			t.Errorf("stdout %q does not say %q", stdout.String(), want)
 		}
@@ -64,7 +64,7 @@ func TestVerifyInitReportsAnUnrecognizedStack(t *testing.T) {
 	if !strings.Contains(stderr.String(), "nothing written") {
 		t.Errorf("stderr = %q, want it to say that nothing was written", stderr.String())
 	}
-	if _, err := os.Stat(filepath.Join(repo, ".yesmem", "verify.yaml")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(repo, ".nemons", "verify.yaml")); !os.IsNotExist(err) {
 		t.Fatal("a profile was written for an unrecognised stack")
 	}
 }
@@ -73,7 +73,7 @@ func TestVerifyInitReportsAnUnrecognizedStack(t *testing.T) {
 // do what it was asked to do: nothing was written.
 func TestVerifyInitReportsAnExistingProfile(t *testing.T) {
 	repo, _ := cliRepo(t, "existing")
-	path := filepath.Join(repo, ".yesmem", "verify.yaml")
+	path := filepath.Join(repo, ".nemons", "verify.yaml")
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}

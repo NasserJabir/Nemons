@@ -72,10 +72,10 @@ func Resolve(home, dataDir string) (*Resolution, error) {
 
 	// The plugin's override, and the reason it exists: an explicit endpoint, key and model win over anything
 	// the installation happens to hold.
-	if override := strings.TrimSpace(os.Getenv("YESMEM_GUARD_URL")); override != "" {
+	if override := strings.TrimSpace(os.Getenv("NEMONS_GUARD_URL")); override != "" {
 		baseURL := strings.TrimRight(override, "/")
-		apiKey := os.Getenv("YESMEM_GUARD_KEY")
-		npm := os.Getenv("YESMEM_GUARD_NPM")
+		apiKey := os.Getenv("NEMONS_GUARD_KEY")
+		npm := os.Getenv("NEMONS_GUARD_NPM")
 		resolution := &Resolution{
 			BaseURL: baseURL,
 			APIKey:  apiKey,
@@ -87,7 +87,7 @@ func Resolve(home, dataDir string) (*Resolution, error) {
 		if transport == TransportAnthropic {
 			resolution.APIType = APITypeAnthropic
 		}
-		if envModel := strings.TrimSpace(os.Getenv("YESMEM_GUARD_MODEL")); envModel != "" {
+		if envModel := strings.TrimSpace(os.Getenv("NEMONS_GUARD_MODEL")); envModel != "" {
 			resolution.Model, resolution.Source = envModel, SourceEnv
 		} else if resolution.APIType == APITypeAnthropic {
 			resolution.Model, resolution.Fallbacks, resolution.Source = ResolveModel("", apiKey, baseURL, registry, home)
@@ -102,7 +102,7 @@ func Resolve(home, dataDir string) (*Resolution, error) {
 	// order: a newer key that no provider hosts must not hide the one that is hosted, which is how an
 	// installation kept its model before rule_guard.model existed at all.
 	searchModels := make([]string, 0, 3)
-	for _, candidate := range []string{strings.TrimSpace(os.Getenv("YESMEM_GUARD_MODEL")), configured, cfg.Extraction.Model} {
+	for _, candidate := range []string{strings.TrimSpace(os.Getenv("NEMONS_GUARD_MODEL")), configured, cfg.Extraction.Model} {
 		if candidate != "" {
 			searchModels = append(searchModels, candidate)
 		}
@@ -171,7 +171,7 @@ func Resolve(home, dataDir string) (*Resolution, error) {
 	// already and the guard asked a model its provider never listed.
 	resolution.Model = searchModel
 	switch searchModel {
-	case strings.TrimSpace(os.Getenv("YESMEM_GUARD_MODEL")):
+	case strings.TrimSpace(os.Getenv("NEMONS_GUARD_MODEL")):
 		resolution.Source = SourceEnv
 	case configured:
 		resolution.Source = SourceConfig

@@ -12,13 +12,13 @@ import (
 )
 
 func runBackup() {
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 	now := time.Now().Format("20060102-150405")
 
 	// Default backup dir
 	backupDir := filepath.Join(dataDir, "backups")
 
-	// Optional override: yesmem backup [path]
+	// Optional override: nemons backup [path]
 	if len(os.Args) > 2 {
 		backupDir = os.Args[2]
 	}
@@ -42,7 +42,7 @@ func runBackup() {
 		name   string
 		suffix string
 	}{
-		{"yesmem.db", ""},
+		{"nemons.db", ""},
 		{"runtime.db", "-runtime"},
 		{"messages.db", "-messages"},
 		{"caps.db", "-caps"},
@@ -52,7 +52,7 @@ func runBackup() {
 		if os.IsNotExist(statErr) {
 			// A fresh installation creates its side databases on first use; the
 			// main database is the installation itself.
-			if db.name == "yesmem.db" {
+			if db.name == "nemons.db" {
 				log.Fatalf("backup %s: %v", db.name, statErr)
 			}
 			fmt.Printf("! %s not present, skipped\n", db.name)
@@ -66,7 +66,7 @@ func runBackup() {
 			// would report a successful backup that cannot be restored.
 			log.Fatalf("backup %s: file %s is empty", db.name, src)
 		}
-		dest := filepath.Join(backupDir, fmt.Sprintf("yesmem-%s%s.db", now, db.suffix))
+		dest := filepath.Join(backupDir, fmt.Sprintf("nemons-%s%s.db", now, db.suffix))
 		if err := vacuumInto(src, dest); err != nil {
 			log.Fatalf("backup %s: %v", db.name, err)
 		}

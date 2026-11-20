@@ -29,7 +29,7 @@ func TestSandboxCacheIsAWritableMountOutsideTheCheckout(t *testing.T) {
 		t.Fatalf("mkdir run: %v", err)
 	}
 	home := filepath.Join(root, "home")
-	cache := filepath.Join(home, ".cache", "yesmem", "build")
+	cache := filepath.Join(home, ".cache", "nemons", "build")
 
 	ctx := &Ctx{Languages: cacheProfile("sh", cache)}
 	_, caches, env, abort := ctx.SandboxExtras(runDir, "sh")
@@ -58,7 +58,7 @@ func TestSandboxCacheKeepsWhatARunWrote(t *testing.T) {
 	if err := os.MkdirAll(runDir, 0o755); err != nil {
 		t.Fatalf("mkdir run: %v", err)
 	}
-	cache := filepath.Join(root, "home", ".cache", "yesmem", "build")
+	cache := filepath.Join(root, "home", ".cache", "nemons", "build")
 
 	ctx := &Ctx{Languages: cacheProfile("sh", cache)}
 	write := "printf 'entry\\n' > \"$GOCACHE/built\" && cat \"$GOCACHE/built\""
@@ -95,7 +95,7 @@ func TestSandboxWithoutACacheKeepsTheCheckoutBuildCache(t *testing.T) {
 		t.Fatalf("mounts=%v caches=%v, want no mounts without a declaration",
 			mountPaths(mounts), mountPaths(caches))
 	}
-	want := "GOCACHE=" + filepath.Join(runDir, ".yesmem-gocache")
+	want := "GOCACHE=" + filepath.Join(runDir, ".nemons-gocache")
 	if !strings.Contains(strings.Join(env, "\n"), want) {
 		t.Fatalf("env = %v, want %s", env, want)
 	}
@@ -125,13 +125,13 @@ func TestSandboxCacheRefusesAnUnsafeRoot(t *testing.T) {
 		{name: "a top-level directory of the home", root: filepath.Join(home, ".cache")},
 		{name: "a credential directory", root: filepath.Join(home, ".ssh")},
 		{name: "a relative path", root: "cache"},
-		{name: "a masked tree", root: filepath.Join("/tmp", "yesmem-cache-probe")},
+		{name: "a masked tree", root: filepath.Join("/tmp", "nemons-cache-probe")},
 		{name: "inside the verified repository", root: filepath.Join(repo, "cache"), repo: repo},
 		{name: "the repository itself", root: repo, repo: repo},
 		{name: "a parent of the repository", root: root, repo: repo},
-		{name: "the verifier's cache root itself", root: filepath.Join(home, ".cache", "yesmem")},
+		{name: "the verifier's cache root itself", root: filepath.Join(home, ".cache", "nemons")},
 		{name: "a binary directory the host executes from", root: filepath.Join(home, ".local", "bin")},
-		{name: "an arbitrary system path", root: "/etc/yesmem-cache"},
+		{name: "an arbitrary system path", root: "/etc/nemons-cache"},
 	}
 	for _, entry := range cases {
 		t.Run(entry.name, func(t *testing.T) {
@@ -173,7 +173,7 @@ func TestSandboxCacheRefusesASymlinkOutOfTheAllowedTree(t *testing.T) {
 // environment gap instead of a defect nobody can fix.
 func TestSandboxCacheThatCannotBeCreatedIsAnEnvironmentGap(t *testing.T) {
 	root := sandboxTestRoot(t)
-	base := filepath.Join(root, "home", ".cache", "yesmem")
+	base := filepath.Join(root, "home", ".cache", "nemons")
 	if err := os.MkdirAll(base, 0o755); err != nil {
 		t.Fatalf("mkdir base: %v", err)
 	}

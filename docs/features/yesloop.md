@@ -4,7 +4,7 @@
 
 ## What it is
 
-YesLoop is the autonomous execution layer on top of YesMem. A normal agent session is interactive (you chat, the agent responds, you correct, it tries again). A YesLoop session is fire-and-forget: you describe the task once, the agent works alone, you review the result at the end.
+YesLoop is the autonomous execution layer on top of Nemons. A normal agent session is interactive (you chat, the agent responds, you correct, it tries again). A YesLoop session is fire-and-forget: you describe the task once, the agent works alone, you review the result at the end.
 
 YesLoop exists because interactive babysitting does not scale. Long tasks drift, context rots, agents get stuck in loops, and the human becomes the bottleneck. YesLoop replaces the human-in-the-loop with structural guards.
 
@@ -39,7 +39,7 @@ Every YesLoop run moves through the same seven phases. The agent does this itsel
 3. **EXECUTE** — work through plan steps one at a time with per-step drift checks, commit after each logical unit
 4. **VERIFY** — full test suite + type checks + lint + golden path + edge cases; loops back to Phase 3 on failure
 5. **REVIEW** — four sub-phases, each with its own evidence: 5.1 self-review (the agent), then 5.2 cold code review, 5.3 consequence & intent and 5.4 security review, each as a separate `task()` subagent with its own `ses_` id. All findings must be fixed autonomously
-6. **DAEMON-VERIFY** — the agent runs `yesmem verify-claims` on its own report and records the accepted verdict in this block. The check belongs to the agent, before the orchestrator hears anything: a refused claim leads back into Phase 3 or 4, depending on its class, and only an accepted verdict opens the next phase
+6. **DAEMON-VERIFY** — the agent runs `nemons verify-claims` on its own report and records the accepted verdict in this block. The check belongs to the agent, before the orchestrator hears anything: a refused claim leads back into Phase 3 or 4, depending on its class, and only an accepted verdict opens the next phase
 7. **FINISH** — commit on the agent's own branch, push that branch (and open a PR if configured), report DONE with the commit hash, `send_to` orchestrator. No merge to main, no deploy: those belong to the orchestrator
 
 Phase 6 is deterministic: a command, an exit code and the verdict it prints. Nothing in
@@ -71,7 +71,7 @@ its verdict. Each verdict is stored under a key: the report text, HEAD, the bran
 state of the working tree (uncommitted residue), the plan revision and the report session
 it was reached on. A fresh accepted verdict releases
 the agent, a fresh refused one blocks it with the run's findings, and an absent or stale
-one is a defect that names the `yesmem verify-claims` command. Nothing runs at DONE, so a
+one is a defect that names the `nemons verify-claims` command. Nothing runs at DONE, so a
 DONE claim cannot start a test suite.
 
 Outcomes:
@@ -101,7 +101,7 @@ before it is settled, and the answer comes from the same registry:
 | Situation at send time | Delivery |
 |---|---|
 | fresh accepted verdict under the loop's rule set | delivered in the same call, with `verdict: accepted (pre-check)` appended to the payload; nothing runs |
-| no verdict, a stale one, a refused one, a weaker rule set | withheld: the sender gets the defect message with its `yesmem verify-claims` command, and the orchestrator gets a `DONE-WITHHELD` notice at once — the class, the fact that the message did not arrive, and the full command — never the DONE |
+| no verdict, a stale one, a refused one, a weaker rule set | withheld: the sender gets the defect message with its `nemons verify-claims` command, and the orchestrator gets a `DONE-WITHHELD` notice at once — the class, the fact that the message did not arrive, and the full command — never the DONE |
 | third withheld attempt on one report | escalation to the orchestrator, the agent waits |
 
 A message without a DONE payload is not inspected. `send_to` stays infrastructure for
@@ -129,7 +129,7 @@ and all three are closed:
 
 - **The notice is immediate.** The moment the delivery check withholds a DONE, the
   orchestrator gets `DONE-WITHHELD` with the class, the reason and the full
-  `yesmem verify-claims` command. It does not wait for the third round, and it does not
+  `nemons verify-claims` command. It does not wait for the third round, and it does not
   depend on the agent doing anything else.
 - **The clock survives the daemon.** A hold is persisted with the fingerprint of the
   report it is about and the decision it stands for (`done_verify_holds`). A daemon restart
@@ -197,7 +197,7 @@ No auto-deploy. The agent commits and sends `DONE`; the orchestrator decides whe
 ## Rolling out a gate change
 
 The skill text is embedded in the binary (`skills.BundledSkills`) and written to its live
-location `~/.claude/skills` by `yesmem setup`; `make deploy` swaps only the binary. A
+location `~/.claude/skills` by `nemons setup`; `make deploy` swaps only the binary. A
 change that touches both therefore goes out in this direction: the binary first, the live
 skill copies afterwards from that same binary. The new skill text assumes a gate that
 prints the report shape when the section is missing and the running findings once it
@@ -238,7 +238,7 @@ From an opencode or claude-code session:
 From an orchestrator session:
 
 ```
-yesmem_spawn_agent(
+nemons_spawn_agent(
   backend="opencode",
   model="zai-coding-plan/glm-5.2",
   project="<project>",

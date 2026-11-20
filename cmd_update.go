@@ -8,13 +8,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/buildinfo"
-	"github.com/carsteneu/yesmem/internal/capfile"
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/daemon"
-	"github.com/carsteneu/yesmem/internal/setup"
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/update"
+	"github.com/NasserJabir/Nemons/internal/buildinfo"
+	"github.com/NasserJabir/Nemons/internal/capfile"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/setup"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/update"
 )
 
 func runCheckUpdate() {
@@ -56,19 +56,19 @@ func runUpdate() {
 	fmt.Println("Restarting services...")
 	if err := update.RunRestart(log.Default()); err != nil {
 		fmt.Fprintf(os.Stderr, "Restart failed: %v\n", err)
-		fmt.Println("Please restart manually: yesmem restart")
+		fmt.Println("Please restart manually: nemons restart")
 		os.Exit(1)
 	}
 	fmt.Println("Done.")
 }
 
 func runMigrateCmd() {
-	dataDir := yesmemDataDir()
+	dataDir := nemonsDataDir()
 
 	fmt.Println("Running post-update migration...")
 
 	// 1. DB schema migration (automatic via storage.Open)
-	dbPath := filepath.Join(dataDir, "yesmem.db")
+	dbPath := filepath.Join(dataDir, "nemons.db")
 	store, err := storage.Open(dbPath)
 	if err != nil {
 		log.Fatalf("open db: %v", err)
@@ -108,11 +108,11 @@ func runMigrateCmd() {
 	}
 
 	// 3c. Report what the schema cannot read. Unknown keys stay untouched, a
-	// misplaced key that proxy: already sets stays where it is as well. `yesmem
+	// misplaced key that proxy: already sets stays where it is as well. `nemons
 	// setup` prints the same lines from the same function.
 	setup.PrintConfigCheck(cfgPath, os.Stdout, os.Stderr)
 
-	// 4. Hooks: ensure all yesmem hooks are registered in settings.json
+	// 4. Hooks: ensure all nemons hooks are registered in settings.json
 	if err := setup.EnsureHooks(); err != nil {
 		fmt.Fprintf(os.Stderr, "  Hooks update warning: %v\n", err)
 	} else {
@@ -192,7 +192,7 @@ func runMigrateCmd() {
 	if n, err := setup.InstallWindowPlugin(home); err != nil {
 		fmt.Fprintf(os.Stderr, "  Window plugin warning: %v\n", err)
 	} else if n > 0 {
-		fmt.Println("  Window plugin: installed to ~/.config/opencode/plugins/yesmem-window/")
+		fmt.Println("  Window plugin: installed to ~/.config/opencode/plugins/nemons-window/")
 	}
 	// 5e. Opencode agent themes (type accent for spawned agent TUIs)
 	if n, err := setup.InstallThemes(home); err != nil {
@@ -272,7 +272,7 @@ func retireObsoleteCaps(store *storage.Store, out io.Writer) (int, error) {
 		if !capfile.IsRetiredCap(meta.Name) {
 			continue
 		}
-		if err := store.SupersedeLearning(l.ID, 0, "retired cap: yesmem no longer ships it (the wiki moved to yesmem wiki-render)"); err != nil {
+		if err := store.SupersedeLearning(l.ID, 0, "retired cap: nemons no longer ships it (the wiki moved to nemons wiki-render)"); err != nil {
 			return retired, fmt.Errorf("supersede cap %q: %w", meta.Name, err)
 		}
 		fmt.Fprintf(out, "  Retired cap: %s (learning %d)\n", meta.Name, l.ID)
@@ -289,7 +289,7 @@ func retireObsoleteCaps(store *storage.Store, out io.Writer) (int, error) {
 // migrated to the notify type has no copy, and reconstructing one would invent
 // bytes that were never there. Saying so is the honest half of that gap.
 func systemdRollbackHint(home string) string {
-	unit := filepath.Join(home, ".config", "systemd", "user", "yesmem.service")
+	unit := filepath.Join(home, ".config", "systemd", "user", "nemons.service")
 	backup := setup.UnitBackupPath(unit)
 	if _, err := os.Stat(backup); err == nil {
 		return fmt.Sprintf("  systemd units: an older binary needs the unit back: cp %s %s && systemctl --user daemon-reload\n", backup, unit)
@@ -303,6 +303,6 @@ func systemdRollbackHint(home string) string {
 
 // daemonUnitInstalled reports whether this user has a daemon unit file at all.
 func daemonUnitInstalled(home string) bool {
-	_, err := os.Stat(filepath.Join(home, ".config", "systemd", "user", "yesmem.service"))
+	_, err := os.Stat(filepath.Join(home, ".config", "systemd", "user", "nemons.service"))
 	return err == nil
 }

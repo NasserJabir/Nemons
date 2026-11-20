@@ -139,7 +139,7 @@ func TestActivateCap_UsesCapsDBWhenAvailable(t *testing.T) {
 	if len(caps) != 1 || caps[0].CapName != "test_cap" {
 		t.Fatalf("expected 1 cap 'test_cap', got %d (%v)", len(caps), caps)
 	}
-	// Verify NOT in yesmem.db
+	// Verify NOT in nemons.db
 	capsFromMain, err := s.GetSessionCaps("thread-caps")
 	if err != nil {
 		t.Fatalf("get from main db: %v", err)

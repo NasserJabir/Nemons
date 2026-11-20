@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func fmtSprintInt(id int64) string {

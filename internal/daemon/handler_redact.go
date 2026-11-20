@@ -1,6 +1,6 @@
 package daemon
 
-import "github.com/carsteneu/yesmem/internal/extraction"
+import "github.com/NasserJabir/Nemons/internal/extraction"
 
 func (h *Handler) redact(s string) string {
 	if h.redactor == nil {

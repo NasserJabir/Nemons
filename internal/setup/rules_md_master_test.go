@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/buildinfo"
+	"github.com/NasserJabir/Nemons/internal/buildinfo"
 )
 
 // digestOf is the body hash the provenance marker carries, computed here rather than taken from the
@@ -23,7 +23,7 @@ func digestOf(body string) string {
 
 // markerOf renders a provenance line for a body, as an older release would have written it.
 func markerOf(version, body string) string {
-	return "<!-- yesmem-rules version=" + version + " body=sha256:" + digestOf(body) + " -->\n"
+	return "<!-- nemons-rules version=" + version + " body=sha256:" + digestOf(body) + " -->\n"
 }
 
 // The master is the one place the standard rules are maintained, and the model reads it as the prompt. A
@@ -33,7 +33,7 @@ func markerOf(version, body string) string {
 func TestInstalledMasterCarriesTheDecisionPolicyAndItsNumbering(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	path, err := installRULESmd(filepath.Join(home, ".claude", "yesmem"))
+	path, err := installRULESmd(filepath.Join(home, ".claude", "nemons"))
 	if err != nil {
 		t.Fatalf("installRULESmd: %v", err)
 	}
@@ -60,10 +60,10 @@ func TestInstalledMasterCarriesTheDecisionPolicyAndItsNumbering(t *testing.T) {
 		"priority: MUST",
 		"triggers:",
 		"skill: subagent-driven-development",
-		"skill: yesmem-agents",
-		"skill: yesmem-cap-builder",
-		"skill: yesmem-config",
-		"skill: yesmem-remember",
+		"skill: nemons-agents",
+		"skill: nemons-cap-builder",
+		"skill: nemons-config",
+		"skill: nemons-remember",
 	} {
 		if !strings.Contains(text, want) {
 			t.Errorf("master missing %q", want)
@@ -176,7 +176,7 @@ func TestInstallRULESmdLeavesAnUnreadableMasterAlone(t *testing.T) {
 	}
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	rulesPath := filepath.Join(dataDir, "RULES.md")
 	writeRulesFile(t, rulesPath, "the operator's own master\n")
 	if err := os.Chmod(rulesPath, 0o200); err != nil {
@@ -225,7 +225,7 @@ func TestRenderProjectRulesmdIsReproducible(t *testing.T) {
 func TestInstallRULESmdRefreshesAProvablyUnchangedMaster(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	rulesPath := filepath.Join(dataDir, "RULES.md")
 	oldBody := "# Rules\n\n1. A rule of the previous release.\n"
 	writeRulesFile(t, rulesPath, markerOf("0.0.0", oldBody)+oldBody)
@@ -245,7 +245,7 @@ func TestInstallRULESmdRefreshesAProvablyUnchangedMaster(t *testing.T) {
 	if !strings.Contains(text, "Never auto-commit") {
 		t.Error("the master does not carry the current standard rules")
 	}
-	if !strings.HasPrefix(text, "<!-- yesmem-rules version="+buildinfo.Version) {
+	if !strings.HasPrefix(text, "<!-- nemons-rules version="+buildinfo.Version) {
 		t.Errorf("marker was not restamped with the current version: %q", firstLine(text))
 	}
 }
@@ -255,7 +255,7 @@ func TestInstallRULESmdRefreshesAProvablyUnchangedMaster(t *testing.T) {
 func TestInstallRULESmdKeepsALocallyEditedMaster(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	rulesPath := filepath.Join(dataDir, "RULES.md")
 	writerBody := "# Rules\n\n1. Never auto-commit.\n"
 	edited := markerOf("0.0.0", writerBody) + "# Rules\n\n1. Our own rule that replaces the standard set.\n"
@@ -282,7 +282,7 @@ func TestInstallRULESmdKeepsALocallyEditedMaster(t *testing.T) {
 func TestInstallRULESmdIsANoOpWhenTheMasterIsCurrent(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	if _, err := installRULESmd(dataDir); err != nil {
 		t.Fatalf("first installRULESmd: %v", err)
 	}

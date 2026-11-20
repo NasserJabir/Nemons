@@ -10,7 +10,7 @@ import (
 )
 
 // The rule cases (missing row, parent mismatch, wrong agent type, duplicated id)
-// live in internal/verify/claimtypes/yesmem_claims_test.go, where the rule is
+// live in internal/verify/claimtypes/nemons_claims_test.go, where the rule is
 // decided. What is tested here is the adapter: that opencode's two schema
 // generations are both reached and that a failed lookup is not read as verified.
 

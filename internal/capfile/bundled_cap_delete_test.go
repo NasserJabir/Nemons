@@ -51,7 +51,7 @@ func TestCapDelete_UsesRenamedCapNameColumn(t *testing.T) {
 // caps.db is the daemon's cap store (internal/storage/cap_store.go OpenCapsDB:
 // dir + "/caps.db"); capabilities.db is the legacy file name. The cap_<name>__*
 // data tables and cap_store_meta live in caps.db, and session_active_caps exists
-// in both yesmem.db and caps.db (storage/session_caps.go capDB()).
+// in both nemons.db and caps.db (storage/session_caps.go capDB()).
 func TestCapDelete_TargetsCapsDB(t *testing.T) {
 	body := capDeleteBody(t)
 	if !strings.Contains(body, "caps.db") {
@@ -102,7 +102,7 @@ func TestCapDelete_FailsLoudlyOnSqlError(t *testing.T) {
 		t.Error("cap_delete selects the learnings row with a wildcard pattern, which over-matches names differing by '_'")
 	}
 	// A throw from the cap-store stage must not escape unreported after the
-	// yesmem.db half has committed.
+	// nemons.db half has committed.
 	if !strings.Contains(body, "try {") || !strings.Contains(body, "partial:") {
 		t.Error("cap_delete does not report a partially applied delete when the cap-store stage throws")
 	}

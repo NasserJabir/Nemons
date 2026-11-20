@@ -25,7 +25,7 @@ func captureLog(t *testing.T, fn func()) string {
 func TestRunCBMGCGated_QuotesClientPathsInLog(t *testing.T) {
 	dir := t.TempDir()
 	forged := "forged: everything fine"
-	path := filepath.Join(dir, "yesmem\n"+forged+".db")
+	path := filepath.Join(dir, "nemons\n"+forged+".db")
 	if err := os.WriteFile(path, []byte("db"), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -50,7 +50,7 @@ func TestRunCBMGCGated_QuotesClientPathsInLog(t *testing.T) {
 func TestRunCBMGCGated_QuotesClientPathsOnRemove(t *testing.T) {
 	dir := t.TempDir()
 	forged := "forged: removed by hand"
-	path := filepath.Join(dir, "yesmem\n"+forged+".db")
+	path := filepath.Join(dir, "nemons\n"+forged+".db")
 	if err := os.WriteFile(path, []byte("db"), 0o644); err != nil {
 		t.Fatal(err)
 	}

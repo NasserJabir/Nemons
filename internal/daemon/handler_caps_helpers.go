@@ -7,8 +7,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/capfile"
-	"github.com/carsteneu/yesmem/internal/textutil"
+	"github.com/NasserJabir/Nemons/internal/capfile"
+	"github.com/NasserJabir/Nemons/internal/textutil"
 )
 
 // parseScriptsParam decodes the `scripts` param of save_cap into validated

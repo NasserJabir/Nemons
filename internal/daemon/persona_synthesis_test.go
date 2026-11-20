@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // capturingMockClient is a mock LLMClient that captures prompts and returns canned responses.
@@ -57,7 +57,7 @@ func TestSynthesizePersonaDirectiveIncludesPivots(t *testing.T) {
 		Source: "llm_extracted", HitCount: 3, EmotionalIntensity: 0.8,
 	})
 	s.InsertLearning(&models.Learning{
-		Category: "pivot_moment", Content: "User fragte 'wie schaffen wir dass du yesmem oefter nutzt'",
+		Category: "pivot_moment", Content: "User fragte 'wie schaffen wir dass du nemons oefter nutzt'",
 		Project: "memory", Confidence: 1.0, CreatedAt: time.Now(),
 		Source: "llm_extracted", HitCount: 2, EmotionalIntensity: 0.7,
 	})
@@ -75,7 +75,7 @@ func TestSynthesizePersonaDirectiveIncludesPivots(t *testing.T) {
 	if !strings.Contains(mock.lastUserMessage, "immer optimal") {
 		t.Error("user message should contain first pivot moment content")
 	}
-	if !strings.Contains(mock.lastUserMessage, "yesmem oefter nutzt") {
+	if !strings.Contains(mock.lastUserMessage, "nemons oefter nutzt") {
 		t.Error("user message should contain second pivot moment content")
 	}
 	if !strings.Contains(mock.lastUserMessage, "Key moments") {

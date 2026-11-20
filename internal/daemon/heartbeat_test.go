@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 func TestEnforceAgentLimits_TokenBudgetFreezes(t *testing.T) {
@@ -1392,7 +1392,7 @@ func TestProcStartTime_DeadPID(t *testing.T) {
 // reads real /proc.
 func TestIsAgentProcess_OwnPIDWithMatchingCmdline(t *testing.T) {
 	requireProcTable(t)
-	stubProcCmdline(t, "/home/tester/.opencode/bin/opencode\x00--theme\x00yesmem-loop")
+	stubProcCmdline(t, "/home/tester/.opencode/bin/opencode\x00--theme\x00nemons-loop")
 	a := storage.Agent{ID: "a-1", Backend: "opencode", PID: os.Getpid(), CreatedAt: time.Now().Format(time.RFC3339)}
 	if !isAgentProcess(a) {
 		t.Error("isAgentProcess(own pid, matching cmdline, fresh row) = false, want true")
@@ -1408,7 +1408,7 @@ func TestIsAgentProcess_RejectsForeignCmdline(t *testing.T) {
 }
 
 func TestIsAgentProcess_RejectsBackendMismatch(t *testing.T) {
-	stubProcCmdline(t, "/home/tester/.opencode/bin/opencode\x00--theme\x00yesmem-loop")
+	stubProcCmdline(t, "/home/tester/.opencode/bin/opencode\x00--theme\x00nemons-loop")
 	a := storage.Agent{ID: "a-1", Backend: "claude", PID: os.Getpid(), CreatedAt: time.Now().Format(time.RFC3339)}
 	if isAgentProcess(a) {
 		t.Error("isAgentProcess(opencode cmdline, claude backend) = true, want false")
@@ -1419,7 +1419,7 @@ func TestIsAgentProcess_RejectsBackendMismatch(t *testing.T) {
 // cannot be the process the row refers to. 48h makes the assertion independent
 // of how long the test binary itself has been running.
 func TestIsAgentProcess_RejectsProcessNewerThanRow(t *testing.T) {
-	stubProcCmdline(t, "/home/tester/.opencode/bin/opencode\x00--theme\x00yesmem-loop")
+	stubProcCmdline(t, "/home/tester/.opencode/bin/opencode\x00--theme\x00nemons-loop")
 	a := storage.Agent{
 		ID: "a-1", Backend: "opencode", PID: os.Getpid(),
 		CreatedAt: time.Now().Add(-48 * time.Hour).Format(time.RFC3339),
@@ -1433,7 +1433,7 @@ func TestIsAgentProcess_RejectsProcessNewerThanRow(t *testing.T) {
 // restarted agent is not rejected by its own old creation timestamp.
 func TestIsAgentProcess_LastRestartAtIsTheReference(t *testing.T) {
 	requireProcTable(t)
-	stubProcCmdline(t, "/home/tester/.opencode/bin/opencode\x00--theme\x00yesmem-loop")
+	stubProcCmdline(t, "/home/tester/.opencode/bin/opencode\x00--theme\x00nemons-loop")
 	a := storage.Agent{
 		ID: "a-1", Backend: "opencode", PID: os.Getpid(),
 		CreatedAt:     time.Now().Add(-48 * time.Hour).Format(time.RFC3339),

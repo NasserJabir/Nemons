@@ -15,9 +15,9 @@ func guardStatusFixture(t *testing.T, provider, configYAML, registry, auth strin
 	home = t.TempDir()
 	t.Setenv("HOME", home)
 	t.Setenv("ANTHROPIC_API_KEY", "")
-	t.Setenv("YESMEM_GUARD_MODEL", "")
-	t.Setenv("YESMEM_GUARD_MODELS_URL", "http://127.0.0.1:1")
-	dataDir = filepath.Join(home, ".claude", "yesmem")
+	t.Setenv("NEMONS_GUARD_MODEL", "")
+	t.Setenv("NEMONS_GUARD_MODELS_URL", "http://127.0.0.1:1")
+	dataDir = filepath.Join(home, ".claude", "nemons")
 	for _, dir := range []string{dataDir, filepath.Join(home, ".cache", "opencode"), filepath.Join(home, ".local", "share", "opencode")} {
 		if err := os.MkdirAll(dir, 0o755); err != nil {
 			t.Fatalf("mkdir %s: %v", dir, err)
@@ -46,7 +46,7 @@ func TestGuardStatusReportsModelAndHost(t *testing.T) {
 		"llm:\n  provider: api\n",
 		`{"anthropic":{"api":"https://api.anthropic.com","npm":"@ai-sdk/anthropic","models":{}}}`,
 		`{"anthropic":{"key":"sk-ant-setup"}}`)
-	t.Setenv("YESMEM_GUARD_MODELS_URL", server.URL)
+	t.Setenv("NEMONS_GUARD_MODELS_URL", server.URL)
 
 	lines := strings.Join(guardStatusLines(dataDir, "api"), "\n")
 

@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // seedBundleCapForAutoCorrect writes a cap with two bash handlers and the
@@ -402,7 +402,7 @@ func TestAutoCorrect_MinimalFixTargetsTheSameScriptAsTheLookup(t *testing.T) {
 
 	h.processBashJobErrors(context.Background())
 
-	caps, err := s.GetActiveLearnings("cap", "yesmem", "", "", 0)
+	caps, err := s.GetActiveLearnings("cap", "nemons", "", "", 0)
 	if err != nil {
 		t.Fatalf("read caps: %v", err)
 	}
@@ -470,7 +470,7 @@ func TestAutoCorrect_DoesNotExecuteASubstantialFix(t *testing.T) {
 		t.Errorf("the unreviewed body was executed: %.120q", verified)
 	}
 
-	proposals, err := s.GetActiveLearnings("cap_proposed", "yesmem", "", "", 0)
+	proposals, err := s.GetActiveLearnings("cap_proposed", "nemons", "", "", 0)
 	if err != nil {
 		t.Fatalf("read proposals: %v", err)
 	}

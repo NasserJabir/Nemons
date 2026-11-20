@@ -137,7 +137,7 @@ func TestQueryReadOnly_StripsCommentsBeforeValidating(t *testing.T) {
 
 func TestQueryReadOnly_DriverEnforcesReadOnly(t *testing.T) {
 	dir := t.TempDir()
-	s, err := Open(filepath.Join(dir, "yesmem.db"))
+	s, err := Open(filepath.Join(dir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open: %v", err)
 	}

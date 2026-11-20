@@ -10,12 +10,12 @@ import (
 // legacyDaemonUnit is a unit as installed before YM-312: simple type, no
 // watchdog, still waiting for the network.
 const legacyDaemonUnit = `[Unit]
-Description=YesMem — Long-term memory for coding agents
+Description=Nemons — Long-term memory for coding agents
 After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/home/u/.local/bin/yesmem daemon --replace
+ExecStart=/home/u/.local/bin/nemons daemon --replace
 Restart=always
 RestartSec=10
 Environment="DISPLAY=:0"
@@ -25,12 +25,12 @@ WantedBy=default.target
 `
 
 const legacyProxyUnit = `[Unit]
-Description=YesMem Proxy
+Description=Nemons Proxy
 After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/home/u/.local/bin/yesmem proxy
+ExecStart=/home/u/.local/bin/nemons proxy
 Restart=always
 RestartSec=10
 
@@ -64,10 +64,10 @@ func writeUnitFixture(t *testing.T, home, name, content string) string {
 // migration. Without it the binary reports READY to a unit that is still
 // Type=simple, so nothing ever restarts a wedged daemon on an upgraded machine.
 func TestMigrateSystemdUnitsAddsTheDaemonWatchdog(t *testing.T) {
-	stubMigrationSelf(t, "/home/u/.local/bin/yesmem")
+	stubMigrationSelf(t, "/home/u/.local/bin/nemons")
 	home := t.TempDir()
-	daemonPath := writeUnitFixture(t, home, "yesmem.service", legacyDaemonUnit)
-	proxyPath := writeUnitFixture(t, home, "yesmem-proxy.service", legacyProxyUnit)
+	daemonPath := writeUnitFixture(t, home, "nemons.service", legacyDaemonUnit)
+	proxyPath := writeUnitFixture(t, home, "nemons-proxy.service", legacyProxyUnit)
 
 	changed, err := MigrateSystemdUnits(home, t.TempDir())
 	if err != nil {
@@ -78,7 +78,7 @@ func TestMigrateSystemdUnitsAddsTheDaemonWatchdog(t *testing.T) {
 	}
 
 	daemon := readFile(t, daemonPath)
-	for _, want := range []string{"Type=notify", "NotifyAccess=main", "WatchdogSec=90", "ExecStart=/home/u/.local/bin/yesmem daemon --replace", "Restart=always"} {
+	for _, want := range []string{"Type=notify", "NotifyAccess=main", "WatchdogSec=90", "ExecStart=/home/u/.local/bin/nemons daemon --replace", "Restart=always"} {
 		if !strings.Contains(daemon, want) {
 			t.Errorf("migrated daemon unit missing %q:\n%s", want, daemon)
 		}
@@ -118,15 +118,15 @@ func TestMigrateSystemdUnitsAddsTheDaemonWatchdog(t *testing.T) {
 // TestMigrateSystemdUnitsKeepsAnExistingWatchdog: a unit that already names a
 // deadline (hand-tuned) keeps it. The migration is additive, not authoritative.
 func TestMigrateSystemdUnitsKeepsAnExistingWatchdog(t *testing.T) {
-	stubMigrationSelf(t, "/home/u/.local/bin/yesmem")
+	stubMigrationSelf(t, "/home/u/.local/bin/nemons")
 	home := t.TempDir()
-	path := writeUnitFixture(t, home, "yesmem.service", `[Unit]
-Description=YesMem
+	path := writeUnitFixture(t, home, "nemons.service", `[Unit]
+Description=Nemons
 
 [Service]
 Type=notify
 WatchdogSec=300
-ExecStart=/home/u/.local/bin/yesmem daemon --replace
+ExecStart=/home/u/.local/bin/nemons daemon --replace
 Restart=always
 
 [Install]
@@ -149,8 +149,8 @@ WantedBy=default.target
 // default type only. A unit the operator set to exec (or anything else) keeps it —
 // silently changing a supervisor decision is not a migration.
 func TestMigrateDaemonUnitWatchdogRespectsAnExplicitType(t *testing.T) {
-	stubMigrationSelf(t, "/home/u/.local/bin/yesmem")
-	content := "[Service]\nType=exec\nExecStart=/home/u/.local/bin/yesmem daemon\nRestart=always\n"
+	stubMigrationSelf(t, "/home/u/.local/bin/nemons")
+	content := "[Service]\nType=exec\nExecStart=/home/u/.local/bin/nemons daemon\nRestart=always\n"
 	if got := migrateDaemonUnitWatchdog(content); got != content {
 		t.Fatalf("unit with an explicit Type=exec was rewritten:\n%s", got)
 	}
@@ -159,25 +159,25 @@ func TestMigrateDaemonUnitWatchdogRespectsAnExplicitType(t *testing.T) {
 // TestMigrateDaemonUnitWatchdogAddsATypeWhenNoneIsNamed covers the oldest units:
 // no Type= line at all, so the directives go behind [Service].
 func TestMigrateDaemonUnitWatchdogAddsATypeWhenNoneIsNamed(t *testing.T) {
-	stubMigrationSelf(t, "/home/u/.local/bin/yesmem")
-	content := "[Service]\nExecStart=/home/u/.local/bin/yesmem daemon\nRestart=always\n"
+	stubMigrationSelf(t, "/home/u/.local/bin/nemons")
+	content := "[Service]\nExecStart=/home/u/.local/bin/nemons daemon\nRestart=always\n"
 	got := migrateDaemonUnitWatchdog(content)
 	for _, want := range []string{"Type=notify", "NotifyAccess=main", "WatchdogSec=90"} {
 		if strings.Count(got, want) != 1 {
 			t.Errorf("%q appears %d times, want 1:\n%s", want, strings.Count(got, want), got)
 		}
 	}
-	if !strings.Contains(got, "ExecStart=/home/u/.local/bin/yesmem daemon") {
+	if !strings.Contains(got, "ExecStart=/home/u/.local/bin/nemons daemon") {
 		t.Errorf("migration dropped the ExecStart line:\n%s", got)
 	}
 }
 
 // TestMigrateDaemonUnitWatchdogSkipsAForeignBinary is the capability guard: a unit
-// that starts another yesmem binary must not be switched to Type=notify, because
+// that starts another nemons binary must not be switched to Type=notify, because
 // that binary may predate the READY report and would then never start.
 func TestMigrateDaemonUnitWatchdogSkipsAForeignBinary(t *testing.T) {
-	stubMigrationSelf(t, "/home/u/.local/bin/yesmem")
-	content := "[Service]\nType=simple\nExecStart=/opt/other/yesmem daemon\nRestart=always\n"
+	stubMigrationSelf(t, "/home/u/.local/bin/nemons")
+	content := "[Service]\nType=simple\nExecStart=/opt/other/nemons daemon\nRestart=always\n"
 	if got := migrateDaemonUnitWatchdog(content); got != content {
 		t.Fatalf("unit of a foreign binary was rewritten:\n%s", got)
 	}
@@ -187,8 +187,8 @@ func TestMigrateDaemonUnitWatchdogSkipsAForeignBinary(t *testing.T) {
 // already names WatchdogSec keeps the value but still needs the start deadline, or
 // a cold start looks like a hang.
 func TestMigrateDaemonUnitWatchdogAddsTheStartDeadlineToAHandTunedUnit(t *testing.T) {
-	stubMigrationSelf(t, "/home/u/.local/bin/yesmem")
-	content := "[Service]\nType=notify\nWatchdogSec=300\nExecStart=/home/u/.local/bin/yesmem daemon\nRestart=always\n"
+	stubMigrationSelf(t, "/home/u/.local/bin/nemons")
+	content := "[Service]\nType=notify\nWatchdogSec=300\nExecStart=/home/u/.local/bin/nemons daemon\nRestart=always\n"
 	got := migrateDaemonUnitWatchdog(content)
 	if strings.Count(got, "WatchdogSec=") != 1 || !strings.Contains(got, "WatchdogSec=300") {
 		t.Fatalf("hand-tuned deadline was changed:\n%s", got)

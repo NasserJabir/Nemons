@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // The volatile sentinel guards the learnings table against volatile snapshots:

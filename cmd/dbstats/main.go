@@ -7,16 +7,16 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/daemon"
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 func main() {
 	home, _ := os.UserHomeDir()
-	dbPath := filepath.Join(home, ".claude", "yesmem", "yesmem.db")
+	dbPath := filepath.Join(home, ".claude", "nemons", "nemons.db")
 
 	store, err := storage.Open(dbPath)
 	if err != nil {
@@ -107,7 +107,7 @@ func main() {
 				fmt.Printf("Superseded %d learnings by #%d\n", len(oldIDs), newID)
 			}
 		case "--update-memory":
-			cfg, _ := config.Load(filepath.Join(home, ".claude", "yesmem", "config.yaml"))
+			cfg, _ := config.Load(filepath.Join(home, ".claude", "nemons", "config.yaml"))
 			daemon.GenerateAllMemoryMDs(store, cfg.ClaudeProjectsDir())
 		case "--set-profile":
 			// Usage: --set-profile <project> <profile-text>
@@ -133,7 +133,7 @@ func main() {
 			}
 		case "--profiles":
 			// Generate/regenerate project profiles using LLMClient
-			dataDir := filepath.Join(home, ".claude", "yesmem")
+			dataDir := filepath.Join(home, ".claude", "nemons")
 			cfg, _ := config.Load(filepath.Join(dataDir, "config.yaml"))
 			apiKey := cfg.ResolvedAPIKey()
 			if apiKey == "" {

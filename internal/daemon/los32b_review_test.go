@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/capfile"
+	"github.com/NasserJabir/Nemons/internal/capfile"
 )
 
 // los32bCapFileFor reads back the CAP.md the sync test just wrote, so a test can

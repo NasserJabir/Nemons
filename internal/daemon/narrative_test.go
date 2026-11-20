@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func TestNarrativePrompt(t *testing.T) {
@@ -152,7 +152,7 @@ func TestTimeSince(t *testing.T) {
 
 func TestBuildNarrativeUserMessageWithTime(t *testing.T) {
 	messages := []string{"user: test msg"}
-	result := BuildNarrativeUserMessageWithTime(messages, "yesmem", "2026-04-01 14:30")
+	result := BuildNarrativeUserMessageWithTime(messages, "nemons", "2026-04-01 14:30")
 	if result == "" {
 		t.Fatal("expected non-empty message")
 	}

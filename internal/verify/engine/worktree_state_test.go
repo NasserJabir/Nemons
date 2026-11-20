@@ -77,7 +77,7 @@ func gitToplevel(dir string) string {
 // worktreeRepo is a one-commit repository under the project's own temp space.
 func worktreeRepo(t *testing.T) string {
 	t.Helper()
-	root, err := filepath.Abs(filepath.Join("..", "..", "..", ".yesmem", "tmp", "worktreestate"))
+	root, err := filepath.Abs(filepath.Join("..", "..", "..", ".nemons", "tmp", "worktreestate"))
 	if err != nil {
 		t.Fatalf("abs: %v", err)
 	}

@@ -13,7 +13,7 @@ import (
 // New tasks get the key from three channels, and each one is pinned here so a
 // rewrite of the instruction text cannot silently drop the convention.
 const (
-	yesRememberSkillPath = "bundled-skills/yesmem-remember/SKILL.md"
+	yesRememberSkillPath = "bundled-skills/nemons-remember/SKILL.md"
 	extractionPromptPath = "../internal/extraction/prompt.go"
 )
 

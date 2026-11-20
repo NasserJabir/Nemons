@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // YM-271 [AGT-MA36] key 1: handleBroadcast took a freely chosen sender. Every
@@ -157,9 +157,9 @@ func TestHandleJobSocket_BroadcastKeepsItsFixedSenderLos55a(t *testing.T) {
 // ignored (see TestHandleBroadcast_RefusesAForgedSenderLos55a).
 func TestHandleBroadcast_AcceptsTheSessionFromAnMCPPeerLos55a(t *testing.T) {
 	h, s := mustHandler(t)
-	stubProcCmdline(t, "/usr/local/bin/yesmem\x00mcp\x00")
+	stubProcCmdline(t, "/usr/local/bin/nemons\x00mcp\x00")
 	prevExe := readProcExe
-	readProcExe = func(int) (string, error) { return "/usr/local/bin/yesmem", nil }
+	readProcExe = func(int) (string, error) { return "/usr/local/bin/nemons", nil }
 	t.Cleanup(func() { readProcExe = prevExe })
 
 	resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{
@@ -269,9 +269,9 @@ func TestPeerIsMCPClient_DiscriminatesExeFromArgvLos55a(t *testing.T) {
 		want    bool
 		because string
 	}{
-		{"real mcp client", "/usr/local/bin/yesmem", "/usr/local/bin/yesmem\x00mcp\x00", true, "executable and subcommand"},
-		{"argv lies about the executable", "/bin/true", "/usr/local/bin/yesmem\x00mcp\x00", false, "argv[0] is not evidence"},
-		{"real executable, wrong subcommand", "/usr/local/bin/yesmem", "/usr/local/bin/yesmem\x00search\x00mcp\x00", false, "mcp must be argv[1]"},
+		{"real mcp client", "/usr/local/bin/nemons", "/usr/local/bin/nemons\x00mcp\x00", true, "executable and subcommand"},
+		{"argv lies about the executable", "/bin/true", "/usr/local/bin/nemons\x00mcp\x00", false, "argv[0] is not evidence"},
+		{"real executable, wrong subcommand", "/usr/local/bin/nemons", "/usr/local/bin/nemons\x00search\x00mcp\x00", false, "mcp must be argv[1]"},
 	}
 	for _, tc := range cases {
 		readProcExe = func(int) (string, error) { return tc.exe, nil }

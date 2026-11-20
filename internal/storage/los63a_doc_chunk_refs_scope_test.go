@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // TestLos63a_SupersedeByDocChunkRefs_IsProjectScoped pins YM-452: the per-chunk

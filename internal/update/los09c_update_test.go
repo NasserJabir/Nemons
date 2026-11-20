@@ -29,7 +29,7 @@ import (
 func los09cSeededDest(t *testing.T) (dir, dest, marker string) {
 	t.Helper()
 	dir = t.TempDir()
-	dest = filepath.Join(dir, "yesmem")
+	dest = filepath.Join(dir, "nemons")
 	if err := os.WriteFile(dest, []byte("old-binary"), 0755); err != nil {
 		t.Fatalf("seed dest: %v", err)
 	}
@@ -65,7 +65,7 @@ func los09cAssetName() string {
 // flock works at all and fails the run loudly otherwise, so neither a missing
 // nor a broken flock can turn the caller's assertion into a vacuous pass.
 func los09cMigrateScript(dir, marker string, exitCode int) []byte {
-	lock := filepath.Join(dir, ".yesmem-update.lock")
+	lock := filepath.Join(dir, ".nemons-update.lock")
 	probe := filepath.Join(dir, ".flock-probe")
 	return []byte(fmt.Sprintf(`#!/bin/sh
 command -v flock >/dev/null 2>&1 || { echo lock-probe-unavailable > %q; exit 2; }
@@ -103,7 +103,7 @@ func TestLos09cRunUpdateHoldsLockAcrossMigration(t *testing.T) {
 	}
 	t.Setenv("HOME", t.TempDir())
 	dir, dest, marker := los09cSeededDest(t)
-	binaryURL, checksumURL := los09cAssetServer(t, createTarGz(t, "yesmem", los09cMigrateScript(dir, marker, 0)))
+	binaryURL, checksumURL := los09cAssetServer(t, createTarGz(t, "nemons", los09cMigrateScript(dir, marker, 0)))
 	los09cStubRelease(t, binaryURL, checksumURL)
 
 	got, err := runUpdateTo(dest, "v1.0.0", nil)
@@ -129,7 +129,7 @@ func TestLos09cRunUpdateHoldsLockAcrossMigration(t *testing.T) {
 func TestLos09cRunUpdateRollsBackOnMigrateFailure(t *testing.T) {
 	t.Setenv("HOME", t.TempDir())
 	dir, dest, marker := los09cSeededDest(t)
-	binaryURL, checksumURL := los09cAssetServer(t, createTarGz(t, "yesmem", los09cMigrateScript(dir, marker, 1)))
+	binaryURL, checksumURL := los09cAssetServer(t, createTarGz(t, "nemons", los09cMigrateScript(dir, marker, 1)))
 	los09cStubRelease(t, binaryURL, checksumURL)
 
 	got, err := runUpdateTo(dest, "v1.0.0", nil)
@@ -172,7 +172,7 @@ func TestLos09cDownloadRejectsOversizedBody(t *testing.T) {
 func TestLos09cDownloadErrorRedactsAssetURL(t *testing.T) {
 	allowLocalDownloads(t)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
-	rawURL := srv.URL + "/yesmem.tar.gz?X-Amz-Signature=LOS09CSECRET"
+	rawURL := srv.URL + "/nemons.tar.gz?X-Amz-Signature=LOS09CSECRET"
 	srv.Close() // every request now fails at the transport
 
 	_, err := download(&http.Client{}, rawURL)
@@ -189,13 +189,13 @@ func TestLos09cDownloadErrorRedactsAssetURL(t *testing.T) {
 // running update.
 func TestLos09cRunRestartTakesTheUpdateLock(t *testing.T) {
 	dir := t.TempDir()
-	binary := filepath.Join(dir, "yesmem")
+	binary := filepath.Join(dir, "nemons")
 
 	prev := execRestart
 	t.Cleanup(func() { execRestart = prev })
 	var heldDuringExec bool
 	execRestart = func(string) error {
-		f, err := os.OpenFile(filepath.Join(dir, ".yesmem-update.lock"), os.O_CREATE|os.O_RDWR, 0600)
+		f, err := os.OpenFile(filepath.Join(dir, ".nemons-update.lock"), os.O_CREATE|os.O_RDWR, 0600)
 		if err != nil {
 			return err
 		}
@@ -216,7 +216,7 @@ func TestLos09cRunRestartTakesTheUpdateLock(t *testing.T) {
 // instead of pulling the binary out from under the downloader.
 func TestLos09cRunRestartRefusesWhileUpdateRuns(t *testing.T) {
 	dir := t.TempDir()
-	binary := filepath.Join(dir, "yesmem")
+	binary := filepath.Join(dir, "nemons")
 	unlock, err := lockUpdate(binary)
 	if err != nil {
 		t.Fatalf("take update lock: %v", err)
@@ -398,7 +398,7 @@ func TestLos09cRestoreBackupRejectsUnusableBackup(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			dest := filepath.Join(t.TempDir(), "yesmem")
+			dest := filepath.Join(t.TempDir(), "nemons")
 			if err := os.WriteFile(dest, []byte("new-binary"), 0755); err != nil {
 				t.Fatalf("seed dest: %v", err)
 			}
@@ -426,7 +426,7 @@ func TestLos09cRestoreBackupRejectsUnusableBackup(t *testing.T) {
 // the caller must get an error that names the missing path instead of a version.
 func TestLos09cPostUpdateInstallWithoutBackupFails(t *testing.T) {
 	dir := t.TempDir()
-	dest := filepath.Join(dir, "yesmem")
+	dest := filepath.Join(dir, "nemons")
 	failing := []byte("#!/bin/sh\nexit 1\n")
 	if err := os.WriteFile(dest, failing, 0755); err != nil {
 		t.Fatalf("seed dest: %v", err)

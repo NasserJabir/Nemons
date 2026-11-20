@@ -14,10 +14,10 @@ import (
 
 	"golang.org/x/term"
 
-	"github.com/carsteneu/yesmem/internal/terminals"
+	"github.com/NasserJabir/Nemons/internal/terminals"
 )
 
-// agentTTYOpts are the parsed `yesmem agent-tty` flags.
+// agentTTYOpts are the parsed `nemons agent-tty` flags.
 type agentTTYOpts struct {
 	sock         string
 	parentPid    int
@@ -47,7 +47,7 @@ func parseAgentTTYFlags(args []string) (agentTTYOpts, error) {
 	return o, nil
 }
 
-const agentTTYUsage = "usage: yesmem agent-tty --sock <path> [--parent-pid <pid>] [--parent-window <0xid>]"
+const agentTTYUsage = "usage: nemons agent-tty --sock <path> [--parent-pid <pid>] [--parent-window <0xid>]"
 
 var errNoSock = errors.New("--sock is required")
 

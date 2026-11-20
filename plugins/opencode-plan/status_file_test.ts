@@ -11,7 +11,7 @@ import { readNewestStatusFile, readStatusFile, statusCandidates } from "./status
 const dirs: string[] = []
 
 function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "yesmem-status-test-"))
+  const dir = mkdtempSync(join(tmpdir(), "nemons-status-test-"))
   dirs.push(dir)
   return dir
 }

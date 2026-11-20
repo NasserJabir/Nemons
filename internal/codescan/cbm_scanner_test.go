@@ -92,13 +92,13 @@ func TestCBMProjectName(t *testing.T) {
 		input string
 		want  string
 	}{
-		{"/tmp/foo/yesmem", "tmp-foo-yesmem"},
+		{"/tmp/foo/nemons", "tmp-foo-nemons"},
 		{"/home/user/project", "home-user-project"},
 		{"/tmp/test", "tmp-test"},
 		// Worktrees must get their own DB — never collapse to parent repo.
 		{
-			"/tmp/foo/yesmem/.worktrees/briefing-injection",
-			"tmp-foo-yesmem-.worktrees-briefing-injection",
+			"/tmp/foo/nemons/.worktrees/briefing-injection",
+			"tmp-foo-nemons-.worktrees-briefing-injection",
 		},
 	}
 	for _, tt := range tests {

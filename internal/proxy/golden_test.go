@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // goldenSpec describes one golden-test scenario: a named fixture with
@@ -22,7 +22,7 @@ type goldenSpec struct {
 	FinalSHA256     string
 	RequiredTokens  []string // must appear in the final fixture (subset check)
 	ForbiddenTokens []string // must NOT appear in the final fixture
-	Synthetic       bool     // if true, fixture is auto-generated via YESMEM_UPDATE_SYNTHETIC_GOLDEN
+	Synthetic       bool     // if true, fixture is auto-generated via NEMONS_UPDATE_SYNTHETIC_GOLDEN
 }
 
 // goldenRegistry maps profile → scenario list.
@@ -33,8 +33,8 @@ var goldenRegistry = map[models.PromptProfile][]goldenSpec{
 	models.ProfileClaude: {
 		{
 			Name:           "001_security_monitor",
-			PreSHA256:      "5fda22b0b65832c00afd8158f0b1d7982a172dc34edbea39b1a0c0db28f5ef7f",
-			FinalSHA256:    "06ba461b25c142b3609ca3fe149e570375ceea4b4010ef20af92368b0c8eb864",
+			PreSHA256:      "f6ddd5a6836f8719c7db4a118ac3c3412ba7f19bd8c7d81743d241974dcb3872",
+			FinalSHA256:    "f759aa3f5eecd1f13892b843ce5a1d23ba5e00235f06ef20ddf06292e40a6923",
 			RequiredTokens: claudeRequiredTokens(),
 			ForbiddenTokens: []string{
 				// Codex/OpenAI tokens must never leak into Claude path.
@@ -48,8 +48,8 @@ var goldenRegistry = map[models.PromptProfile][]goldenSpec{
 		{
 			Name:            "001_synthetic_codex_openai_parity",
 			Synthetic:       true,
-			PreSHA256:       "ac8cf9ec7297c62f26e761e72291665186015eeca219f47ced73e301be2594f3",
-			FinalSHA256:     "8e2093b67befb542b93d6c1bc0a11b0365a0fc5a92522d37548390d276f1e636",
+			PreSHA256:       "9f8905aa0fbd8fb5afb1dd2a0e35b2e855650f5fe2289b35c57d20dc0715a1f6",
+			FinalSHA256:     "b6d3330d5ac12fc2e8853d2ec62cc979f809549364c0f01061793badf0f6d702",
 			RequiredTokens:  openAIRequiredTokens(),
 			ForbiddenTokens: openAIForbiddenTokens(),
 		},
@@ -58,8 +58,8 @@ var goldenRegistry = map[models.PromptProfile][]goldenSpec{
 		{
 			Name:            "001_synthetic_opencode_openai_parity",
 			Synthetic:       true,
-			PreSHA256:       "9bc7f1964dcba0ce77328d8bc6b2e5fa9c14aa96f7a8cedc417a52a3f4e5e0c9",
-			FinalSHA256:     "f96234def5db03e7047a24e24692e4caa320fc75198254453ec67c19aedd7d5b",
+			PreSHA256:       "9d16588225ef2509b60bf845c3e6dbb4832d8adacd7ce380ef70fed2d1ddc43a",
+			FinalSHA256:     "3b9acf2b80a41c5228e0af53d04b2004525b28dd2454c2e7f9ab87757f32838e",
 			RequiredTokens:  openAIRequiredTokens(),
 			ForbiddenTokens: openAIForbiddenTokens(),
 		},
@@ -70,35 +70,35 @@ func claudeRequiredTokens() []string {
 	return []string{
 		`cch=00000;`,
 		`"cache_control":{"type":"ephemeral"}`,
-		`[yesmem-directives]`,
-		`[yesmem-enhance]`,
-		`[yesmem-tool-prefs]`,
-		`[yesmem-output-discipline]`,
-		`[yesmem-coding-discipline]`,
-		`[yesmem-beweislast]`,
-		`[yesmem-scope-discipline]`,
-		`[yesmem-delegation-contract]`,
+		`[nemons-directives]`,
+		`[nemons-enhance]`,
+		`[nemons-tool-prefs]`,
+		`[nemons-output-discipline]`,
+		`[nemons-coding-discipline]`,
+		`[nemons-beweislast]`,
+		`[nemons-scope-discipline]`,
+		`[nemons-delegation-contract]`,
 		`The following is the user's CLAUDE.md configuration.`,
 	}
 }
 
 func openAIRequiredTokens() []string {
 	return []string{
-		`[yesmem-directives]`,
-		`[yesmem-output-discipline]`,
-		`[yesmem-coding-discipline]`,
-		`[yesmem-beweislast]`,
-		`[yesmem-scope-discipline]`,
-		`[yesmem-clarify-first]`,
+		`[nemons-directives]`,
+		`[nemons-output-discipline]`,
+		`[nemons-coding-discipline]`,
+		`[nemons-beweislast]`,
+		`[nemons-scope-discipline]`,
+		`[nemons-clarify-first]`,
 	}
 }
 
 func openAIForbiddenTokens() []string {
 	return []string{
-		`[yesmem-enhance]`,
-		`[yesmem-tool-prefs]`,
-		`[yesmem-code-tools-first]`,
-		`[yesmem-delegation-contract]`,
+		`[nemons-enhance]`,
+		`[nemons-tool-prefs]`,
+		`[nemons-code-tools-first]`,
+		`[nemons-delegation-contract]`,
 		`CLAUDE_CODE_REPL`,
 		`The following is the user's CLAUDE.md configuration.`,
 	}
@@ -239,8 +239,8 @@ func TestGolden_AllProfiles_SyntheticFixturesHaveTokenGates(t *testing.T) {
 }
 
 func TestGolden_UpdateSyntheticFixtures(t *testing.T) {
-	if os.Getenv("YESMEM_UPDATE_SYNTHETIC_GOLDEN") != "1" {
-		t.Skip("set YESMEM_UPDATE_SYNTHETIC_GOLDEN=1 to rewrite synthetic golden fixtures")
+	if os.Getenv("NEMONS_UPDATE_SYNTHETIC_GOLDEN") != "1" {
+		t.Skip("set NEMONS_UPDATE_SYNTHETIC_GOLDEN=1 to rewrite synthetic golden fixtures")
 	}
 	for profile, specs := range goldenRegistry {
 		for _, spec := range specs {
@@ -332,7 +332,7 @@ func syntheticOpenAIPreFixture(t *testing.T, profile models.PromptProfile) []byt
 				Content: []any{
 					map[string]any{
 						"type": "text",
-						"text": "<environment_context>\n  <cwd>/home/user/projects/yesmem/.worktrees/opencode-proxy</cwd>\n  <shell>bash</shell>\n</environment_context>",
+						"text": "<environment_context>\n  <cwd>/home/user/projects/nemons/.worktrees/opencode-proxy</cwd>\n  <shell>bash</shell>\n</environment_context>",
 					},
 				},
 			},

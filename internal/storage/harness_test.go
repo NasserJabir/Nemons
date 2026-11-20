@@ -12,11 +12,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // mustOpen returns a fresh in-memory store. In :memory: mode all logical
-// databases (yesmem/messages/runtime) share one handle, so index_state and
+// databases (nemons/messages/runtime) share one handle, so index_state and
 // messages live in the same schema. Good enough for storage-level tests, and
 // the default unless a test needs the real file split.
 func mustOpen(t *testing.T) *Store {
@@ -30,13 +30,13 @@ func mustOpen(t *testing.T) *Store {
 }
 
 // mustOpenFiles opens a file-backed store: session pins live in runtime.db and
-// permanent pins in yesmem.db, two separate files as in production. With
+// permanent pins in nemons.db, two separate files as in production. With
 // ":memory:" both scopes share one database and a clear would wipe both. Also
 // the shape to pick when a test would deadlock on the single connection of an
 // in-memory database (a cursor held open across a second query).
 func mustOpenFiles(t *testing.T) *Store {
 	t.Helper()
-	s, err := Open(filepath.Join(t.TempDir(), "yesmem.db"))
+	s, err := Open(filepath.Join(t.TempDir(), "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -48,7 +48,7 @@ func mustOpenFiles(t *testing.T) *Store {
 // themselves: reopen assertions, WAL frame inspection, journal size limits.
 func mustOpenWithPath(t *testing.T) (*Store, string) {
 	t.Helper()
-	path := filepath.Join(t.TempDir(), "yesmem.db")
+	path := filepath.Join(t.TempDir(), "nemons.db")
 	s, err := Open(path)
 	if err != nil {
 		t.Fatalf("open store at %s: %v", path, err)

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/sanitize"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/sanitize"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // patchReply renders the reply the fix prompt asks for: the block to replace and
@@ -564,7 +564,7 @@ func TestAutoCorrect_AbortsWhenThePatchDoesNotFitTheScript(t *testing.T) {
 			t.Errorf("the live body was touched: %q", m.Scripts[0].Body)
 		}
 	}
-	proposals, err := s.GetActiveLearnings("cap_proposed", "yesmem", "", "", 0)
+	proposals, err := s.GetActiveLearnings("cap_proposed", "nemons", "", "", 0)
 	if err != nil {
 		t.Fatalf("read proposals: %v", err)
 	}

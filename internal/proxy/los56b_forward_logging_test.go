@@ -57,7 +57,7 @@ func TestLos56bAnthropicReadErrorIsFramedAsUpstreamError(t *testing.T) {
 	req := httptest.NewRequest("POST", "/v1/messages", bytes.NewReader(body))
 	w := httptest.NewRecorder()
 
-	s.forwardWithAnnotation(w, req, body, 1, nil, "yesmem", "", "", 1, false)
+	s.forwardWithAnnotation(w, req, body, 1, nil, "nemons", "", "", 1, false)
 
 	line := logged.String()
 	if !strings.Contains(line, "upstream error:") {

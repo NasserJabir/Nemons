@@ -18,9 +18,9 @@ func TestLoadExpandsHomeInEveryConfiguredPath_Los11k(t *testing.T) {
 
 	path := filepath.Join(t.TempDir(), "config.yaml")
 	body := `paths:
-  db: ~/.claude/yesmem/yesmem.db
-  bleve_index: ~/.claude/yesmem/bleve-index
-  archive: ~/.claude/yesmem/archive
+  db: ~/.claude/nemons/nemons.db
+  bleve_index: ~/.claude/nemons/bleve-index
+  archive: ~/.claude/nemons/archive
   claude_projects: ~/.claude/projects
   opencode_db: ~/.local/share/opencode/opencode.db
 `
@@ -34,9 +34,9 @@ func TestLoadExpandsHomeInEveryConfiguredPath_Los11k(t *testing.T) {
 	}
 
 	cases := []struct{ name, got, want string }{
-		{"paths.db", cfg.Paths.DB, filepath.Join(home, ".claude", "yesmem", "yesmem.db")},
-		{"paths.bleve_index", cfg.Paths.BleveIndex, filepath.Join(home, ".claude", "yesmem", "bleve-index")},
-		{"paths.archive", cfg.Paths.Archive, filepath.Join(home, ".claude", "yesmem", "archive")},
+		{"paths.db", cfg.Paths.DB, filepath.Join(home, ".claude", "nemons", "nemons.db")},
+		{"paths.bleve_index", cfg.Paths.BleveIndex, filepath.Join(home, ".claude", "nemons", "bleve-index")},
+		{"paths.archive", cfg.Paths.Archive, filepath.Join(home, ".claude", "nemons", "archive")},
 		{"paths.claude_projects", cfg.Paths.ClaudeProjects, filepath.Join(home, ".claude", "projects")},
 		{"paths.opencode_db", cfg.Paths.OpencodeDB, filepath.Join(home, ".local", "share", "opencode", "opencode.db")},
 	}
@@ -56,7 +56,7 @@ func TestLoadKeepsAbsoluteAndEmptyPaths_Los11k(t *testing.T) {
 
 	custom := filepath.Join(t.TempDir(), "custom")
 	path := filepath.Join(t.TempDir(), "config.yaml")
-	body := "paths:\n  db: " + custom + "/yesmem.db\n  archive: \"\"\n  opencode_db: /srv/opencode.db\n"
+	body := "paths:\n  db: " + custom + "/nemons.db\n  archive: \"\"\n  opencode_db: /srv/opencode.db\n"
 	if err := os.WriteFile(path, []byte(body), 0o600); err != nil {
 		t.Fatalf("write config: %v", err)
 	}
@@ -65,7 +65,7 @@ func TestLoadKeepsAbsoluteAndEmptyPaths_Los11k(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
-	if want := custom + "/yesmem.db"; cfg.Paths.DB != want {
+	if want := custom + "/nemons.db"; cfg.Paths.DB != want {
 		t.Errorf("paths.db = %q, want the untouched absolute value %q", cfg.Paths.DB, want)
 	}
 	if cfg.Paths.Archive != "" {
@@ -82,14 +82,14 @@ func TestLoadWithoutHomeLeavesTilde_Los11k(t *testing.T) {
 	t.Setenv("HOME", "")
 
 	path := filepath.Join(t.TempDir(), "config.yaml")
-	if err := os.WriteFile(path, []byte("paths:\n  db: ~/.claude/yesmem/yesmem.db\n"), 0o600); err != nil {
+	if err := os.WriteFile(path, []byte("paths:\n  db: ~/.claude/nemons/nemons.db\n"), 0o600); err != nil {
 		t.Fatalf("write config: %v", err)
 	}
 	cfg, err := Load(path)
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
-	if cfg.Paths.DB != "~/.claude/yesmem/yesmem.db" {
+	if cfg.Paths.DB != "~/.claude/nemons/nemons.db" {
 		t.Errorf("paths.db without HOME = %q, want the literal value back", cfg.Paths.DB)
 	}
 }

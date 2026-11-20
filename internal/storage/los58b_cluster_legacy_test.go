@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // los58bLearning inserts one active learning for project and returns its ID.
@@ -58,7 +58,7 @@ func los58bClusterCount(t *testing.T, s *Store, key string) int {
 func TestLos58bClusterWriterRefusesAKeylessProject(t *testing.T) {
 	s := mustOpen(t)
 
-	for _, project := range []string{"", "yesmem"} {
+	for _, project := range []string{"", "nemons"} {
 		if err := s.ReplaceLearningClusters(project, []models.LearningCluster{los25bCluster("x")}); err == nil {
 			t.Errorf("ReplaceLearningClusters(%q) succeeded, want an error: it has no repository key", project)
 		}
@@ -66,7 +66,7 @@ func TestLos58bClusterWriterRefusesAKeylessProject(t *testing.T) {
 	if n := los58bClusterCount(t, s, ""); n != 0 {
 		t.Fatalf("%d rows written under the empty key, want 0", n)
 	}
-	if n := los58bClusterCount(t, s, "yesmem"); n != 0 {
+	if n := los58bClusterCount(t, s, "nemons"); n != 0 {
 		t.Fatalf("%d rows written under a bare name, want 0", n)
 	}
 }

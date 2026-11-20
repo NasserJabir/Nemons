@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // los34gWriteExec writes an executable stand-in at path.
@@ -369,7 +369,7 @@ func TestLos34gAutoCorrectSkipsARefusedVerificationRun(t *testing.T) {
 	if strings.Contains(joined, "auto-correct unsuccessful") {
 		t.Errorf("a never-started verification run was reported as a failed fix, broadcasts:\n%s", joined)
 	}
-	caps, err := s.GetActiveLearnings("cap", "yesmem", "", "", 0)
+	caps, err := s.GetActiveLearnings("cap", "nemons", "", "", 0)
 	if err != nil {
 		t.Fatalf("read caps: %v", err)
 	}

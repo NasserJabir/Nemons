@@ -13,10 +13,10 @@ import (
 
 func TestFullUpdateFlow(t *testing.T) {
 	allowLocalDownloads(t)
-	binaryContent := []byte("#!/bin/sh\necho 'yesmem v1.1.0'")
-	archive := createTarGz(t, "yesmem", binaryContent)
+	binaryContent := []byte("#!/bin/sh\necho 'nemons v1.1.0'")
+	archive := createTarGz(t, "nemons", binaryContent)
 	archiveHash := fmt.Sprintf("%x", sha256.Sum256(archive))
-	checksums := fmt.Sprintf("%s  yesmem_1.1.0_linux_amd64.tar.gz\n%s  yesmem_1.1.0_darwin_arm64.tar.gz\n", archiveHash, archiveHash)
+	checksums := fmt.Sprintf("%s  nemons_1.1.0_linux_amd64.tar.gz\n%s  nemons_1.1.0_darwin_arm64.tar.gz\n", archiveHash, archiveHash)
 
 	var srv *httptest.Server
 	srv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -26,8 +26,8 @@ func TestFullUpdateFlow(t *testing.T) {
 				TagName: "v1.1.0",
 				Body:    "## What's New\n- Auto-update support",
 				Assets: []githubAsset{
-					{Name: "yesmem_1.1.0_linux_amd64.tar.gz", DownloadURL: srv.URL + "/binary"},
-					{Name: "yesmem_1.1.0_darwin_arm64.tar.gz", DownloadURL: srv.URL + "/binary"},
+					{Name: "nemons_1.1.0_linux_amd64.tar.gz", DownloadURL: srv.URL + "/binary"},
+					{Name: "nemons_1.1.0_darwin_arm64.tar.gz", DownloadURL: srv.URL + "/binary"},
 					{Name: "checksums.txt", DownloadURL: srv.URL + "/checksums"},
 				},
 			}
@@ -54,7 +54,7 @@ func TestFullUpdateFlow(t *testing.T) {
 
 	// Step 2: Download and replace
 	tmpDir := t.TempDir()
-	dest := filepath.Join(tmpDir, "yesmem")
+	dest := filepath.Join(tmpDir, "nemons")
 	os.WriteFile(dest, []byte("old-binary"), 0755)
 
 	asset := assetName("1.1.0", "linux", "amd64")

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // los10cMaxGetLearningsLimit is the cap the handler must enforce on a caller

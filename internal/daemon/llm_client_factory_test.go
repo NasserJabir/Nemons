@@ -13,8 +13,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/extraction"
 )
 
 // constructionSiteFile is the one file in this package allowed to build a raw
@@ -149,7 +149,7 @@ func TestDaemonLLMConstructionSitesAreCentralised(t *testing.T) {
 func extractionLocalName(file *ast.File) (name string, dotImport bool) {
 	for _, imp := range file.Imports {
 		path, err := strconv.Unquote(imp.Path.Value)
-		if err != nil || path != "github.com/carsteneu/yesmem/internal/extraction" {
+		if err != nil || path != "github.com/NasserJabir/Nemons/internal/extraction" {
 			continue
 		}
 		if imp.Name == nil {

@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // TestLos56eMetamemorySeesExpiredTTLAfterReopen is the regression test for
@@ -13,7 +13,7 @@ import (
 // sibling test in storage). A row whose TTL has passed must be counted, and the
 // count must survive the reopen a daemon start performs.
 func TestLos56eMetamemorySeesExpiredTTLAfterReopen(t *testing.T) {
-	dbPath := filepath.Join(t.TempDir(), "yesmem.db")
+	dbPath := filepath.Join(t.TempDir(), "nemons.db")
 
 	s, err := storage.Open(dbPath)
 	if err != nil {

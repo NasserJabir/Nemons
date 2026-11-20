@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	repo "github.com/carsteneu/yesmem/internal/repo"
+	repo "github.com/NasserJabir/Nemons/internal/repo"
 )
 
 func gitMain(t *testing.T, dir string) {

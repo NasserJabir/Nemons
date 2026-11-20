@@ -23,9 +23,9 @@ func TestYesloopSkillNamesTheVerifyProfileInit(t *testing.T) {
 	phaseOne := skill[:phaseTwo]
 
 	for _, want := range []string{
-		".yesmem/verify.yaml",
+		".nemons/verify.yaml",
 		"verify-claims --init",
-		"git add -f .yesmem/verify.yaml",
+		"git add -f .nemons/verify.yaml",
 	} {
 		if !strings.Contains(phaseOne, want) {
 			t.Errorf("%s: Phase 1 does not name %q", yesloopSkillPath, want)

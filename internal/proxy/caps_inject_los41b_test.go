@@ -85,7 +85,7 @@ func TestLos41bClaudeMessagesPathKeepsReplBootstrap(t *testing.T) {
 		t.Fatalf("expected 200, got %d", rec.Code)
 	}
 	body := forwarded()
-	if !strings.Contains(body, "mcp__yesmem__activate_cap") {
+	if !strings.Contains(body, "mcp__nemons__activate_cap") {
 		t.Error("claude code path must keep the activate_cap bootstrap")
 	}
 	if !strings.Contains(body, "eval(result.code)") {
@@ -120,8 +120,8 @@ func TestLos41bCodexMessagesPathGetsExecuteCapCatalog(t *testing.T) {
 func TestLos41bOpencodeCatalogNamesScriptsAndCodeModeForm(t *testing.T) {
 	catalog := renderOpencodeCapabilitiesCatalog([]CapInjection{los41bMultiScriptCap()})
 
-	if !strings.Contains(catalog, "tools.yesmem.execute_cap") {
-		t.Error("opencode Code Mode exposes the tool as tools.yesmem.execute_cap")
+	if !strings.Contains(catalog, "tools.nemons.execute_cap") {
+		t.Error("opencode Code Mode exposes the tool as tools.nemons.execute_cap")
 	}
 	if !strings.Contains(catalog, "los41b_fetch") {
 		t.Error("catalog must list the tool script los41b_fetch")
@@ -132,7 +132,7 @@ func TestLos41bOpencodeCatalogNamesScriptsAndCodeModeForm(t *testing.T) {
 	if strings.Contains(catalog, "los41b_internal") {
 		t.Error("internal handler scripts are not part of the callable tool surface")
 	}
-	if strings.Contains(catalog, "mcp__yesmem__") {
+	if strings.Contains(catalog, "mcp__nemons__") {
 		t.Error("opencode does not expose mcp__<server>__<tool> names")
 	}
 	if strings.Contains(catalog, "eval(") {

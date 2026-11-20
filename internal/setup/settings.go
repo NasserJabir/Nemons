@@ -55,17 +55,17 @@ func writeSecretFile(path string, data []byte) error {
 	return os.Chmod(path, 0600)
 }
 
-// claudeProxyBaseURL is the yesmem proxy endpoint written into the
-// settings.json env block while yesmem is installed.
+// claudeProxyBaseURL is the nemons proxy endpoint written into the
+// settings.json env block while nemons is installed.
 const claudeProxyBaseURL = "http://localhost:9099"
 
 // savePreInstallState persists settings values that install will overwrite,
 // so uninstall can restore them. Saved to dataDir/install-state.json.
-// Runs only while settings.json is untouched by yesmem: on a re-run the values
-// in it are yesmem's own, so capturing them would lose the real pre-install state.
+// Runs only while settings.json is untouched by nemons: on a re-run the values
+// in it are nemons's own, so capturing them would lose the real pre-install state.
 func savePreInstallState(dataDir string, settings map[string]any, home string) {
 	statePath := filepath.Join(dataDir, "install-state.json")
-	if yesmemApplied(settings) {
+	if nemonsApplied(settings) {
 		// Nothing to capture, but tighten a file an older version left world-readable.
 		hardenInstallStateFile(dataDir)
 		return
@@ -121,10 +121,10 @@ func hardenInstallStateFile(dataDir string) {
 	os.Chmod(filepath.Join(dataDir, "install-state.json"), 0600)
 }
 
-// yesmemApplied reports whether settings.json still carries yesmem's own
+// nemonsApplied reports whether settings.json still carries nemons's own
 // modifications. Either marker means the current values are not a pre-install
 // state and must not be recorded as one.
-func yesmemApplied(settings map[string]any) bool {
+func nemonsApplied(settings map[string]any) bool {
 	if env, ok := settings["env"].(map[string]any); ok {
 		if baseURL, ok := env["ANTHROPIC_BASE_URL"].(string); ok && baseURL == claudeProxyBaseURL {
 			return true
@@ -134,8 +134,8 @@ func yesmemApplied(settings map[string]any) bool {
 	if !ok {
 		return false
 	}
-	_, hasYesmem := mcpServers["yesmem"]
-	return hasYesmem
+	_, hasNemons := mcpServers["nemons"]
+	return hasNemons
 }
 
 // loadPreInstallState reads the saved pre-install state.
@@ -175,7 +175,7 @@ func setProxyEnvVar(settings map[string]any) {
 	settings["env"] = env
 }
 
-// removeProxyEnvVar replaces the yesmem proxy URL in ANTHROPIC_BASE_URL.
+// removeProxyEnvVar replaces the nemons proxy URL in ANTHROPIC_BASE_URL.
 // For API-key users (no subscription), we set it to the real API endpoint
 // to bypass Claude Code's bridge which requires a subscription.
 // For non-API-key users, we remove it entirely.
@@ -198,9 +198,9 @@ func removeProxyEnvVar(settings map[string]any) {
 	}
 }
 
-// registerMCPPermissions adds the yesmem MCP wildcard to permissions.allow.
+// registerMCPPermissions adds the nemons MCP wildcard to permissions.allow.
 func registerMCPPermissions(settings map[string]any) {
-	wildcard := "mcp__yesmem__*"
+	wildcard := "mcp__nemons__*"
 
 	perms, ok := settings["permissions"].(map[string]any)
 	if !ok {
@@ -223,13 +223,13 @@ func registerMCPPermissions(settings map[string]any) {
 	settings["permissions"] = perms
 }
 
-// registerMCPServer adds yesmem to mcpServers in settings.json.
+// registerMCPServer adds nemons to mcpServers in settings.json.
 func registerMCPInSettings(settings map[string]any, binaryPath string) {
 	mcpServers, ok := settings["mcpServers"].(map[string]any)
 	if !ok {
 		mcpServers = map[string]any{}
 	}
-	mcpServers["yesmem"] = map[string]any{
+	mcpServers["nemons"] = map[string]any{
 		"command": binaryPath,
 		"args":    []string{"mcp"},
 	}
@@ -261,12 +261,12 @@ func clearClaudeJSONAuth(home string) error {
 	if err != nil {
 		return err
 	}
-	// The file predates yesmem on most installs, so the mode literal alone would
+	// The file predates nemons on most installs, so the mode literal alone would
 	// keep whatever an earlier Claude Code version left behind.
 	return writeSecretFile(path, out)
 }
 
-// registerMCPInClaudeJSON adds yesmem to ~/.claude.json (user-scope, all projects).
+// registerMCPInClaudeJSON adds nemons to ~/.claude.json (user-scope, all projects).
 func registerMCPInClaudeJSON(home, binaryPath string) error {
 	path := filepath.Join(home, ".claude.json")
 	data, err := os.ReadFile(path)
@@ -299,7 +299,7 @@ func registerMCPInClaudeJSON(home, binaryPath string) error {
 		mcpServers = map[string]any{}
 	}
 
-	mcpServers["yesmem"] = map[string]any{
+	mcpServers["nemons"] = map[string]any{
 		"type":    "stdio",
 		"command": binaryPath,
 		"args":    []string{"mcp"},
@@ -311,13 +311,13 @@ func registerMCPInClaudeJSON(home, binaryPath string) error {
 	if err != nil {
 		return err
 	}
-	// The file predates yesmem on most installs, so the mode literal alone would
+	// The file predates nemons on most installs, so the mode literal alone would
 	// keep whatever an earlier Claude Code version left behind.
 	return writeSecretFile(path, out)
 }
 
-// registerHooks adds all yesmem hooks (SessionStart briefing, PreToolUse, PostToolUse, etc.).
-// Preserves existing hooks — appends yesmem commands without overwriting.
+// registerHooks adds all nemons hooks (SessionStart briefing, PreToolUse, PostToolUse, etc.).
+// Preserves existing hooks — appends nemons commands without overwriting.
 func registerHooks(settings map[string]any, binaryPath string) {
 	hooks, ok := settings["hooks"].(map[string]any)
 	if !ok {
@@ -331,7 +331,7 @@ func registerHooks(settings map[string]any, binaryPath string) {
 	// Clean up any existing hook-think entries from previous setups.
 	removeThinkHook(hooks, binaryPath)
 
-	// UserPromptSubmit — dynamic yesmem-usage reminder
+	// UserPromptSubmit — dynamic nemons-usage reminder
 	addIdleTickHook(hooks, binaryPath)
 
 	// SessionEnd — track session ends for recovery + pin cleanup
@@ -357,14 +357,14 @@ func addSessionStartHook(hooks map[string]any, binaryPath string) {
 		existing = []any{}
 	}
 
-	// Check if yesmem hook already registered — fix matcher if missing
+	// Check if nemons hook already registered — fix matcher if missing
 	for i, entry := range existing {
 		if m, ok := entry.(map[string]any); ok {
 			for _, h := range toHookSlice(m["hooks"]) {
 				// The verb matters here: SessionStart also carries our
 				// codemap-hook, which is a different handler and must not be
 				// rewritten into a briefing hook.
-				if cmd, ok := h["command"].(string); ok && (isYesmemHandler(cmd, "briefing-hook", binaryPath) || isLegacyBriefingScript(cmd)) {
+				if cmd, ok := h["command"].(string); ok && (isNemonsHandler(cmd, "briefing-hook", binaryPath) || isLegacyBriefingScript(cmd)) {
 					// Ensure matcher is set (fix for hooks registered without matcher)
 					if _, hasMatcher := m["matcher"]; !hasMatcher {
 						m["matcher"] = "startup|resume|clear|compact"
@@ -372,7 +372,7 @@ func addSessionStartHook(hooks map[string]any, binaryPath string) {
 						hooks["SessionStart"] = existing
 					}
 					// Update command path if binary moved
-					h["command"] = retargetYesmemInvocation(cmd, "briefing-hook", binaryPath)
+					h["command"] = retargetNemonsInvocation(cmd, "briefing-hook", binaryPath)
 					return
 				}
 			}
@@ -392,15 +392,15 @@ func addSessionStartHook(hooks map[string]any, binaryPath string) {
 	hooks["SessionStart"] = existing
 }
 
-// invokesYesmem reports whether one ";"-separated command segment runs the
-// yesmem binary. Identity is the binary, not the word "yesmem" somewhere in the
-// command: a substring match claims a foreign my-yesmem-notes.sh and rewrites or
+// invokesNemons reports whether one ";"-separated command segment runs the
+// nemons binary. Identity is the binary, not the word "nemons" somewhere in the
+// command: a substring match claims a foreign my-nemons-notes.sh and rewrites or
 // deletes it, while matching a subcommand alone claims a foreign
 // idle-tick-notify.sh. Recognized are binaryPath itself — as the whole segment or
 // as its prefix, which also covers a path containing spaces — the basename of
-// binaryPath (the same binary under a path it has since left) and a yesmem-named
-// program, which covers the legacy yesmem-briefing.sh script.
-func invokesYesmem(seg, binaryPath string) bool {
+// binaryPath (the same binary under a path it has since left) and a nemons-named
+// program, which covers the legacy nemons-briefing.sh script.
+func invokesNemons(seg, binaryPath string) bool {
 	if binaryPath != "" && (seg == binaryPath || strings.HasPrefix(seg, binaryPath+" ")) {
 		return true
 	}
@@ -409,7 +409,7 @@ func invokesYesmem(seg, binaryPath string) bool {
 		return false
 	}
 	base := filepath.Base(fields[0])
-	if strings.HasPrefix(base, "yesmem") {
+	if strings.HasPrefix(base, "nemons") {
 		return true
 	}
 	return binaryPath != "" && base == filepath.Base(binaryPath)
@@ -426,14 +426,14 @@ func segNamesVerb(seg, verb string) bool {
 	return false
 }
 
-// isYesmemHandler reports whether cmd is one of our hook handlers. verb names the
+// isNemonsHandler reports whether cmd is one of our hook handlers. verb names the
 // subcommand the caller looks for; it separates our handlers from each other
 // (PreToolUse carries hook-check and hook-guard side by side) and from another of
 // our handlers such as the legacy micro-reminder. An empty verb accepts any
 // invocation of the binary.
-func isYesmemHandler(cmd, verb, binaryPath string) bool {
+func isNemonsHandler(cmd, verb, binaryPath string) bool {
 	for _, seg := range strings.Split(cmd, ";") {
-		if !invokesYesmem(seg, binaryPath) {
+		if !invokesNemons(seg, binaryPath) {
 			continue
 		}
 		if verb == "" || segNamesVerb(seg, verb) {
@@ -443,7 +443,7 @@ func isYesmemHandler(cmd, verb, binaryPath string) bool {
 	return false
 }
 
-// isLegacyBriefingScript reports whether cmd is the shell wrapper yesmem
+// isLegacyBriefingScript reports whether cmd is the shell wrapper nemons
 // registered before `briefing-hook` existed. It carries no subcommand, so the
 // verb test alone would leave it behind instead of migrating it.
 func isLegacyBriefingScript(cmd string) bool {
@@ -452,23 +452,23 @@ func isLegacyBriefingScript(cmd string) bool {
 		if len(fields) != 1 {
 			continue
 		}
-		if strings.HasPrefix(filepath.Base(fields[0]), "yesmem-briefing") {
+		if strings.HasPrefix(filepath.Base(fields[0]), "nemons-briefing") {
 			return true
 		}
 	}
 	return false
 }
 
-// retargetYesmemInvocation points our invocation of verb at binaryPath. Only the
+// retargetNemonsInvocation points our invocation of verb at binaryPath. Only the
 // binary changes: the arguments behind the verb survive, and so does every other
 // segment of a chained command — an older version appended idle-tick to an
 // existing hook, so a chain is a real shape in settings.json. The legacy briefing
 // script carries no subcommand and is replaced as a whole.
-func retargetYesmemInvocation(cmd, verb, binaryPath string) string {
+func retargetNemonsInvocation(cmd, verb, binaryPath string) string {
 	target := binaryPath + " " + verb
 	segs := strings.Split(cmd, ";")
 	for i, seg := range segs {
-		if off := yesmemVerbOffset(seg, verb, binaryPath); off >= 0 {
+		if off := nemonsVerbOffset(seg, verb, binaryPath); off >= 0 {
 			segs[i] = target + seg[off+len(verb):]
 			continue
 		}
@@ -479,11 +479,11 @@ func retargetYesmemInvocation(cmd, verb, binaryPath string) string {
 	return strings.Join(segs, ";")
 }
 
-// yesmemVerbOffset returns the offset of the verb token that ends our binary part,
+// nemonsVerbOffset returns the offset of the verb token that ends our binary part,
 // or -1. Only a verb behind a prefix that is our binary counts: a path component
 // that happens to spell the verb must not be taken for the subcommand, or every
 // run would prepend another copy of the binary.
-func yesmemVerbOffset(seg, verb, binaryPath string) int {
+func nemonsVerbOffset(seg, verb, binaryPath string) int {
 	offset := 0
 	for _, tok := range strings.Fields(seg) {
 		i := strings.Index(seg[offset:], tok)
@@ -491,7 +491,7 @@ func yesmemVerbOffset(seg, verb, binaryPath string) int {
 			return -1
 		}
 		offset += i
-		if tok == verb && invokesYesmem(seg[:offset], binaryPath) {
+		if tok == verb && invokesNemons(seg[:offset], binaryPath) {
 			return offset
 		}
 		offset += len(tok)
@@ -509,7 +509,7 @@ func stripCommandSegment(cmd, needle, binaryPath string) string {
 	var kept []string
 	changed := false
 	for _, seg := range strings.Split(cmd, ";") {
-		if isYesmemHandler(seg, needle, binaryPath) {
+		if isNemonsHandler(seg, needle, binaryPath) {
 			changed = true
 			continue
 		}
@@ -524,15 +524,15 @@ func stripCommandSegment(cmd, needle, binaryPath string) string {
 	return strings.Join(kept, ";")
 }
 
-// allHandlersAreYesmem reports whether every handler in a matcher group is a
-// yesmem hook, which is what makes it safe to rewrite group-level fields.
-func allHandlersAreYesmem(m map[string]any, binaryPath string) bool {
+// allHandlersAreNemons reports whether every handler in a matcher group is a
+// nemons hook, which is what makes it safe to rewrite group-level fields.
+func allHandlersAreNemons(m map[string]any, binaryPath string) bool {
 	handlers := toHookSlice(m["hooks"])
 	if len(handlers) == 0 {
 		return false
 	}
 	for _, h := range handlers {
-		if cmd, _ := h["command"].(string); !isYesmemHandler(cmd, "", binaryPath) {
+		if cmd, _ := h["command"].(string); !isNemonsHandler(cmd, "", binaryPath) {
 			return false
 		}
 	}
@@ -552,11 +552,11 @@ func addIdleTickHook(hooks map[string]any, binaryPath string) {
 	for _, entry := range existing {
 		if m, ok := entry.(map[string]any); ok {
 			for _, h := range toHookSlice(m["hooks"]) {
-				if cmd, ok := h["command"].(string); ok && isYesmemHandler(cmd, "idle-tick", binaryPath) {
+				if cmd, ok := h["command"].(string); ok && isNemonsHandler(cmd, "idle-tick", binaryPath) {
 					registered = true
 					// Update command path if binary moved — otherwise the
 					// registration keeps pointing at a path that is gone.
-					h["command"] = retargetYesmemInvocation(cmd, "idle-tick", binaryPath)
+					h["command"] = retargetNemonsInvocation(cmd, "idle-tick", binaryPath)
 				}
 			}
 		}
@@ -606,7 +606,7 @@ func addIdleTickHook(hooks map[string]any, binaryPath string) {
 	hooks["UserPromptSubmit"] = kept
 }
 
-// sessionEndTimeout is the per-handler timeout for `yesmem session-end`. Claude
+// sessionEndTimeout is the per-handler timeout for `nemons session-end`. Claude
 // Code gives SessionEnd hooks a shared 1.5s budget by default, but the hook dials
 // the daemon with a 3s connect and a 3s call deadline, so without a raised budget
 // a busy daemon makes the tracking fail silently.
@@ -614,7 +614,7 @@ const sessionEndTimeout = 10
 
 // addSessionEndHook registers session-end tracking. Deliberately without a
 // matcher: every reason Claude Code can report reaches the hook and RunSessionEnd
-// selects the ones yesmem tracks. The documented SessionEnd reasons are clear,
+// selects the ones nemons tracks. The documented SessionEnd reasons are clear,
 // resume, logout, prompt_input_exit and other — "compact" is not one of them, so
 // it must not be baked into a matcher.
 func addSessionEndHook(hooks map[string]any, binaryPath string) {
@@ -627,21 +627,21 @@ func addSessionEndHook(hooks map[string]any, binaryPath string) {
 	for i, entry := range existing {
 		if m, ok := entry.(map[string]any); ok {
 			for _, h := range toHookSlice(m["hooks"]) {
-				// Our own canonical command, or a yesmem hook recorded under a
+				// Our own canonical command, or a nemons hook recorded under a
 				// different binary path. The subcommand alone is not enough: it
 				// also matches a foreign session-end-notify.sh.
 				cmd, _ := h["command"].(string)
-				if cmd != hookCmd && !isYesmemHandler(cmd, "session-end", binaryPath) {
+				if cmd != hookCmd && !isNemonsHandler(cmd, "session-end", binaryPath) {
 					continue
 				}
 				// Update command path if binary moved
-				h["command"] = retargetYesmemInvocation(cmd, "session-end", binaryPath)
+				h["command"] = retargetNemonsInvocation(cmd, "session-end", binaryPath)
 				h["timeout"] = sessionEndTimeout
 				// The hook fires for every reason and filters internally, so a
 				// matcher would only narrow it away — but dropping it is only safe
 				// when the whole group is ours, or a foreign handler sharing the
 				// group silently widens.
-				if allHandlersAreYesmem(m, binaryPath) {
+				if allHandlersAreNemons(m, binaryPath) {
 					delete(m, "matcher")
 				}
 				existing[i] = m
@@ -681,7 +681,7 @@ func removeThinkHook(hooks map[string]any, binaryPath string) {
 		isThink := false
 		for _, h := range toHookSlice(m["hooks"]) {
 			if cmd, ok := h["command"].(string); ok {
-				if isYesmemHandler(cmd, "hook-think", binaryPath) {
+				if isNemonsHandler(cmd, "hook-think", binaryPath) {
 					isThink = true
 					break
 				}
@@ -704,12 +704,12 @@ func addPreToolUseHook(hooks map[string]any, binaryPath string) {
 	for i, entry := range existing {
 		if m, ok := entry.(map[string]any); ok {
 			for _, h := range toHookSlice(m["hooks"]) {
-				// Match on our binary plus the subcommand, not on "yesmem":
+				// Match on our binary plus the subcommand, not on "nemons":
 				// every command containing the word also matches a foreign
-				// my-yesmem-notes.sh, and hook-guard shares the binary.
-				if cmd, ok := h["command"].(string); ok && isYesmemHandler(cmd, "hook-check", binaryPath) {
+				// my-nemons-notes.sh, and hook-guard shares the binary.
+				if cmd, ok := h["command"].(string); ok && isNemonsHandler(cmd, "hook-check", binaryPath) {
 					m["matcher"] = ".*"
-					h["command"] = retargetYesmemInvocation(cmd, "hook-check", binaryPath) // update path if the binary moved
+					h["command"] = retargetNemonsInvocation(cmd, "hook-check", binaryPath) // update path if the binary moved
 					existing[i] = m
 					hooks["PreToolUse"] = existing
 					return
@@ -730,11 +730,11 @@ func addPreToolUseHook(hooks map[string]any, binaryPath string) {
 	hooks["PreToolUse"] = existing
 }
 
-// hookGuardMatcher is the canonical PreToolUse matcher for `yesmem hook-guard`.
-// Bumping this string upgrades existing installations on the next `yesmem update`.
+// hookGuardMatcher is the canonical PreToolUse matcher for `nemons hook-guard`.
+// Bumping this string upgrades existing installations on the next `nemons update`.
 const hookGuardMatcher = "Bash|REPL|Edit|Write"
 
-// hookResolveIf narrows `yesmem hook-resolve` to git commands. It sits on the
+// hookResolveIf narrows `nemons hook-resolve` to git commands. It sits on the
 // hook handler: Claude Code reads `if` from the individual handler, not from the
 // enclosing matcher group.
 const hookResolveIf = "Bash(git *)"
@@ -750,11 +750,11 @@ func addPreToolUseGuardHook(hooks map[string]any, binaryPath string) {
 	for _, entry := range existing {
 		if m, ok := entry.(map[string]any); ok {
 			for _, h := range toHookSlice(m["hooks"]) {
-				if cmd, ok := h["command"].(string); ok && isYesmemHandler(cmd, "hook-guard", binaryPath) {
+				if cmd, ok := h["command"].(string); ok && isNemonsHandler(cmd, "hook-guard", binaryPath) {
 					if m["matcher"] != hookGuardMatcher {
 						m["matcher"] = hookGuardMatcher
 					}
-					h["command"] = retargetYesmemInvocation(cmd, "hook-guard", binaryPath) // update path if the binary moved
+					h["command"] = retargetNemonsInvocation(cmd, "hook-guard", binaryPath) // update path if the binary moved
 					return
 				}
 			}
@@ -787,9 +787,9 @@ func addPostToolUseFailureCombinedHook(hooks map[string]any, binaryPath string) 
 	for i, entry := range existing {
 		if m, ok := entry.(map[string]any); ok {
 			for _, h := range toHookSlice(m["hooks"]) {
-				if cmd, ok := h["command"].(string); ok && isYesmemHandler(cmd, "hook-failure", binaryPath) {
+				if cmd, ok := h["command"].(string); ok && isNemonsHandler(cmd, "hook-failure", binaryPath) {
 					m["matcher"] = ".*"
-					h["command"] = retargetYesmemInvocation(cmd, "hook-failure", binaryPath) // update path if the binary moved
+					h["command"] = retargetNemonsInvocation(cmd, "hook-failure", binaryPath) // update path if the binary moved
 					existing[i] = m
 					hooks["PostToolUseFailure"] = existing
 					return
@@ -807,7 +807,7 @@ func addPostToolUseFailureCombinedHook(hooks map[string]any, binaryPath string) 
 				var kept []map[string]any
 				for _, h := range toHookSlice(m["hooks"]) {
 					if cmd, ok := h["command"].(string); ok {
-						if isYesmemHandler(cmd, "hook-learn", binaryPath) || isYesmemHandler(cmd, "hook-assist", binaryPath) {
+						if isNemonsHandler(cmd, "hook-learn", binaryPath) || isNemonsHandler(cmd, "hook-assist", binaryPath) {
 							continue // Remove old
 						}
 					}
@@ -848,12 +848,12 @@ func addPostToolUseResolveHook(hooks map[string]any, binaryPath string) {
 	for _, entry := range existing {
 		if m, ok := entry.(map[string]any); ok {
 			for _, h := range toHookSlice(m["hooks"]) {
-				if cmd, ok := h["command"].(string); ok && isYesmemHandler(cmd, "hook-resolve", binaryPath) {
+				if cmd, ok := h["command"].(string); ok && isNemonsHandler(cmd, "hook-resolve", binaryPath) {
 					// Migrate installations written back when `if` sat on the
 					// matcher group, where Claude Code never reads it.
 					delete(m, "if")
 					h["if"] = hookResolveIf
-					h["command"] = retargetYesmemInvocation(cmd, "hook-resolve", binaryPath) // update path if the binary moved
+					h["command"] = retargetNemonsInvocation(cmd, "hook-resolve", binaryPath) // update path if the binary moved
 					return
 				}
 			}
@@ -887,15 +887,15 @@ func toHookSlice(v any) []map[string]any {
 	return result
 }
 
-// EnsureHooks reads settings.json, registers/updates all yesmem hooks, and writes back.
-// Safe to call repeatedly — preserves existing hooks, only adds/updates yesmem entries.
+// EnsureHooks reads settings.json, registers/updates all nemons hooks, and writes back.
+// Safe to call repeatedly — preserves existing hooks, only adds/updates nemons entries.
 func EnsureHooks() error {
 	home, _ := os.UserHomeDir()
 	binaryPath, _ := os.Executable()
 
 	// Installations that predate the 0600 fix keep a world-readable state file;
-	// `yesmem update` is the path that reaches them.
-	hardenInstallStateFile(filepath.Join(home, ".claude", "yesmem"))
+	// `nemons update` is the path that reaches them.
+	hardenInstallStateFile(filepath.Join(home, ".claude", "nemons"))
 
 	settings, err := readSettingsJSON(home)
 	if err != nil {

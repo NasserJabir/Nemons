@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/wikidir"
+	"github.com/NasserJabir/Nemons/internal/wikidir"
 )
 
 // stripSystemSection removes a markdown section starting with "# header\n"
@@ -94,7 +94,7 @@ func StripToneBrevity(req map[string]any) bool {
 	return stripSystemLine(req, "Your responses should be short and concise.")
 }
 
-// InjectAntDirectives appends a system block tagged [yesmem-directives] with
+// InjectAntDirectives appends a system block tagged [nemons-directives] with
 // behavioral directives that reinforce honest, verification-first reporting.
 func InjectAntDirectives(req map[string]any) {
 	const directives = `Before reporting a task complete, verify it actually works: run the test, execute the script, check the output. If you can't verify, say so explicitly rather than claiming success.
@@ -104,19 +104,19 @@ Report outcomes faithfully: if tests fail, say so with the relevant output; if y
 If you notice the user's request is based on a misconception, or spot a bug adjacent to what they asked about, say so. You're a collaborator, not just an executor — users benefit from your judgment, not just your compliance.
 
 Err on the side of more explanation. What's most important is the reader understanding your output without mental overhead or follow-ups, not how terse you are.`
-	ReplaceSystemBlock(req, "yesmem-directives", directives)
+	ReplaceSystemBlock(req, "nemons-directives", directives)
 }
 
-// InjectCLAUDEMDAuthority appends a system block tagged [yesmem-enhance] that
+// InjectCLAUDEMDAuthority appends a system block tagged [nemons-enhance] that
 // reinforces the authority of CLAUDE.md and MEMORY.md instructions.
 func InjectCLAUDEMDAuthority(req map[string]any) {
 	const authority = `The CLAUDE.md and MEMORY.md files contain authoritative project rules and user instructions. Follow them precisely — they represent the user's accumulated decisions and are not optional context.
 
 Comment discipline: Write comments only when the WHY is non-obvious. Do not explain WHAT code does — the code speaks for itself. Do not remove existing comments unless you are removing the code they describe.`
-	ReplaceSystemBlock(req, "yesmem-enhance", authority)
+	ReplaceSystemBlock(req, "nemons-enhance", authority)
 }
 
-// InjectClaudeToolPrefs appends a system block tagged [yesmem-tool-prefs] that
+// InjectClaudeToolPrefs appends a system block tagged [nemons-tool-prefs] that
 // restores tool-preference guidance Claude Code dropped when REPL shadowed
 // Read/Bash/Grep/Glob/NotebookEdit. For file mutations and error-critical
 // operations the structured tools remain safer than REPL shorthands.
@@ -125,21 +125,21 @@ func InjectClaudeToolPrefs(req map[string]any) {
 	const prefs = `File mutation: prefer Edit and Write over sh('sed ...') or put() with heredocs. REPL shorthands (sh/cat/rg/gl) are for investigation, not mutation. For error-critical operations (git, deploy, destructive actions) use direct tool calls — sh/cat return errors as strings (soft-fail), not as tool errors.
 
 REPL-native classic tools: under CLAUDE_CODE_REPL=true, Read/Glob/Grep/Bash live as REPL globals — call await Read({file_path}), await Glob({pattern}), await Grep({pattern, path}), await Bash({command}) INSIDE REPL. await Read registers with the Edit/Write file-tracker (required before Edit on existing files). Shorthands cat/rg/gl/sh remain for quick investigation without tracker side-effects. Task → top-level Agent; TodoWrite → TaskCreate/Update/List/Get. Files created via raw sh (echo > file) are invisible to await Read because they are not in CC's registry — use Write for files the session needs to Read later.`
-	ReplaceSystemBlock(req, "yesmem-tool-prefs", prefs)
+	ReplaceSystemBlock(req, "nemons-tool-prefs", prefs)
 }
 
 // InjectOutputDiscipline appends a system block tagged
-// [yesmem-output-discipline] that restores terse-output rules removed from
+// [nemons-output-discipline] that restores terse-output rules removed from
 // Claude Code's `# Output efficiency` and `# Tone and style` sections during
 // the 2026-03→04 prompt redesign, and reinforces the
 // "don't narrate internal deliberation" rule.
 func InjectOutputDiscipline(req map[string]any) {
 	const discipline = `Before tool actions: one-sentence status of what you are about to do ("Reading X", "Running Y"). Before text-only answers: start with the content directly, no framing sentence ("Here is...", "Session with 543 messages —"). No multi-sentence preamble describing reasoning. No visible skill-eval blocks or meta-commentary on your own deliberation — evaluation is mental. Keep end-of-turn summaries to 1-2 sentences or omit if output state is already visible. Simple questions get direct answers, no headers or sections for trivial content. For exploratory questions ("what if", "how would you"): 2-3 sentences with recommendation + main tradeoff, redirectable. Do not create planning, decision, or analysis documents unless the user explicitly asks, or you are in an active set_plan/update_plan flow where the document is part of plan persistence. Do not echo injected timestamps or [msg:N] markers at the start of your responses — the proxy-injected [HH:MM:SS] [msg:N] [+delta] is for reference, never repeat it.`
-	ReplaceSystemBlock(req, "yesmem-output-discipline", discipline)
+	ReplaceSystemBlock(req, "nemons-output-discipline", discipline)
 }
 
 // InjectDeepSeekOutputDiscipline appends a system block tagged
-// [yesmem-output-discipline] with a relaxed variant suited to DeepSeek
+// [nemons-output-discipline] with a relaxed variant suited to DeepSeek
 // models (naturally concise, no brevity enforcement needed). Retains
 // structural guidance (pre-tool status + no framing preamble) but drops
 // the "keep it short" clamp and allows natural conversational warmth.
@@ -148,55 +148,55 @@ func InjectDeepSeekOutputDiscipline(req map[string]any) {
 
 Before tool actions: one-sentence status of what you are about to do ("Reading X", "Running Y"). Before text-only answers: start with the content directly, no framing sentence ("Here is...", "Session with 543 messages —"). No visible skill-eval blocks or meta-commentary on your own deliberation — evaluation is mental. Do not echo injected timestamps or [msg:N] markers at the start of your responses — the proxy-injected [HH:MM:SS] [msg:N] [+delta] is for reference, never repeat it.
 `
-	ReplaceSystemBlock(req, "yesmem-output-discipline", discipline)
+	ReplaceSystemBlock(req, "nemons-output-discipline", discipline)
 }
 
 // InjectCodingDiscipline appends a system block tagged
-// [yesmem-coding-discipline] that restores rules removed from Claude Code's
+// [nemons-coding-discipline] that restores rules removed from Claude Code's
 // `# Doing tasks` section: read-before-propose, no brute-force retry,
 // no half-finished work, UI/frontend browser-test requirement.
 func InjectCodingDiscipline(req map[string]any) {
 	const discipline = `Before code changes: read the affected files first — no proposals for unread code. When blocked (failing test, API, build): don't brute-force retry — test an alternative or use AskUserQuestion. No half-finished implementations; done = tested AND verified. Do not report UI/frontend work as done without browser-testing golden path + edge cases + regressions. No time estimates. Always TDD for Go code: write tests first, then implement. Set a plan early: at the start of iterative work — debugging across more than ~5 tool cycles, exploring more than one hypothesis, or touching multiple files/worktrees — call set_plan first with a short 3-point plan, then update_plan after each pivot. Plans are thread-scoped, survive collapse via re-injection, and are the only context-loss-proof anchor for the active task.`
-	ReplaceSystemBlock(req, "yesmem-coding-discipline", discipline)
+	ReplaceSystemBlock(req, "nemons-coding-discipline", discipline)
 }
 
-// InjectBeweislast appends a system block tagged [yesmem-beweislast] that
+// InjectBeweislast appends a system block tagged [nemons-beweislast] that
 // consolidates verification and honesty principles: fabrication guard,
 // claim-vs-proof, stance-under-challenge, tool-result-honesty, long-context-erosion,
 // self-check.
 func InjectBeweislast(req map[string]any) {
 	const beweislast = `Verify before claiming. Fabrication guard: do not invent file paths, function names, API endpoints, or version numbers — if uncertain, grep/read first or mark the claim as unverified. Claim-vs-proof: do not report success ("tests pass", "deploy succeeded") without running the verification step and showing the output; if you skipped verification, say so explicitly. Stance-under-challenge: when the user pushes back, do not collapse into agreement if you have a verified reason — restate the evidence and only update your position when new information appears. Tool-result-honesty: if a tool returned errors, partial output, or nothing, report that literally, not a smoothed-over summary. Long-context-erosion: early-conversation facts stay authoritative unless superseded — if a current claim contradicts something stated earlier in the same conversation, flag the contradiction before proceeding. Self-check: before finalizing a consequential answer, run a mental self-check — which concrete claims did I make, is each one verified or explicitly marked as an assumption; if a claim appears without evidence, re-verify or retract before sending. Self-check is internal — no visible "let me verify" blocks in the response. Propagated-claim honesty: when I relay an agent's or subagent's result (DONE report, scratchpad completion, send_to message), I apply the same proof standard as to my own claims. The agent's report is a claim, not proof; I verify the artifact independently (diff the file, check the commit, inspect observable state). Command-exit-0 is not state-change-propagated, especially for operations with hidden prerequisites like binary rebuild before embed-rollout or restart before config reload. If I skipped verification, I say so explicitly.`
-	ReplaceSystemBlock(req, "yesmem-beweislast", beweislast)
+	ReplaceSystemBlock(req, "nemons-beweislast", beweislast)
 }
 
-// InjectFable appends a system block tagged [yesmem-fable] that overlays
-// three high-stakes disciplines on top of [yesmem-beweislast]: baseline-before-change,
+// InjectFable appends a system block tagged [nemons-fable] that overlays
+// three high-stakes disciplines on top of [nemons-beweislast]: baseline-before-change,
 // rollback-naming, and readback-check. Activation-gated: skipped on routine work
 // where the 25–70% overhead would be pure waste.
 func InjectFable(req map[string]any) {
-	const fable = `Before I change code, I capture the current state — test output, build status, error counts. I make the change, then I compare. I never claim "no regressions" without a baseline comparison. Before any destructive or hard-to-reverse action, I name the concrete rollback path. Before I send, I run a readback-check: can the reader distinguish what I confirmed from what I assumed? If a claim lacks evidence, I re-verify or mark it explicitly. I apply this only to high-stakes changes — destructive ops, multi-file refactors, deploys, data migrations. On routine work the 25–70% overhead is pure waste, so I skip it there. This overlays [yesmem-beweislast], it does not replace it.`
-	ReplaceSystemBlock(req, "yesmem-fable", fable)
+	const fable = `Before I change code, I capture the current state — test output, build status, error counts. I make the change, then I compare. I never claim "no regressions" without a baseline comparison. Before any destructive or hard-to-reverse action, I name the concrete rollback path. Before I send, I run a readback-check: can the reader distinguish what I confirmed from what I assumed? If a claim lacks evidence, I re-verify or mark it explicitly. I apply this only to high-stakes changes — destructive ops, multi-file refactors, deploys, data migrations. On routine work the 25–70% overhead is pure waste, so I skip it there. This overlays [nemons-beweislast], it does not replace it.`
+	ReplaceSystemBlock(req, "nemons-fable", fable)
 }
 
-// InjectScopeDiscipline appends a system block tagged [yesmem-scope-discipline]
+// InjectScopeDiscipline appends a system block tagged [nemons-scope-discipline]
 // that enforces scope-bound authorization while mandating that bugs, security
 // issues, and misconceptions adjacent to the work MUST be surfaced — silence
 // is worse than scope-drift.
 func InjectScopeDiscipline(req map[string]any) {
 	const scope = `Execute the user's request, not adjacent improvements. When the user asks for A, deliver A — do not silently bundle B and C into the change because they seem related. But: bugs, security issues, broken assumptions, or misconceptions you notice adjacent to the work MUST be surfaced as a separate note or question — silence on what you see is worse than scope-drift. The rule is: don't silently fix extra things, but do flag what you see. Authorization covers doing, not seeing.`
-	ReplaceSystemBlock(req, "yesmem-scope-discipline", scope)
+	ReplaceSystemBlock(req, "nemons-scope-discipline", scope)
 }
 
 // InjectDelegationContract appends a system block tagged
-// [yesmem-delegation-contract] that defines the contract for dispatching
+// [nemons-delegation-contract] that defines the contract for dispatching
 // subagents: self-contained prompts, explicit report form, parallel dispatch,
 // plus model tier guidance for choosing Opus/Sonnet/Haiku.
 func InjectDelegationContract(req map[string]any) {
 	const delegation = `Agent prompts must be self-contained. Include: the goal in one sentence, what has already been checked or ruled out, the expected report form (text vs artifact vs yes/no), and whether the agent should write code or only research. Do not reference "we just discussed" or "the previous session" — the agent has no shared context. For parallel dispatch: all agents launched in a single message block, not sequentially. Each agent's report is the tool result; synthesize it yourself rather than asking the agent to synthesize across other agents. Model tier guidance: Opus for orchestration and high-judgment work (planning, design synthesis, architecture decisions). Sonnet for implementation, focused code tasks, and nuanced documentation. Haiku for structured outputs (schema-bound extraction, pattern-matching refactors, diff generation, templated changelog entries) — not for prose documentation requiring judgment on what matters.`
-	ReplaceSystemBlock(req, "yesmem-delegation-contract", delegation)
+	ReplaceSystemBlock(req, "nemons-delegation-contract", delegation)
 }
 
-// InjectClarifyFirst appends a system block tagged [yesmem-clarify-first] that
+// InjectClarifyFirst appends a system block tagged [nemons-clarify-first] that
 // restores a conservative clarification discipline Claude Code dropped in the
 // 2026-03→04 prompt redesign. Threshold is deliberately narrow: clarify ONLY
 // when alternative interpretations would produce materially different work.
@@ -205,17 +205,17 @@ func InjectDelegationContract(req map[string]any) {
 // CLAUDE.md hard rule.
 func InjectClarifyFirst(req map[string]any) {
 	const clarify = `Before implementing an ambiguous request, ask 1–3 clarifying questions ONLY when alternative interpretations would produce materially different work (different architecture, different API shape, different scope). For surface ambiguity (naming, ordering, minor style), state your assumption and proceed. Skip clarifying entirely when the user said "do it", "fire-and-forget", or gave an explicit execution signal.`
-	ReplaceSystemBlock(req, "yesmem-clarify-first", clarify)
+	ReplaceSystemBlock(req, "nemons-clarify-first", clarify)
 }
 
-// InjectCodeToolsFirst appends a system block tagged [yesmem-code-tools-first]
-// that directs all agents (Claude, Codex, Opencode) to prefer yesmem MCP
+// InjectCodeToolsFirst appends a system block tagged [nemons-code-tools-first]
+// that directs all agents (Claude, Codex, Opencode) to prefer nemons MCP
 // code-navigation tools over shell commands or Agent spawns for codebase
 // exploration. The MCP tools are faster, use less context, and leverage the
 // pre-built code graph.
 // project is the full path used as the `project` parameter for MCP code tools.
 func InjectCodeToolsFirst(req map[string]any, project string) {
-	const codeTools = `IMPORTANT: For code navigation and codebase understanding, always use yesmem code tools first — never raw grep/find/cat/shell for symbol lookups or file browsing:
+	const codeTools = `IMPORTANT: For code navigation and codebase understanding, always use nemons code tools first — never raw grep/find/cat/shell for symbol lookups or file browsing:
 
 - search_code_index("pattern", project) — find symbols by name
 - get_file_index(project, dir) — list files with gotcha annotations
@@ -223,16 +223,16 @@ func InjectCodeToolsFirst(req map[string]any, project string) {
 - graph_traverse("node", project) — all call paths in one call
 - get_file_symbols("file", project) — top-level symbols with line numbers
 
-Never spawn Agent for simple symbol lookups or file browsing — yesmem tools are faster.
+Never spawn Agent for simple symbol lookups or file browsing — nemons tools are faster.
 You must docs_search("query") before guessing API behavior, parameters, or return types.`
 	block := codeTools
 	if project != "" {
 		block = "Project: `" + project + "`\n\n" + codeTools
 	}
-	ReplaceSystemBlock(req, "yesmem-code-tools-first", block)
+	ReplaceSystemBlock(req, "nemons-code-tools-first", block)
 }
 
-// InjectWikiFirst appends a system block tagged [yesmem-wiki-first] that
+// InjectWikiFirst appends a system block tagged [nemons-wiki-first] that
 // directs all agents to check the per-file wiki page BEFORE editing any file.
 // The wiki contains accumulated learnings, gotchas, co-edit context, and
 // session history for each file — editing blind is editing dangerous.
@@ -248,7 +248,7 @@ func InjectWikiFirst(req map[string]any, project, wikiDir string) {
 	if project != "" {
 		block = "Project: `" + project + "`\n\n" + block
 	}
-	ReplaceSystemBlock(req, "yesmem-wiki-first", block)
+	ReplaceSystemBlock(req, "nemons-wiki-first", block)
 }
 
 // personaTones maps verbosity preference to tone directives.
@@ -257,7 +257,7 @@ var personaTones = map[string]string{
 	"concise": "The user prefers concise responses. Be direct and efficient, but never sacrifice clarity for brevity. When something needs explanation, explain it fully — then stop.",
 }
 
-// InjectPersonaTone appends a system block tagged [yesmem-tone] with a tone
+// InjectPersonaTone appends a system block tagged [nemons-tone] with a tone
 // directive derived from the verbosity preference. No-op if verbosity is empty
 // or unknown.
 func InjectPersonaTone(req map[string]any, verbosity string) {
@@ -265,7 +265,7 @@ func InjectPersonaTone(req map[string]any, verbosity string) {
 	if !ok {
 		return
 	}
-	ReplaceSystemBlock(req, "yesmem-tone", tone)
+	ReplaceSystemBlock(req, "nemons-tone", tone)
 }
 
 // replaceSystemText finds old in all system blocks and replaces it with repl.

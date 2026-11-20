@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/textutil"
+	"github.com/NasserJabir/Nemons/internal/textutil"
 )
 
 // OnUsage is called after every successful API call with actual token counts.

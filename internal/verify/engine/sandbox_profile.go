@@ -239,7 +239,7 @@ func cacheBase() string {
 	if home == "" {
 		return ""
 	}
-	return filepath.Join(home, ".cache", "yesmem")
+	return filepath.Join(home, ".cache", "nemons")
 }
 
 // probeWritable proves the run can write into dir, not merely that it exists.
@@ -473,7 +473,7 @@ func (c *Ctx) expandSandboxValue(value, dir, tool string, answers map[string]str
 	if cache == "" {
 		// No declaration: the build cache stays where it always was, inside the
 		// throwaway checkout, and dies with it.
-		cache = filepath.Join(dir, ".yesmem-gocache")
+		cache = filepath.Join(dir, ".nemons-gocache")
 	}
 	expanded := strings.ReplaceAll(value, RunDirPlaceholder, dir)
 	expanded = strings.ReplaceAll(expanded, CacheDirPlaceholder, cache)

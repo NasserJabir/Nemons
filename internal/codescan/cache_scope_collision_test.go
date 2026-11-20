@@ -57,8 +57,8 @@ func los04eRepoAt(t *testing.T, parent, name, head string) string {
 // index (YM-277 / DEV-DT45).
 func TestScanCache_SameNamedReposDoNotShareTheirScanRow(t *testing.T) {
 	root := realPath(t, t.TempDir())
-	a := los04eRepoAt(t, filepath.Join(root, "work"), "yesmem", "samehead")
-	b := los04eRepoAt(t, filepath.Join(root, "home"), "yesmem", "samehead")
+	a := los04eRepoAt(t, filepath.Join(root, "work"), "nemons", "samehead")
+	b := los04eRepoAt(t, filepath.Join(root, "home"), "nemons", "samehead")
 
 	// The display name is the repository name and stays ambiguous by design.
 	if ProjectKey(a) != ProjectKey(b) {
@@ -92,14 +92,14 @@ func TestScanCache_SameNamedReposDoNotShareTheirScanRow(t *testing.T) {
 // worktree is a checkout of its own and keeps its path as its key (YM-453).
 func TestScanCacheKey_DisplayNameStaysBasename(t *testing.T) {
 	root := realPath(t, t.TempDir())
-	repo := los04eRepoAt(t, root, "yesmem", "head1")
+	repo := los04eRepoAt(t, root, "nemons", "head1")
 	sub := filepath.Join(repo, "internal", "proxy")
 	if err := os.MkdirAll(sub, 0o755); err != nil {
 		t.Fatal(err)
 	}
 
-	if got := ProjectKey(repo); got != "yesmem" {
-		t.Fatalf("ProjectKey = %q, want the repository name %q", got, "yesmem")
+	if got := ProjectKey(repo); got != "nemons" {
+		t.Fatalf("ProjectKey = %q, want the repository name %q", got, "nemons")
 	}
 	if got := ScanCacheKey(repo); got != repo {
 		t.Fatalf("ScanCacheKey = %q, want the repository root %q", got, repo)
@@ -114,7 +114,7 @@ func TestScanCacheKey_DisplayNameStaysBasename(t *testing.T) {
 	if err := os.MkdirAll(wtGitDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	wt := filepath.Join(root, "yesmem-wt")
+	wt := filepath.Join(root, "nemons-wt")
 	if err := os.MkdirAll(filepath.Join(wt, "internal"), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -127,7 +127,7 @@ func TestScanCacheKey_DisplayNameStaysBasename(t *testing.T) {
 	if got := ScanCacheKey(filepath.Join(wt, "internal")); got != wt {
 		t.Fatalf("ScanCacheKey below a linked worktree = %q, want %q", got, wt)
 	}
-	if got := ProjectKey(wt); got != "yesmem" {
-		t.Fatalf("ProjectKey of a linked worktree = %q, want the repository name %q", got, "yesmem")
+	if got := ProjectKey(wt); got != "nemons" {
+		t.Fatalf("ProjectKey of a linked worktree = %q, want the repository name %q", got, "nemons")
 	}
 }

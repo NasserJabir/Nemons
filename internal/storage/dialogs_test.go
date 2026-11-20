@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func TestStartDialogAndGet(t *testing.T) {
@@ -510,7 +510,7 @@ func TestBroadcast(t *testing.T) {
 	s := mustOpen(t)
 
 	// Session A broadcasts
-	id, err := s.SendBroadcast("session-a", "yesmem", "Schema v0.29 ist drin")
+	id, err := s.SendBroadcast("session-a", "nemons", "Schema v0.29 ist drin")
 	if err != nil {
 		t.Fatalf("SendBroadcast: %v", err)
 	}
@@ -519,7 +519,7 @@ func TestBroadcast(t *testing.T) {
 	}
 
 	// Session B sees it
-	msgs, err := s.GetUnreadBroadcasts("session-b", "yesmem")
+	msgs, err := s.GetUnreadBroadcasts("session-b", "nemons")
 	if err != nil {
 		t.Fatalf("GetUnreadBroadcasts: %v", err)
 	}
@@ -531,7 +531,7 @@ func TestBroadcast(t *testing.T) {
 	}
 
 	// Session A should NOT see own broadcast
-	own, _ := s.GetUnreadBroadcasts("session-a", "yesmem")
+	own, _ := s.GetUnreadBroadcasts("session-a", "nemons")
 	if len(own) != 0 {
 		t.Errorf("sender should not see own broadcast, got %d", len(own))
 	}
@@ -544,7 +544,7 @@ func TestBroadcast(t *testing.T) {
 
 	// Mark read
 	s.MarkBroadcastsRead([]int64{msgs[0].ID}, "session-b")
-	after, _ := s.GetUnreadBroadcasts("session-b", "yesmem")
+	after, _ := s.GetUnreadBroadcasts("session-b", "nemons")
 	if len(after) != 0 {
 		t.Errorf("expected 0 after mark read, got %d", len(after))
 	}

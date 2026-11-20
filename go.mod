@@ -1,4 +1,4 @@
-module github.com/carsteneu/yesmem
+module github.com/NasserJabir/Nemons
 
 go 1.25.0
 

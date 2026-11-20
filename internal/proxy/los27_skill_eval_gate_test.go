@@ -8,7 +8,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // YM-113: the Anthropic path injected the [skill-eval] block unconditionally,
@@ -33,7 +33,7 @@ func TestLos27_AnthropicPathTracksSkillActivationsWithGateOff(t *testing.T) {
 
 	const sessionID = "ses_los27_tracker"
 	body := `{"model":"claude-opus-4-6","stream":false,"thinking":{"type":"adaptive"},` +
-		`"system":[{"type":"text","text":"Primary working directory: /home/tester/memory/yesmem"}],` +
+		`"system":[{"type":"text","text":"Primary working directory: /home/tester/memory/nemons"}],` +
 		`"messages":[` +
 		`{"role":"user","content":"start the task"},` +
 		`{"role":"assistant","content":[{"type":"tool_use","id":"tu1","name":"Skill","input":{"skill":"test-driven-development"}}]},` +
@@ -87,7 +87,7 @@ func TestLos27_AnthropicPathRespectsSkillEvalGate(t *testing.T) {
 			}
 
 			body := `{"model":"claude-opus-4-6","stream":false,"thinking":{"type":"adaptive"},` +
-				`"system":[{"type":"text","text":"Primary working directory: /home/tester/memory/yesmem"}],` +
+				`"system":[{"type":"text","text":"Primary working directory: /home/tester/memory/nemons"}],` +
 				`"messages":[{"role":"user","content":"start the task"},` +
 				`{"role":"assistant","content":"on it"},` +
 				`{"role":"user","content":"implement the i18n fix"}]}`

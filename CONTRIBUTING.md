@@ -1,15 +1,15 @@
-# Contributing to YesMem
+# Contributing to Nemons
 
-Thank you for your interest in contributing to YesMem.
+Thank you for your interest in contributing to Nemons.
 
 ## Getting Started
 
 ### Build
 
 ```bash
-make build          # Build binary → ./yesmem
+make build          # Build binary → ./nemons
 make test           # Run all tests
-make install        # Build + install to ~/.local/bin/yesmem
+make install        # Build + install to ~/.local/bin/nemons
 ```
 
 Go environment is self-contained (custom GOROOT/GOPATH/GOCACHE set in Makefile). CGO is disabled.
@@ -29,8 +29,8 @@ go test ./internal/proxy/ -run TestCollapse -count=1
 
 ## Reporting Issues
 
-- **Bug reports:** Use the [Bug Report](https://github.com/carsteneu/yesmem/issues/new?template=bug_report.md) template
-- **Feature requests:** Use the [Feature Request](https://github.com/carsteneu/yesmem/issues/new?template=feature_request.md) template
+- **Bug reports:** Use the [Bug Report](https://github.com/NasserJabir/Nemons/issues/new?template=bug_report.md) template
+- **Feature requests:** Use the [Feature Request](https://github.com/NasserJabir/Nemons/issues/new?template=feature_request.md) template
 
 ## Pull Requests
 

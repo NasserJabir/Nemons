@@ -84,7 +84,7 @@ func checkRelease(url, currentVersion string) (*UpdateInfo, error) {
 }
 
 func assetName(version, goos, goarch string) string {
-	return fmt.Sprintf("yesmem_%s_%s_%s.tar.gz", version, goos, goarch)
+	return fmt.Sprintf("nemons_%s_%s_%s.tar.gz", version, goos, goarch)
 }
 
 func findAssetURL(assets []githubAsset, version, goos, goarch string) string {

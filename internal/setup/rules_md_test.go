@@ -73,7 +73,7 @@ func TestDetectProjectType(t *testing.T) {
 func TestInstallRULESmdWritesTheInstallationCopy(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 
 	path, err := installRULESmd(dataDir)
 	if err != nil {
@@ -104,7 +104,7 @@ func TestInstallRULESmdWritesTheInstallationCopy(t *testing.T) {
 func TestInstallRULESmdKeepsAnExistingCopy(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	existing := filepath.Join(dataDir, "RULES.md")
 	if err := os.MkdirAll(dataDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
@@ -135,7 +135,7 @@ func TestInstallRULESmdKeepsAnExistingCopy(t *testing.T) {
 // is the file that has to match them.
 func TestInstalledCatalogueGroundsTheBlockableRules(t *testing.T) {
 	t.Setenv("HOME", t.TempDir())
-	path, err := installRULESmd(filepath.Join(t.TempDir(), "yesmem"))
+	path, err := installRULESmd(filepath.Join(t.TempDir(), "nemons"))
 	if err != nil {
 		t.Fatalf("installRULESmd: %v", err)
 	}

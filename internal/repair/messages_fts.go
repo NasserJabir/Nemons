@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/carsteneu/yesmem/internal/textutil"
+	"github.com/NasserJabir/Nemons/internal/textutil"
 )
 
 // messageFTSText is the text a message contributes to the search index. It is the

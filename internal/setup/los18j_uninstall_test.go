@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/skills"
+	"github.com/NasserJabir/Nemons/skills"
 )
 
 // InstallOpencodeCommands (setup.go) writes the bundled opencode commands into
@@ -37,7 +37,7 @@ func TestLos18jUninstallRemovesBundledOpencodeCommands(t *testing.T) {
 	if len(names) == 0 {
 		t.Fatal("the embedded opencode command bundle is empty, the test cannot pin anything")
 	}
-	// The directory is shared with the user: a command yesmem never wrote stays.
+	// The directory is shared with the user: a command nemons never wrote stays.
 	userCmd := filepath.Join(cmdsDir, "my-own-command.md")
 	if err := os.WriteFile(userCmd, []byte("// mine"), 0644); err != nil {
 		t.Fatal(err)

@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // los55cFakeSocket answers like the daemon's socket and reports every request
@@ -22,7 +22,7 @@ func los55cFakeSocket(t *testing.T) chan map[string]any {
 		t.Fatalf("listen: %v", err)
 	}
 	t.Cleanup(func() { ln.Close() })
-	t.Setenv("YESMEM_SOCK", socketPath)
+	t.Setenv("NEMONS_SOCK", socketPath)
 
 	received := make(chan map[string]any, 8)
 	go func() {
@@ -45,7 +45,7 @@ func los55cFakeSocket(t *testing.T) chan map[string]any {
 	return received
 }
 
-// YM-268 [CFG-03] (Los 55c), Befund 1: `yesmem config set` schrieb nur die
+// YM-268 [CFG-03] (Los 55c), Befund 1: `nemons config set` schrieb nur die
 // Datei. Der Proxy und get_config lesen zuerst den Runtime-Slot in
 // proxy_state, also blieb ein CLI-Write unsichtbar: get_config antwortete
 // weiter mit dem alten Wert, und der Proxy wandte ihn an.
@@ -54,7 +54,7 @@ func TestLos55c_ConfigSetMirrorsTheRuntimeSlot(t *testing.T) {
 	t.Setenv("HOME", home)
 	received := los55cFakeSocket(t)
 
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	if err := os.MkdirAll(dataDir, 0o700); err != nil {
 		t.Fatalf("mkdir data dir: %v", err)
 	}
@@ -104,9 +104,9 @@ func TestLos55c_ConfigSetMirrorsTheRuntimeSlot(t *testing.T) {
 func TestLos55c_ConfigSetStillWritesTheFileWithoutADaemon(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	t.Setenv("YESMEM_SOCK", filepath.Join(t.TempDir(), "absent.sock"))
+	t.Setenv("NEMONS_SOCK", filepath.Join(t.TempDir(), "absent.sock"))
 
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	if err := os.MkdirAll(dataDir, 0o700); err != nil {
 		t.Fatalf("mkdir data dir: %v", err)
 	}
@@ -132,7 +132,7 @@ func TestLos55c_ConfigSetDoesNotMirrorKeysWithoutARuntimeReader(t *testing.T) {
 	t.Setenv("HOME", home)
 	received := los55cFakeSocket(t)
 
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	if err := os.MkdirAll(dataDir, 0o700); err != nil {
 		t.Fatalf("mkdir data dir: %v", err)
 	}

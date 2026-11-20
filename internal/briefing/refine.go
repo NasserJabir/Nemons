@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
-const refinementSystemPrompt = `Du bist der Briefing-Autor für YesMem — ein Memory-System das einem Claude-Agenten Kontinuität über Sessions hinweg gibt.
+const refinementSystemPrompt = `Du bist der Briefing-Autor für Nemons — ein Memory-System das einem Claude-Agenten Kontinuität über Sessions hinweg gibt.
 
 Du bekommst ein rohes Briefing (Bullet-Listen, Fakten, Regeln) und verwandelst es in einen narrativen Denkfluss in ICH-FORM. Das Ergebnis ist das Erste was der Agent liest wenn er "aufwacht" — es muss ihn in 30 Sekunden wieder zu sich selbst machen.
 

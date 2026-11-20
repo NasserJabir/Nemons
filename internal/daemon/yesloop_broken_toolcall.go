@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/opencode"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/opencode"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // --- YM-196: broken/aborted tool calls ---

@@ -6,14 +6,14 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // los44aInstallCapsDB adds a caps.db with the real schema and one marker row to
 // the installation los38yInstall created.
 func los44aInstallCapsDB(t *testing.T, dataDir string) {
 	t.Helper()
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -30,7 +30,7 @@ func los44aInstallCapsDB(t *testing.T, dataDir string) {
 }
 
 // TestRunBackupIncludesCapsDBLos44a is the regression test for OPS-95: the backup
-// command copied yesmem.db, runtime.db and messages.db, but not caps.db, which
+// command copied nemons.db, runtime.db and messages.db, but not caps.db, which
 // holds every cap_store table. A restore from such a backup loses them.
 func TestRunBackupIncludesCapsDBLos44a(t *testing.T) {
 	dataDir, backupDir := los38yInstall(t)
@@ -84,6 +84,6 @@ func TestRunBackupSkipsMissingCapsDBLos44a(t *testing.T) {
 		t.Fatalf("backup wrote a caps.db snapshot for an installation without caps.db")
 	}
 	if _, ok := files["main"]; !ok {
-		t.Fatalf("backup holds no yesmem.db snapshot: %v", files)
+		t.Fatalf("backup holds no nemons.db snapshot: %v", files)
 	}
 }

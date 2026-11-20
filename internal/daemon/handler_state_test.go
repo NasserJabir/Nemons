@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // --- Proxy State ---
@@ -594,7 +594,7 @@ func TestHandleExpandContext_InvalidRange(t *testing.T) {
 func TestHandlePin_CreateAndGet(t *testing.T) {
 	h, _ := mustHandler(t)
 
-	resp := h.handlePin(map[string]any{"content": "Always use TDD", "scope": "permanent", "project": "yesmem"})
+	resp := h.handlePin(map[string]any{"content": "Always use TDD", "scope": "permanent", "project": "nemons"})
 	if resp.Error != "" {
 		t.Fatalf("pin error: %s", resp.Error)
 	}
@@ -603,7 +603,7 @@ func TestHandlePin_CreateAndGet(t *testing.T) {
 		t.Errorf("expected permanent scope, got %q", m["scope"])
 	}
 
-	resp = h.handleGetPins(map[string]any{"project": "yesmem"})
+	resp = h.handleGetPins(map[string]any{"project": "nemons"})
 	if resp.Error != "" {
 		t.Fatalf("get pins error: %s", resp.Error)
 	}
@@ -663,12 +663,12 @@ func TestHandleUnpin_RequiresID(t *testing.T) {
 func TestHandleTrackAndGetGaps(t *testing.T) {
 	h, _ := mustHandler(t)
 
-	resp := h.handleTrackGap(map[string]any{"topic": "proxy caching", "project": "yesmem"})
+	resp := h.handleTrackGap(map[string]any{"topic": "proxy caching", "project": "nemons"})
 	if resp.Error != "" {
 		t.Fatalf("track gap error: %s", resp.Error)
 	}
 
-	resp = h.handleGetActiveGaps(map[string]any{"project": "yesmem"})
+	resp = h.handleGetActiveGaps(map[string]any{"project": "nemons"})
 	if resp.Error != "" {
 		t.Fatalf("get gaps error: %s", resp.Error)
 	}
@@ -767,7 +767,7 @@ func TestHandleIndexStatus_WithProgress(t *testing.T) {
 
 func TestHandleGetCoverage(t *testing.T) {
 	h, _ := mustHandler(t)
-	resp := h.handleGetCoverage(map[string]any{"project": "yesmem"})
+	resp := h.handleGetCoverage(map[string]any{"project": "nemons"})
 	if resp.Error != "" {
 		t.Fatalf("error: %s", resp.Error)
 	}

@@ -9,7 +9,7 @@ func TestExtractAndEvaluatePrompt(t *testing.T) {
 	ctx := ForkContext{
 		LastExtractedIdx: 150,
 		InjectedIDs:      map[int64]string{42: "associative", 99: "briefing"},
-		Project:          "yesmem",
+		Project:          "nemons",
 		PreviousForkLearnings: []PreviousForkLearning{
 			{Content: "Deploy immer über make deploy", Category: "decision"},
 			{Content: "Pattern X bevorzugt", Category: "pattern"},

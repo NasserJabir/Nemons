@@ -7,14 +7,14 @@ Queryable analysis layer on top of `cap_store` namespaced SQLite tables. Three c
 ```
   REPL capability            daemon                    caps.db
   ----------------           ------                    -----------
-  cap_search       ─── mcp__yesmem__cap_store ───→     cap_<name>__<table>
+  cap_search       ─── mcp__nemons__cap_store ───→     cap_<name>__<table>
   cap_collect      ─── query / upsert / create_table    ├── posts
   cap_save_analysis    (via daemon RPC handler)         ├── comments
                                                         ├── links
                                                         └── analyses    ← new
 ```
 
-All three caps are thin JS wrappers around the existing `mcp__yesmem__cap_store` RPC — no daemon changes needed to use them. Each capability-owned table lives under `cap_<capname>__<tablename>` in the shared `caps.db`.
+All three caps are thin JS wrappers around the existing `mcp__nemons__cap_store` RPC — no daemon changes needed to use them. Each capability-owned table lives under `cap_<capname>__<tablename>` in the shared `caps.db`.
 
 ## The Three Capabilities
 
@@ -78,7 +78,7 @@ await cap_collect({
 
 API key source for haiku-mode:
 1. `$ANTHROPIC_API_KEY` env var → `key_source: 'env'`
-2. Fallback: `api_key:` field in `~/.claude/yesmem/config.yaml` → `key_source: 'config.yaml'`
+2. Fallback: `api_key:` field in `~/.claude/nemons/config.yaml` → `key_source: 'config.yaml'`
 3. Neither → error
 
 ### cap_save_analysis
@@ -192,14 +192,14 @@ Future: optional proxy-passthrough route for subscription-haiku — backlog.
 
 ### MCP schema cache
 
-When you supersede a capability (`save_cap({supersedes: N})`), existing threads must call `mcp__yesmem__activate_cap({name: "<name>"})` again to pick up the new handler. The proxy caches per thread.
+When you supersede a capability (`save_cap({supersedes: N})`), existing threads must call `mcp__nemons__activate_cap({name: "<name>"})` again to pick up the new handler. The proxy caches per thread.
 
 ### Supersede pattern
 
 Old capabilities aren't deleted — they're marked superseded. Query history:
 
 ```js
-await mcp__yesmem__get_capabilities({name: 'cap_collect'})
+await mcp__nemons__get_capabilities({name: 'cap_collect'})
 // returns active version + superseded chain
 ```
 

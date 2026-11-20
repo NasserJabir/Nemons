@@ -37,7 +37,7 @@ var maxExtractBytes int64 = 1 << 30 // 1 GiB
 // downloadHosts are the only hosts a release asset may come from. The release
 // API hands out browser_download_url on github.com, which redirects to
 // release-assets.githubusercontent.com (verified 2026-10-17:
-// curl -sI .../releases/download/v2.3.19/yesmem_2.3.19_linux_amd64.tar.gz →
+// curl -sI .../releases/download/v2.3.19/nemons_2.3.19_linux_amd64.tar.gz →
 // 302 location: https://release-assets.githubusercontent.com/...);
 // objects.githubusercontent.com stays allowed for older assets and regions. The
 // asset URL comes from remote JSON and must not become a fetch primitive.
@@ -139,7 +139,7 @@ func downloadAndReplace(binaryURL, checksumURL, assetFilename, dest string) erro
 // binary. "make install", "make deploy" and a setup copy all swap that same
 // binary, so every one of them has to name the same file;
 // TestLos09cMakefileDeployTakesTheUpdateLock binds the recipe to it.
-const UpdateLockName = ".yesmem-update.lock"
+const UpdateLockName = ".nemons-update.lock"
 
 // LockBinaryUpdate takes the update lock for dest and returns the function that
 // releases it. It is the entry point for the other installers of the same
@@ -150,7 +150,7 @@ func LockBinaryUpdate(dest string) (release func(), err error) {
 }
 
 // lockUpdate takes an exclusive lock next to dest for the download and the
-// replace. The daemon ticker and a manual `yesmem update` share dest and its
+// replace. The daemon ticker and a manual `nemons update` share dest and its
 // temp names, so two updaters would remove each other's files mid-flight. The
 // lock file stays behind on purpose: removing it would let a later process lock
 // a different inode. Non-blocking, so a second updater reports instead of
@@ -261,7 +261,7 @@ func extractBinary(archiveData []byte) ([]byte, error) {
 			}
 			return nil, err
 		}
-		if filepath.Base(hdr.Name) == "yesmem" && hdr.Typeflag == tar.TypeReg {
+		if filepath.Base(hdr.Name) == "nemons" && hdr.Typeflag == tar.TypeReg {
 			if hdr.Size > maxBinarySize {
 				return nil, fmt.Errorf("binary too large: %d bytes (limit %d)", hdr.Size, maxBinarySize)
 			}
@@ -278,7 +278,7 @@ func extractBinary(archiveData []byte) ([]byte, error) {
 	if limited.N <= 0 {
 		return nil, fmt.Errorf("archive too large: more than %d bytes extracted", maxExtractBytes)
 	}
-	return nil, fmt.Errorf("binary \"yesmem\" not found in archive")
+	return nil, fmt.Errorf("binary \"nemons\" not found in archive")
 }
 
 // restoreBackup puts the previous binary back at dest after the new one failed
@@ -287,7 +287,7 @@ func extractBinary(archiveData []byte) ([]byte, error) {
 // a build whose own migration never ran through.
 //
 // The backup is best effort: if the link failed, .bak is an older build (or
-// absent). Restoring an older yesmem still beats keeping a binary nobody has
+// absent). Restoring an older nemons still beats keeping a binary nobody has
 // seen run, and "no backup" is reported as such. The rename consumes .bak, so a
 // second attempt at the same update has no source left.
 //
@@ -325,7 +325,7 @@ func restoreBackup(dest string) error {
 // fixed name is not usable: whatever occupies it may be impossible to remove
 // (a non-empty directory), and then the link fails with EEXIST forever.
 func reserveBackupLink(dir string) (string, error) {
-	f, err := os.CreateTemp(dir, "yesmem-bak-*")
+	f, err := os.CreateTemp(dir, "nemons-bak-*")
 	if err != nil {
 		return "", err
 	}
@@ -340,7 +340,7 @@ func reserveBackupLink(dir string) (string, error) {
 // clearStaleBackupLinks removes backup links a crashed run left behind. Each of
 // them pins the previous binary's inode for the life of the installation.
 func clearStaleBackupLinks(dir string) {
-	stale, err := filepath.Glob(filepath.Join(dir, "yesmem-bak-*"))
+	stale, err := filepath.Glob(filepath.Join(dir, "nemons-bak-*"))
 	if err != nil {
 		return
 	}
@@ -360,7 +360,7 @@ func clearStaleBackupLinks(dir string) {
 // missing binary.
 func atomicReplace(dest string, content []byte) error {
 	dir := filepath.Dir(dest)
-	tmp, err := os.CreateTemp(dir, "yesmem-update-*")
+	tmp, err := os.CreateTemp(dir, "nemons-update-*")
 	if err != nil {
 		return fmt.Errorf("create temp: %w", err)
 	}

@@ -11,7 +11,7 @@ import "testing"
 // row in the verified working directory binds it to its own session.
 func TestLos59bOverrideCallerSessionIgnoresAnOpencodeIdFromThePeerChain(t *testing.T) {
 	h, _ := mustHandler(t)
-	los59bWithProcess(t, 4242, "/home/u/.local/bin/yesmem\x00mcp")
+	los59bWithProcess(t, 4242, "/home/u/.local/bin/nemons\x00mcp")
 
 	// The plugin registers the shared service pid once per session, so the map ends
 	// up holding whichever opencode session was created last machine-wide. That is a
@@ -38,7 +38,7 @@ func TestLos59bOverrideCallerSessionIgnoresAnOpencodeIdFromThePeerChain(t *testi
 // the ones the MCP layer reads, or the two sides disagree about what a process'
 // session is called.
 func TestLos59bPeerEnvSessionReadsTheNamesTheMCPLayerReads(t *testing.T) {
-	for _, name := range []string{"CLAUDE_CODE_SESSION_ID", "CLAUDE_SESSION_ID", "CODEX_THREAD_ID", "CODEX_SESSION_ID", "YESMEM_SESSION_ID"} {
+	for _, name := range []string{"CLAUDE_CODE_SESSION_ID", "CLAUDE_SESSION_ID", "CODEX_THREAD_ID", "CODEX_SESSION_ID", "NEMONS_SESSION_ID"} {
 		los59bWithProcess(t, 4242, "", name+"=opencode:ses_env")
 		if got := peerEnvSession(4242); got != "opencode:ses_env" {
 			t.Errorf("%s: peerEnvSession = %q, want the session from the environment", name, got)

@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/ingest"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/ingest"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // los04iCaptureLog captures the standard logger, which writes to stderr by
@@ -171,7 +171,7 @@ func TestRemoveDocs_QuotesNameAndCloneDir(t *testing.T) {
 	name := "clone\nwarn: forged clone name"
 	seedDocsDB(t, home, storage.DocSource{Name: name, Project: "p", Path: "https://example.invalid/docs"})
 
-	cloneDir, err := ingest.CloneDir(filepath.Join(home, ".claude", "yesmem"), name)
+	cloneDir, err := ingest.CloneDir(filepath.Join(home, ".claude", "nemons"), name)
 	if err != nil {
 		t.Fatalf("clone dir: %v", err)
 	}
@@ -212,7 +212,7 @@ func TestRemoveDocs_QuotesAFailedCloneDirRemoval(t *testing.T) {
 	name := "rmfail\nwarn: forged remove line"
 	seedDocsDB(t, home, storage.DocSource{Name: name, Project: "p", Path: "https://example.invalid/docs"})
 
-	cloneDir, err := ingest.CloneDir(filepath.Join(home, ".claude", "yesmem"), name)
+	cloneDir, err := ingest.CloneDir(filepath.Join(home, ".claude", "nemons"), name)
 	if err != nil {
 		t.Fatalf("clone dir: %v", err)
 	}

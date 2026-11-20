@@ -5,17 +5,17 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // YM-359 (OPS-88, key 4): the YM-353 commit justified the shared derivation with
 // a data dir outside ~/.claude. The installer never sees one — Run pins dataDir to
-// ~/.claude/yesmem — so that sentence claimed a case it cannot reach. What this
+// ~/.claude/nemons — so that sentence claimed a case it cannot reach. What this
 // path does need is an assertion: its target equals the directory the daemon
 // imports from for the config the same run writes.
 func TestLos35fSetupCapsDirEqualsTheDaemonImportPath(t *testing.T) {
 	home := t.TempDir()
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 
 	got := los35eCapsDirForSetup(dataDir)
 	want := filepath.Join(home, ".claude", "caps")
@@ -36,7 +36,7 @@ func TestLos35fSetupCapsDirEqualsTheDaemonImportPath(t *testing.T) {
 // directory the freshly written config no longer names.
 func TestLos35fSetupCapsDirIgnoresAStaleConfiguredValue(t *testing.T) {
 	home := t.TempDir()
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	if err := os.MkdirAll(dataDir, 0o700); err != nil {
 		t.Fatalf("mkdir data dir: %v", err)
 	}

@@ -18,7 +18,7 @@ import (
 
 func TestLos62aHealthIgnoresCommitSubjectThatNamesAnError(t *testing.T) {
 	proxyLog := los32eResponseLines(
-		`[req 1 yesmem tid=abc] git commit detected: 1234abc fix upstream 429: rate_limit handling`, 4) +
+		`[req 1 nemons tid=abc] git commit detected: 1234abc fix upstream 429: rate_limit handling`, 4) +
 		los32eProxyLine(`[keepalive] ping tid=abc cache_read=1 cache_write=42 out=3 remaining=1 mode=5m`)
 
 	res := los32eRunBash(t, proxyLog, "")
@@ -93,7 +93,7 @@ func TestLos62aHealthIgnoresCommitSubjectInEveryCounter(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			proxyLog := los32eResponseLines(
-				`[req 1 yesmem tid=abc] git commit detected: 1234abc `+tc.subject, tc.repeats) +
+				`[req 1 nemons tid=abc] git commit detected: 1234abc `+tc.subject, tc.repeats) +
 				los32eProxyLine(`[keepalive] ping tid=abc cache_read=1 cache_write=42 out=3 remaining=1 mode=5m`)
 
 			res := los32eRunBash(t, proxyLog, "")

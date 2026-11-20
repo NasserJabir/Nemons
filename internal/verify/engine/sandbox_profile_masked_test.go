@@ -80,7 +80,7 @@ func TestSandboxMountClassifiesAToolchainCacheInAMaskedTreeAsEnvironment(t *test
 	if err := os.MkdirAll(binDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	cache := "/tmp/yesmem-fixture-cache-does-not-need-to-exist"
+	cache := "/tmp/nemons-fixture-cache-does-not-need-to-exist"
 	tool := filepath.Join(binDir, "fixturetool")
 	script := "#!/bin/sh\nif [ \"$1\" = env ] && [ \"$2\" = FIXTURE_CACHE ]; then printf '%s\\n' \"$FIXTURE_CACHE_ROOT\"; exit 0; fi\nexit 1\n"
 	if err := os.WriteFile(tool, []byte(script), 0o755); err != nil {

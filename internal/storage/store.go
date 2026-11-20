@@ -134,7 +134,7 @@ func Open(path string) (*Store, error) {
 	return s, nil
 }
 
-// OpenReadOnly opens an existing yesmem database for reading only. Unlike Open it
+// OpenReadOnly opens an existing nemons database for reading only. Unlike Open it
 // writes nothing: no schema creation, no migrations, no runtime/messages siblings
 // next to the file. Reporting commands use it so they cannot mutate a live DB.
 func OpenReadOnly(path string) (*Store, error) {
@@ -407,7 +407,7 @@ func hardenDBFile(path string) error {
 	}
 	// Never open an existing database file here. Closing any descriptor of a
 	// file drops every POSIX lock this process holds on it, and SQLite keeps
-	// believing it holds them; Open opens yesmem.db and messages.db twice, so the
+	// believing it holds them; Open opens nemons.db and messages.db twice, so the
 	// second call stripped the first connection's lock and another process then
 	// took itself for the last connection and deleted -wal and -shm under the
 	// running daemon (live 18.10.2026, disk I/O error 522). A missing file is
@@ -432,7 +432,7 @@ func hardenDBFile(path string) error {
 
 // hardenDBCompanions chmods the database file and its siblings. A mode that
 // cannot be set is reported, not fatal: filesystems without chmod support (some
-// FUSE and network mounts) would otherwise make yesmem unstartable, and the data
+// FUSE and network mounts) would otherwise make nemons unstartable, and the data
 // directory is 0700 since YM-328, so the file is still unreachable from other
 // accounts (audit 16.10.2026, YM-338).
 func hardenDBCompanions(path string) {
@@ -498,7 +498,7 @@ func HardenDBFilesInDir(dir string) (int, error) {
 }
 
 // isDBFileName reports whether name is a database file, one of its sidecars, or a
-// `.db.bak…` backup copy of one (`yesmem.db.bak-pre-...`, `caps.db.bak-...`): old
+// `.db.bak…` backup copy of one (`nemons.db.bak-pre-...`, `caps.db.bak-...`): old
 // backup copies in the data directory are as sensitive as the live file.
 func isDBFileName(name string) bool {
 	for _, suffix := range []string{".db", ".db-wal", ".db-shm", ".db-journal"} {

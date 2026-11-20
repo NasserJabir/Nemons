@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 const tableAgentDialogs = `CREATE TABLE IF NOT EXISTS agent_dialogs (

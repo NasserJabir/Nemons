@@ -9,10 +9,10 @@ import (
 // Datenverzeichnisses liegen. uninstall --delete-data entfernt nur dataDir und
 // muss sagen, was liegen bleibt. Der Test haelt fest, dass der Vergleich ein
 // Pfadvergleich ist und kein Praefixvergleich: die alte Fassung haette
-// "/x/yesmem/../keep" als "inside" gemeldet, obwohl es ausserhalb liegt.
+// "/x/nemons/../keep" als "inside" gemeldet, obwohl es ausserhalb liegt.
 func TestArchiveOutsideDataDir_Los11l(t *testing.T) {
 	base := t.TempDir()
-	dataDir := filepath.Join(base, "yesmem")
+	dataDir := filepath.Join(base, "nemons")
 
 	cases := []struct {
 		name    string

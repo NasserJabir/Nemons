@@ -1,6 +1,6 @@
 # Scheduled Jobs
 
-YesMem includes a built-in job scheduler that runs recurring or one-shot tasks directly from the daemon. Jobs support three execution modes and integrate tightly with capabilities, the REPL, and the memory system.
+Nemons includes a built-in job scheduler that runs recurring or one-shot tasks directly from the daemon. Jobs support three execution modes and integrate tightly with capabilities, the REPL, and the memory system.
 
 ## Job Modes
 
@@ -17,16 +17,16 @@ Bash-mode is the default for automated operational tasks. It runs shell commands
 All job management happens through the `schedule` MCP tool:
 
 ```
-mcp__yesmem__schedule({action: "create", ...})
-mcp__yesmem__schedule({action: "list"})
-mcp__yesmem__schedule({action: "delete", id: "job-id"})
-mcp__yesmem__schedule({action: "run", id: "job-id"})
+mcp__nemons__schedule({action: "create", ...})
+mcp__nemons__schedule({action: "list"})
+mcp__nemons__schedule({action: "delete", id: "job-id"})
+mcp__nemons__schedule({action: "run", id: "job-id"})
 ```
 
 ### Creating a Job
 
 ```javascript
-await mcp__yesmem__schedule({
+await mcp__nemons__schedule({
   action:       "create",
   name:         "proxy-health-check",
   cron:         "*/15 * * * *",        // every 15 minutes
@@ -65,7 +65,7 @@ This means you can build, test, and save a capability in a REPL session, then sc
 
 ```javascript
 // Step 1: Build and test a capability
-await mcp__yesmem__save_cap({
+await mcp__nemons__save_cap({
   name: "proxy_health",
   description: "Check proxy and daemon health metrics",
   handler_bash: "curl -sf http://localhost:8484/health | jq .",
@@ -74,7 +74,7 @@ await mcp__yesmem__save_cap({
 })
 
 // Step 2: Schedule it
-await mcp__yesmem__schedule({
+await mcp__nemons__schedule({
   action: "create",
   name: "proxy-health-check",
   cron: "*/15 * * * *",
@@ -181,7 +181,7 @@ Every bash job run is recorded in the `bash_job_runs` table:
 | `processed` | BOOLEAN | Whether auto-correct has handled this error |
 | `created_at` | TIMESTAMP | When the run occurred |
 
-`bash_job_runs` lives in **`yesmem.db`**, not in a cap-owned table, so `cap_store` cannot reach it — a `cap_store({table: "bash_job_runs"})` call resolves against the cap's own namespace in `caps.db` and finds nothing. Use the storage API or read the daemon's `get_job`/run output instead:
+`bash_job_runs` lives in **`nemons.db`**, not in a cap-owned table, so `cap_store` cannot reach it — a `cap_store({table: "bash_job_runs"})` call resolves against the cap's own namespace in `caps.db` and finds nothing. Use the storage API or read the daemon's `get_job`/run output instead:
 
 ```go
 runs, err := store.GetBashJobRuns(jobID, 10)

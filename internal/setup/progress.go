@@ -8,7 +8,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/carsteneu/yesmem/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/daemon"
 	"golang.org/x/term"
 )
 
@@ -35,7 +35,7 @@ func watchImportProgress(dataDir string, timeout time.Duration) int {
 	for range ticker.C {
 		if time.Now().After(deadline) {
 			clearLine(lastLine)
-			fmt.Println("  ⏳ Import still running in background. Check: yesmem status")
+			fmt.Println("  ⏳ Import still running in background. Check: nemons status")
 			return 0
 		}
 

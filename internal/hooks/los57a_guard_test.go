@@ -26,7 +26,7 @@ func TestLos57aClusteredShellFlagsReachTheGuard(t *testing.T) {
 		{"a flag word built from a variable", `f=-c; bash $f 'printf PWNED > $HOME/.claude/settings.json'`, settings},
 		{"an option value behind the flag", `bash -c -o pipefail 'printf PWNED > $HOME/.claude/settings.json'`, settings},
 		{"a cluster nested two shells deep", `bash -c 'bash -lc "printf PWNED > $HOME/.claude/settings.json"'`, settings},
-		{"the generated ops file", `bash -lc 'echo x > $HOME/.claude/yesmem-ops.md'`, "yesmem-ops.md"},
+		{"the generated ops file", `bash -lc 'echo x > $HOME/.claude/nemons-ops.md'`, "nemons-ops.md"},
 	}
 	allowed := [][2]string{
 		{"a login shell without -c", `bash -l script.sh`},
@@ -54,7 +54,7 @@ func TestLos57aCollapsingSubstitutionInDirectoryReachesTheGuard(t *testing.T) {
 		{"a tilde directory", `printf PWNED > ~/.claude/$(true)/settings.json`, settings},
 		{"a braced home", `printf PWNED > ${HOME}/.claude/$(true)/settings.json`, settings},
 		{"a quoted word", `printf PWNED > "$HOME/.claude/$(true)/settings.json"`, settings},
-		{"the generated ops file", `echo x > $HOME/.claude/$(true)/yesmem-ops.md`, "yesmem-ops.md"},
+		{"the generated ops file", `echo x > $HOME/.claude/$(true)/nemons-ops.md`, "nemons-ops.md"},
 		{"a name fragment in the directory", `printf PWNED > $HOME/.cla$(true)ude/settings.json`, settings},
 		{"an unknown run beside a glob", `printf PWNED > $HOME/.claude/$(true)/*settings.json`, settings},
 	}
@@ -83,7 +83,7 @@ func TestLos57aBacktickBodyReachesTheGuard(t *testing.T) {
 		{"the reported shape", "X=`printf PWNED > $HOME/.claude/settings.json`", settings},
 		{"an absolute target inside the span", "X=`printf PWNED > " + settings + "`", settings},
 		{"a span inside a double quoted word", `X="prefix$(true)` + "`printf PWNED > $HOME/.claude/settings.json`" + `"`, settings},
-		{"the generated ops file", "X=`echo x > $HOME/.claude/yesmem-ops.md`", "yesmem-ops.md"},
+		{"the generated ops file", "X=`echo x > $HOME/.claude/nemons-ops.md`", "nemons-ops.md"},
 		{"a span as a command of its own", "`printf PWNED > $HOME/.claude/settings.json`", settings},
 		{"a span beside a shell that runs a script", "bash -l run.sh `printf PWNED > $HOME/.claude/settings.json`", settings},
 	}

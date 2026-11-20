@@ -21,9 +21,9 @@ When invoked from an interactive session, **do NOT execute the pipeline yourself
 2. Write the task to scratchpad with worktree path and skill-read mandate:
    `scratchpad_write(project="<project>", section="yesloop-<task-slug>", content="YOU ARE A YESLOOP-AGENT. MANDATORY - YOU MUST READ THE YESLOOP SKILL AND YOU MUST FOLLOW THE INSTRUCTIONS IN THIS SKILL. Load the yesloop skill: use your platform's skill tool, or read ~/.claude/skills/yesloop/SKILL.md, or <repo-root>/skills/bundled-skills/yesloop/SKILL.md. Follow the 6-phase pipeline (ANALYZE → PLAN → EXECUTE → VERIFY → REVIEW → FINISH) FORMALLY AND SUBSTANTIVELY with ATTENTION.\n\nWorktree: <path>\nTask: <ticket key if the task comes from a ticket, e.g. YM-123> <description>\nSession title: <one-line title from the requirement, max ~60 chars>\n\nReport to scratchpad.")`
    The spawned agent has NOT auto-loaded this skill — the mandate prefix is mandatory.
-3. **Spawn TUI agent (MANDATORY — never run the pipeline inline):** `yesmem_spawn_agent(project="<project>", section="yesloop-<task-slug>", backend="opencode", work_dir="<worktree-path>")`
+3. **Spawn TUI agent (MANDATORY — never run the pipeline inline):** `nemons_spawn_agent(project="<project>", section="yesloop-<task-slug>", backend="opencode", work_dir="<worktree-path>")`
 4. Wait 15s for opencode TUI to load + PTY injection to deliver the startup prompt
-5. **Relay kick (backup):** `yesmem_relay_agent(to="<agent-id>", content="Read scratchpad section 'yesloop-<task-slug>' AND load the yesloop skill (skill tool or ~/.claude/skills/yesloop/SKILL.md). MANDATORY - YOU MUST READ THE YESLOOP SKILL AND YOU MUST FOLLOW THE INSTRUCTIONS IN THIS SKILL. Your agent id: <agent-id>. At Phase 1 start, rename your session to '[<agent-id>] <Session title from briefing>'. Begin the 6-phase pipeline FORMALLY AND SUBSTANTIVELY with ATTENTION.\n")` — backup if PTY is slow
+5. **Relay kick (backup):** `nemons_relay_agent(to="<agent-id>", content="Read scratchpad section 'yesloop-<task-slug>' AND load the yesloop skill (skill tool or ~/.claude/skills/yesloop/SKILL.md). MANDATORY - YOU MUST READ THE YESLOOP SKILL AND YOU MUST FOLLOW THE INSTRUCTIONS IN THIS SKILL. Your agent id: <agent-id>. At Phase 1 start, rename your session to '[<agent-id>] <Session title from briefing>'. Begin the 6-phase pipeline FORMALLY AND SUBSTANTIVELY with ATTENTION.\n")` — backup if PTY is slow
 6. Confirm: "Agent spawned in worktree — visible in terminal."
 
 **Only run inline if:** the user EXPLICITLY says `--inline`. There is NO trivial-task exception — "< 2 min" is not a license to skip the worktree. If you'd commit it, it runs in the worktree. Create the worktree BEFORE the first edit.
@@ -32,7 +32,7 @@ When invoked from an interactive session, **do NOT execute the pipeline yourself
 
 ## Model selection (opencode backend)
 
-`yesmem_spawn_agent(model=...)` accepts three forms, resolved by `resolveSpawnModel` in `internal/daemon/spawn_model.go`:
+`nemons_spawn_agent(model=...)` accepts three forms, resolved by `resolveSpawnModel` in `internal/daemon/spawn_model.go`:
 
 - **Empty** → returns "" — lets the opencode CLI pick its default from its own configuration. No model is hardcoded in the daemon.
 - **Slash-qualified** (e.g. `zai/glm-5.2`, `zai-coding-plan/glm-5.2`) → passed through verbatim.
@@ -89,25 +89,25 @@ Anti-pattern: orchestrator sees status `paused` or `running` with no recent cont
 
 ## Temp file discipline
 
-NEVER write to `/tmp/` or `~/.claude/yesmem/tmp/` in autonomous operations. `/tmp/` is unreliable across sandbox/container contexts (logs vanish, see #72938). Global paths collide when multiple agents run in parallel.
+NEVER write to `/tmp/` or `~/.claude/nemons/tmp/` in autonomous operations. `/tmp/` is unreliable across sandbox/container contexts (logs vanish, see #72938). Global paths collide when multiple agents run in parallel.
 
-Use `<worktree>/.yesmem/tmp/` instead. Project-local, always writable from any agent context, cleaned up with worktree removal. `mkdir -p .yesmem/tmp` at session start.
+Use `<worktree>/.nemons/tmp/` instead. Project-local, always writable from any agent context, cleaned up with worktree removal. `mkdir -p .nemons/tmp` at session start.
 
 ## Orchestrator-Pflichten (aus den früheren Pins 43, 49, 68, 101 und 108)
 
 - **Spawn-Briefing.** Jeder Spawn beginnt mit dem Briefing und dem exakten Wortlaut YOU ARE A YESLOOP-AGENT. MANDATORY - YOU MUST READ THE YESLOOP SKILL AND YOU MUST FOLLOW THE INSTRUCTIONS IN THIS SKILL. Der Orchestrator liest diese Skill selbst vor jedem Spawn.
 - **DONE prüfen.** Vor Abnahme und Merge: Tests selbst laufen lassen, Diff lesen, Phase 5 mit Cold Review und Behauptungs-Inventar (jede Erfolgsbehauptung trägt eine proof-Zeile). Unbewiesene Behauptungen werden als UNVERIFIED markiert.
 - **Modell.** Beim Spawn immer das Standardmodell, keine Modellwahl und keine Rückfrage beim Nutzer. Grund (Carsten, 02.09.2026): das Standardmodell bringt den Loop am zuverlässigsten zu Ende.
-- **Schließen.** Ein abgenommener Agent wird geschlossen (yesmem_stop_agent), nicht liegengelassen. Phase 6 FINISH beendet weder Prozess noch PTY-Brücke noch Socket, und ein späteres Resume kann eine zweite Session auf denselben Worktree setzen.
+- **Schließen.** Ein abgenommener Agent wird geschlossen (nemons_stop_agent), nicht liegengelassen. Phase 6 FINISH beendet weder Prozess noch PTY-Brücke noch Socket, und ein späteres Resume kann eine zweite Session auf denselben Worktree setzen.
 - **Kein Selbst-Merge, kein Selbst-Deploy.** Merge nach main und Deploy sind Orchestrator-Sache, Nie-Agenten-Sache.
 - **Einordnung.** Code-Änderungen über etwa 10 Zeilen, über mehr als eine Datei oder mit Wirkung auf Verhalten, Architektur oder Deploy laufen über yesloop im Worktree. Inline bleiben Einzeiler, Tippfehler, reine Doku ohne Verhaltenswirkung und Lesearbeit. Ein Agent innerhalb einer yesloop wendet die Regel nicht auf sich selbst an.
 
 
 ## Execution Modes
 
-**tui-agent** (DEFAULT) — Spawned via yesmem_spawn_agent → gnome-terminal, visible, non-blocking.
+**tui-agent** (DEFAULT) — Spawned via nemons_spawn_agent → gnome-terminal, visible, non-blocking.
 **inline** — User explicitly requested inline. Run in current context.
-**scheduled** — User asked for recurring work. Use yesmem_schedule.
+**scheduled** — User asked for recurring work. Use nemons_schedule.
 
 ## Definition of DONE
 
@@ -171,7 +171,7 @@ entstanden ist, unter einem Schlüssel aus Berichtstext, HEAD, Branch, Plan und
 Report-Session. Vor dem DONE setzt du deshalb genau diesen Lauf ab:
 
 ```
-yesmem verify-claims --repo <worktree> --project <projekt> --section <section>-verify --profile yesloop-done --policy yesloop-done --strict
+nemons verify-claims --repo <worktree> --project <projekt> --section <section>-verify --profile yesloop-done --policy yesloop-done --strict
 ```
 
 Die Session und der Plan-Thread sind keine Flags: eine Section nennt ihren Agenten, und
@@ -211,7 +211,7 @@ Orchestrator so oder so, und keiner dieser Wege hängt von dir ab:
 
 - **Sofortmeldung.** In dem Moment, in dem die Zustellprüfung deinen DONE zurückhält,
   bekommt der Orchestrator `DONE-WITHHELD` mit Klasse, Grund und dem vollständigen
-  `yesmem verify-claims`-Befehl. Er wartet nicht auf die dritte Runde.
+  `nemons verify-claims`-Befehl. Er wartet nicht auf die dritte Runde.
 - **Zeitwächter.** Bleibt dein DONE länger als das Fenster `done_verify.max_wait`
   unentschieden und du arbeitest nicht weiter, eskaliert der Daemon von selbst:
   `DONE-UNDECIDED` mit Zustand und Befehl, einmal pro Versuch.
@@ -226,7 +226,7 @@ er gehört dem Orchestrator.
 
 ## Automated DONE-Guard (v3)
 
-Since yesmem v2.1.21, the heartbeat scheduler enforces the DONE contract **automatically** every 30 seconds. The DONE-guard (`internal/daemon/done_gate.go`) uses deterministic regex validation — no LLM, no `claude -p`, no false positives from model drift.
+Since nemons v2.1.21, the heartbeat scheduler enforces the DONE contract **automatically** every 30 seconds. The DONE-guard (`internal/daemon/done_gate.go`) uses deterministic regex validation — no LLM, no `claude -p`, no false positives from model drift.
 
 **What the guard checks:**
 
@@ -289,11 +289,11 @@ Each phase writes ONE structured block to scratchpad. Block format is mandatory 
 
 ### CRITICAL — scratchpad project string + session id
 
-All `scratchpad_write` and `scratchpad_read` calls MUST use the `project` value returned by `whoami()`. Call `whoami()` as the FIRST action at Phase 1 start and use its `project` field verbatim for every scratchpad call afterwards. Do NOT guess, do NOT use the worktree basename, do NOT hardcode a short name. The orchestrator and the idle/done-verify state machines read from `agent.Project` (set by `yesmem_spawn_agent`); using a different string means your writes and reads land in a different scope and the orchestrator never sees your progress.
+All `scratchpad_write` and `scratchpad_read` calls MUST use the `project` value returned by `whoami()`. Call `whoami()` as the FIRST action at Phase 1 start and use its `project` field verbatim for every scratchpad call afterwards. Do NOT guess, do NOT use the worktree basename, do NOT hardcode a short name. The orchestrator and the idle/done-verify state machines read from `agent.Project` (set by `nemons_spawn_agent`); using a different string means your writes and reads land in a different scope and the orchestrator never sees your progress.
 
 `whoami()` also returns the backend session id (`opencode_session_id` for opencode, `codex_session_id` for codex). This id is required for `resume_agent` after crashes. The daemon polls it asynchronously after spawn, so the first `whoami()` call may return it empty. Retry up to 3 times with 5 seconds sleep between calls. If still empty after 3 retries, note "session id missing — resume may fail" in Phase 1 scratchpad and proceed. Do not block beyond 15 seconds.
 
-**SESSION TITLE (MANDATORY at Phase 1 start, opencode backend):** Rename your own session so agent windows and session lists are identifiable: `opencode_session_rename(title="[<agent-id>] <Session title>")` — omit `sessionID` (renames the current session). In Code Mode the same tool is `tools.opencode.session_rename`. The bare name `session_rename` does not exist and answers "Unknown tool"; do not retry it and do not look for it in the yesmem surface. `<agent-id>` comes from the relay kick (e.g. agent-20261015-05); `<Session title>` from the briefing field, or derive a short title from the Task line if absent. Record `**Session title set:** <final title>` in the Phase 1 block. Non-opencode backends or rename failure: non-blocking — note it and continue.
+**SESSION TITLE (MANDATORY at Phase 1 start, opencode backend):** Rename your own session so agent windows and session lists are identifiable: `opencode_session_rename(title="[<agent-id>] <Session title>")` — omit `sessionID` (renames the current session). In Code Mode the same tool is `tools.opencode.session_rename`. The bare name `session_rename` does not exist and answers "Unknown tool"; do not retry it and do not look for it in the nemons surface. `<agent-id>` comes from the relay kick (e.g. agent-20261015-05); `<Session title>` from the briefing field, or derive a short title from the Task line if absent. Record `**Session title set:** <final title>` in the Phase 1 block. Non-opencode backends or rename failure: non-blocking — note it and continue.
 
 **SCRATCHPAD DISCIPLINE (MANDATORY — prevents briefing clobber):**
 
@@ -324,7 +324,7 @@ update_agent_status(phase="Phase 1/7 ANALYZE")
 **Open questions:** none (must be inferrable, no user questions)
 ```
 
-**Verify profile.** If `.yesmem/verify.yaml` is not in the worktree and no earlier loop committed one, run `yesmem verify-claims --init` in the worktree before planning, and commit the file it writes as its own commit: `git add -f .yesmem/verify.yaml` (a project may ignore `.yesmem/`). The merge carries the profile into the project, and every later loop inherits it. init writes nothing without a proof run of the test command; when it writes nothing, it prints what is missing, and that line belongs in the report.
+**Verify profile.** If `.nemons/verify.yaml` is not in the worktree and no earlier loop committed one, run `nemons verify-claims --init` in the worktree before planning, and commit the file it writes as its own commit: `git add -f .nemons/verify.yaml` (a project may ignore `.nemons/`). The merge carries the profile into the project, and every later loop inherits it. init writes nothing without a proof run of the test command; when it writes nothing, it prints what is missing, and that line belongs in the report.
 
 Information gathering is automatic — never ask the user. Code questions → `search_code` (contents AND call sites: `search_code("<symbol>(")` returns file, line and the enclosing function), `search_code_index` (symbols by name), `get_code_context` (who calls it, what it calls, what types it references), `get_code_snippet` (source), `get_file_symbols` (line map of a file). Shell search (`rg`, `grep`) is BLOCKED on indexed files: the code-nav hook refuses it and names the MCP tool instead; if you genuinely need the shell, run the same command again (the retry passes) or call `dismiss_code_nav(session_id)`. API/docs → docs_search, hybrid_search. Errors → deep_search. Unknown concepts → WebFetch. NEVER guess — if you don't know, look it up (WebFetch or the indexed docs); infer only from code/context already in your turn.
 
@@ -454,7 +454,7 @@ set_plan(items=[
   {content: "<step>", status: "pending", depth: 1},
   {content: "Phase 4/7 VERIFY", status: "pending"},
   {content: "Phase 5/7 REVIEW — 5.1 self, 5.2 cold, 5.3 consequence, 5.4 security", status: "pending"},
-  {content: "Phase 6/7 DAEMON-VERIFY — yesmem verify-claims, verdict accepted", status: "pending"},
+  {content: "Phase 6/7 DAEMON-VERIFY — nemons verify-claims, verdict accepted", status: "pending"},
   {content: "Phase 7/7 FINISH — commit, push, handoff", status: "pending"},
 ])
 ```
@@ -526,9 +526,9 @@ update_agent_status(phase="Phase 4/7 VERIFY")
 **Regression baseline (mandatory, deterministic):**
 1. In Phase 2 (PLAN), note the merge-base: `git merge-base HEAD origin/main`
 2. In Phase 4, create a temp checkout of origin/main INSIDE your worktree:
-   `git worktree add .yesmem/tmp/base-checkout origin/main` (project-local, never /tmp)
+   `git worktree add .nemons/tmp/base-checkout origin/main` (project-local, never /tmp)
 3. Run the relevant test suite there (same commands as head), record pass/fail sets
-4. Remove it after use: `git worktree remove .yesmem/tmp/base-checkout --force`
+4. Remove it after use: `git worktree remove .nemons/tmp/base-checkout --force`
 5. `diff=` lists ONLY test failures that are green on base but fail on head — each is a
    REGRESSION and must be fixed before REVIEW exit (or proven pre-existing on base)
 
@@ -636,7 +636,7 @@ escalation.
 Every coverage / success claim in the DONE-Report must carry a proof pointer (command + result) on the same line; a claim without one is marked UNVERIFIED explicitly. This complements the Phase 4 `**Tests run:**` line — that records the overall run, here each individual claim is bound to its own evidence.
 
 **Format per claim:**
-- `<claim>` → `proof: <command> → <result>` (e.g. `proof: bun test plugins/opencode-yesmem-v2 → exit 0, all tests pass`)
+- `<claim>` → `proof: <command> → <result>` (e.g. `proof: bun test plugins/opencode-nemons-v2 → exit 0, all tests pass`)
 - not verifiable now → `<claim>` → `UNVERIFIED: <why not verified>`
 
 Corollary from the ledgere schema: don't claim success you cannot back. Move unproven items to **Open** in the plan instead of asserting them in **Verified**.
@@ -647,7 +647,7 @@ update_agent_status(phase="Phase 6/7 DAEMON-VERIFY")
 
 ### Phase 6: DAEMON-VERIFY
 **Status:** COMPLETE
-**Vorab-Prüfung:** yesmem verify-claims → exit 0 (accepted), Urteil liegt für diesen Bericht
+**Vorab-Prüfung:** nemons verify-claims → exit 0 (accepted), Urteil liegt für diesen Bericht
 **Findings:** none | <was der Lauf gesagt hat und was du dagegen getan hast>
 ```
 
@@ -683,7 +683,7 @@ update_agent_status(phase="Phase 7/7 FINISH")
   `send_to` absetzt. Muster oben unter "Der Prüfbericht".
 
 - **Vorab-Prüfung vor dem DONE:** Nach dem letzten Commit und dem Push läufst du
-  `yesmem verify-claims` mit dem Befehl aus "Der Vorab-Lauf" und wartest auf Exit 0. Erst
+  `nemons verify-claims` mit dem Befehl aus "Der Vorab-Lauf" und wartest auf Exit 0. Erst
   danach setzt du das DONE ab. Ein DONE ohne frisches angenommenes Urteil blockt der
   Daemon als Defekt, ohne selbst zu prüfen.
 
@@ -779,7 +779,7 @@ security: ses_237
 
 ### Phase 6: DAEMON-VERIFY
 **Status:** COMPLETE
-**Vorab-Prüfung:** yesmem verify-claims → exit 0 (accepted)
+**Vorab-Prüfung:** nemons verify-claims → exit 0 (accepted)
 **Findings:** none
 
 ### Phase 7: FINISH
@@ -885,7 +885,7 @@ Before writing "DONE", "completed", "verified" to scratchpad, confirm the artifa
 
 ## State Recovery (every wake-up)
 
-Your state lives in yesmem, not context. On every wake-up:
+Your state lives in nemons, not context. On every wake-up:
 1. `get_plan()` — restore active goal and progress
 2. `scratchpad_read(project, section)` — restore detailed context
 3. **`check_messages`** — poll for orchestrator messages (OpenCode has no push, DB-poll is the only reliable path)
@@ -895,7 +895,7 @@ Your state lives in yesmem, not context. On every wake-up:
 
 ## TUI Agent Mode (You were spawned in a worktree)
 
-You are a **subagent** — spawned via yesmem_spawn_agent. You run in an isolated git worktree.
+You are a **subagent** — spawned via nemons_spawn_agent. You run in an isolated git worktree.
 
 ### ⛔ WORKTREE GUARDRAIL — Execute BEFORE any file modification
 
@@ -905,7 +905,7 @@ On startup, before ANY other action:
 2. git rev-parse --show-toplevel → must be the worktree, NOT main repo
 3. git branch --show-current     → must be yesloop/<task-slug>, NOT main
 4. git status --short            → must be clean
-5. Write-Probe                   → mkdir -p .yesmem/tmp && printf probe > .yesmem/tmp/write-probe, dann read-back verifizieren (Inhalt == "probe")
+5. Write-Probe                   → mkdir -p .nemons/tmp && printf probe > .nemons/tmp/write-probe, dann read-back verifizieren (Inhalt == "probe")
 ```
 
 **IF ANY CHECK FAILS:** STOP. Do not touch files. `scratchpad_write + send_to orchestrator: "⛔ WORKTREE GUARD FAILED: pwd=<actual>, branch=<actual>. Expected <expected>."` Wait for orchestrator.

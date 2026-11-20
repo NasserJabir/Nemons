@@ -17,7 +17,7 @@ import (
 // name.
 func sandboxTestRoot(t *testing.T) string {
 	t.Helper()
-	parent, err := filepath.Abs(filepath.Join("..", "..", "..", ".yesmem", "tmp", "engine"))
+	parent, err := filepath.Abs(filepath.Join("..", "..", "..", ".nemons", "tmp", "engine"))
 	if err != nil {
 		t.Fatalf("abs: %v", err)
 	}

@@ -77,7 +77,7 @@ func TestSandboxFlagsV2_StandardKeepsSocketAndRestrictsEgress(t *testing.T) {
 	stubAiJailVersion(t, 2)
 	s := &Sandbox{binaryPath: "/usr/local/bin/ai-jail", cfg: SandboxConfig{
 		MaskedPaths:    []string{"/home/u/.ssh"},
-		ReadOnlyMounts: []string{"/home/u/.local/bin/yesmem", "/home/u/.claude/yesmem/daemon.sock"},
+		ReadOnlyMounts: []string{"/home/u/.local/bin/nemons", "/home/u/.claude/nemons/daemon.sock"},
 		AllowedHosts:   []string{"api.telegram.org"},
 	}}
 
@@ -105,11 +105,11 @@ func TestSandboxFlagsV2_StandardKeepsSocketAndRestrictsEgress(t *testing.T) {
 	if strings.Contains(joined, "--lockdown") {
 		t.Errorf("2.x standard must not lock down: 2.x ignores --map there, so the daemon socket would be gone, got %v", args)
 	}
-	if !strings.Contains(joined, "--map /home/u/.claude/yesmem/daemon.sock") {
+	if !strings.Contains(joined, "--map /home/u/.claude/nemons/daemon.sock") {
 		t.Errorf("2.x standard must mount the daemon socket read-only, got %v", args)
 	}
-	if !strings.Contains(joined, "--map /home/u/.local/bin/yesmem") {
-		t.Errorf("2.x standard must mount the yesmem CLI read-only, got %v", args)
+	if !strings.Contains(joined, "--map /home/u/.local/bin/nemons") {
+		t.Errorf("2.x standard must mount the nemons CLI read-only, got %v", args)
 	}
 	if strings.Contains(joined, "--rw-map") {
 		t.Errorf("no writable mounts allowed, got %v", args)
@@ -124,7 +124,7 @@ func TestSandboxFlagsV2_StrictLocksDownWithoutNetwork(t *testing.T) {
 	stubAiJailVersion(t, 2)
 	s := &Sandbox{binaryPath: "/usr/local/bin/ai-jail", cfg: SandboxConfig{
 		MaskedPaths:    []string{"/home/u/.ssh"},
-		ReadOnlyMounts: []string{"/home/u/.claude/yesmem/daemon.sock"},
+		ReadOnlyMounts: []string{"/home/u/.claude/nemons/daemon.sock"},
 		AllowedHosts:   []string{"api.telegram.org"},
 	}}
 
@@ -153,7 +153,7 @@ func TestSandboxFlagsV09_UnchangedByTheTwoXSupport(t *testing.T) {
 	stubAiJailVersion(t, 0)
 	s := &Sandbox{binaryPath: "/usr/local/bin/ai-jail", cfg: SandboxConfig{
 		MaskedPaths:    []string{"/home/u/.ssh"},
-		ReadOnlyMounts: []string{"/home/u/.claude/yesmem/daemon.sock"},
+		ReadOnlyMounts: []string{"/home/u/.claude/nemons/daemon.sock"},
 		AllowedHosts:   []string{"api.telegram.org"},
 	}}
 
@@ -166,7 +166,7 @@ func TestSandboxFlagsV09_UnchangedByTheTwoXSupport(t *testing.T) {
 	if strings.Contains(joined, "--no-network") || strings.Contains(joined, "--allow-host") {
 		t.Errorf("0.9.x does not know the 2.x network flags, got %v", args)
 	}
-	if !strings.Contains(joined, "--map /home/u/.claude/yesmem/daemon.sock") {
+	if !strings.Contains(joined, "--map /home/u/.claude/nemons/daemon.sock") {
 		t.Errorf("0.9.x takes the bare map form, got %v", args)
 	}
 }
@@ -421,14 +421,14 @@ func TestSandboxFlags_JobDirIsMappedReadWrite(t *testing.T) {
 // a cap cannot find it.
 func TestSandboxRun_ExportsTheJobDir(t *testing.T) {
 	dir := t.TempDir()
-	s := &Sandbox{cfg: SandboxConfig{Env: []string{"YESMEM_JOB_DIR=" + dir}}}
+	s := &Sandbox{cfg: SandboxConfig{Env: []string{"NEMONS_JOB_DIR=" + dir}}}
 
-	out, code, err := s.Run(`printf %s "$YESMEM_JOB_DIR"`, 10, ProfileNone)
+	out, code, err := s.Run(`printf %s "$NEMONS_JOB_DIR"`, 10, ProfileNone)
 	if err != nil || code != 0 {
 		t.Fatalf("run: exit=%d err=%v out=%q", code, err, out)
 	}
 	if out != dir {
-		t.Errorf("YESMEM_JOB_DIR = %q, want %q", out, dir)
+		t.Errorf("NEMONS_JOB_DIR = %q, want %q", out, dir)
 	}
 }
 

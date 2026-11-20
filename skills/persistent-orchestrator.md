@@ -1,6 +1,6 @@
 # Persistent Orchestrator
 
-> YesMem Skill: Resume-based pipeline orchestrator for Implement → Review → Commit workflows.
+> Nemons Skill: Resume-based pipeline orchestrator for Implement → Review → Commit workflows.
 
 ## Overview
 

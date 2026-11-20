@@ -386,11 +386,11 @@ index c6e8d8a..6fff2de 100644
 -	// The job surface is governed, so the ordinary path first takes its ask and
 -	// a standing allow; the refusals above must hold even on an admitted surface.
 -	admitJobCall(t, h, "remember", map[string]any{
--		"text": "job corrects its own note", "category": "gotcha", "project": "yesmem",
+-		"text": "job corrects its own note", "category": "gotcha", "project": "nemons",
 -		"supersedes": float64(noteID),
 -	})
  	ordinary := h.handleJobSocket(Request{Method: "remember", Params: map[string]any{
- 		"text": "job corrects its own note", "category": "gotcha", "project": "yesmem",
+ 		"text": "job corrects its own note", "category": "gotcha", "project": "nemons",
  		"supersedes": float64(noteID),
 diff --git a/internal/daemon/handler_learnings_scope_test.go b/internal/daemon/handler_learnings_scope_test.go
 new file mode 100644
@@ -410,8 +410,8 @@ index 0000000..8bf3ed5
 +	"testing"
 +	"time"
 +
-+	"github.com/carsteneu/yesmem/internal/models"
-+	"github.com/carsteneu/yesmem/internal/storage"
++	"github.com/NasserJabir/Nemons/internal/models"
++	"github.com/NasserJabir/Nemons/internal/storage"
 +)
 +
 +func rememberRows(t *testing.T, h *Handler, viewer string) []models.Learning {
@@ -612,12 +612,12 @@ index 49fd180..c31e863 100644
 -	// verify the labelling of an admitted announcement.
 -	admitJobCall(t, h, "broadcast", map[string]any{
 -		"content": "report",
--		"sender":  "yesmem",
+-		"sender":  "nemons",
 -		"project": "/srv/los34b",
 -	})
  	resp := h.handleJobSocket(Request{Method: "broadcast", Params: map[string]any{
  		"content": "report",
- 		"sender":  "yesmem",
+ 		"sender":  "nemons",
 diff --git a/internal/daemon/job_surface_test.go b/internal/daemon/job_surface_test.go
 index eaa9e6b..fedc3ac 100644
 --- a/internal/daemon/job_surface_test.go
@@ -628,7 +628,7 @@ index eaa9e6b..fedc3ac 100644
  	"testing"
 +	"time"
  
- 	"github.com/carsteneu/yesmem/internal/storage"
+ 	"github.com/NasserJabir/Nemons/internal/storage"
  )
  
 -func jobRememberParams() map[string]any {
@@ -1189,7 +1189,7 @@ index 0000000..dc08922
 +	"fmt"
 +	"path/filepath"
 +
-+	"github.com/carsteneu/yesmem/internal/models"
++	"github.com/NasserJabir/Nemons/internal/models"
 +)
 +
 +// GetLearningForViewer reads one learning as the viewer's agent would see it.
@@ -1277,7 +1277,7 @@ index 0000000..4211b96
 +	"testing"
 +	"time"
 +
-+	"github.com/carsteneu/yesmem/internal/models"
++	"github.com/NasserJabir/Nemons/internal/models"
 +)
 +
 +func scopeSeed(t *testing.T, s *Store, content, agent, scope string) int64 {
@@ -1465,7 +1465,7 @@ index 508ecb4..76fa5ea 100644
 +	`ALTER TABLE learnings ADD COLUMN scope TEXT NOT NULL DEFAULT ''`,
  }
  
- // messagesMigrations runs against messages.db (separate from yesmem.db migrations).
+ // messagesMigrations runs against messages.db (separate from nemons.db migrations).
 @@ -899,7 +904,8 @@ const tableLearnings = `CREATE TABLE IF NOT EXISTS learnings (
  	staleness_reason    TEXT DEFAULT '',                -- v0.64: LLM rationale
  	staleness_checked_at TEXT,                          -- v0.64: ISO timestamp of last check
@@ -1488,7 +1488,7 @@ index 0000000..afc7b0e
 +	"testing"
 +	"time"
 +
-+	"github.com/carsteneu/yesmem/internal/models"
++	"github.com/NasserJabir/Nemons/internal/models"
 +)
 +
 +func TestProbe2SourceFile(t *testing.T) {

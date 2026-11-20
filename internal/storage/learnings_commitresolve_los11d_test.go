@@ -28,14 +28,14 @@ const los11dWrongTarget = "Scheduled job proxy-health-check (sched-proxy-health-
 
 func openTask(t *testing.T, s *Store, content string) int64 {
 	t.Helper()
-	return insertTestLearningForProject(t, s, content, "unfinished", "yesmem", "yesmem")
+	return insertTestLearningForProject(t, s, content, "unfinished", "nemons", "nemons")
 }
 
 func TestResolveTargetForCommit_Los11d_LiveCaseStaysOpen(t *testing.T) {
 	s := mustOpen(t)
 	wrongID := openTask(t, s, los11dWrongTarget)
 
-	got, err := s.ResolveTargetForCommit(los11dCommitSubject, "yesmem")
+	got, err := s.ResolveTargetForCommit(los11dCommitSubject, "nemons")
 	if err != nil {
 		t.Fatalf("ResolveTargetForCommit: %v", err)
 	}
@@ -55,7 +55,7 @@ func TestResolveTargetForCommit_Los11d_ProseOverlapAloneResolvesNothing(t *testi
 	s := mustOpen(t)
 	id := openTask(t, s, "Los 11: Proxy Rules-Cache und Injektionszähler reparieren")
 
-	got, err := s.ResolveTargetForCommit(los11dCommitSubject, "yesmem")
+	got, err := s.ResolveTargetForCommit(los11dCommitSubject, "nemons")
 	if err != nil {
 		t.Fatalf("ResolveTargetForCommit: %v", err)
 	}
@@ -72,7 +72,7 @@ func TestResolveTargetForCommit_Los11d_LearningIDAnchorsAMatchingItem(t *testing
 	targetID := openTask(t, s, "Rebuild the proxy cache ruleset")
 	openTask(t, s, "document the release notes")
 
-	got, err := s.ResolveTargetForCommit("fix(proxy): rebuild ruleset (#"+strconv.FormatInt(targetID, 10)+")", "yesmem")
+	got, err := s.ResolveTargetForCommit("fix(proxy): rebuild ruleset (#"+strconv.FormatInt(targetID, 10)+")", "nemons")
 	if err != nil {
 		t.Fatalf("ResolveTargetForCommit: %v", err)
 	}
@@ -88,7 +88,7 @@ func TestResolveTargetForCommit_Los11d_ForeignNumberReferenceIsNoAnchor(t *testi
 	s := mustOpen(t)
 	targetID := openTask(t, s, "Scheduled cleanup of the archive directory")
 
-	got, err := s.ResolveTargetForCommit("feat(proxy): cache rules (#"+strconv.FormatInt(targetID, 10)+")", "yesmem")
+	got, err := s.ResolveTargetForCommit("feat(proxy): cache rules (#"+strconv.FormatInt(targetID, 10)+")", "nemons")
 	if err != nil {
 		t.Fatalf("ResolveTargetForCommit: %v", err)
 	}
@@ -102,7 +102,7 @@ func TestResolveTargetForCommit_Los11d_LearningIDNeedsTwoSharedTerms(t *testing.
 	s := mustOpen(t)
 	id := openTask(t, s, los11dWrongTarget)
 
-	got, err := s.ResolveTargetForCommit("fix(ci): tune proxy limits (#"+strconv.FormatInt(id, 10)+")", "yesmem")
+	got, err := s.ResolveTargetForCommit("fix(ci): tune proxy limits (#"+strconv.FormatInt(id, 10)+")", "nemons")
 	if err != nil {
 		t.Fatalf("ResolveTargetForCommit: %v", err)
 	}
@@ -125,7 +125,7 @@ func TestResolveTargetForCommit_Los11d_UniqueIDBeatsAConflictingKey(t *testing.T
 	openTask(t, s, "YM-261 part two")
 
 	got, err := s.ResolveTargetForCommit(
-		"fix(proxy): rebuild cache (#"+strconv.FormatInt(targetID, 10)+", YM-261)", "yesmem")
+		"fix(proxy): rebuild cache (#"+strconv.FormatInt(targetID, 10)+", YM-261)", "nemons")
 	if err != nil {
 		t.Fatalf("ResolveTargetForCommit: %v", err)
 	}
@@ -141,7 +141,7 @@ func TestResolveTargetForCommit_Los11d_ManyRepeatsOfOneIDAreNoOverflow(t *testin
 	ref := "#" + strconv.FormatInt(id, 10)
 	subject := "fix(proxy): rebuild cache " + strings.Repeat(ref+" ", 9)
 
-	got, err := s.ResolveTargetForCommit(subject, "yesmem")
+	got, err := s.ResolveTargetForCommit(subject, "nemons")
 	if err != nil {
 		t.Fatalf("ResolveTargetForCommit: %v", err)
 	}
@@ -158,7 +158,7 @@ func TestResolveTargetForCommit_Los11d_TooManyDistinctKeysResolveNothing(t *test
 	for i := 0; i < maxAnchorsPerSubject+1; i++ {
 		keys = append(keys, fmt.Sprintf("PROBE-%d", 900+i))
 	}
-	got, err := s.ResolveTargetForCommit("chore: sweep ("+strings.Join(keys, ", ")+")", "yesmem")
+	got, err := s.ResolveTargetForCommit("chore: sweep ("+strings.Join(keys, ", ")+")", "nemons")
 	if err != nil {
 		t.Fatalf("ResolveTargetForCommit: %v", err)
 	}
@@ -174,7 +174,7 @@ func TestResolveTargetForCommit_Los11d_UnknownLearningIDResolvesNothing(t *testi
 	s := mustOpen(t)
 	openTask(t, s, los11dWrongTarget)
 
-	got, err := s.ResolveTargetForCommit(los11dCommitSubject+" (#999999)", "yesmem")
+	got, err := s.ResolveTargetForCommit(los11dCommitSubject+" (#999999)", "nemons")
 	if err != nil {
 		t.Fatalf("ResolveTargetForCommit: %v", err)
 	}
@@ -190,7 +190,7 @@ func TestResolveTargetForCommit_Los11d_ResolvedItemIsNoAnchor(t *testing.T) {
 		t.Fatalf("resolve: %v", err)
 	}
 
-	got, err := s.ResolveTargetForCommit("chore: something different (#"+strconv.FormatInt(id, 10)+")", "yesmem")
+	got, err := s.ResolveTargetForCommit("chore: something different (#"+strconv.FormatInt(id, 10)+")", "nemons")
 	if err != nil {
 		t.Fatalf("ResolveTargetForCommit: %v", err)
 	}
@@ -203,7 +203,7 @@ func TestResolveTargetForCommit_Los11d_TicketKeyAnchorsTheItem(t *testing.T) {
 	s := mustOpen(t)
 	targetID := openTask(t, s, "Open item tracked as YM-260 in the campaign")
 
-	got, err := s.ResolveTargetForCommit("fix(hooks): graded resolver (YM-260)", "yesmem")
+	got, err := s.ResolveTargetForCommit("fix(hooks): graded resolver (YM-260)", "nemons")
 	if err != nil {
 		t.Fatalf("ResolveTargetForCommit: %v", err)
 	}
@@ -224,7 +224,7 @@ func TestResolveTargetForCommit_Los11d_TicketKeyBeyondAnyCandidateWindow(t *test
 		openTask(t, s, fmt.Sprintf("filler task number %d", i))
 	}
 
-	got, err := s.ResolveTargetForCommit("chore: finish (PROBE-9)", "yesmem")
+	got, err := s.ResolveTargetForCommit("chore: finish (PROBE-9)", "nemons")
 	if err != nil {
 		t.Fatalf("ResolveTargetForCommit: %v", err)
 	}
@@ -238,7 +238,7 @@ func TestResolveTargetForCommit_Los11d_SharedTicketKeyIsNoAnchor(t *testing.T) {
 	openTask(t, s, "YM-261 part one")
 	openTask(t, s, "YM-261 part two")
 
-	got, err := s.ResolveTargetForCommit("fix(briefing): dismiss hint (YM-261)", "yesmem")
+	got, err := s.ResolveTargetForCommit("fix(briefing): dismiss hint (YM-261)", "nemons")
 	if err != nil {
 		t.Fatalf("ResolveTargetForCommit: %v", err)
 	}
@@ -257,7 +257,7 @@ func TestResolveTargetForCommit_Los11d_TwoAnchorsResolveNothing(t *testing.T) {
 
 	got, err := s.ResolveTargetForCommit(
 		fmt.Sprintf("fix(proxy): rebuild cache (#%s, #%s)", strconv.FormatInt(first, 10), strconv.FormatInt(second, 10)),
-		"yesmem")
+		"nemons")
 	if err != nil {
 		t.Fatalf("ResolveTargetForCommit: %v", err)
 	}
@@ -275,7 +275,7 @@ func TestResolveTargetForCommit_Los11d_RepeatedAnchorIsOneAnchor(t *testing.T) {
 	id := openTask(t, s, "Rebuild the proxy cache ruleset")
 	ref := "#" + strconv.FormatInt(id, 10)
 
-	got, err := s.ResolveTargetForCommit("fix(proxy): rebuild cache "+ref+" "+ref, "yesmem")
+	got, err := s.ResolveTargetForCommit("fix(proxy): rebuild cache "+ref+" "+ref, "nemons")
 	if err != nil {
 		t.Fatalf("ResolveTargetForCommit: %v", err)
 	}
@@ -290,7 +290,7 @@ func TestResolveTargetForCommit_Los11d_StandardTokensAreNoAnchor(t *testing.T) {
 	s := mustOpen(t)
 	id := openTask(t, s, "Investigate why the log dump is truncated (UTF-8) on Windows")
 
-	got, err := s.ResolveTargetForCommit("fix(text): encode UTF-8 safely", "yesmem")
+	got, err := s.ResolveTargetForCommit("fix(text): encode UTF-8 safely", "nemons")
 	if err != nil {
 		t.Fatalf("ResolveTargetForCommit: %v", err)
 	}
@@ -308,7 +308,7 @@ func TestResolveTargetForCommit_Los11d_FullKeyWindowIsNoAnchor(t *testing.T) {
 		openTask(t, s, fmt.Sprintf("PROBE-90 filler row %d", i))
 	}
 
-	got, err := s.ResolveTargetForCommit("chore: finish (PROBE-9)", "yesmem")
+	got, err := s.ResolveTargetForCommit("chore: finish (PROBE-9)", "nemons")
 	if err != nil {
 		t.Fatalf("ResolveTargetForCommit: %v", err)
 	}
@@ -324,7 +324,7 @@ func TestResolveTargetForCommit_Los11d_RevertSubjectResolvesNothing(t *testing.T
 	s := mustOpen(t)
 	id := openTask(t, s, "Tracked as PROBE-9 in the campaign")
 
-	got, err := s.ResolveTargetForCommit(`Revert "fix(hooks): graded resolver (PROBE-9)"`, "yesmem")
+	got, err := s.ResolveTargetForCommit(`Revert "fix(hooks): graded resolver (PROBE-9)"`, "nemons")
 	if err != nil {
 		t.Fatalf("ResolveTargetForCommit: %v", err)
 	}
@@ -357,7 +357,7 @@ func TestResolveTargetForCommit_Los11d_BodyDoesNotAnchor(t *testing.T) {
 	targetID := openTask(t, s, "graded resolver work in hooks, tracked as YM-260")
 
 	msg := "fix(hooks): graded resolver work (YM-260)\n\nFollow-up: YM-255 stays open for the next loop."
-	got, err := s.ResolveTargetForCommit(msg, "yesmem")
+	got, err := s.ResolveTargetForCommit(msg, "nemons")
 	if err != nil {
 		t.Fatalf("ResolveTargetForCommit: %v", err)
 	}
@@ -373,7 +373,7 @@ func TestResolveCommit_Los11d_RepeatResolvesNothing(t *testing.T) {
 	targetID := openTask(t, s, "graded resolver work in hooks, tracked as YM-260")
 	openTask(t, s, "another iterator task, tracked as YM-261")
 
-	first, err := s.ResolveCommit("fix(hooks): graded resolver work (YM-260)", "yesmem")
+	first, err := s.ResolveCommit("fix(hooks): graded resolver work (YM-260)", "nemons")
 	if err != nil {
 		t.Fatalf("first ResolveCommit: %v", err)
 	}
@@ -384,7 +384,7 @@ func TestResolveCommit_Los11d_RepeatResolvesNothing(t *testing.T) {
 		t.Error("expected the recorded supersede reason")
 	}
 
-	second, err := s.ResolveCommit("fix(hooks): graded resolver work (YM-260)", "yesmem")
+	second, err := s.ResolveCommit("fix(hooks): graded resolver work (YM-260)", "nemons")
 	if err != nil {
 		t.Fatalf("second ResolveCommit: %v", err)
 	}
@@ -399,7 +399,7 @@ func TestResolveCommit_Los11d_TruncatedReasonStaysValidUTF8(t *testing.T) {
 
 	// 190 ASCII bytes, then a multi-byte character straddling the 200-byte cut.
 	subject := "chore: " + strings.Repeat("a", 192) + "ääää (PROBE-9)"
-	decision, err := s.ResolveCommit(subject, "yesmem")
+	decision, err := s.ResolveCommit(subject, "nemons")
 	if err != nil {
 		t.Fatalf("ResolveCommit: %v", err)
 	}
@@ -439,7 +439,7 @@ func TestResolveTargetForCommit_Los11d_IgnoresOtherProjects(t *testing.T) {
 	s := mustOpen(t)
 	insertTestLearningForProject(t, s, "Tracked as PROBE-9 in another project", "unfinished", "/other/project", "/other/project")
 
-	got, err := s.ResolveTargetForCommit("chore: finish (PROBE-9)", "yesmem")
+	got, err := s.ResolveTargetForCommit("chore: finish (PROBE-9)", "nemons")
 	if err != nil {
 		t.Fatalf("ResolveTargetForCommit: %v", err)
 	}
@@ -453,7 +453,7 @@ func TestResolveTargetForCommit_Los11d_QuarantinedItemIsNoTarget(t *testing.T) {
 	id := openTask(t, s, "Tracked as PROBE-9 in the campaign")
 	quarantineTestLearning(t, s, id)
 
-	got, err := s.ResolveTargetForCommit("chore: finish (PROBE-9)", "yesmem")
+	got, err := s.ResolveTargetForCommit("chore: finish (PROBE-9)", "nemons")
 	if err != nil {
 		t.Fatalf("ResolveTargetForCommit: %v", err)
 	}

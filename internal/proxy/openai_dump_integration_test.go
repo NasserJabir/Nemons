@@ -14,7 +14,7 @@ import (
 
 // TestOpenAIPath_DumpsRequestBodyWhenDebug verifies that the OpenAI forward path
 // (forwardOpenAIWithTracking) writes a request-body dump file when
-// YESMEM_PROXY_DEBUG=1, mirroring the Anthropic path (forwardWithAnnotation at
+// NEMONS_PROXY_DEBUG=1, mirroring the Anthropic path (forwardWithAnnotation at
 // proxy_forward.go:32). Regression: the OpenAI path was missing the dump call,
 // so OpenAI/DeepSeek traffic had no request-body observability.
 func TestOpenAIPath_DumpsRequestBodyWhenDebug(t *testing.T) {
@@ -34,7 +34,7 @@ func TestOpenAIPath_DumpsRequestBodyWhenDebug(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(dataDir, "logs"), 0755); err != nil {
 		t.Fatalf("mkdir logs: %v", err)
 	}
-	t.Setenv("YESMEM_PROXY_DEBUG", "1")
+	t.Setenv("NEMONS_PROXY_DEBUG", "1")
 
 	cfg := Config{
 		ListenAddr:            addr,

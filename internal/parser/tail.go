@@ -9,7 +9,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // maxLineBytes bounds a single JSONL line. It matches the buffer ceiling the

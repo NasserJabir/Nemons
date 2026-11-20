@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/verify/claimtypes"
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/claimtypes"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // claimTypes is the registry the parser and the dispatcher both consult.

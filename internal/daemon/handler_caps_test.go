@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // makeWorktreeDir creates a git-worktree-shaped dir under main so repo.Root
@@ -172,7 +172,7 @@ func TestHandleGetCapabilities_FilterByName(t *testing.T) {
 func TestHandleGetCapabilities_FilterByTag(t *testing.T) {
 	h, _ := mustHandler(t)
 	seedCap(t, h, "reddit_fetch", "global", "curl -s", []string{"web", "reddit"})
-	seedCap(t, h, "daemon_logs", "yesmem", "grep -a", []string{"debug"})
+	seedCap(t, h, "daemon_logs", "nemons", "grep -a", []string{"debug"})
 
 	caps := unmarshalCaps(t, h.handleGetCaps(map[string]any{"tag": "web"}))
 	if len(caps) != 1 {
@@ -485,7 +485,7 @@ func TestHandleSaveCapability_Success(t *testing.T) {
 	resp := h.handleSaveCap(map[string]any{
 		"name":         "reddit_fetch",
 		"description":  "Fetch Reddit posts",
-		"handler_bash": `curl -s -A "YesMem/1.0" "$URL.json"`,
+		"handler_bash": `curl -s -A "Nemons/1.0" "$URL.json"`,
 		"tags":         []any{"web", "reddit"},
 		"tested":       true,
 		"project":      "global",
@@ -649,7 +649,7 @@ func TestCapability_FullRoundTrip(t *testing.T) {
 	result := unmarshalMap(t, h.handleSaveCap(map[string]any{
 		"name":         "reddit_fetch",
 		"description":  "Fetch Reddit posts and comments",
-		"handler_bash": `curl -s -A "YesMem/1.0" "$URL.json?limit=25" --max-time 15`,
+		"handler_bash": `curl -s -A "Nemons/1.0" "$URL.json?limit=25" --max-time 15`,
 		"handler_repl": `async ({url}) => { let raw = sh('curl -s "' + url + '.json"'); return JSON.parse(raw) }`,
 		"schema":       `{"type":"object","properties":{"url":{"type":"string"}},"required":["url"]}`,
 		"tags":         []any{"web", "reddit", "fetch"},
@@ -680,7 +680,7 @@ func TestCapability_FullRoundTrip(t *testing.T) {
 	result2 := unmarshalMap(t, h.handleSaveCap(map[string]any{
 		"name":         "reddit_fetch",
 		"description":  "v2 — new API format",
-		"handler_bash": `curl -s -A "YesMem/2.0" "$URL.json?limit=50"`,
+		"handler_bash": `curl -s -A "Nemons/2.0" "$URL.json?limit=50"`,
 		"tags":         []any{"web", "reddit"},
 		"tested":       true,
 		"project":      "global",
@@ -1194,7 +1194,7 @@ func TestHandleGetActive_SkipsDeletedCapability(t *testing.T) {
 // --- adapter direction tests ---
 // The adapter contract:
 //   CAP.md / user input = generic (store(), web(), file())
-//   DB storage          = internal/provider (mcp__yesmem__cap_store())
+//   DB storage          = internal/provider (mcp__nemons__cap_store())
 //   Output / register   = generic again (store()) + adapter aliases
 
 func TestHandleSaveCapability_StoresInternalForm(t *testing.T) {
@@ -1213,12 +1213,12 @@ func TestHandleSaveCapability_StoresInternalForm(t *testing.T) {
 	if len(caps) != 1 {
 		t.Fatalf("expected 1 cap, got %d", len(caps))
 	}
-	if !hasScriptBody(caps[0].Meta.Scripts, "mcp__yesmem__cap_store(") {
-		t.Errorf("DB should store internal form with mcp__yesmem__cap_store() in script bodies")
+	if !hasScriptBody(caps[0].Meta.Scripts, "mcp__nemons__cap_store(") {
+		t.Errorf("DB should store internal form with mcp__nemons__cap_store() in script bodies")
 	}
 	// Verify no standalone generic store() remains (strip provider name first to avoid substring false positive)
 	for _, sc := range caps[0].Meta.Scripts {
-		stripped := strings.ReplaceAll(sc.Body, "mcp__yesmem__cap_store", "")
+		stripped := strings.ReplaceAll(sc.Body, "mcp__nemons__cap_store", "")
 		if strings.Contains(stripped, "store(") {
 			t.Errorf("DB should not contain standalone generic store() after conversion, got: %s", sc.Body)
 		}
@@ -1228,7 +1228,7 @@ func TestHandleSaveCapability_StoresInternalForm(t *testing.T) {
 func TestHandleRegisterCapabilities_OutputsGenericForm(t *testing.T) {
 	h, _ := mustHandler(t)
 	seedCapFull(t, h, "adapter_reg", "global", "",
-		`async ({q}) => { return mcp__yesmem__cap_store({action:'query', table:'t', where:q}); }`,
+		`async ({q}) => { return mcp__nemons__cap_store({action:'query', table:'t', where:q}); }`,
 		`{}`, []string{"test"},
 	)
 
@@ -1259,7 +1259,7 @@ func TestHandleRegisterCapabilities_OutputsGenericForm(t *testing.T) {
 func TestHandleActivateCapability_OutputsGenericFormWithAdapter(t *testing.T) {
 	h, _ := mustHandler(t)
 	seedCapFull(t, h, "adapter_act", "", "",
-		`async ({q}) => { return mcp__yesmem__cap_store({action:'query', table:'t', where:q}); }`,
+		`async ({q}) => { return mcp__nemons__cap_store({action:'query', table:'t', where:q}); }`,
 		`{}`, nil,
 	)
 

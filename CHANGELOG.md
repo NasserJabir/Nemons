@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to YesMem are documented in this file.
+All notable changes to Nemons are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -60,7 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add --init to verify-claims and a Phase 1 profile step
 - Detect a project stack and prove it in the sandbox
 - Name the missing verify profile in the block message
-- Read the project profile from .yesmem/verify.yaml
+- Read the project profile from .nemons/verify.yaml
 - Escalate a report after three blocked rounds instead of asking a fourth time
 
 ### Changed
@@ -173,7 +173,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Mutation and coverage_delta claims, language-agnostic through the profile
 - The DONE gate verifies instead of believing
 - Verify_claims as an operation, with the gate as one caller among others
-- Two yesmem claim types, one evidence rule for both callers
+- Two nemons claim types, one evidence rule for both callers
 - Decide a report by its classes, not by its exit code
 - Preprocess the rules, read the block set from the policy, cap the context
 - Add the proofboy verifier core (M1-M3)
@@ -298,7 +298,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Persist the spawn work_dir on the agent row
 - Bind opencode session ids on demand
 - Add v2 server API client
-- Terracotta code blocks and darker thinking surface in yesmem-light
+- Terracotta code blocks and darker thinking surface in nemons-light
 
 ### Changed
 
@@ -656,9 +656,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Security-Review-Hinweise (Nil-Guard, UTF-8-Testfall) (YM-357)
 - Fortsetzung ueberlebt Quotes, Escapes und Kommentare (YM-375)
 - Befunde aus dem kalten Review (Testbegruendung, toter Env-Pin) (YM-357)
-- Claim only plugin entries that belong to yesmem (YM-371)
+- Claim only plugin entries that belong to nemons (YM-371)
 - Security-Runde: fremder Text steuert keine Zaehler (YM-293)
-- Toten YESMEM_PROJECTS_DIR-Eintrag im Selbst-Spawn entfernen (YM-357)
+- Toten NEMONS_PROJECTS_DIR-Eintrag im Selbst-Spawn entfernen (YM-357)
 - Security-Review-Runde (YM-369)
 - Announce the bundled commands and skills uninstall removes (YM-371)
 - Schreibsperre sieht >|, Zeilenfortsetzung und quotierte Pfade (YM-375)
@@ -843,7 +843,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enforce the ownership rule at the write, not only at the entry points (YM-266 review)
 - Bound the built-in scan, keep both uninstall errors, treat a blank config as blank (YM-241, YM-242 review round 2)
 - Cover every rendered session and the file coverage in the wiki signal, not only the page window (YM-266 review)
-- Recognize the German header yesmem wrote before afccf1df as its own (YM-266 review)
+- Recognize the German header nemons wrote before afccf1df as its own (YM-266 review)
 - Statuspruefung vor Groessenpruefung im Keepalive-Ping (YM-272)
 - Address the YM-327 review findings
 - Kaltreview-Auflagen aus Phase 5.2 (YM-288)
@@ -867,7 +867,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Review-Auflagen zu Episodenfenster, Turn-Kette und Relay-Text (YM-309)
 - Make the proxy_health bash handler survive the daemon's set -e (YM-327)
 - The wiki session signal measures the rendered sessions instead of every session of the project (YM-266)
-- Refuse to overwrite a .claude target yesmem did not write (YM-266)
+- Refuse to overwrite a .claude target nemons did not write (YM-266)
 - Keep the local counter monotone, remember the imported script set (YM-264 review round 3)
 - Hintergrund-Guthaben pro Episode, Doku-Anker driftfest (YM-309)
 - An import lands exactly on its source revision (YM-264 review round 2)
@@ -894,7 +894,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cold-Review-Auflagen zu Turn-Fenster, Stempel-Form und Zeilenanker (YM-309)
 - Quote the skip error, bound the contextual_docs limit from above
 - Session-DB-Maske deckt WAL-Nachbarn und HOME-Wurzel, Symlink-Kette der Projekt-Configs (YM-314)
-- Ohne /proc nichts stoppen und YESMEM_DATA_DIR nicht an den Daemon vererben
+- Ohne /proc nichts stoppen und NEMONS_DATA_DIR nicht an den Daemon vererben
 - Review follow-ups for YM-299
 - Bound contextual_docs limit, pdftotext runtime and doc-sync change detection
 - Quote paths in archive errors, drop bidi characters, fold submodule worktrees onto the submodule (YM-311 review)
@@ -962,7 +962,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fork klont auf /v1/responses den uebersetzten Anthropic-Body (YM-262)
 - Key cluster rows by repository root, not basename (YM-273)
 - Bound what ingest reads, notice a foreign vector rewrite (YM-294)
-- Match only yesmem's own v1 plugin path in status and uninstall (YM-296)
+- Match only nemons's own v1 plugin path in status and uninstall (YM-296)
 - Gescheiterte Extraktion meldet Fehler statt Erfolg (YM-265)
 - Junk-Cleanup spart user-owned Learnings (YM-265)
 - Pick the caps catalog by client profile on /v1/messages
@@ -1081,7 +1081,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Mask Claude state in the job sandbox (YM-284)
 - Require a bound socket at every cleanup site (YM-274)
 - Report a failed store at once, bump the bundle one step (YM-281)
-- Always set YESMEM_PROJECT and show the job's project (YM-281)
+- Always set NEMONS_PROJECT and show the job's project (YM-281)
 - No project guess, no lost alert, no unnoticed error (YM-281)
 - Take a job's project from the job row, not from the work dir (YM-281)
 - Bestands-Backup haerten, Kommentare an die tatsaechlichen Klassen (YM-233)
@@ -1140,7 +1140,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Close the review findings on YM-253
 - Carry the ping's ephemeral_1h and stop retrigger from refilling a spent budget (cold review 5.2)
 - Per-thread decay state with restart-safe ages (YM-128)
-- Deliver the proxy_health broadcast through YESMEM_SOCK (YM-267)
+- Deliver the proxy_health broadcast through NEMONS_SOCK (YM-267)
 - Mask the daemon socket inside job sandboxes (YM-267)
 - Count global learnings in the cluster fingerprint (YM-115)
 - Point every sandboxed run at the restricted socket (YM-267)
@@ -1322,7 +1322,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Project-less session pins die with /clear, unpin searches both scopes (YM-120, YM-121)
 - Keep the condensed rules block alive through doc-sync and empty LLM answers (YM-25)
 - Validate set_persona dimension, stop dropped traits displacing others (YM-119, YM-124)
-- Identify yesmem hooks by binary and subcommand, not by substring (YM-221)
+- Identify nemons hooks by binary and subcommand, not by substring (YM-221)
 - Keep user_override traits untouchable and dotted trait keys intact (YM-118, YM-123)
 - Scan the previous assistant answer for inline signals (YM-31)
 - Search_code must not read through a symlink out of the project (YM-224, DEV-DT39)
@@ -1491,7 +1491,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Align feature doc with code (YM-186)
 - Align feature doc with code (YM-183)
 - The crash close loses to a stop, not to a resume (YM-356)
-- Name yesmem backup instead of copying the live database (YM-361)
+- Name nemons backup instead of copying the live database (YM-361)
 - Akzeptierte Schutzgrenzen im Code benannt (YM-342)
 - Begruendung der gemeinsamen caps_dir-Ableitung korrigiert (YM-359)
 - WAL-Vorfaelle nicht als harmlos bezeichnen (YM-355)
@@ -1655,23 +1655,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Session-rename convention for yesloop/yesresearch agents
 - Subtle per-hue background tint for the agent themes
-- Stronger text contrast for yesmem-light muted family
-- Add yesmem-light (cream day theme from the memkea palette)
+- Stronger text contrast for nemons-light muted family
+- Add nemons-light (cream day theme from the memkea palette)
 - Brighter green and amber family across all themes
-- Pure white text in yesmem-default
-- Align agent themes with the yesmem-default design language
-- Near-white light-grey text in yesmem-default
-- Light-grey text with minimal warm cast in yesmem-default
+- Pure white text in nemons-default
+- Align agent themes with the nemons-default design language
+- Near-white light-grey text in nemons-default
+- Light-grey text with minimal warm cast in nemons-default
 - Greyer thinking, more brilliant headings and highlights
-- Neutralize the yesmem-default background chrome
-- One more brightness step for yesmem-default accents
-- Darken the yesmem-default background ladder
-- Raise accent brilliance, drop the cream cast in yesmem-default
-- Push yesmem-default text to near-max brightness
-- Raise text brightness and contrast in yesmem-default
-- Rebuild yesmem-default from the memkea logo palette (ember ink)
-- Mute and darken yesmem-default (slate palette)
-- Add yesmem-default (deep ice) as the user-facing default theme
+- Neutralize the nemons-default background chrome
+- One more brightness step for nemons-default accents
+- Darken the nemons-default background ladder
+- Raise accent brilliance, drop the cream cast in nemons-default
+- Push nemons-default text to near-max brightness
+- Raise text brightness and contrast in nemons-default
+- Rebuild nemons-default from the memkea logo palette (ember ink)
+- Mute and darken nemons-default (slate palette)
+- Add nemons-default (deep ice) as the user-facing default theme
 - Give spawned agents the theme of their type
 - Probe whether the opencode binary accepts --theme
 - Add the agent theme family and its installer
@@ -1680,11 +1680,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Append watermark and tail-parsing primitives (#152)
 - List live mcp helper processes (#152)
 - Opt-in localhost-only pprof diagnostics endpoint (#152)
-- Add diagnostics.pprof flag with YESMEM_PPROF override (#152)
+- Add diagnostics.pprof flag with NEMONS_PPROF override (#152)
 - Exit when the parent client dies (#152)
 - Ship v2 TUI window plugin, drop v1 tui.json path
 - Persist session windows and report window + desktop in whoami
-- Register the yesmem opencode TUI plugin in tui.json
+- Register the nemons opencode TUI plugin in tui.json
 - Register the session's terminal window from the TUI
 - Hand the caller's registered window to spawned agents
 - Place agent windows via the caller's registered window
@@ -1753,7 +1753,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Stop the cinnamon skill docs from being global (R3-3)
 - Accept upstream opencode parent-session header (R3-6)
 - Canonicalize worktree callers to their main repo (R3-2)
-- Map the stranded yesmem-projects-ghost doc rows (R3-1)
+- Map the stranded nemons-projects-ghost doc rows (R3-1)
 - Second review round — restore set_plan docs hint, harden script
 - Address cold-review findings
 - Scope active-caps catalog to the requesting project
@@ -1768,7 +1768,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Documentation
 
 - V2.3.19
-- Opencode v2 API agent ideas and yesmem integration brainstorm
+- Opencode v2 API agent ideas and nemons integration brainstorm
 - Add reverse-steering (agent wakes its orchestrator) to the profile
 - Multi-loop top-results profile (wave plan for the API capabilities)
 - 2026-10-15 update — drop cross-backend, API channel as foundation
@@ -1892,7 +1892,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Per-agent opencode session ID tracking for precise resume
 - Include codex_session_id in agent response
 - Per-agent codex session ID tracking for precise resume
-- Per-tool MCP approvals for all 70 yesmem tools
+- Per-tool MCP approvals for all 70 nemons tools
 - Unify PTY inject for all backends + resume for codex/opencode
 - Auto-generate code fingerprint from entity file paths at remember()
 - Two-stage Phase 5 REVIEW — Self-Review + Cold Review via task()
@@ -1920,7 +1920,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pre-DeepSeek pattern match for destructive bash
 - SQLite cooldown + downgrade BLOCK for non-authorized tools
 - Per-skill cooldown for guard suggestions (10min TTL)
-- Self-heal hook-guard matcher on yesmem update
+- Self-heal hook-guard matcher on nemons update
 - Extend hook-guard to REPL tool calls
 - Add Anthropic API fallback for hook-guard
 - Add hook-guard with DeepSeek evaluation, config, and auto-register
@@ -1932,16 +1932,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add exclude_projects to setup config template and migration
 - Add excludeProjects filter to OpencodeScanner
 - Add ExcludeProjects config to prevent indexing of noise directories
-- Set YESMEM_DAEMON_CHILD=1 in runClaude headless path
+- Set NEMONS_DAEMON_CHILD=1 in runClaude headless path
 - 1h TTL for fileAttempts 2-strike counter
 - Add version and unix timestamp to fork log lines
-- 2-strike rule — first block with yesmem hint, second allows
+- 2-strike rule — first block with nemons hint, second allows
 - Add code-tools-first rule (31) + skill catalog entry (50) with grep/glob/read triggers
 - Wire JobDone into scheduler executor callback
 - Gate dueJobs with running check to prevent concurrent execution
 - Add running map to Scheduler struct
 - Filter daemon-internal LLM sessions from scanner backlog
-- Inject YESMEM_SOURCE_AGENT=opencode into MCP environment by default
+- Inject NEMONS_SOURCE_AGENT=opencode into MCP environment by default
 - Add git branch context to prevent false feature-branch suggestions
 - Add session.created hook for opencode session identification
 - Expand extraction model choices to include DeepSeek + GPT via opencode
@@ -1979,12 +1979,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Inject opencode CAP catalog into OpenAI parity pipeline
 - Register execute_cap tool
 - Execute_cap handler — sandboxed bun/bash CAP execution
-- Embed opencode plugin source in binary, install to ~/.local/share/yesmem/plugins/ during setup
+- Embed opencode plugin source in binary, install to ~/.local/share/nemons/plugins/ during setup
 - Merge opencode provider/mcp/compaction settings without overwriting existing config; add opencode uninstall + status
 - Preload code graph at session start
 - Opencode plugin install — symlink + opencode.json registration + make deploy copy
-- Opencode-yesmem hook-plugin — code-nav, failure-learn, auto-resolve, idle-reminder
-- [yesmem-code-explore] directive — yesmem tools before shell for code exploration
+- Opencode-nemons hook-plugin — code-nav, failure-learn, auto-resolve, idle-reminder
+- [nemons-code-explore] directive — nemons tools before shell for code exploration
 - Set feature_defaults to all-true — new models get full features by default
 - Opencode first-class config, migration, and setup wizard
 - Agent-aware footer in rules reminder (CLAUDE.md vs OPENCODE.md)
@@ -2006,7 +2006,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add package-level aggregation pages (packages/<pkg>.md)
 - Name-drop top-5 collapsed packages in codemap footer
 - Merge CBM scan files into file index for complete coverage
-- Add OpenCode TUI sidebar plugin for yesmem cache status display
+- Add OpenCode TUI sidebar plugin for nemons cache status display
 - Shrink briefing codemap — activity-sort, top-10, wiki-link
 - Per-project worktree support + scan caching
 - CBM live-scanner + --scan CLI flag for code graph imports
@@ -2017,9 +2017,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enable gojq input(s)/0 via WithInputIter
 - Wiki_export v65 → v66 — topic co-occurrence + per-file enrichment
 - Interval_seconds without cron + script_name targeting (T7+T8)
-- Yesmem json now supports full jq-compat flags (-n, -R, -s, -e, --arg, --argjson) via gojq
-- Add yesmem query and json subcommands for read-only DB access
-- Refactor yesmem-cap-builder for cap-spec v1.1\n\nReplaces the previous 430-line single-file SKILL.md whose save_cap shape\nwas wrong (handler_repl/handler_bash separate fields) with a 336-line\nquick-start index plus three side-files: recipes.md (six working cap\npatterns including yesmem query/json/cap-blob-put pipes), api-reference.md\n(authoritative shapes for save_cap, get_caps, activate_cap, cap_store\nactions, cap_proposal_decide, plus the yesmem CLI surface), gotchas.md\n(28 entries spanning REPL VM allowlist, sh 30KB wall, sanitize_where,\nschema rules, bundled-cap DB-write-back lifecycle including pre-commit\nversion-sync, jq label/apostrophe quirks, and a 9-item spec-feedback\nsection for the cap-spec repo).\n\nSource distilled from two 4116- and 1068-message sessions via verbatim\nstage-1 extraction; audit trail lives under yesdocs/plans/2026-05-01-\ncap-builder-stage1/.\n\nSide-files are picked up natively by InstallBundledSkills which\niterates every file in the skill directory.
+- Nemons json now supports full jq-compat flags (-n, -R, -s, -e, --arg, --argjson) via gojq
+- Add nemons query and json subcommands for read-only DB access
+- Refactor nemons-cap-builder for cap-spec v1.1\n\nReplaces the previous 430-line single-file SKILL.md whose save_cap shape\nwas wrong (handler_repl/handler_bash separate fields) with a 336-line\nquick-start index plus three side-files: recipes.md (six working cap\npatterns including nemons query/json/cap-blob-put pipes), api-reference.md\n(authoritative shapes for save_cap, get_caps, activate_cap, cap_store\nactions, cap_proposal_decide, plus the nemons CLI surface), gotchas.md\n(28 entries spanning REPL VM allowlist, sh 30KB wall, sanitize_where,\nschema rules, bundled-cap DB-write-back lifecycle including pre-commit\nversion-sync, jq label/apostrophe quirks, and a 9-item spec-feedback\nsection for the cap-spec repo).\n\nSource distilled from two 4116- and 1068-message sessions via verbatim\nstage-1 extraction; audit trail lives under yesdocs/plans/2026-05-01-\ncap-builder-stage1/.\n\nSide-files are picked up natively by InstallBundledSkills which\niterates every file in the skill directory.
 - Reject sandbox=none on scope=project caps
 - Per-script sandbox overrides scheduled-job profile
 - Add Sandbox field to ScriptMeta with enum validation
@@ -2046,7 +2046,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ScriptName in scheduler + bundle-cap support (cap-spec v1.1, Phase D)
 - Telegram_reply bash cap with claude -p + dynamic timeout for LLM jobs
 - Model field on ScheduledJob + --model flag for headless mode
-- Bash adapter store() + yesmem store CLI + interval_seconds scheduling
+- Bash adapter store() + nemons store CLI + interval_seconds scheduling
 - Persist sandbox profile in storage + MCP schema enum
 - Wrap executeHeadless in sandbox via WrapExecArgs
 - RunWithProfile + BuildSandboxedCommand + wire into fireJobBash
@@ -2060,7 +2060,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ScheduledJobRow.CapName/AutoCorrect + BashJobRun CRUD
 - Schema for bash-mode scheduler (cap_name, auto_correct, bash_job_runs)
 - Ai-jail sandbox integration with download-on-first-use
-- Inject [yesmem-code-tools-first] directive block
+- Inject [nemons-code-tools-first] directive block
 - Inject code-tools-first directive via InjectAntDirectives
 - Bundled caps deployment in setup + update + hook matchers to .*
 - Code-nav hook detects rg/grep/cat in REPL code, not just Bash
@@ -2089,7 +2089,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - REPL-pattern handlers + RPC + dismiss MCP tool (Phase 3)
 - Repl_pattern_observations table + CRUD (Phase 2)
 - Shell-command normalizer + shape-hash (Phase 1)
-- Add yesmem-clarify-first directive block — narrow threshold (materially different work only)
+- Add nemons-clarify-first directive block — narrow threshold (materially different work only)
 - Extend beweislast with mental self-check + delegation-contract with model tier guidance
 - Sharpen scope-discipline — bug-surfacing is MANDATORY, not just allowed
 - Wire three new directive blocks — beweislast, scope-discipline, delegation-contract
@@ -2190,7 +2190,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wire loop detector into handleMessages pipeline
 - Loop warning formatting + state management with cooldown
 - Loop detector core — extraction + 3 detection signals
-- Add 8 bundled yesmem skills for MCP tool workflows
+- Add 8 bundled nemons skills for MCP tool workflows
 - Contradiction warning when injected learning contradicts previous
 - Get_contradicting_pairs handler for proxy contradiction checks
 - Graph augmentation in hybrid_search via association edges
@@ -2271,7 +2271,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PTY bridge — bidirectional agent control via creack/pty
 - Relay CLI — route messages between spawned agents via daemon
 - Spawn-agents — multi-terminal agent orchestration with stdin pipes
-- Scratchpad CLI — yesmem scratchpad write/read/list/delete with stdin pipe support
+- Scratchpad CLI — nemons scratchpad write/read/list/delete with stdin pipe support
 - Scratchpad MCP tools — write/read/list/delete with formatters
 - Scratchpad daemon handlers — write/read/list/delete via RPC
 - Orchestrator — terminal detection + spawn command builder (Linux + macOS)
@@ -2306,7 +2306,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Multi-tool tiered search strategy
 - Add sync-public.sh for dual-repo workflow
 - Rename setup→install, fix uninstall gaps, transparent CLI cost tracking
-- LoCoMo benchmark adapter — evaluate YesMem against standard memory benchmarks
+- LoCoMo benchmark adapter — evaluate Nemons against standard memory benchmarks
 - Persist plans in SQLite, survive daemon restarts
 - Proxy token tracking + SetStability comment fix
 - Hub dampening + query_facts + expand_context
@@ -2349,7 +2349,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Anti-fixation + project-recency scoring fixes
 - Porter stemming for learnings_fts — improves conjugation recall
 - Extract newest sessions first for fast initial briefing
-- Yesmem consolidate — iterative knowledge dedup with convergence loop
+- Nemons consolidate — iterative knowledge dedup with convergence loop
 - Embedding-based pre-dedup via cosine similarity (threshold 0.92)
 - Pre-admission dedup — skip duplicates and update existing before insert
 - Separate messages.db + FTS5, remove Bleve dependency
@@ -2384,7 +2384,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add HTTP server skeleton with middleware
 - Add HTTPConfig for OpenClaw HTTP API
 - Fixed taxonomy, server-side validation, embedding-based trait dedup
-- Implement yesmem stats + benchmark commands
+- Implement nemons stats + benchmark commands
 - Add timestamp awareness reminder to all injection points
 - Externalize tone rewrites into translatable Strings struct
 - Replace ONNX with static multilingual embeddings
@@ -2456,11 +2456,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Project-boost for associative context
 - Knowledge gap tracking in proxy associative context
 - 5 memory utilization improvements for better context delivery
-- Block direct edits to auto-generated yesmem-ops.md
+- Block direct edits to auto-generated nemons-ops.md
 - Move narrative to system block, strip old narrative messages
 - Inject briefing as cached system block
 - Add system-block manipulation helpers
-- Add `yesmem cost` CLI command
+- Add `nemons cost` CLI command
 - Persistent budget tracker — spend survives daemon restarts
 - Include llm budget defaults in generated config.yaml
 - Trust-gate in remember() — low/medium/high supersede resistance
@@ -2480,7 +2480,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Subagent indexing — discover, parse, and surface Claude Code subagents
 - Register hook-assist + replace micro-reminder with idle-tick
 - Hook-assist — deep_search on Bash failures (Priming)
-- Idle-tick — dynamic yesmem-usage reminder via daemon
+- Idle-tick — dynamic nemons-usage reminder via daemon
 - Idle_tick endpoint with per-session counter + global MCP reset
 - Add export/import CLI for non-recoverable learnings
 - Tokenizer-based estimation + setup enhancements
@@ -2503,8 +2503,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add ClaudeMdConfig, ClaudeMdState CRUD, GetLearningsForClaudeMd
 - Setup generates proxy config (enabled: true) + confirmation message
 - Proxy auto-start in daemon + config toggle + session ID in logs
-- Proxy logs to ~/.claude/yesmem/proxy.log + stderr
-- Add `yesmem stop` command to cleanly stop daemon/proxy
+- Proxy logs to ~/.claude/nemons/proxy.log + stderr
+- Add `nemons stop` command to cleanly stop daemon/proxy
 - Proxy auto-start on SessionStart + setup integration
 - Infinite-thread proxy — API proxy with intelligent context management
 - Narrative prompt with emotional arc + self-reflection
@@ -2570,7 +2570,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auto-detect system language for stop-word filtering
 - Configurable languages for stop-word filtering
 - Narrative briefing with dedup and personal tone
-- Daemon writes to log file ~/.claude/yesmem/daemon.log
+- Daemon writes to log file ~/.claude/nemons/daemon.log
 - Daemon start via systemd/launchd when auto-start enabled
 - Setup auto-starts daemon in background
 - Auto-detect non-permanent binary location in setup
@@ -2580,7 +2580,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Daemon lifecycle management (single instance + --replace)
 - Live progress display for extraction + profiling
 - LLM extraction in daemon + improved micro-reminder
-- Complete YesMem v0.1.0
+- Complete Nemons v0.1.0
 - Setup command + status command
 - Self-awareness features (profiles, mood, feedback)
 - LLM learning extractor + knowledge evolution
@@ -2596,8 +2596,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - JSONL archiver for permanent session backup
 - SQLite storage layer (9 files, 1 concern each)
 - JSONL parser for Claude Code session files
-- Core data models for YesMem
-- Initial YesMem project structure
+- Core data models for Nemons
+- Initial Nemons project structure
 
 ### Changed
 
@@ -2614,8 +2614,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Align RPC method name list_doc_sources with MCP tool list_docs
 - Split agent status "frozen" into paused/stopped
 - Remove legacy internal/daemon/caps/telegram/CAP.md (v1, not embedded)
-- Use cap_store unique:true instead of sqlite3 CLI, yesmem json instead of python3 (v186)
-- Add .yesmem/ for agent-local temp files
+- Use cap_store unique:true instead of sqlite3 CLI, nemons json instead of python3 (v186)
+- Add .nemons/ for agent-local temp files
 - Rewrite 'Types of memories' as proper Markdown
 - Remove hardcoded gotcha #66986 reference from SKILL.md
 - Add --help/ to .gitignore
@@ -2637,7 +2637,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update .gitignore, timestamp hint wording
 - Ignore .claude lock files; untrack scheduled_tasks.lock
 - Bump index V=5, add ensureIndexed log to code_nav
-- Rephrase error — yesmem tools first, retry as fallback
+- Rephrase error — nemons tools first, retry as fallback
 - Remove redundant ts= from [req N ver] format
 - Self-identifying format [req N ver ts] for pipeline lines
 - Bump index.ts cache key for 1h TTL code_nav reload
@@ -2645,7 +2645,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add .opencode/ to gitignore
 - Remove debug eval log, verified convMsgs=6 ctxLen~750-1200
 - Consolidate extraction pipeline and storage layer
-- Use yesmem daemon RPC for last user message, remove broken hooks
+- Use nemons daemon RPC for last user message, remove broken hooks
 - Address code review — dead code removal, caps.db test, parser fix, benchmark deadline, guard cache
 - Remove dead code (guard_tui.ts, synthesizeProjectRules)
 - Rename DECISIONS.md → RULES.md
@@ -2664,7 +2664,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Split index.md into file-tree + learnings.md category index
 - Copy loop var in save_cap, clarify legacy-handler merge comment
 - Merge GenerateSharedAdapterJS into GenerateAdapterJS with skipStore param, add UsesStoreAdapter
-- Remove yesmem-build-tool, refresh yesmem-planning
+- Remove nemons-build-tool, refresh nemons-planning
 - Rewrite wiki_export as native runtime:bash (v62)
 - Silence sandbox-override log when profiles match
 - Enumerate valid sandbox values in error
@@ -2752,7 +2752,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Disable fresh remember injection, re-enable associative context
 - Remove ONNX model assets + hugot dependency from go.mod
 - Remove ONNX/hugot local provider
-- Add yesmem.db to gitignore
+- Add nemons.db to gitignore
 - Migrate hook-think to proxy, fix config path + progress race
 - Comprehensive pipeline status + embed throttle
 - Learn.go+failure.go bump match_count instead of hit_count
@@ -2778,7 +2778,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lower MinSessions default from 10 to 3
 - Optimize pipeline quality
 - Ignore .worktrees directory
-- Unify log paths under ~/.claude/yesmem/logs/
+- Unify log paths under ~/.claude/nemons/logs/
 - Bump version to v0.9.2 (V2 Vector Search)
 - Hook-resolve outputs visible feedback on git commit
 - Narrative generation with configurable model + Opus default
@@ -2789,7 +2789,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dbstats --profiles uses LLMClient interface + generated 14 profiles
 - Supersede stale learnings + dbstats --supersede command
 - Rename module github.com/chiefcll → github.com/carsteneu
-- Rename all paths from .claude/memory to .claude/yesmem
+- Rename all paths from .claude/memory to .claude/nemons
 - MCP server proxies to daemon via Unix socket
 
 ### Fixed
@@ -2838,7 +2838,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Drop network-online.target wait — services start with user session
 - Round-scoped reload marker + lock discipline (Cold Review)
 - Persist reply errors in DB reply_errors table (v11)
-- Isolate rc_send chunk loop stdin from yesmem json (v10)
+- Isolate rc_send chunk loop stdin from nemons json (v10)
 - Chunk rc_send at 4800 UTF-16 units + log server error body
 - Close if-expression in /sessions filter (missing 'end')
 - Pass set/order/returning through parseStoreArgs (claim_and_read via CLI)
@@ -2846,7 +2846,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Stop MigrateConfig from corrupting config.yaml (glued lines + bad indent)
 - Raise download cap 100 MiB -> 200 MiB (checksum mismatch)
 - Restrict changelog generator to semver tags
-- Dump request body in OpenAI forward path under YESMEM_PROXY_DEBUG
+- Dump request body in OpenAI forward path under NEMONS_PROXY_DEBUG
 - Don't soft-dedup remember() across very different text lengths
 - Per-script cap timeout instead of fragile llm() string match
 - Don't drop trailing multimodal messages in reverse translation
@@ -2922,7 +2922,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Correct default spawn model to deepseek/deepseek-v4-pro
 - Remove static model default — daemon resolves dynamically
 - Switch default model to deepseek-v4-pro
-- Preserve opencode.json/jsonc during yesmem uninstall
+- Preserve opencode.json/jsonc during nemons uninstall
 - Prefix bare model names with opencode/ for opencode CLI
 - Strip providerID/ prefix from model field before forwarding
 - Jq array unwrap bug + defensive auto-create (v188)
@@ -2974,7 +2974,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Store created_at as RFC3339 with timezone offset
 - Sharpen MCP tool descriptions + add metadata-sparse warning
 - Raise default max_runtime from 30min to 48h
-- Resolve model_used provenance via proxy_state + YESMEM_MODEL_ID env
+- Resolve model_used provenance via proxy_state + NEMONS_MODEL_ID env
 - Restore legitimate test fixtures to SCAN_ALLOWLIST
 - Harden sync-public.sh + remove hardcoded private paths
 - Exclude scripts/extract_skills.ts from public sync
@@ -3041,9 +3041,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use full binary path in opencode MCP command
 - Add embedding_vector to CREATE TABLE learnings for fresh installs
 - Resolve OpenCode session identity via proxy-persisted active_session_opencode
-- Increase yesmem MCP timeout 30s→60s for LLM-heavy caps
+- Increase nemons MCP timeout 30s→60s for LLM-heavy caps
 - Suppress MCP tools in opencode subprocess via OPENCODE_CONFIG_CONTENT
-- Add cap execution timeout + YESMEM_SOCK for REPL runtime
+- Add cap execution timeout + NEMONS_SOCK for REPL runtime
 - Add llm() polyfill to REPL runtime + shQuote fix + reddit_search after pagination
 - Exclude .codex and PACKAGE.md from public sync
 - Emit guard SUGGEST/BLOCK in Claude Code hookSpecificOutput schema
@@ -3055,11 +3055,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use runtime.GOOS instead of hardcoded linux in TestFillSystemTemplateOld
 - Add missing limit parameter to GetActiveLearnings calls
 - Restore max_context.png to docs/images/ (lost in yesdocs split)
-- Restore missing YesMemRPC import in index.ts
+- Restore missing NemonsRPC import in index.ts
 - Per-model token threshold override + DeepSeek 500k default
 - Add deepseek pricing entries, raise quality budget to 0
 - Per-session gotcha cap — suppress after 3 injections
-- Use mcp__yesmem__* wildcard instead of 65 individual tool permissions
+- Use mcp__nemons__* wildcard instead of 65 individual tool permissions
 - Sync user edits — re-read directive positioning, wording refinements
 - Single nudge line, no rotation
 - Rotate 3 nudge variants based on system reminder text (DE+EN)
@@ -3094,7 +3094,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix suggestions Map type, add _test.go TDD-compliance note
 - Auto-detect OpenCode via OPENCODE=1 env var fallback
 - Also skip rule_guard.ts self-evaluation
-- Narrow file skip to RULES.md only, evaluate yesmem/worktree files normally
+- Narrow file skip to RULES.md only, evaluate nemons/worktree files normally
 - Remove anthropic provider from template + wizard — proxy-only providers
 - Correct reversed api-key condition + add anthropic to uninstall cleanup
 - Add convMsgs summary log for guard visibility
@@ -3317,7 +3317,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Neutralize hardcoded paths in tests for public release
 - Remove LFS tracking, store SSE weights as regular git objects
 - Broaden API key pattern in sync security scanner
-- Make yesmem-docs skill description generic
+- Make nemons-docs skill description generic
 - Correct embedding model references across all active docs
 - Permissions.allow serializes as [] not null after uninstall
 - Init missing maps in graceful shutdown test setup
@@ -3346,7 +3346,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sanitize billing sentinel in tool_result content blocks
 - Loop detector review fixes — state machine bug, hash determinism, isolation test
 - Benchmark precision, cost calculation, fork tracking, recall metric
-- Benchmark cost split (YesMem-eigen vs Proxy) + precision threshold
+- Benchmark cost split (Nemons-eigen vs Proxy) + precision threshold
 - Restrict cache TTL upgrade to API key auth only
 - Code Review — zero-score, Status filter, handler tests, error logging
 - Code Review Fixes — Token Delta, InjectedIDs, Budget Enforcement
@@ -3508,7 +3508,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sawtooth threshold harmonization + overhead measurement
 - Stubify force-stubs tool_result auch in Protected Tail
 - Daemon lifecycle, extraction and embedding improvements
-- Clarify hook-failure output with [YesMem Assist] prefix
+- Clarify hook-failure output with [Nemons Assist] prefix
 - Supersede trust bypass + briefing refresh 20→5
 - Filter greedy associative queries + add embedding to setup template
 - Update subagent tests for new isSubagent signature and boundary
@@ -3700,7 +3700,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Temporal-Score-Fußnote — Kategorie-Einordnung (diegetic vs coding)
 - BENCHMARK.md — Community-Fix-Quelle, Sample-Größen-Fußnoten, Seed-Dokumentation
 - Reorder sections for clearer narrative flow
-- Expand How YesMem Differs table from 8 to 16 rows, add Procedural memory differentiator
+- Expand How Nemons Differs table from 8 to 16 rows, add Procedural memory differentiator
 - Rewrite README from Claude-only to multi-platform (Claude Code, OpenCode, Codex and more)
 - Add AI agent orientation hints to README and CLAUDE.md, update CHANGELOG and HN draft
 - Convert README features to table format for clarity
@@ -3748,7 +3748,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add database schema reference for the four SQLite stores
 - Document set_plan trigger conditions in MCP and coding-discipline injection
 - Add cap-system hardening roadmap (T1, T3, T8)
-- Add cap-builder knowledge audit trail\n\nTwo-stage workflow for distilling cap-building knowledge from past\nsessions into the yesmem-cap-builder skill.\n\nStage 1 (verbatim extraction) under cap-builder-stage1/:\n  session-bb37bd60.md (517 lines, full coverage 0..1067)\n  session-cc0ba29d.md (733 lines, coverage 0..1599)\n  session-cc0ba29d-part2.md (1003 lines, coverage 1600..4115)\n  README.md as index and hand-off\n\nStage 2 (synthesised proposal) under cap-builder-stage1/stage2/:\n  SKILL.md, recipes.md, api-reference.md, gotchas.md\n  Snapshot of the proposal before patches and live take-over.\n\nKept under yesdocs/plans/ rather than discarded so the chain from\nsession quote to skill paragraph stays auditable; future revisions\ncan re-run stage 1 against new sessions and diff against this\nbaseline.
+- Add cap-builder knowledge audit trail\n\nTwo-stage workflow for distilling cap-building knowledge from past\nsessions into the nemons-cap-builder skill.\n\nStage 1 (verbatim extraction) under cap-builder-stage1/:\n  session-bb37bd60.md (517 lines, full coverage 0..1067)\n  session-cc0ba29d.md (733 lines, coverage 0..1599)\n  session-cc0ba29d-part2.md (1003 lines, coverage 1600..4115)\n  README.md as index and hand-off\n\nStage 2 (synthesised proposal) under cap-builder-stage1/stage2/:\n  SKILL.md, recipes.md, api-reference.md, gotchas.md\n  Snapshot of the proposal before patches and live take-over.\n\nKept under yesdocs/plans/ rather than discarded so the chain from\nsession quote to skill paragraph stays auditable; future revisions\ncan re-run stage 1 against new sessions and diff against this\nbaseline.
 - Note why project-scope guard includes script name directly
 - Note B8 skip per audit grep result
 - Audit trust-multiplier locations and remember touch-points
@@ -3773,9 +3773,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Resolve stale items in CapFeatures.md (blob-pipe, naming, open issues)
 - Update CapFeatures.md with adapter layer, resolve stale items
 - Add CAP.md file format section to CapFeatures.md
-- Add yesmem-directive-blocks plan
-- Yesmem-build-tool — patterns from session bb1ded28
-- Yesmem-build-tool — 4 fixes from session 63ae4565 RED-test
+- Add nemons-directive-blocks plan
+- Nemons-build-tool — patterns from session bb1ded28
+- Nemons-build-tool — 4 fixes from session 63ae4565 RED-test
 - Cap_store analysis system — architecture + 8 examples
 - Remove stale Bleve reference, update vector store description
 - Restructure Differentiators into marketing-quality categories
@@ -3784,7 +3784,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Scheduled Agents and Headless Mode to Features.md and README.md
 - Rename yesdocs/analysen/ to yesdocs/analysis/, add CC system prompt diff
 - Align build-tool skill with CAPS-md-spec
-- Add yesmem-build-tool as bundled skill
+- Add nemons-build-tool as bundled skill
 - Add Capability Memory spec and Phase 2 implementation plan
 - Add pulse/recap feature to Features.md and README.md
 - Restore cache keepalive cost analysis lost in overbroad revert
@@ -3793,7 +3793,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add community files — issue templates, contributing guide, code of conduct
 - README overhaul — badges, comparison table, context screenshot
 - Add plan for cache-status via daemon-RPC
-- Add yesmem.io landing page with GitHub Pages deployment
+- Add nemons.io landing page with GitHub Pages deployment
 - Add Windows WSL2 install note to README
 - Update README — sponsor section, production date correction
 - Rewrite README for launch — adaptive context window pitch, benefit-oriented features, install script
@@ -4038,7 +4038,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use relative path in integration test
 - Busy_timeout 5000 → 30000 for multi-writer contention
 - Code-describe max_tokens 1024 → 8192 for DeepSeek V4 reasoning
-- Preserve opencode.json/jsonc during yesmem uninstall
+- Preserve opencode.json/jsonc during nemons uninstall
 - Opencode free-tier routing + model prefix
 - Add Decisions-resolved field to Phase 2 PLAN
 - Detection-first + free-tier support + template completeness
@@ -4096,7 +4096,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove "PR Workflow" rule 32 from public RULES.md
 - BENCHMARK.md methodology hardening + CCM19 funding story
 - Reorder sections for clearer narrative flow
-- Expand How YesMem Differs table, add Procedural memory differentiator
+- Expand How Nemons Differs table, add Procedural memory differentiator
 - Rewrite README from Claude-only to multi-platform
 - Add AI agent orientation hints to README and CLAUDE.md
 - Convert README 'What You Get' to table format (#32)
@@ -4105,8 +4105,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add auto-generated changelog
 - Add pulse/recap feature to Features.md and README.md
 - Restore cache keepalive cost analysis lost in overbroad revert
-- Add eager tool-result stubbing to Features.md, README, and landing page - Document new proxy pipeline step with stub format tables in Features.md - Add eager stubbing to README context collapsing table - Add feature card to yesmem.io landing page
-- Add yesmem.io landing page with GitHub Pages deployment
+- Add eager tool-result stubbing to Features.md, README, and landing page - Document new proxy pipeline step with stub format tables in Features.md - Add eager stubbing to README context collapsing table - Add feature card to nemons.io landing page
+- Add nemons.io landing page with GitHub Pages deployment
 - Add Windows WSL2 install note
 
 ### Testing
@@ -4199,7 +4199,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Drop network-online.target wait — services start with user session
 - Round-scoped reload marker + lock discipline (Cold Review)
 - Persist reply errors in DB reply_errors table (v11)
-- Isolate rc_send chunk loop stdin from yesmem json (v10)
+- Isolate rc_send chunk loop stdin from nemons json (v10)
 - Chunk rc_send at 4800 UTF-16 units + log server error body
 - Close if-expression in /sessions filter (missing 'end')
 - Pass set/order/returning through parseStoreArgs (claim_and_read via CLI)
@@ -4254,7 +4254,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Restrict changelog generator to semver tags
-- Dump request body in OpenAI forward path under YESMEM_PROXY_DEBUG
+- Dump request body in OpenAI forward path under NEMONS_PROXY_DEBUG
 
 ### Documentation
 
@@ -4361,7 +4361,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Per-agent opencode session ID tracking for precise resume
 - Include codex_session_id in agent response
 - Per-agent codex session ID tracking for precise resume
-- Per-tool MCP approvals for all 70 yesmem tools
+- Per-tool MCP approvals for all 70 nemons tools
 - Unify PTY inject for all backends + resume for codex/opencode
 - Auto-generate code fingerprint from entity file paths at remember()
 - Two-stage Phase 5 REVIEW — Self-Review + Cold Review via task()
@@ -4389,7 +4389,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pre-DeepSeek pattern match for destructive bash
 - SQLite cooldown + downgrade BLOCK for non-authorized tools
 - Per-skill cooldown for guard suggestions (10min TTL)
-- Self-heal hook-guard matcher on yesmem update
+- Self-heal hook-guard matcher on nemons update
 - Extend hook-guard to REPL tool calls
 - Add Anthropic API fallback for hook-guard
 - Add hook-guard with DeepSeek evaluation, config, and auto-register
@@ -4401,16 +4401,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add exclude_projects to setup config template and migration
 - Add excludeProjects filter to OpencodeScanner
 - Add ExcludeProjects config to prevent indexing of noise directories
-- Set YESMEM_DAEMON_CHILD=1 in runClaude headless path
+- Set NEMONS_DAEMON_CHILD=1 in runClaude headless path
 - 1h TTL for fileAttempts 2-strike counter
 - Add version and unix timestamp to fork log lines
-- 2-strike rule — first block with yesmem hint, second allows
+- 2-strike rule — first block with nemons hint, second allows
 - Add code-tools-first rule (31) + skill catalog entry (50) with grep/glob/read triggers
 - Wire JobDone into scheduler executor callback
 - Gate dueJobs with running check to prevent concurrent execution
 - Add running map to Scheduler struct
 - Filter daemon-internal LLM sessions from scanner backlog
-- Inject YESMEM_SOURCE_AGENT=opencode into MCP environment by default
+- Inject NEMONS_SOURCE_AGENT=opencode into MCP environment by default
 - Add git branch context to prevent false feature-branch suggestions
 - Add session.created hook for opencode session identification
 - Expand extraction model choices to include DeepSeek + GPT via opencode
@@ -4448,12 +4448,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Inject opencode CAP catalog into OpenAI parity pipeline
 - Register execute_cap tool
 - Execute_cap handler — sandboxed bun/bash CAP execution
-- Embed opencode plugin source in binary, install to ~/.local/share/yesmem/plugins/ during setup
+- Embed opencode plugin source in binary, install to ~/.local/share/nemons/plugins/ during setup
 - Merge opencode provider/mcp/compaction settings without overwriting existing config; add opencode uninstall + status
 - Preload code graph at session start
 - Opencode plugin install — symlink + opencode.json registration + make deploy copy
-- Opencode-yesmem hook-plugin — code-nav, failure-learn, auto-resolve, idle-reminder
-- [yesmem-code-explore] directive — yesmem tools before shell for code exploration
+- Opencode-nemons hook-plugin — code-nav, failure-learn, auto-resolve, idle-reminder
+- [nemons-code-explore] directive — nemons tools before shell for code exploration
 - Set feature_defaults to all-true — new models get full features by default
 - Opencode first-class config, migration, and setup wizard
 - Agent-aware footer in rules reminder (CLAUDE.md vs OPENCODE.md)
@@ -4475,7 +4475,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add package-level aggregation pages (packages/<pkg>.md)
 - Name-drop top-5 collapsed packages in codemap footer
 - Merge CBM scan files into file index for complete coverage
-- Add OpenCode TUI sidebar plugin for yesmem cache status display
+- Add OpenCode TUI sidebar plugin for nemons cache status display
 - Shrink briefing codemap — activity-sort, top-10, wiki-link
 - Per-project worktree support + scan caching
 - CBM live-scanner + --scan CLI flag for code graph imports
@@ -4486,9 +4486,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enable gojq input(s)/0 via WithInputIter
 - Wiki_export v65 → v66 — topic co-occurrence + per-file enrichment
 - Interval_seconds without cron + script_name targeting (T7+T8)
-- Yesmem json now supports full jq-compat flags (-n, -R, -s, -e, --arg, --argjson) via gojq
-- Add yesmem query and json subcommands for read-only DB access
-- Refactor yesmem-cap-builder for cap-spec v1.1\n\nReplaces the previous 430-line single-file SKILL.md whose save_cap shape\nwas wrong (handler_repl/handler_bash separate fields) with a 336-line\nquick-start index plus three side-files: recipes.md (six working cap\npatterns including yesmem query/json/cap-blob-put pipes), api-reference.md\n(authoritative shapes for save_cap, get_caps, activate_cap, cap_store\nactions, cap_proposal_decide, plus the yesmem CLI surface), gotchas.md\n(28 entries spanning REPL VM allowlist, sh 30KB wall, sanitize_where,\nschema rules, bundled-cap DB-write-back lifecycle including pre-commit\nversion-sync, jq label/apostrophe quirks, and a 9-item spec-feedback\nsection for the cap-spec repo).\n\nSource distilled from two 4116- and 1068-message sessions via verbatim\nstage-1 extraction; audit trail lives under yesdocs/plans/2026-05-01-\ncap-builder-stage1/.\n\nSide-files are picked up natively by InstallBundledSkills which\niterates every file in the skill directory.
+- Nemons json now supports full jq-compat flags (-n, -R, -s, -e, --arg, --argjson) via gojq
+- Add nemons query and json subcommands for read-only DB access
+- Refactor nemons-cap-builder for cap-spec v1.1\n\nReplaces the previous 430-line single-file SKILL.md whose save_cap shape\nwas wrong (handler_repl/handler_bash separate fields) with a 336-line\nquick-start index plus three side-files: recipes.md (six working cap\npatterns including nemons query/json/cap-blob-put pipes), api-reference.md\n(authoritative shapes for save_cap, get_caps, activate_cap, cap_store\nactions, cap_proposal_decide, plus the nemons CLI surface), gotchas.md\n(28 entries spanning REPL VM allowlist, sh 30KB wall, sanitize_where,\nschema rules, bundled-cap DB-write-back lifecycle including pre-commit\nversion-sync, jq label/apostrophe quirks, and a 9-item spec-feedback\nsection for the cap-spec repo).\n\nSource distilled from two 4116- and 1068-message sessions via verbatim\nstage-1 extraction; audit trail lives under yesdocs/plans/2026-05-01-\ncap-builder-stage1/.\n\nSide-files are picked up natively by InstallBundledSkills which\niterates every file in the skill directory.
 - Reject sandbox=none on scope=project caps
 - Per-script sandbox overrides scheduled-job profile
 - Add Sandbox field to ScriptMeta with enum validation
@@ -4515,7 +4515,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ScriptName in scheduler + bundle-cap support (cap-spec v1.1, Phase D)
 - Telegram_reply bash cap with claude -p + dynamic timeout for LLM jobs
 - Model field on ScheduledJob + --model flag for headless mode
-- Bash adapter store() + yesmem store CLI + interval_seconds scheduling
+- Bash adapter store() + nemons store CLI + interval_seconds scheduling
 - Persist sandbox profile in storage + MCP schema enum
 - Wrap executeHeadless in sandbox via WrapExecArgs
 - RunWithProfile + BuildSandboxedCommand + wire into fireJobBash
@@ -4529,7 +4529,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ScheduledJobRow.CapName/AutoCorrect + BashJobRun CRUD
 - Schema for bash-mode scheduler (cap_name, auto_correct, bash_job_runs)
 - Ai-jail sandbox integration with download-on-first-use
-- Inject [yesmem-code-tools-first] directive block
+- Inject [nemons-code-tools-first] directive block
 - Inject code-tools-first directive via InjectAntDirectives
 - Bundled caps deployment in setup + update + hook matchers to .*
 - Code-nav hook detects rg/grep/cat in REPL code, not just Bash
@@ -4558,7 +4558,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - REPL-pattern handlers + RPC + dismiss MCP tool (Phase 3)
 - Repl_pattern_observations table + CRUD (Phase 2)
 - Shell-command normalizer + shape-hash (Phase 1)
-- Add yesmem-clarify-first directive block — narrow threshold (materially different work only)
+- Add nemons-clarify-first directive block — narrow threshold (materially different work only)
 - Extend beweislast with mental self-check + delegation-contract with model tier guidance
 - Sharpen scope-discipline — bug-surfacing is MANDATORY, not just allowed
 - Wire three new directive blocks — beweislast, scope-discipline, delegation-contract
@@ -4659,7 +4659,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wire loop detector into handleMessages pipeline
 - Loop warning formatting + state management with cooldown
 - Loop detector core — extraction + 3 detection signals
-- Add 8 bundled yesmem skills for MCP tool workflows
+- Add 8 bundled nemons skills for MCP tool workflows
 - Contradiction warning when injected learning contradicts previous
 - Get_contradicting_pairs handler for proxy contradiction checks
 - Graph augmentation in hybrid_search via association edges
@@ -4740,7 +4740,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PTY bridge — bidirectional agent control via creack/pty
 - Relay CLI — route messages between spawned agents via daemon
 - Spawn-agents — multi-terminal agent orchestration with stdin pipes
-- Scratchpad CLI — yesmem scratchpad write/read/list/delete with stdin pipe support
+- Scratchpad CLI — nemons scratchpad write/read/list/delete with stdin pipe support
 - Scratchpad MCP tools — write/read/list/delete with formatters
 - Scratchpad daemon handlers — write/read/list/delete via RPC
 - Orchestrator — terminal detection + spawn command builder (Linux + macOS)
@@ -4775,7 +4775,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Multi-tool tiered search strategy
 - Add sync-public.sh for dual-repo workflow
 - Rename setup→install, fix uninstall gaps, transparent CLI cost tracking
-- LoCoMo benchmark adapter — evaluate YesMem against standard memory benchmarks
+- LoCoMo benchmark adapter — evaluate Nemons against standard memory benchmarks
 - Persist plans in SQLite, survive daemon restarts
 - Proxy token tracking + SetStability comment fix
 - Hub dampening + query_facts + expand_context
@@ -4818,7 +4818,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Anti-fixation + project-recency scoring fixes
 - Porter stemming for learnings_fts — improves conjugation recall
 - Extract newest sessions first for fast initial briefing
-- Yesmem consolidate — iterative knowledge dedup with convergence loop
+- Nemons consolidate — iterative knowledge dedup with convergence loop
 - Embedding-based pre-dedup via cosine similarity (threshold 0.92)
 - Pre-admission dedup — skip duplicates and update existing before insert
 - Separate messages.db + FTS5, remove Bleve dependency
@@ -4853,7 +4853,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add HTTP server skeleton with middleware
 - Add HTTPConfig for OpenClaw HTTP API
 - Fixed taxonomy, server-side validation, embedding-based trait dedup
-- Implement yesmem stats + benchmark commands
+- Implement nemons stats + benchmark commands
 - Add timestamp awareness reminder to all injection points
 - Externalize tone rewrites into translatable Strings struct
 - Replace ONNX with static multilingual embeddings
@@ -4925,11 +4925,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Project-boost for associative context
 - Knowledge gap tracking in proxy associative context
 - 5 memory utilization improvements for better context delivery
-- Block direct edits to auto-generated yesmem-ops.md
+- Block direct edits to auto-generated nemons-ops.md
 - Move narrative to system block, strip old narrative messages
 - Inject briefing as cached system block
 - Add system-block manipulation helpers
-- Add `yesmem cost` CLI command
+- Add `nemons cost` CLI command
 - Persistent budget tracker — spend survives daemon restarts
 - Include llm budget defaults in generated config.yaml
 - Trust-gate in remember() — low/medium/high supersede resistance
@@ -4949,7 +4949,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Subagent indexing — discover, parse, and surface Claude Code subagents
 - Register hook-assist + replace micro-reminder with idle-tick
 - Hook-assist — deep_search on Bash failures (Priming)
-- Idle-tick — dynamic yesmem-usage reminder via daemon
+- Idle-tick — dynamic nemons-usage reminder via daemon
 - Idle_tick endpoint with per-session counter + global MCP reset
 - Add export/import CLI for non-recoverable learnings
 - Tokenizer-based estimation + setup enhancements
@@ -4972,8 +4972,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add ClaudeMdConfig, ClaudeMdState CRUD, GetLearningsForClaudeMd
 - Setup generates proxy config (enabled: true) + confirmation message
 - Proxy auto-start in daemon + config toggle + session ID in logs
-- Proxy logs to ~/.claude/yesmem/proxy.log + stderr
-- Add `yesmem stop` command to cleanly stop daemon/proxy
+- Proxy logs to ~/.claude/nemons/proxy.log + stderr
+- Add `nemons stop` command to cleanly stop daemon/proxy
 - Proxy auto-start on SessionStart + setup integration
 - Infinite-thread proxy — API proxy with intelligent context management
 - Narrative prompt with emotional arc + self-reflection
@@ -5039,7 +5039,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auto-detect system language for stop-word filtering
 - Configurable languages for stop-word filtering
 - Narrative briefing with dedup and personal tone
-- Daemon writes to log file ~/.claude/yesmem/daemon.log
+- Daemon writes to log file ~/.claude/nemons/daemon.log
 - Daemon start via systemd/launchd when auto-start enabled
 - Setup auto-starts daemon in background
 - Auto-detect non-permanent binary location in setup
@@ -5049,7 +5049,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Daemon lifecycle management (single instance + --replace)
 - Live progress display for extraction + profiling
 - LLM extraction in daemon + improved micro-reminder
-- Complete YesMem v0.1.0
+- Complete Nemons v0.1.0
 - Setup command + status command
 - Self-awareness features (profiles, mood, feedback)
 - LLM learning extractor + knowledge evolution
@@ -5065,8 +5065,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - JSONL archiver for permanent session backup
 - SQLite storage layer (9 files, 1 concern each)
 - JSONL parser for Claude Code session files
-- Core data models for YesMem
-- Initial YesMem project structure
+- Core data models for Nemons
+- Initial Nemons project structure
 
 ### Changed
 
@@ -5075,8 +5075,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Align RPC method name list_doc_sources with MCP tool list_docs
 - Split agent status "frozen" into paused/stopped
 - Remove legacy internal/daemon/caps/telegram/CAP.md (v1, not embedded)
-- Use cap_store unique:true instead of sqlite3 CLI, yesmem json instead of python3 (v186)
-- Add .yesmem/ for agent-local temp files
+- Use cap_store unique:true instead of sqlite3 CLI, nemons json instead of python3 (v186)
+- Add .nemons/ for agent-local temp files
 - Rewrite 'Types of memories' as proper Markdown
 - Remove hardcoded gotcha #66986 reference from SKILL.md
 - Add --help/ to .gitignore
@@ -5098,7 +5098,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update .gitignore, timestamp hint wording
 - Ignore .claude lock files; untrack scheduled_tasks.lock
 - Bump index V=5, add ensureIndexed log to code_nav
-- Rephrase error — yesmem tools first, retry as fallback
+- Rephrase error — nemons tools first, retry as fallback
 - Remove redundant ts= from [req N ver] format
 - Self-identifying format [req N ver ts] for pipeline lines
 - Bump index.ts cache key for 1h TTL code_nav reload
@@ -5106,7 +5106,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add .opencode/ to gitignore
 - Remove debug eval log, verified convMsgs=6 ctxLen~750-1200
 - Consolidate extraction pipeline and storage layer
-- Use yesmem daemon RPC for last user message, remove broken hooks
+- Use nemons daemon RPC for last user message, remove broken hooks
 - Address code review — dead code removal, caps.db test, parser fix, benchmark deadline, guard cache
 - Remove dead code (guard_tui.ts, synthesizeProjectRules)
 - Rename DECISIONS.md → RULES.md
@@ -5125,7 +5125,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Split index.md into file-tree + learnings.md category index
 - Copy loop var in save_cap, clarify legacy-handler merge comment
 - Merge GenerateSharedAdapterJS into GenerateAdapterJS with skipStore param, add UsesStoreAdapter
-- Remove yesmem-build-tool, refresh yesmem-planning
+- Remove nemons-build-tool, refresh nemons-planning
 - Rewrite wiki_export as native runtime:bash (v62)
 - Silence sandbox-override log when profiles match
 - Enumerate valid sandbox values in error
@@ -5213,7 +5213,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Disable fresh remember injection, re-enable associative context
 - Remove ONNX model assets + hugot dependency from go.mod
 - Remove ONNX/hugot local provider
-- Add yesmem.db to gitignore
+- Add nemons.db to gitignore
 - Migrate hook-think to proxy, fix config path + progress race
 - Comprehensive pipeline status + embed throttle
 - Learn.go+failure.go bump match_count instead of hit_count
@@ -5239,7 +5239,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lower MinSessions default from 10 to 3
 - Optimize pipeline quality
 - Ignore .worktrees directory
-- Unify log paths under ~/.claude/yesmem/logs/
+- Unify log paths under ~/.claude/nemons/logs/
 - Bump version to v0.9.2 (V2 Vector Search)
 - Hook-resolve outputs visible feedback on git commit
 - Narrative generation with configurable model + Opus default
@@ -5250,7 +5250,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dbstats --profiles uses LLMClient interface + generated 14 profiles
 - Supersede stale learnings + dbstats --supersede command
 - Rename module github.com/chiefcll → github.com/carsteneu
-- Rename all paths from .claude/memory to .claude/yesmem
+- Rename all paths from .claude/memory to .claude/nemons
 - MCP server proxies to daemon via Unix socket
 
 ### Fixed
@@ -5309,7 +5309,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Correct default spawn model to deepseek/deepseek-v4-pro
 - Remove static model default — daemon resolves dynamically
 - Switch default model to deepseek-v4-pro
-- Preserve opencode.json/jsonc during yesmem uninstall
+- Preserve opencode.json/jsonc during nemons uninstall
 - Prefix bare model names with opencode/ for opencode CLI
 - Strip providerID/ prefix from model field before forwarding
 - Jq array unwrap bug + defensive auto-create (v188)
@@ -5361,7 +5361,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Store created_at as RFC3339 with timezone offset
 - Sharpen MCP tool descriptions + add metadata-sparse warning
 - Raise default max_runtime from 30min to 48h
-- Resolve model_used provenance via proxy_state + YESMEM_MODEL_ID env
+- Resolve model_used provenance via proxy_state + NEMONS_MODEL_ID env
 - Restore legitimate test fixtures to SCAN_ALLOWLIST
 - Harden sync-public.sh + remove hardcoded private paths
 - Exclude scripts/extract_skills.ts from public sync
@@ -5428,9 +5428,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use full binary path in opencode MCP command
 - Add embedding_vector to CREATE TABLE learnings for fresh installs
 - Resolve OpenCode session identity via proxy-persisted active_session_opencode
-- Increase yesmem MCP timeout 30s→60s for LLM-heavy caps
+- Increase nemons MCP timeout 30s→60s for LLM-heavy caps
 - Suppress MCP tools in opencode subprocess via OPENCODE_CONFIG_CONTENT
-- Add cap execution timeout + YESMEM_SOCK for REPL runtime
+- Add cap execution timeout + NEMONS_SOCK for REPL runtime
 - Add llm() polyfill to REPL runtime + shQuote fix + reddit_search after pagination
 - Exclude .codex and PACKAGE.md from public sync
 - Emit guard SUGGEST/BLOCK in Claude Code hookSpecificOutput schema
@@ -5442,11 +5442,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use runtime.GOOS instead of hardcoded linux in TestFillSystemTemplateOld
 - Add missing limit parameter to GetActiveLearnings calls
 - Restore max_context.png to docs/images/ (lost in yesdocs split)
-- Restore missing YesMemRPC import in index.ts
+- Restore missing NemonsRPC import in index.ts
 - Per-model token threshold override + DeepSeek 500k default
 - Add deepseek pricing entries, raise quality budget to 0
 - Per-session gotcha cap — suppress after 3 injections
-- Use mcp__yesmem__* wildcard instead of 65 individual tool permissions
+- Use mcp__nemons__* wildcard instead of 65 individual tool permissions
 - Sync user edits — re-read directive positioning, wording refinements
 - Single nudge line, no rotation
 - Rotate 3 nudge variants based on system reminder text (DE+EN)
@@ -5481,7 +5481,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix suggestions Map type, add _test.go TDD-compliance note
 - Auto-detect OpenCode via OPENCODE=1 env var fallback
 - Also skip rule_guard.ts self-evaluation
-- Narrow file skip to RULES.md only, evaluate yesmem/worktree files normally
+- Narrow file skip to RULES.md only, evaluate nemons/worktree files normally
 - Remove anthropic provider from template + wizard — proxy-only providers
 - Correct reversed api-key condition + add anthropic to uninstall cleanup
 - Add convMsgs summary log for guard visibility
@@ -5704,7 +5704,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Neutralize hardcoded paths in tests for public release
 - Remove LFS tracking, store SSE weights as regular git objects
 - Broaden API key pattern in sync security scanner
-- Make yesmem-docs skill description generic
+- Make nemons-docs skill description generic
 - Correct embedding model references across all active docs
 - Permissions.allow serializes as [] not null after uninstall
 - Init missing maps in graceful shutdown test setup
@@ -5733,7 +5733,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sanitize billing sentinel in tool_result content blocks
 - Loop detector review fixes — state machine bug, hash determinism, isolation test
 - Benchmark precision, cost calculation, fork tracking, recall metric
-- Benchmark cost split (YesMem-eigen vs Proxy) + precision threshold
+- Benchmark cost split (Nemons-eigen vs Proxy) + precision threshold
 - Restrict cache TTL upgrade to API key auth only
 - Code Review — zero-score, Status filter, handler tests, error logging
 - Code Review Fixes — Token Delta, InjectedIDs, Budget Enforcement
@@ -5895,7 +5895,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sawtooth threshold harmonization + overhead measurement
 - Stubify force-stubs tool_result auch in Protected Tail
 - Daemon lifecycle, extraction and embedding improvements
-- Clarify hook-failure output with [YesMem Assist] prefix
+- Clarify hook-failure output with [Nemons Assist] prefix
 - Supersede trust bypass + briefing refresh 20→5
 - Filter greedy associative queries + add embedding to setup template
 - Update subagent tests for new isSubagent signature and boundary
@@ -6065,7 +6065,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Temporal-Score-Fußnote — Kategorie-Einordnung (diegetic vs coding)
 - BENCHMARK.md — Community-Fix-Quelle, Sample-Größen-Fußnoten, Seed-Dokumentation
 - Reorder sections for clearer narrative flow
-- Expand How YesMem Differs table from 8 to 16 rows, add Procedural memory differentiator
+- Expand How Nemons Differs table from 8 to 16 rows, add Procedural memory differentiator
 - Rewrite README from Claude-only to multi-platform (Claude Code, OpenCode, Codex and more)
 - Add AI agent orientation hints to README and CLAUDE.md, update CHANGELOG and HN draft
 - Convert README features to table format for clarity
@@ -6113,7 +6113,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add database schema reference for the four SQLite stores
 - Document set_plan trigger conditions in MCP and coding-discipline injection
 - Add cap-system hardening roadmap (T1, T3, T8)
-- Add cap-builder knowledge audit trail\n\nTwo-stage workflow for distilling cap-building knowledge from past\nsessions into the yesmem-cap-builder skill.\n\nStage 1 (verbatim extraction) under cap-builder-stage1/:\n  session-bb37bd60.md (517 lines, full coverage 0..1067)\n  session-cc0ba29d.md (733 lines, coverage 0..1599)\n  session-cc0ba29d-part2.md (1003 lines, coverage 1600..4115)\n  README.md as index and hand-off\n\nStage 2 (synthesised proposal) under cap-builder-stage1/stage2/:\n  SKILL.md, recipes.md, api-reference.md, gotchas.md\n  Snapshot of the proposal before patches and live take-over.\n\nKept under yesdocs/plans/ rather than discarded so the chain from\nsession quote to skill paragraph stays auditable; future revisions\ncan re-run stage 1 against new sessions and diff against this\nbaseline.
+- Add cap-builder knowledge audit trail\n\nTwo-stage workflow for distilling cap-building knowledge from past\nsessions into the nemons-cap-builder skill.\n\nStage 1 (verbatim extraction) under cap-builder-stage1/:\n  session-bb37bd60.md (517 lines, full coverage 0..1067)\n  session-cc0ba29d.md (733 lines, coverage 0..1599)\n  session-cc0ba29d-part2.md (1003 lines, coverage 1600..4115)\n  README.md as index and hand-off\n\nStage 2 (synthesised proposal) under cap-builder-stage1/stage2/:\n  SKILL.md, recipes.md, api-reference.md, gotchas.md\n  Snapshot of the proposal before patches and live take-over.\n\nKept under yesdocs/plans/ rather than discarded so the chain from\nsession quote to skill paragraph stays auditable; future revisions\ncan re-run stage 1 against new sessions and diff against this\nbaseline.
 - Note why project-scope guard includes script name directly
 - Note B8 skip per audit grep result
 - Audit trust-multiplier locations and remember touch-points
@@ -6138,9 +6138,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Resolve stale items in CapFeatures.md (blob-pipe, naming, open issues)
 - Update CapFeatures.md with adapter layer, resolve stale items
 - Add CAP.md file format section to CapFeatures.md
-- Add yesmem-directive-blocks plan
-- Yesmem-build-tool — patterns from session bb1ded28
-- Yesmem-build-tool — 4 fixes from session 63ae4565 RED-test
+- Add nemons-directive-blocks plan
+- Nemons-build-tool — patterns from session bb1ded28
+- Nemons-build-tool — 4 fixes from session 63ae4565 RED-test
 - Cap_store analysis system — architecture + 8 examples
 - Remove stale Bleve reference, update vector store description
 - Restructure Differentiators into marketing-quality categories
@@ -6149,7 +6149,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Scheduled Agents and Headless Mode to Features.md and README.md
 - Rename yesdocs/analysen/ to yesdocs/analysis/, add CC system prompt diff
 - Align build-tool skill with CAPS-md-spec
-- Add yesmem-build-tool as bundled skill
+- Add nemons-build-tool as bundled skill
 - Add Capability Memory spec and Phase 2 implementation plan
 - Add pulse/recap feature to Features.md and README.md
 - Restore cache keepalive cost analysis lost in overbroad revert
@@ -6158,7 +6158,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add community files — issue templates, contributing guide, code of conduct
 - README overhaul — badges, comparison table, context screenshot
 - Add plan for cache-status via daemon-RPC
-- Add yesmem.io landing page with GitHub Pages deployment
+- Add nemons.io landing page with GitHub Pages deployment
 - Add Windows WSL2 install note to README
 - Update README — sponsor section, production date correction
 - Rewrite README for launch — adaptive context window pitch, benefit-oriented features, install script
@@ -6367,7 +6367,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use relative path in integration test
 - Busy_timeout 5000 → 30000 for multi-writer contention
 - Code-describe max_tokens 1024 → 8192 for DeepSeek V4 reasoning
-- Preserve opencode.json/jsonc during yesmem uninstall
+- Preserve opencode.json/jsonc during nemons uninstall
 - Opencode free-tier routing + model prefix
 - Add Decisions-resolved field to Phase 2 PLAN
 - Detection-first + free-tier support + template completeness
@@ -6420,7 +6420,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove "PR Workflow" rule 32 from public RULES.md
 - BENCHMARK.md methodology hardening + CCM19 funding story
 - Reorder sections for clearer narrative flow
-- Expand How YesMem Differs table, add Procedural memory differentiator
+- Expand How Nemons Differs table, add Procedural memory differentiator
 - Rewrite README from Claude-only to multi-platform
 - Add AI agent orientation hints to README and CLAUDE.md
 - Convert README 'What You Get' to table format (#32)
@@ -6429,8 +6429,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add auto-generated changelog
 - Add pulse/recap feature to Features.md and README.md
 - Restore cache keepalive cost analysis lost in overbroad revert
-- Add eager tool-result stubbing to Features.md, README, and landing page - Document new proxy pipeline step with stub format tables in Features.md - Add eager stubbing to README context collapsing table - Add feature card to yesmem.io landing page
-- Add yesmem.io landing page with GitHub Pages deployment
+- Add eager tool-result stubbing to Features.md, README, and landing page - Document new proxy pipeline step with stub format tables in Features.md - Add eager stubbing to README context collapsing table - Add feature card to nemons.io landing page
+- Add nemons.io landing page with GitHub Pages deployment
 - Add Windows WSL2 install note
 
 ### Testing
@@ -6615,7 +6615,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Preserve opencode.json/jsonc during yesmem uninstall
+- Preserve opencode.json/jsonc during nemons uninstall
 
 ## [2.2.2] - 2026-06-29
 
@@ -6672,7 +6672,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Remove legacy internal/daemon/caps/telegram/CAP.md (v1, not embedded)
-- Use cap_store unique:true instead of sqlite3 CLI, yesmem json instead of python3 (v186)
+- Use cap_store unique:true instead of sqlite3 CLI, nemons json instead of python3 (v186)
 
 ### Fixed
 
@@ -6732,7 +6732,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Add .yesmem/ for agent-local temp files
+- Add .nemons/ for agent-local temp files
 - Rewrite 'Types of memories' as proper Markdown
 
 ### Fixed
@@ -6752,7 +6752,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Store created_at as RFC3339 with timezone offset
 - Sharpen MCP tool descriptions + add metadata-sparse warning
 - Raise default max_runtime from 30min to 48h
-- Resolve model_used provenance via proxy_state + YESMEM_MODEL_ID env
+- Resolve model_used provenance via proxy_state + NEMONS_MODEL_ID env
 
 ## [2.1.19] - 2026-06-18
 
@@ -6773,7 +6773,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Per-agent opencode session ID tracking for precise resume
 - Include codex_session_id in agent response
 - Per-agent codex session ID tracking for precise resume
-- Per-tool MCP approvals for all 70 yesmem tools
+- Per-tool MCP approvals for all 70 nemons tools
 - Unify PTY inject for all backends + resume for codex/opencode
 - Auto-generate code fingerprint from entity file paths at remember()
 - Two-stage Phase 5 REVIEW — Self-Review + Cold Review via task()
@@ -6979,9 +6979,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use full binary path in opencode MCP command
 - Add embedding_vector to CREATE TABLE learnings for fresh installs
 - Resolve OpenCode session identity via proxy-persisted active_session_opencode
-- Increase yesmem MCP timeout 30s→60s for LLM-heavy caps
+- Increase nemons MCP timeout 30s→60s for LLM-heavy caps
 - Suppress MCP tools in opencode subprocess via OPENCODE_CONFIG_CONTENT
-- Add cap execution timeout + YESMEM_SOCK for REPL runtime
+- Add cap execution timeout + NEMONS_SOCK for REPL runtime
 - Add llm() polyfill to REPL runtime + shQuote fix + reddit_search after pagination
 
 ### Testing
@@ -7027,7 +7027,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Documentation
 
 - Reorder sections for clearer narrative flow
-- Expand How YesMem Differs table from 8 to 16 rows, add Procedural memory differentiator
+- Expand How Nemons Differs table from 8 to 16 rows, add Procedural memory differentiator
 - Rewrite README from Claude-only to multi-platform (Claude Code, OpenCode, Codex and more)
 - Add AI agent orientation hints to README and CLAUDE.md, update CHANGELOG and HN draft
 
@@ -7038,7 +7038,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pre-DeepSeek pattern match for destructive bash
 - SQLite cooldown + downgrade BLOCK for non-authorized tools
 - Per-skill cooldown for guard suggestions (10min TTL)
-- Self-heal hook-guard matcher on yesmem update
+- Self-heal hook-guard matcher on nemons update
 - Extend hook-guard to REPL tool calls
 - Add Anthropic API fallback for hook-guard
 - Add hook-guard with DeepSeek evaluation, config, and auto-register
@@ -7081,11 +7081,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use runtime.GOOS instead of hardcoded linux in TestFillSystemTemplateOld
 - Add missing limit parameter to GetActiveLearnings calls
 - Restore max_context.png to docs/images/ (lost in yesdocs split)
-- Restore missing YesMemRPC import in index.ts
+- Restore missing NemonsRPC import in index.ts
 - Per-model token threshold override + DeepSeek 500k default
 - Add deepseek pricing entries, raise quality budget to 0
 - Per-session gotcha cap — suppress after 3 injections
-- Use mcp__yesmem__* wildcard instead of 65 individual tool permissions
+- Use mcp__nemons__* wildcard instead of 65 individual tool permissions
 - Sync user edits — re-read directive positioning, wording refinements
 - Single nudge line, no rotation
 - Rotate 3 nudge variants based on system reminder text (DE+EN)
@@ -7138,16 +7138,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add exclude_projects to setup config template and migration
 - Add excludeProjects filter to OpencodeScanner
 - Add ExcludeProjects config to prevent indexing of noise directories
-- Set YESMEM_DAEMON_CHILD=1 in runClaude headless path
+- Set NEMONS_DAEMON_CHILD=1 in runClaude headless path
 - 1h TTL for fileAttempts 2-strike counter
 - Add version and unix timestamp to fork log lines
-- 2-strike rule — first block with yesmem hint, second allows
+- 2-strike rule — first block with nemons hint, second allows
 - Add code-tools-first rule (31) + skill catalog entry (50) with grep/glob/read triggers
 - Wire JobDone into scheduler executor callback
 - Gate dueJobs with running check to prevent concurrent execution
 - Add running map to Scheduler struct
 - Filter daemon-internal LLM sessions from scanner backlog
-- Inject YESMEM_SOURCE_AGENT=opencode into MCP environment by default
+- Inject NEMONS_SOURCE_AGENT=opencode into MCP environment by default
 - Add git branch context to prevent false feature-branch suggestions
 - Add session.created hook for opencode session identification
 - Expand extraction model choices to include DeepSeek + GPT via opencode
@@ -7185,12 +7185,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Inject opencode CAP catalog into OpenAI parity pipeline
 - Register execute_cap tool
 - Execute_cap handler — sandboxed bun/bash CAP execution
-- Embed opencode plugin source in binary, install to ~/.local/share/yesmem/plugins/ during setup
+- Embed opencode plugin source in binary, install to ~/.local/share/nemons/plugins/ during setup
 - Merge opencode provider/mcp/compaction settings without overwriting existing config; add opencode uninstall + status
 - Preload code graph at session start
 - Opencode plugin install — symlink + opencode.json registration + make deploy copy
-- Opencode-yesmem hook-plugin — code-nav, failure-learn, auto-resolve, idle-reminder
-- [yesmem-code-explore] directive — yesmem tools before shell for code exploration
+- Opencode-nemons hook-plugin — code-nav, failure-learn, auto-resolve, idle-reminder
+- [nemons-code-explore] directive — nemons tools before shell for code exploration
 - Set feature_defaults to all-true — new models get full features by default
 - Opencode first-class config, migration, and setup wizard
 - Agent-aware footer in rules reminder (CLAUDE.md vs OPENCODE.md)
@@ -7211,7 +7211,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Ignore .claude lock files; untrack scheduled_tasks.lock
 - Bump index V=5, add ensureIndexed log to code_nav
-- Rephrase error — yesmem tools first, retry as fallback
+- Rephrase error — nemons tools first, retry as fallback
 - Remove redundant ts= from [req N ver] format
 - Self-identifying format [req N ver ts] for pipeline lines
 - Bump index.ts cache key for 1h TTL code_nav reload
@@ -7219,7 +7219,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add .opencode/ to gitignore
 - Remove debug eval log, verified convMsgs=6 ctxLen~750-1200
 - Consolidate extraction pipeline and storage layer
-- Use yesmem daemon RPC for last user message, remove broken hooks
+- Use nemons daemon RPC for last user message, remove broken hooks
 - Address code review — dead code removal, caps.db test, parser fix, benchmark deadline, guard cache
 - Remove dead code (guard_tui.ts, synthesizeProjectRules)
 - Rename DECISIONS.md → RULES.md
@@ -7259,7 +7259,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix suggestions Map type, add _test.go TDD-compliance note
 - Auto-detect OpenCode via OPENCODE=1 env var fallback
 - Also skip rule_guard.ts self-evaluation
-- Narrow file skip to RULES.md only, evaluate yesmem/worktree files normally
+- Narrow file skip to RULES.md only, evaluate nemons/worktree files normally
 - Remove anthropic provider from template + wizard — proxy-only providers
 - Correct reversed api-key condition + add anthropic to uninstall cleanup
 - Add convMsgs summary log for guard visibility
@@ -7432,7 +7432,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add package-level aggregation pages (packages/<pkg>.md)
 - Name-drop top-5 collapsed packages in codemap footer
 - Merge CBM scan files into file index for complete coverage
-- Add OpenCode TUI sidebar plugin for yesmem cache status display
+- Add OpenCode TUI sidebar plugin for nemons cache status display
 - Shrink briefing codemap — activity-sort, top-10, wiki-link
 - Per-project worktree support + scan caching
 - CBM live-scanner + --scan CLI flag for code graph imports
@@ -7443,9 +7443,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enable gojq input(s)/0 via WithInputIter
 - Wiki_export v65 → v66 — topic co-occurrence + per-file enrichment
 - Interval_seconds without cron + script_name targeting (T7+T8)
-- Yesmem json now supports full jq-compat flags (-n, -R, -s, -e, --arg, --argjson) via gojq
-- Add yesmem query and json subcommands for read-only DB access
-- Refactor yesmem-cap-builder for cap-spec v1.1\n\nReplaces the previous 430-line single-file SKILL.md whose save_cap shape\nwas wrong (handler_repl/handler_bash separate fields) with a 336-line\nquick-start index plus three side-files: recipes.md (six working cap\npatterns including yesmem query/json/cap-blob-put pipes), api-reference.md\n(authoritative shapes for save_cap, get_caps, activate_cap, cap_store\nactions, cap_proposal_decide, plus the yesmem CLI surface), gotchas.md\n(28 entries spanning REPL VM allowlist, sh 30KB wall, sanitize_where,\nschema rules, bundled-cap DB-write-back lifecycle including pre-commit\nversion-sync, jq label/apostrophe quirks, and a 9-item spec-feedback\nsection for the cap-spec repo).\n\nSource distilled from two 4116- and 1068-message sessions via verbatim\nstage-1 extraction; audit trail lives under yesdocs/plans/2026-05-01-\ncap-builder-stage1/.\n\nSide-files are picked up natively by InstallBundledSkills which\niterates every file in the skill directory.
+- Nemons json now supports full jq-compat flags (-n, -R, -s, -e, --arg, --argjson) via gojq
+- Add nemons query and json subcommands for read-only DB access
+- Refactor nemons-cap-builder for cap-spec v1.1\n\nReplaces the previous 430-line single-file SKILL.md whose save_cap shape\nwas wrong (handler_repl/handler_bash separate fields) with a 336-line\nquick-start index plus three side-files: recipes.md (six working cap\npatterns including nemons query/json/cap-blob-put pipes), api-reference.md\n(authoritative shapes for save_cap, get_caps, activate_cap, cap_store\nactions, cap_proposal_decide, plus the nemons CLI surface), gotchas.md\n(28 entries spanning REPL VM allowlist, sh 30KB wall, sanitize_where,\nschema rules, bundled-cap DB-write-back lifecycle including pre-commit\nversion-sync, jq label/apostrophe quirks, and a 9-item spec-feedback\nsection for the cap-spec repo).\n\nSource distilled from two 4116- and 1068-message sessions via verbatim\nstage-1 extraction; audit trail lives under yesdocs/plans/2026-05-01-\ncap-builder-stage1/.\n\nSide-files are picked up natively by InstallBundledSkills which\niterates every file in the skill directory.
 - Reject sandbox=none on scope=project caps
 - Per-script sandbox overrides scheduled-job profile
 - Add Sandbox field to ScriptMeta with enum validation
@@ -7472,7 +7472,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ScriptName in scheduler + bundle-cap support (cap-spec v1.1, Phase D)
 - Telegram_reply bash cap with claude -p + dynamic timeout for LLM jobs
 - Model field on ScheduledJob + --model flag for headless mode
-- Bash adapter store() + yesmem store CLI + interval_seconds scheduling
+- Bash adapter store() + nemons store CLI + interval_seconds scheduling
 - Persist sandbox profile in storage + MCP schema enum
 - Wrap executeHeadless in sandbox via WrapExecArgs
 - RunWithProfile + BuildSandboxedCommand + wire into fireJobBash
@@ -7486,7 +7486,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ScheduledJobRow.CapName/AutoCorrect + BashJobRun CRUD
 - Schema for bash-mode scheduler (cap_name, auto_correct, bash_job_runs)
 - Ai-jail sandbox integration with download-on-first-use
-- Inject [yesmem-code-tools-first] directive block
+- Inject [nemons-code-tools-first] directive block
 - Inject code-tools-first directive via InjectAntDirectives
 - Bundled caps deployment in setup + update + hook matchers to .*
 - Code-nav hook detects rg/grep/cat in REPL code, not just Bash
@@ -7515,7 +7515,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - REPL-pattern handlers + RPC + dismiss MCP tool (Phase 3)
 - Repl_pattern_observations table + CRUD (Phase 2)
 - Shell-command normalizer + shape-hash (Phase 1)
-- Add yesmem-clarify-first directive block — narrow threshold (materially different work only)
+- Add nemons-clarify-first directive block — narrow threshold (materially different work only)
 - Extend beweislast with mental self-check + delegation-contract with model tier guidance
 - Sharpen scope-discipline — bug-surfacing is MANDATORY, not just allowed
 - Wire three new directive blocks — beweislast, scope-discipline, delegation-contract
@@ -7616,7 +7616,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wire loop detector into handleMessages pipeline
 - Loop warning formatting + state management with cooldown
 - Loop detector core — extraction + 3 detection signals
-- Add 8 bundled yesmem skills for MCP tool workflows
+- Add 8 bundled nemons skills for MCP tool workflows
 - Contradiction warning when injected learning contradicts previous
 - Get_contradicting_pairs handler for proxy contradiction checks
 - Graph augmentation in hybrid_search via association edges
@@ -7697,7 +7697,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PTY bridge — bidirectional agent control via creack/pty
 - Relay CLI — route messages between spawned agents via daemon
 - Spawn-agents — multi-terminal agent orchestration with stdin pipes
-- Scratchpad CLI — yesmem scratchpad write/read/list/delete with stdin pipe support
+- Scratchpad CLI — nemons scratchpad write/read/list/delete with stdin pipe support
 - Scratchpad MCP tools — write/read/list/delete with formatters
 - Scratchpad daemon handlers — write/read/list/delete via RPC
 - Orchestrator — terminal detection + spawn command builder (Linux + macOS)
@@ -7732,7 +7732,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Multi-tool tiered search strategy
 - Add sync-public.sh for dual-repo workflow
 - Rename setup→install, fix uninstall gaps, transparent CLI cost tracking
-- LoCoMo benchmark adapter — evaluate YesMem against standard memory benchmarks
+- LoCoMo benchmark adapter — evaluate Nemons against standard memory benchmarks
 - Persist plans in SQLite, survive daemon restarts
 - Proxy token tracking + SetStability comment fix
 - Hub dampening + query_facts + expand_context
@@ -7775,7 +7775,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Anti-fixation + project-recency scoring fixes
 - Porter stemming for learnings_fts — improves conjugation recall
 - Extract newest sessions first for fast initial briefing
-- Yesmem consolidate — iterative knowledge dedup with convergence loop
+- Nemons consolidate — iterative knowledge dedup with convergence loop
 - Embedding-based pre-dedup via cosine similarity (threshold 0.92)
 - Pre-admission dedup — skip duplicates and update existing before insert
 - Separate messages.db + FTS5, remove Bleve dependency
@@ -7810,7 +7810,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add HTTP server skeleton with middleware
 - Add HTTPConfig for OpenClaw HTTP API
 - Fixed taxonomy, server-side validation, embedding-based trait dedup
-- Implement yesmem stats + benchmark commands
+- Implement nemons stats + benchmark commands
 - Add timestamp awareness reminder to all injection points
 - Externalize tone rewrites into translatable Strings struct
 - Replace ONNX with static multilingual embeddings
@@ -7882,11 +7882,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Project-boost for associative context
 - Knowledge gap tracking in proxy associative context
 - 5 memory utilization improvements for better context delivery
-- Block direct edits to auto-generated yesmem-ops.md
+- Block direct edits to auto-generated nemons-ops.md
 - Move narrative to system block, strip old narrative messages
 - Inject briefing as cached system block
 - Add system-block manipulation helpers
-- Add `yesmem cost` CLI command
+- Add `nemons cost` CLI command
 - Persistent budget tracker — spend survives daemon restarts
 - Include llm budget defaults in generated config.yaml
 - Trust-gate in remember() — low/medium/high supersede resistance
@@ -7906,7 +7906,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Subagent indexing — discover, parse, and surface Claude Code subagents
 - Register hook-assist + replace micro-reminder with idle-tick
 - Hook-assist — deep_search on Bash failures (Priming)
-- Idle-tick — dynamic yesmem-usage reminder via daemon
+- Idle-tick — dynamic nemons-usage reminder via daemon
 - Idle_tick endpoint with per-session counter + global MCP reset
 - Add export/import CLI for non-recoverable learnings
 - Tokenizer-based estimation + setup enhancements
@@ -7929,8 +7929,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add ClaudeMdConfig, ClaudeMdState CRUD, GetLearningsForClaudeMd
 - Setup generates proxy config (enabled: true) + confirmation message
 - Proxy auto-start in daemon + config toggle + session ID in logs
-- Proxy logs to ~/.claude/yesmem/proxy.log + stderr
-- Add `yesmem stop` command to cleanly stop daemon/proxy
+- Proxy logs to ~/.claude/nemons/proxy.log + stderr
+- Add `nemons stop` command to cleanly stop daemon/proxy
 - Proxy auto-start on SessionStart + setup integration
 - Infinite-thread proxy — API proxy with intelligent context management
 - Narrative prompt with emotional arc + self-reflection
@@ -7996,7 +7996,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auto-detect system language for stop-word filtering
 - Configurable languages for stop-word filtering
 - Narrative briefing with dedup and personal tone
-- Daemon writes to log file ~/.claude/yesmem/daemon.log
+- Daemon writes to log file ~/.claude/nemons/daemon.log
 - Daemon start via systemd/launchd when auto-start enabled
 - Setup auto-starts daemon in background
 - Auto-detect non-permanent binary location in setup
@@ -8006,7 +8006,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Daemon lifecycle management (single instance + --replace)
 - Live progress display for extraction + profiling
 - LLM extraction in daemon + improved micro-reminder
-- Complete YesMem v0.1.0
+- Complete Nemons v0.1.0
 - Setup command + status command
 - Self-awareness features (profiles, mood, feedback)
 - LLM learning extractor + knowledge evolution
@@ -8022,15 +8022,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - JSONL archiver for permanent session backup
 - SQLite storage layer (9 files, 1 concern each)
 - JSONL parser for Claude Code session files
-- Core data models for YesMem
-- Initial YesMem project structure
+- Core data models for Nemons
+- Initial Nemons project structure
 
 ### Changed
 
 - Split index.md into file-tree + learnings.md category index
 - Copy loop var in save_cap, clarify legacy-handler merge comment
 - Merge GenerateSharedAdapterJS into GenerateAdapterJS with skipStore param, add UsesStoreAdapter
-- Remove yesmem-build-tool, refresh yesmem-planning
+- Remove nemons-build-tool, refresh nemons-planning
 - Rewrite wiki_export as native runtime:bash (v62)
 - Silence sandbox-override log when profiles match
 - Enumerate valid sandbox values in error
@@ -8118,7 +8118,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Disable fresh remember injection, re-enable associative context
 - Remove ONNX model assets + hugot dependency from go.mod
 - Remove ONNX/hugot local provider
-- Add yesmem.db to gitignore
+- Add nemons.db to gitignore
 - Migrate hook-think to proxy, fix config path + progress race
 - Comprehensive pipeline status + embed throttle
 - Learn.go+failure.go bump match_count instead of hit_count
@@ -8144,7 +8144,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lower MinSessions default from 10 to 3
 - Optimize pipeline quality
 - Ignore .worktrees directory
-- Unify log paths under ~/.claude/yesmem/logs/
+- Unify log paths under ~/.claude/nemons/logs/
 - Bump version to v0.9.2 (V2 Vector Search)
 - Hook-resolve outputs visible feedback on git commit
 - Narrative generation with configurable model + Opus default
@@ -8155,7 +8155,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dbstats --profiles uses LLMClient interface + generated 14 profiles
 - Supersede stale learnings + dbstats --supersede command
 - Rename module github.com/chiefcll → github.com/carsteneu
-- Rename all paths from .claude/memory to .claude/yesmem
+- Rename all paths from .claude/memory to .claude/nemons
 - MCP server proxies to daemon via Unix socket
 
 ### Fixed
@@ -8291,7 +8291,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Neutralize hardcoded paths in tests for public release
 - Remove LFS tracking, store SSE weights as regular git objects
 - Broaden API key pattern in sync security scanner
-- Make yesmem-docs skill description generic
+- Make nemons-docs skill description generic
 - Correct embedding model references across all active docs
 - Permissions.allow serializes as [] not null after uninstall
 - Init missing maps in graceful shutdown test setup
@@ -8320,7 +8320,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sanitize billing sentinel in tool_result content blocks
 - Loop detector review fixes — state machine bug, hash determinism, isolation test
 - Benchmark precision, cost calculation, fork tracking, recall metric
-- Benchmark cost split (YesMem-eigen vs Proxy) + precision threshold
+- Benchmark cost split (Nemons-eigen vs Proxy) + precision threshold
 - Restrict cache TTL upgrade to API key auth only
 - Code Review — zero-score, Status filter, handler tests, error logging
 - Code Review Fixes — Token Delta, InjectedIDs, Budget Enforcement
@@ -8482,7 +8482,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sawtooth threshold harmonization + overhead measurement
 - Stubify force-stubs tool_result auch in Protected Tail
 - Daemon lifecycle, extraction and embedding improvements
-- Clarify hook-failure output with [YesMem Assist] prefix
+- Clarify hook-failure output with [Nemons Assist] prefix
 - Supersede trust bypass + briefing refresh 20→5
 - Filter greedy associative queries + add embedding to setup template
 - Update subagent tests for new isSubagent signature and boundary
@@ -8604,7 +8604,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add database schema reference for the four SQLite stores
 - Document set_plan trigger conditions in MCP and coding-discipline injection
 - Add cap-system hardening roadmap (T1, T3, T8)
-- Add cap-builder knowledge audit trail\n\nTwo-stage workflow for distilling cap-building knowledge from past\nsessions into the yesmem-cap-builder skill.\n\nStage 1 (verbatim extraction) under cap-builder-stage1/:\n  session-bb37bd60.md (517 lines, full coverage 0..1067)\n  session-cc0ba29d.md (733 lines, coverage 0..1599)\n  session-cc0ba29d-part2.md (1003 lines, coverage 1600..4115)\n  README.md as index and hand-off\n\nStage 2 (synthesised proposal) under cap-builder-stage1/stage2/:\n  SKILL.md, recipes.md, api-reference.md, gotchas.md\n  Snapshot of the proposal before patches and live take-over.\n\nKept under yesdocs/plans/ rather than discarded so the chain from\nsession quote to skill paragraph stays auditable; future revisions\ncan re-run stage 1 against new sessions and diff against this\nbaseline.
+- Add cap-builder knowledge audit trail\n\nTwo-stage workflow for distilling cap-building knowledge from past\nsessions into the nemons-cap-builder skill.\n\nStage 1 (verbatim extraction) under cap-builder-stage1/:\n  session-bb37bd60.md (517 lines, full coverage 0..1067)\n  session-cc0ba29d.md (733 lines, coverage 0..1599)\n  session-cc0ba29d-part2.md (1003 lines, coverage 1600..4115)\n  README.md as index and hand-off\n\nStage 2 (synthesised proposal) under cap-builder-stage1/stage2/:\n  SKILL.md, recipes.md, api-reference.md, gotchas.md\n  Snapshot of the proposal before patches and live take-over.\n\nKept under yesdocs/plans/ rather than discarded so the chain from\nsession quote to skill paragraph stays auditable; future revisions\ncan re-run stage 1 against new sessions and diff against this\nbaseline.
 - Note why project-scope guard includes script name directly
 - Note B8 skip per audit grep result
 - Audit trust-multiplier locations and remember touch-points
@@ -8629,9 +8629,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Resolve stale items in CapFeatures.md (blob-pipe, naming, open issues)
 - Update CapFeatures.md with adapter layer, resolve stale items
 - Add CAP.md file format section to CapFeatures.md
-- Add yesmem-directive-blocks plan
-- Yesmem-build-tool — patterns from session bb1ded28
-- Yesmem-build-tool — 4 fixes from session 63ae4565 RED-test
+- Add nemons-directive-blocks plan
+- Nemons-build-tool — patterns from session bb1ded28
+- Nemons-build-tool — 4 fixes from session 63ae4565 RED-test
 - Cap_store analysis system — architecture + 8 examples
 - Remove stale Bleve reference, update vector store description
 - Restructure Differentiators into marketing-quality categories
@@ -8640,7 +8640,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Scheduled Agents and Headless Mode to Features.md and README.md
 - Rename yesdocs/analysen/ to yesdocs/analysis/, add CC system prompt diff
 - Align build-tool skill with CAPS-md-spec
-- Add yesmem-build-tool as bundled skill
+- Add nemons-build-tool as bundled skill
 - Add Capability Memory spec and Phase 2 implementation plan
 - Add pulse/recap feature to Features.md and README.md
 - Restore cache keepalive cost analysis lost in overbroad revert
@@ -8649,7 +8649,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add community files — issue templates, contributing guide, code of conduct
 - README overhaul — badges, comparison table, context screenshot
 - Add plan for cache-status via daemon-RPC
-- Add yesmem.io landing page with GitHub Pages deployment
+- Add nemons.io landing page with GitHub Pages deployment
 - Add Windows WSL2 install note to README
 - Update README — sponsor section, production date correction
 - Rewrite README for launch — adaptive context window pitch, benefit-oriented features, install script
@@ -8849,8 +8849,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add auto-generated changelog
 - Add pulse/recap feature to Features.md and README.md
 - Restore cache keepalive cost analysis lost in overbroad revert
-- Add eager tool-result stubbing to Features.md, README, and landing page - Document new proxy pipeline step with stub format tables in Features.md - Add eager stubbing to README context collapsing table - Add feature card to yesmem.io landing page
-- Add yesmem.io landing page with GitHub Pages deployment
+- Add eager tool-result stubbing to Features.md, README, and landing page - Document new proxy pipeline step with stub format tables in Features.md - Add eager stubbing to README context collapsing table - Add feature card to nemons.io landing page
+- Add nemons.io landing page with GitHub Pages deployment
 - Add Windows WSL2 install note
 
 ### Testing
@@ -8947,7 +8947,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wire loop detector into handleMessages pipeline
 - Loop warning formatting + state management with cooldown
 - Loop detector core — extraction + 3 detection signals
-- Add 8 bundled yesmem skills for MCP tool workflows
+- Add 8 bundled nemons skills for MCP tool workflows
 - Contradiction warning when injected learning contradicts previous
 - Get_contradicting_pairs handler for proxy contradiction checks
 - Graph augmentation in hybrid_search via association edges
@@ -9028,7 +9028,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PTY bridge — bidirectional agent control via creack/pty
 - Relay CLI — route messages between spawned agents via daemon
 - Spawn-agents — multi-terminal agent orchestration with stdin pipes
-- Scratchpad CLI — yesmem scratchpad write/read/list/delete with stdin pipe support
+- Scratchpad CLI — nemons scratchpad write/read/list/delete with stdin pipe support
 - Scratchpad MCP tools — write/read/list/delete with formatters
 - Scratchpad daemon handlers — write/read/list/delete via RPC
 - Orchestrator — terminal detection + spawn command builder (Linux + macOS)
@@ -9063,7 +9063,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Multi-tool tiered search strategy
 - Add sync-public.sh for dual-repo workflow
 - Rename setup→install, fix uninstall gaps, transparent CLI cost tracking
-- LoCoMo benchmark adapter — evaluate YesMem against standard memory benchmarks
+- LoCoMo benchmark adapter — evaluate Nemons against standard memory benchmarks
 - Persist plans in SQLite, survive daemon restarts
 - Proxy token tracking + SetStability comment fix
 - Hub dampening + query_facts + expand_context
@@ -9106,7 +9106,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Anti-fixation + project-recency scoring fixes
 - Porter stemming for learnings_fts — improves conjugation recall
 - Extract newest sessions first for fast initial briefing
-- Yesmem consolidate — iterative knowledge dedup with convergence loop
+- Nemons consolidate — iterative knowledge dedup with convergence loop
 - Embedding-based pre-dedup via cosine similarity (threshold 0.92)
 - Pre-admission dedup — skip duplicates and update existing before insert
 - Separate messages.db + FTS5, remove Bleve dependency
@@ -9141,7 +9141,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add HTTP server skeleton with middleware
 - Add HTTPConfig for OpenClaw HTTP API
 - Fixed taxonomy, server-side validation, embedding-based trait dedup
-- Implement yesmem stats + benchmark commands
+- Implement nemons stats + benchmark commands
 - Add timestamp awareness reminder to all injection points
 - Externalize tone rewrites into translatable Strings struct
 - Replace ONNX with static multilingual embeddings
@@ -9213,11 +9213,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Project-boost for associative context
 - Knowledge gap tracking in proxy associative context
 - 5 memory utilization improvements for better context delivery
-- Block direct edits to auto-generated yesmem-ops.md
+- Block direct edits to auto-generated nemons-ops.md
 - Move narrative to system block, strip old narrative messages
 - Inject briefing as cached system block
 - Add system-block manipulation helpers
-- Add `yesmem cost` CLI command
+- Add `nemons cost` CLI command
 - Persistent budget tracker — spend survives daemon restarts
 - Include llm budget defaults in generated config.yaml
 - Trust-gate in remember() — low/medium/high supersede resistance
@@ -9237,7 +9237,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Subagent indexing — discover, parse, and surface Claude Code subagents
 - Register hook-assist + replace micro-reminder with idle-tick
 - Hook-assist — deep_search on Bash failures (Priming)
-- Idle-tick — dynamic yesmem-usage reminder via daemon
+- Idle-tick — dynamic nemons-usage reminder via daemon
 - Idle_tick endpoint with per-session counter + global MCP reset
 - Add export/import CLI for non-recoverable learnings
 - Tokenizer-based estimation + setup enhancements
@@ -9260,8 +9260,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add ClaudeMdConfig, ClaudeMdState CRUD, GetLearningsForClaudeMd
 - Setup generates proxy config (enabled: true) + confirmation message
 - Proxy auto-start in daemon + config toggle + session ID in logs
-- Proxy logs to ~/.claude/yesmem/proxy.log + stderr
-- Add `yesmem stop` command to cleanly stop daemon/proxy
+- Proxy logs to ~/.claude/nemons/proxy.log + stderr
+- Add `nemons stop` command to cleanly stop daemon/proxy
 - Proxy auto-start on SessionStart + setup integration
 - Infinite-thread proxy — API proxy with intelligent context management
 - Narrative prompt with emotional arc + self-reflection
@@ -9327,7 +9327,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auto-detect system language for stop-word filtering
 - Configurable languages for stop-word filtering
 - Narrative briefing with dedup and personal tone
-- Daemon writes to log file ~/.claude/yesmem/daemon.log
+- Daemon writes to log file ~/.claude/nemons/daemon.log
 - Daemon start via systemd/launchd when auto-start enabled
 - Setup auto-starts daemon in background
 - Auto-detect non-permanent binary location in setup
@@ -9337,7 +9337,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Daemon lifecycle management (single instance + --replace)
 - Live progress display for extraction + profiling
 - LLM extraction in daemon + improved micro-reminder
-- Complete YesMem v0.1.0
+- Complete Nemons v0.1.0
 - Setup command + status command
 - Self-awareness features (profiles, mood, feedback)
 - LLM learning extractor + knowledge evolution
@@ -9353,8 +9353,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - JSONL archiver for permanent session backup
 - SQLite storage layer (9 files, 1 concern each)
 - JSONL parser for Claude Code session files
-- Core data models for YesMem
-- Initial YesMem project structure
+- Core data models for Nemons
+- Initial Nemons project structure
 
 ### Changed
 
@@ -9417,7 +9417,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Disable fresh remember injection, re-enable associative context
 - Remove ONNX model assets + hugot dependency from go.mod
 - Remove ONNX/hugot local provider
-- Add yesmem.db to gitignore
+- Add nemons.db to gitignore
 - Migrate hook-think to proxy, fix config path + progress race
 - Comprehensive pipeline status + embed throttle
 - Learn.go+failure.go bump match_count instead of hit_count
@@ -9443,7 +9443,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lower MinSessions default from 10 to 3
 - Optimize pipeline quality
 - Ignore .worktrees directory
-- Unify log paths under ~/.claude/yesmem/logs/
+- Unify log paths under ~/.claude/nemons/logs/
 - Bump version to v0.9.2 (V2 Vector Search)
 - Hook-resolve outputs visible feedback on git commit
 - Narrative generation with configurable model + Opus default
@@ -9454,7 +9454,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dbstats --profiles uses LLMClient interface + generated 14 profiles
 - Supersede stale learnings + dbstats --supersede command
 - Rename module github.com/chiefcll → github.com/carsteneu
-- Rename all paths from .claude/memory to .claude/yesmem
+- Rename all paths from .claude/memory to .claude/nemons
 - MCP server proxies to daemon via Unix socket
 
 ### Fixed
@@ -9490,7 +9490,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Neutralize hardcoded paths in tests for public release
 - Remove LFS tracking, store SSE weights as regular git objects
 - Broaden API key pattern in sync security scanner
-- Make yesmem-docs skill description generic
+- Make nemons-docs skill description generic
 - Correct embedding model references across all active docs
 - Permissions.allow serializes as [] not null after uninstall
 - Init missing maps in graceful shutdown test setup
@@ -9519,7 +9519,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sanitize billing sentinel in tool_result content blocks
 - Loop detector review fixes — state machine bug, hash determinism, isolation test
 - Benchmark precision, cost calculation, fork tracking, recall metric
-- Benchmark cost split (YesMem-eigen vs Proxy) + precision threshold
+- Benchmark cost split (Nemons-eigen vs Proxy) + precision threshold
 - Restrict cache TTL upgrade to API key auth only
 - Code Review — zero-score, Status filter, handler tests, error logging
 - Code Review Fixes — Token Delta, InjectedIDs, Budget Enforcement
@@ -9681,7 +9681,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sawtooth threshold harmonization + overhead measurement
 - Stubify force-stubs tool_result auch in Protected Tail
 - Daemon lifecycle, extraction and embedding improvements
-- Clarify hook-failure output with [YesMem Assist] prefix
+- Clarify hook-failure output with [Nemons Assist] prefix
 - Supersede trust bypass + briefing refresh 20→5
 - Filter greedy associative queries + add embedding to setup template
 - Update subagent tests for new isSubagent signature and boundary
@@ -9791,7 +9791,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add community files — issue templates, contributing guide, code of conduct
 - README overhaul — badges, comparison table, context screenshot
 - Add plan for cache-status via daemon-RPC
-- Add yesmem.io landing page with GitHub Pages deployment
+- Add nemons.io landing page with GitHub Pages deployment
 - Add Windows WSL2 install note to README
 - Update README — sponsor section, production date correction
 - Rewrite README for launch — adaptive context window pitch, benefit-oriented features, install script
@@ -9945,7 +9945,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Documentation
 
-- Add yesmem.io landing page with GitHub Pages deployment
+- Add nemons.io landing page with GitHub Pages deployment
 
 ## [1.1.29] - 2026-04-10
 
@@ -10011,7 +10011,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Documentation
 
 - Add plan for cache-status via daemon-RPC
-- Add yesmem.io landing page with GitHub Pages deployment
+- Add nemons.io landing page with GitHub Pages deployment
 - Add Windows WSL2 install note to README
 - Update README — sponsor section, production date correction
 
@@ -10084,7 +10084,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Neutralize hardcoded paths in tests for public release
 - Remove LFS tracking, store SSE weights as regular git objects
 - Broaden API key pattern in sync security scanner
-- Make yesmem-docs skill description generic
+- Make nemons-docs skill description generic
 - Correct embedding model references across all active docs
 - Permissions.allow serializes as [] not null after uninstall
 - Init missing maps in graceful shutdown test setup
@@ -10160,7 +10160,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wire loop detector into handleMessages pipeline
 - Loop warning formatting + state management with cooldown
 - Loop detector core — extraction + 3 detection signals
-- Add 8 bundled yesmem skills for MCP tool workflows
+- Add 8 bundled nemons skills for MCP tool workflows
 - Contradiction warning when injected learning contradicts previous
 - Get_contradicting_pairs handler for proxy contradiction checks
 - Graph augmentation in hybrid_search via association edges
@@ -10241,7 +10241,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PTY bridge — bidirectional agent control via creack/pty
 - Relay CLI — route messages between spawned agents via daemon
 - Spawn-agents — multi-terminal agent orchestration with stdin pipes
-- Scratchpad CLI — yesmem scratchpad write/read/list/delete with stdin pipe support
+- Scratchpad CLI — nemons scratchpad write/read/list/delete with stdin pipe support
 - Scratchpad MCP tools — write/read/list/delete with formatters
 - Scratchpad daemon handlers — write/read/list/delete via RPC
 - Orchestrator — terminal detection + spawn command builder (Linux + macOS)
@@ -10276,7 +10276,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Multi-tool tiered search strategy
 - Add sync-public.sh for dual-repo workflow
 - Rename setup→install, fix uninstall gaps, transparent CLI cost tracking
-- LoCoMo benchmark adapter — evaluate YesMem against standard memory benchmarks
+- LoCoMo benchmark adapter — evaluate Nemons against standard memory benchmarks
 - Persist plans in SQLite, survive daemon restarts
 - Proxy token tracking + SetStability comment fix
 - Hub dampening + query_facts + expand_context
@@ -10319,7 +10319,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Anti-fixation + project-recency scoring fixes
 - Porter stemming for learnings_fts — improves conjugation recall
 - Extract newest sessions first for fast initial briefing
-- Yesmem consolidate — iterative knowledge dedup with convergence loop
+- Nemons consolidate — iterative knowledge dedup with convergence loop
 - Embedding-based pre-dedup via cosine similarity (threshold 0.92)
 - Pre-admission dedup — skip duplicates and update existing before insert
 - Separate messages.db + FTS5, remove Bleve dependency
@@ -10354,7 +10354,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add HTTP server skeleton with middleware
 - Add HTTPConfig for OpenClaw HTTP API
 - Fixed taxonomy, server-side validation, embedding-based trait dedup
-- Implement yesmem stats + benchmark commands
+- Implement nemons stats + benchmark commands
 - Add timestamp awareness reminder to all injection points
 - Externalize tone rewrites into translatable Strings struct
 - Replace ONNX with static multilingual embeddings
@@ -10426,11 +10426,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Project-boost for associative context
 - Knowledge gap tracking in proxy associative context
 - 5 memory utilization improvements for better context delivery
-- Block direct edits to auto-generated yesmem-ops.md
+- Block direct edits to auto-generated nemons-ops.md
 - Move narrative to system block, strip old narrative messages
 - Inject briefing as cached system block
 - Add system-block manipulation helpers
-- Add `yesmem cost` CLI command
+- Add `nemons cost` CLI command
 - Persistent budget tracker — spend survives daemon restarts
 - Include llm budget defaults in generated config.yaml
 - Trust-gate in remember() — low/medium/high supersede resistance
@@ -10450,7 +10450,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Subagent indexing — discover, parse, and surface Claude Code subagents
 - Register hook-assist + replace micro-reminder with idle-tick
 - Hook-assist — deep_search on Bash failures (Priming)
-- Idle-tick — dynamic yesmem-usage reminder via daemon
+- Idle-tick — dynamic nemons-usage reminder via daemon
 - Idle_tick endpoint with per-session counter + global MCP reset
 - Add export/import CLI for non-recoverable learnings
 - Tokenizer-based estimation + setup enhancements
@@ -10473,8 +10473,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add ClaudeMdConfig, ClaudeMdState CRUD, GetLearningsForClaudeMd
 - Setup generates proxy config (enabled: true) + confirmation message
 - Proxy auto-start in daemon + config toggle + session ID in logs
-- Proxy logs to ~/.claude/yesmem/proxy.log + stderr
-- Add `yesmem stop` command to cleanly stop daemon/proxy
+- Proxy logs to ~/.claude/nemons/proxy.log + stderr
+- Add `nemons stop` command to cleanly stop daemon/proxy
 - Proxy auto-start on SessionStart + setup integration
 - Infinite-thread proxy — API proxy with intelligent context management
 - Narrative prompt with emotional arc + self-reflection
@@ -10540,7 +10540,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auto-detect system language for stop-word filtering
 - Configurable languages for stop-word filtering
 - Narrative briefing with dedup and personal tone
-- Daemon writes to log file ~/.claude/yesmem/daemon.log
+- Daemon writes to log file ~/.claude/nemons/daemon.log
 - Daemon start via systemd/launchd when auto-start enabled
 - Setup auto-starts daemon in background
 - Auto-detect non-permanent binary location in setup
@@ -10550,7 +10550,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Daemon lifecycle management (single instance + --replace)
 - Live progress display for extraction + profiling
 - LLM extraction in daemon + improved micro-reminder
-- Complete YesMem v0.1.0
+- Complete Nemons v0.1.0
 - Setup command + status command
 - Self-awareness features (profiles, mood, feedback)
 - LLM learning extractor + knowledge evolution
@@ -10566,8 +10566,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - JSONL archiver for permanent session backup
 - SQLite storage layer (9 files, 1 concern each)
 - JSONL parser for Claude Code session files
-- Core data models for YesMem
-- Initial YesMem project structure
+- Core data models for Nemons
+- Initial Nemons project structure
 
 ### Changed
 
@@ -10618,7 +10618,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Disable fresh remember injection, re-enable associative context
 - Remove ONNX model assets + hugot dependency from go.mod
 - Remove ONNX/hugot local provider
-- Add yesmem.db to gitignore
+- Add nemons.db to gitignore
 - Migrate hook-think to proxy, fix config path + progress race
 - Comprehensive pipeline status + embed throttle
 - Learn.go+failure.go bump match_count instead of hit_count
@@ -10644,7 +10644,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lower MinSessions default from 10 to 3
 - Optimize pipeline quality
 - Ignore .worktrees directory
-- Unify log paths under ~/.claude/yesmem/logs/
+- Unify log paths under ~/.claude/nemons/logs/
 - Bump version to v0.9.2 (V2 Vector Search)
 - Hook-resolve outputs visible feedback on git commit
 - Narrative generation with configurable model + Opus default
@@ -10655,7 +10655,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dbstats --profiles uses LLMClient interface + generated 14 profiles
 - Supersede stale learnings + dbstats --supersede command
 - Rename module github.com/chiefcll → github.com/carsteneu
-- Rename all paths from .claude/memory to .claude/yesmem
+- Rename all paths from .claude/memory to .claude/nemons
 - MCP server proxies to daemon via Unix socket
 
 ### Fixed
@@ -10682,7 +10682,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sanitize billing sentinel in tool_result content blocks
 - Loop detector review fixes — state machine bug, hash determinism, isolation test
 - Benchmark precision, cost calculation, fork tracking, recall metric
-- Benchmark cost split (YesMem-eigen vs Proxy) + precision threshold
+- Benchmark cost split (Nemons-eigen vs Proxy) + precision threshold
 - Restrict cache TTL upgrade to API key auth only
 - Code Review — zero-score, Status filter, handler tests, error logging
 - Code Review Fixes — Token Delta, InjectedIDs, Budget Enforcement
@@ -10844,7 +10844,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sawtooth threshold harmonization + overhead measurement
 - Stubify force-stubs tool_result auch in Protected Tail
 - Daemon lifecycle, extraction and embedding improvements
-- Clarify hook-failure output with [YesMem Assist] prefix
+- Clarify hook-failure output with [Nemons Assist] prefix
 - Supersede trust bypass + briefing refresh 20→5
 - Filter greedy associative queries + add embedding to setup template
 - Update subagent tests for new isSubagent signature and boundary
@@ -11066,79 +11066,79 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add comprehensive tests for generator and storage
 
 
-[Unreleased]: https://github.com/carsteneu/yesmem/compare/v2.5.1...HEAD
-[2.5.1]: https://github.com/carsteneu/yesmem/compare/v2.5.0...v2.5.1
-[2.5.0]: https://github.com/carsteneu/yesmem/compare/v2.4.2...v2.5.0
-[2.4.2]: https://github.com/carsteneu/yesmem/compare/v2.3.19...v2.4.2
-[2.3.19]: https://github.com/carsteneu/yesmem/compare/v2.3.18...v2.3.19
-[2.3.18]: https://github.com/carsteneu/yesmem/compare/v2.3.17...v2.3.18
-[2.3.17]: https://github.com/carsteneu/yesmem/compare/v2.3.16...v2.3.17
-[2.3.16]: https://github.com/carsteneu/yesmem/compare/v2.3.15...v2.3.16
-[2.3.15]: https://github.com/carsteneu/yesmem/compare/v2.3.14...v2.3.15
-[2.3.14]: https://github.com/carsteneu/yesmem/compare/v2.3.13...v2.3.14
-[2.3.13]: https://github.com/carsteneu/yesmem/compare/v2.3.12...v2.3.13
-[2.3.12]: https://github.com/carsteneu/yesmem/compare/v2.3.11...v2.3.12
-[2.3.11]: https://github.com/carsteneu/yesmem/compare/v2.3.10...v2.3.11
-[2.3.10]: https://github.com/carsteneu/yesmem/compare/v2.3.9...v2.3.10
-[2.3.9]: https://github.com/carsteneu/yesmem/compare/v2.3.8...v2.3.9
-[2.3.8]: https://github.com/carsteneu/yesmem/compare/v2.3.7...v2.3.8
-[2.3.7]: https://github.com/carsteneu/yesmem/compare/v2.3.6...v2.3.7
-[2.3.6]: https://github.com/carsteneu/yesmem/compare/v2.3.5...v2.3.6
-[2.3.5]: https://github.com/carsteneu/yesmem/compare/v2.3.4...v2.3.5
-[2.3.4]: https://github.com/carsteneu/yesmem/compare/v2.3.3-github...v2.3.4
-[2.3.3-github]: https://github.com/carsteneu/yesmem/compare/v2.3.3...v2.3.3-github
-[2.3.3]: https://github.com/carsteneu/yesmem/compare/v2.3.2...v2.3.3
-[2.3.2]: https://github.com/carsteneu/yesmem/compare/v2.3.1...v2.3.2
-[2.3.1]: https://github.com/carsteneu/yesmem/compare/v2.3.0...v2.3.1
-[2.3.0]: https://github.com/carsteneu/yesmem/compare/v2.2.5...v2.3.0
-[2.2.5]: https://github.com/carsteneu/yesmem/compare/v2.2.4...v2.2.5
-[2.2.4]: https://github.com/carsteneu/yesmem/compare/v2.2.3...v2.2.4
-[2.2.3]: https://github.com/carsteneu/yesmem/compare/v2.2.2...v2.2.3
-[2.2.2]: https://github.com/carsteneu/yesmem/compare/v2.2.1...v2.2.2
-[2.2.1]: https://github.com/carsteneu/yesmem/compare/v2.2.0...v2.2.1
-[2.2.0]: https://github.com/carsteneu/yesmem/compare/v2.1.21...v2.2.0
-[2.1.21]: https://github.com/carsteneu/yesmem/compare/v2.1.20...v2.1.21
-[2.1.20]: https://github.com/carsteneu/yesmem/compare/v2.1.19...v2.1.20
-[2.1.19]: https://github.com/carsteneu/yesmem/compare/v2.1.18...v2.1.19
-[2.1.18]: https://github.com/carsteneu/yesmem/compare/v2.1.17...v2.1.18
-[2.1.17]: https://github.com/carsteneu/yesmem/compare/v2.1.16...v2.1.17
-[2.1.16]: https://github.com/carsteneu/yesmem/compare/v2.1.15...v2.1.16
-[2.1.15]: https://github.com/carsteneu/yesmem/compare/v2.1.14...v2.1.15
-[2.1.14]: https://github.com/carsteneu/yesmem/compare/v2.1.13...v2.1.14
-[2.1.13]: https://github.com/carsteneu/yesmem/compare/v2.1.12...v2.1.13
-[2.1.12]: https://github.com/carsteneu/yesmem/compare/v2.1.11...v2.1.12
-[2.1.11]: https://github.com/carsteneu/yesmem/compare/v2.1.10...v2.1.11
-[2.1.10]: https://github.com/carsteneu/yesmem/compare/v2.1.9...v2.1.10
-[2.1.9]: https://github.com/carsteneu/yesmem/compare/v2.1.8...v2.1.9
-[2.1.8]: https://github.com/carsteneu/yesmem/compare/v2.1.7...v2.1.8
-[2.1.7]: https://github.com/carsteneu/yesmem/compare/v2.1.6...v2.1.7
-[2.1.6]: https://github.com/carsteneu/yesmem/compare/v2.1.5...v2.1.6
-[2.1.5]: https://github.com/carsteneu/yesmem/compare/v2.1.4...v2.1.5
-[2.1.4]: https://github.com/carsteneu/yesmem/compare/v2.1.3...v2.1.4
-[2.1.3]: https://github.com/carsteneu/yesmem/compare/v2.1.2...v2.1.3
-[2.1.2]: https://github.com/carsteneu/yesmem/compare/v2.1.1...v2.1.2
-[2.1.1]: https://github.com/carsteneu/yesmem/compare/v2.1.0...v2.1.1
-[2.1.0]: https://github.com/carsteneu/yesmem/compare/v2.0.6...v2.1.0
-[2.0.6]: https://github.com/carsteneu/yesmem/compare/v2.0.5...v2.0.6
-[2.0.5]: https://github.com/carsteneu/yesmem/compare/v2.0.4...v2.0.5
-[2.0.4]: https://github.com/carsteneu/yesmem/compare/v2.0.3...v2.0.4
-[2.0.3]: https://github.com/carsteneu/yesmem/compare/v2.0.2...v2.0.3
-[2.0.2]: https://github.com/carsteneu/yesmem/compare/v2.0.1...v2.0.2
-[2.0.1]: https://github.com/carsteneu/yesmem/compare/v2.0.0...v2.0.1
-[2.0.0]: https://github.com/carsteneu/yesmem/compare/v1.2.0-beta.1...v2.0.0
-[1.2.0-beta.1]: https://github.com/carsteneu/yesmem/compare/v1.2.0...v1.2.0-beta.1
-[1.2.0]: https://github.com/carsteneu/yesmem/compare/v1.1.34...v1.2.0
-[1.1.34]: https://github.com/carsteneu/yesmem/compare/v1.1.33...v1.1.34
-[1.1.33]: https://github.com/carsteneu/yesmem/compare/v1.1.32...v1.1.33
-[1.1.32]: https://github.com/carsteneu/yesmem/compare/v1.1.31...v1.1.32
-[1.1.31]: https://github.com/carsteneu/yesmem/compare/v1.1.30...v1.1.31
-[1.1.30]: https://github.com/carsteneu/yesmem/compare/v1.1.29...v1.1.30
-[1.1.29]: https://github.com/carsteneu/yesmem/compare/v1.1.28...v1.1.29
-[1.1.28]: https://github.com/carsteneu/yesmem/compare/v1.1.27...v1.1.28
-[1.1.27]: https://github.com/carsteneu/yesmem/compare/v1.1.26...v1.1.27
-[1.1.26]: https://github.com/carsteneu/yesmem/compare/v1.1.0...v1.1.26
-[1.1.0]: https://github.com/carsteneu/yesmem/compare/v1.0.3...v1.1.0
-[1.0.3]: https://github.com/carsteneu/yesmem/compare/v1.0.2...v1.0.3
-[1.0.2]: https://github.com/carsteneu/yesmem/compare/v1.0.1...v1.0.2
-[1.0.1]: https://github.com/carsteneu/yesmem/compare/v1.0.0...v1.0.1
-[1.0.0]: https://github.com/carsteneu/yesmem/releases/tag/v1.0.0
+[Unreleased]: https://github.com/NasserJabir/Nemons/compare/v2.5.1...HEAD
+[2.5.1]: https://github.com/NasserJabir/Nemons/compare/v2.5.0...v2.5.1
+[2.5.0]: https://github.com/NasserJabir/Nemons/compare/v2.4.2...v2.5.0
+[2.4.2]: https://github.com/NasserJabir/Nemons/compare/v2.3.19...v2.4.2
+[2.3.19]: https://github.com/NasserJabir/Nemons/compare/v2.3.18...v2.3.19
+[2.3.18]: https://github.com/NasserJabir/Nemons/compare/v2.3.17...v2.3.18
+[2.3.17]: https://github.com/NasserJabir/Nemons/compare/v2.3.16...v2.3.17
+[2.3.16]: https://github.com/NasserJabir/Nemons/compare/v2.3.15...v2.3.16
+[2.3.15]: https://github.com/NasserJabir/Nemons/compare/v2.3.14...v2.3.15
+[2.3.14]: https://github.com/NasserJabir/Nemons/compare/v2.3.13...v2.3.14
+[2.3.13]: https://github.com/NasserJabir/Nemons/compare/v2.3.12...v2.3.13
+[2.3.12]: https://github.com/NasserJabir/Nemons/compare/v2.3.11...v2.3.12
+[2.3.11]: https://github.com/NasserJabir/Nemons/compare/v2.3.10...v2.3.11
+[2.3.10]: https://github.com/NasserJabir/Nemons/compare/v2.3.9...v2.3.10
+[2.3.9]: https://github.com/NasserJabir/Nemons/compare/v2.3.8...v2.3.9
+[2.3.8]: https://github.com/NasserJabir/Nemons/compare/v2.3.7...v2.3.8
+[2.3.7]: https://github.com/NasserJabir/Nemons/compare/v2.3.6...v2.3.7
+[2.3.6]: https://github.com/NasserJabir/Nemons/compare/v2.3.5...v2.3.6
+[2.3.5]: https://github.com/NasserJabir/Nemons/compare/v2.3.4...v2.3.5
+[2.3.4]: https://github.com/NasserJabir/Nemons/compare/v2.3.3-github...v2.3.4
+[2.3.3-github]: https://github.com/NasserJabir/Nemons/compare/v2.3.3...v2.3.3-github
+[2.3.3]: https://github.com/NasserJabir/Nemons/compare/v2.3.2...v2.3.3
+[2.3.2]: https://github.com/NasserJabir/Nemons/compare/v2.3.1...v2.3.2
+[2.3.1]: https://github.com/NasserJabir/Nemons/compare/v2.3.0...v2.3.1
+[2.3.0]: https://github.com/NasserJabir/Nemons/compare/v2.2.5...v2.3.0
+[2.2.5]: https://github.com/NasserJabir/Nemons/compare/v2.2.4...v2.2.5
+[2.2.4]: https://github.com/NasserJabir/Nemons/compare/v2.2.3...v2.2.4
+[2.2.3]: https://github.com/NasserJabir/Nemons/compare/v2.2.2...v2.2.3
+[2.2.2]: https://github.com/NasserJabir/Nemons/compare/v2.2.1...v2.2.2
+[2.2.1]: https://github.com/NasserJabir/Nemons/compare/v2.2.0...v2.2.1
+[2.2.0]: https://github.com/NasserJabir/Nemons/compare/v2.1.21...v2.2.0
+[2.1.21]: https://github.com/NasserJabir/Nemons/compare/v2.1.20...v2.1.21
+[2.1.20]: https://github.com/NasserJabir/Nemons/compare/v2.1.19...v2.1.20
+[2.1.19]: https://github.com/NasserJabir/Nemons/compare/v2.1.18...v2.1.19
+[2.1.18]: https://github.com/NasserJabir/Nemons/compare/v2.1.17...v2.1.18
+[2.1.17]: https://github.com/NasserJabir/Nemons/compare/v2.1.16...v2.1.17
+[2.1.16]: https://github.com/NasserJabir/Nemons/compare/v2.1.15...v2.1.16
+[2.1.15]: https://github.com/NasserJabir/Nemons/compare/v2.1.14...v2.1.15
+[2.1.14]: https://github.com/NasserJabir/Nemons/compare/v2.1.13...v2.1.14
+[2.1.13]: https://github.com/NasserJabir/Nemons/compare/v2.1.12...v2.1.13
+[2.1.12]: https://github.com/NasserJabir/Nemons/compare/v2.1.11...v2.1.12
+[2.1.11]: https://github.com/NasserJabir/Nemons/compare/v2.1.10...v2.1.11
+[2.1.10]: https://github.com/NasserJabir/Nemons/compare/v2.1.9...v2.1.10
+[2.1.9]: https://github.com/NasserJabir/Nemons/compare/v2.1.8...v2.1.9
+[2.1.8]: https://github.com/NasserJabir/Nemons/compare/v2.1.7...v2.1.8
+[2.1.7]: https://github.com/NasserJabir/Nemons/compare/v2.1.6...v2.1.7
+[2.1.6]: https://github.com/NasserJabir/Nemons/compare/v2.1.5...v2.1.6
+[2.1.5]: https://github.com/NasserJabir/Nemons/compare/v2.1.4...v2.1.5
+[2.1.4]: https://github.com/NasserJabir/Nemons/compare/v2.1.3...v2.1.4
+[2.1.3]: https://github.com/NasserJabir/Nemons/compare/v2.1.2...v2.1.3
+[2.1.2]: https://github.com/NasserJabir/Nemons/compare/v2.1.1...v2.1.2
+[2.1.1]: https://github.com/NasserJabir/Nemons/compare/v2.1.0...v2.1.1
+[2.1.0]: https://github.com/NasserJabir/Nemons/compare/v2.0.6...v2.1.0
+[2.0.6]: https://github.com/NasserJabir/Nemons/compare/v2.0.5...v2.0.6
+[2.0.5]: https://github.com/NasserJabir/Nemons/compare/v2.0.4...v2.0.5
+[2.0.4]: https://github.com/NasserJabir/Nemons/compare/v2.0.3...v2.0.4
+[2.0.3]: https://github.com/NasserJabir/Nemons/compare/v2.0.2...v2.0.3
+[2.0.2]: https://github.com/NasserJabir/Nemons/compare/v2.0.1...v2.0.2
+[2.0.1]: https://github.com/NasserJabir/Nemons/compare/v2.0.0...v2.0.1
+[2.0.0]: https://github.com/NasserJabir/Nemons/compare/v1.2.0-beta.1...v2.0.0
+[1.2.0-beta.1]: https://github.com/NasserJabir/Nemons/compare/v1.2.0...v1.2.0-beta.1
+[1.2.0]: https://github.com/NasserJabir/Nemons/compare/v1.1.34...v1.2.0
+[1.1.34]: https://github.com/NasserJabir/Nemons/compare/v1.1.33...v1.1.34
+[1.1.33]: https://github.com/NasserJabir/Nemons/compare/v1.1.32...v1.1.33
+[1.1.32]: https://github.com/NasserJabir/Nemons/compare/v1.1.31...v1.1.32
+[1.1.31]: https://github.com/NasserJabir/Nemons/compare/v1.1.30...v1.1.31
+[1.1.30]: https://github.com/NasserJabir/Nemons/compare/v1.1.29...v1.1.30
+[1.1.29]: https://github.com/NasserJabir/Nemons/compare/v1.1.28...v1.1.29
+[1.1.28]: https://github.com/NasserJabir/Nemons/compare/v1.1.27...v1.1.28
+[1.1.27]: https://github.com/NasserJabir/Nemons/compare/v1.1.26...v1.1.27
+[1.1.26]: https://github.com/NasserJabir/Nemons/compare/v1.1.0...v1.1.26
+[1.1.0]: https://github.com/NasserJabir/Nemons/compare/v1.0.3...v1.1.0
+[1.0.3]: https://github.com/NasserJabir/Nemons/compare/v1.0.2...v1.0.3
+[1.0.2]: https://github.com/NasserJabir/Nemons/compare/v1.0.1...v1.0.2
+[1.0.1]: https://github.com/NasserJabir/Nemons/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/NasserJabir/Nemons/releases/tag/v1.0.0

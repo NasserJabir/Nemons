@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // los16cSessionIDs is far beyond SQLite's variable limit (32766 on a default

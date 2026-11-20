@@ -12,8 +12,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/buildinfo"
-	yesmemSkills "github.com/carsteneu/yesmem/skills"
+	"github.com/NasserJabir/Nemons/internal/buildinfo"
+	nemonsSkills "github.com/NasserJabir/Nemons/skills"
 	"gopkg.in/yaml.v3"
 )
 
@@ -62,14 +62,14 @@ var rulesmdBestPractices = []string{
 	"Report tool results literally — errors, empty output, and partial results must be stated exactly, not smoothed over or summarized away.",
 	"",
 	"## BEFORE Answering / Acting",
-	"ALWAYS search memory (yesmem-search, hybrid_search) before answering questions about past work, architecture, prior decisions, or before proposing fixes.",
-	"At session start or returning after a break: use yesmem-orientation skill.",
-	"After ANY decision, correction, gotcha, or discovery: use yesmem-remember skill.",
+	"ALWAYS search memory (nemons-search, hybrid_search) before answering questions about past work, architecture, prior decisions, or before proposing fixes.",
+	"At session start or returning after a break: use nemons-orientation skill.",
+	"After ANY decision, correction, gotcha, or discovery: use nemons-remember skill.",
 	"",
 	"## Shell & Commands",
 	"Bash commands: always single-line, chain with && or ;. No heredoc, no multiline.",
 	"API calls & Bash: always set timeouts, never longer than 20 seconds.",
-	"Never manually copy binaries (e.g., `cp yesmem ~/.local/bin/`). Always use `make deploy` instead.",
+	"Never manually copy binaries (e.g., `cp nemons ~/.local/bin/`). Always use `make deploy` instead.",
 	"Block destructive Bash: no `rm -rf` at all, no exception (the guard refuses it in code before any model is asked); a plain delete inside the project needs one refusal plus a repeated attempt whose comment carries an approval word (`# Freigabe: <who>`); no `git push --force` to protected branches, no `DROP TABLE` or schema migration without backup check.",
 	"",
 	"## Memory & Search",
@@ -110,14 +110,14 @@ func loadSkillCatalog() ([]skillCatalogEntry, error) {
 	seen := map[string]bool{}
 	baseID := 25
 
-	// 1. Bundled yesmem skills
-	entries, err := yesmemSkills.BundledSkills.ReadDir("bundled-skills")
+	// 1. Bundled nemons skills
+	entries, err := nemonsSkills.BundledSkills.ReadDir("bundled-skills")
 	if err == nil {
 		for _, e := range entries {
 			if !e.IsDir() {
 				continue
 			}
-			data, err := yesmemSkills.BundledSkills.ReadFile("bundled-skills/" + e.Name() + "/SKILL.md")
+			data, err := nemonsSkills.BundledSkills.ReadFile("bundled-skills/" + e.Name() + "/SKILL.md")
 			if err != nil {
 				continue
 			}
@@ -311,14 +311,14 @@ func extractTriggers(desc string) []string {
 		"systematic-debugging":           {"Bug", "Fehler", "Test schlägt fehl", "test failure", "unerwartet", "crash", "broken", "funktioniert nicht", "Fehlermeldung", "debug", "debugging"},
 		"verification-before-completion": {"fertig", "done", "complete", "commit", "PR", "Pull Request", "merge", "deploy", "passing", "fixed", "verified"},
 		"writing-plans":                  {"Plan", "mehrschrittig", "Architektur", "Spezifikation", "mehrere Schritte", "Multi-Step", "Implementierungsplan", "spec"},
-		"yesmem-orientation":             {"where were we?", "what's open?", "wo waren wir?", "neue Session", "Projektwechsel", "zurück nach Pause", "Session-Start", "project state"},
-		"yesmem-search":                  {"past work", "architecture question", "prior decision", "how does X work", "remember this approach", "earlier discussion", "previous session", "search memory"},
-		"yesmem-remember":                {"remember this", "merk dir", "gotcha", "decision made", "correction", "discovery", "learned something"},
-		"yesmem-config":                  {"pin this", "merk dir als Regel", "persistent instructions", "persona", "config change", "token_threshold"},
-		"yesmem-cap-builder":             {"save_cap", "cap_store", "make this reusable", "build-tool", "CAP.md", "reusable tool"},
-		"yesmem-docs":                    {"API behavior", "function signature", "idiomatic pattern", "docs_search", "check documentation", "indexed docs"},
-		"yesmem-agents":                  {"/schwarm", "parallel work", "agent coordination", "multi-agent", "swarm", "spawn agent"},
-		"yesmem-sessions":                {"last week", "yesterday session", "past conversation", "letzte Session", "last time we", "session history"},
+		"nemons-orientation":             {"where were we?", "what's open?", "wo waren wir?", "neue Session", "Projektwechsel", "zurück nach Pause", "Session-Start", "project state"},
+		"nemons-search":                  {"past work", "architecture question", "prior decision", "how does X work", "remember this approach", "earlier discussion", "previous session", "search memory"},
+		"nemons-remember":                {"remember this", "merk dir", "gotcha", "decision made", "correction", "discovery", "learned something"},
+		"nemons-config":                  {"pin this", "merk dir als Regel", "persistent instructions", "persona", "config change", "token_threshold"},
+		"nemons-cap-builder":             {"save_cap", "cap_store", "make this reusable", "build-tool", "CAP.md", "reusable tool"},
+		"nemons-docs":                    {"API behavior", "function signature", "idiomatic pattern", "docs_search", "check documentation", "indexed docs"},
+		"nemons-agents":                  {"/schwarm", "parallel work", "agent coordination", "multi-agent", "swarm", "spawn agent"},
+		"nemons-sessions":                {"last week", "yesterday session", "past conversation", "letzte Session", "last time we", "session history"},
 		"subagent-driven-development":    {"implementation plan", "independent tasks", "dispatch agent", "parallel agents"},
 		"dispatching-parallel-agents":    {"parallel tasks", "independent work", "no shared state", "no dependencies", "run concurrently"},
 		"executing-plans":                {"execution plan", "review checkpoints", "written plan", "implement plan"},
@@ -433,7 +433,7 @@ so a citation of one always means the standard rule.
 // digest alone decides whether the file may be replaced. Without the marker "unchanged generated" and "edited by
 // the operator" are indistinguishable, so the master could only ever be written once and never receive a new
 // standard rule (#121017, #121015).
-var rulesmdProvenanceRecord = regexp.MustCompile(`^<!-- yesmem-rules version=\S* body=sha256:([0-9a-f]{64}) -->$`)
+var rulesmdProvenanceRecord = regexp.MustCompile(`^<!-- nemons-rules version=\S* body=sha256:([0-9a-f]{64}) -->$`)
 
 // rulesmdProvenance is the marker's content.
 type rulesmdProvenance struct {
@@ -450,7 +450,7 @@ func rulesmdBodyDigest(body string) string {
 // silently turn the master into a file nobody may refresh, so the value is folded first.
 func rulesmdMarker(body string) string {
 	version := strings.Join(strings.Fields(buildinfo.Version), "-")
-	return "<!-- yesmem-rules version=" + version + " body=sha256:" + rulesmdBodyDigest(body) + " -->\n"
+	return "<!-- nemons-rules version=" + version + " body=sha256:" + rulesmdBodyDigest(body) + " -->\n"
 }
 
 // splitRulesmdProvenance separates the marker from the body.
@@ -478,7 +478,7 @@ func provablyUnchangedGenerated(content string) bool {
 // InstallRULESmd writes the installation's own copy of the standard rules into dataDir and returns the
 // path when it wrote one.
 //
-// Setup calls this, and so does the migration path of "yesmem update": nothing else writes the file, so
+// Setup calls this, and so does the migration path of "nemons update": nothing else writes the file, so
 // a machine that only ever updates would never receive a standard rule — not even the first one.
 func InstallRULESmd(dataDir string) (string, error) {
 	return installRULESmd(dataDir)

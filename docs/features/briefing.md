@@ -34,7 +34,7 @@ The briefing is injected as a proxy conversation turn. The proxy calls `Generate
 
 ### Session Narratives
 
-Instead of dry bullet-point summaries, YesMem generates narrative handovers — short stories with concrete line numbers, commit hashes, and handover instructions. Project-filtered: in environments with 10-20 concurrent Claude sessions, each gets context relevant to its project.
+Instead of dry bullet-point summaries, Nemons generates narrative handovers — short stories with concrete line numbers, commit hashes, and handover instructions. Project-filtered: in environments with 10-20 concurrent Claude sessions, each gets context relevant to its project.
 
 ---
 
@@ -262,19 +262,19 @@ Configuration uses profile-aware prompt fields: `SharedPrompt`, `ClaudePrompt`, 
 **Inject (append a tagged system block):**
 | Marker | Function | Purpose |
 |---|---|---|
-| `[yesmem-directives]` | `InjectAntDirectives` | verification before completion, faithful reporting, collaborator mode |
-| `[yesmem-enhance]` | `InjectCLAUDEMDAuthority` | CLAUDE.md/MEMORY.md are authoritative, not optional |
-| `[yesmem-tool-prefs]` | `InjectClaudeToolPrefs` | prefer yesmem tools over raw grep/cat/find |
-| `[yesmem-output-discipline]` | `InjectOutputDiscipline` / `InjectDeepSeekOutputDiscipline` | restores terse-output rules; DeepSeek variant is relaxed |
-| `[yesmem-coding-discipline]` | `InjectCodingDiscipline` | read before edit, no half-finished work, TDD for Go |
-| `[yesmem-beweislast]` | `InjectBeweislast` | evidence before claims |
-| `[yesmem-fable]` | `InjectFable` | baseline/rollback/readback discipline for high-stakes changes |
-| `[yesmem-scope-discipline]` | `InjectScopeDiscipline` | do the requested work, flag the rest |
-| `[yesmem-delegation-contract]` | `InjectDelegationContract` | when to dispatch subagents |
-| `[yesmem-clarify-first]` | `InjectClarifyFirst` | ask before ambiguous implementation |
-| `[yesmem-code-tools-first]` | `InjectCodeToolsFirst` | project-scoped code-navigation tools |
-| `[yesmem-wiki-first]` | `InjectWikiFirst` | project wiki before broad exploration |
-| `[yesmem-tone]` | `InjectPersonaTone` | dynamic, from the persona verbosity trait |
+| `[nemons-directives]` | `InjectAntDirectives` | verification before completion, faithful reporting, collaborator mode |
+| `[nemons-enhance]` | `InjectCLAUDEMDAuthority` | CLAUDE.md/MEMORY.md are authoritative, not optional |
+| `[nemons-tool-prefs]` | `InjectClaudeToolPrefs` | prefer nemons tools over raw grep/cat/find |
+| `[nemons-output-discipline]` | `InjectOutputDiscipline` / `InjectDeepSeekOutputDiscipline` | restores terse-output rules; DeepSeek variant is relaxed |
+| `[nemons-coding-discipline]` | `InjectCodingDiscipline` | read before edit, no half-finished work, TDD for Go |
+| `[nemons-beweislast]` | `InjectBeweislast` | evidence before claims |
+| `[nemons-fable]` | `InjectFable` | baseline/rollback/readback discipline for high-stakes changes |
+| `[nemons-scope-discipline]` | `InjectScopeDiscipline` | do the requested work, flag the rest |
+| `[nemons-delegation-contract]` | `InjectDelegationContract` | when to dispatch subagents |
+| `[nemons-clarify-first]` | `InjectClarifyFirst` | ask before ambiguous implementation |
+| `[nemons-code-tools-first]` | `InjectCodeToolsFirst` | project-scoped code-navigation tools |
+| `[nemons-wiki-first]` | `InjectWikiFirst` | project wiki before broad exploration |
+| `[nemons-tone]` | `InjectPersonaTone` | dynamic, from the persona verbosity trait |
 
 ### Implementation
 

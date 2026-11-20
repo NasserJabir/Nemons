@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/daemon"
 )
 
 // harmlessCommands: exit code != 0 is expected/normal for these.
@@ -94,7 +94,7 @@ func RunAssist(dataDir string) {
 		return
 	}
 
-	text := "YesMem knows similar issues:\n" + strings.Join(lines, "\n")
+	text := "Nemons knows similar issues:\n" + strings.Join(lines, "\n")
 	out := map[string]any{
 		"hookSpecificOutput": map[string]any{
 			"hookEventName":     "PostToolUseFailure",

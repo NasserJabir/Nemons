@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // YM-107: ideas are stored as category="unfinished" with task_type="idea", so

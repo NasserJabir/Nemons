@@ -6,11 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/setup"
+	"github.com/NasserJabir/Nemons/internal/setup"
 )
 
 // The standard rules live in the installation, and the guard enforces from that copy. Setup writes it,
-// but a machine that only ever runs "yesmem update" never re-runs setup — so it kept whatever it had,
+// but a machine that only ever runs "nemons update" never re-runs setup — so it kept whatever it had,
 // or nothing at all, and a release could never deliver a standard rule. The migration path installs
 // it: absent means written, a provably untouched copy is refreshed, an operator-edited one is kept.
 //
@@ -26,7 +26,7 @@ func TestUpdateInstallsTheMasterRules(t *testing.T) {
 		t.Error("runMigrateCmd does not call setup.InstallRULESmd: a machine that only updates would never receive the standard rules")
 	}
 
-	dataDir := filepath.Join(t.TempDir(), ".claude", "yesmem")
+	dataDir := filepath.Join(t.TempDir(), ".claude", "nemons")
 	path, err := setup.InstallRULESmd(dataDir)
 	if err != nil {
 		t.Fatalf("install into an empty data dir: %v", err)

@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // The rule-based repair command knows two damaged classes: a row displaced
@@ -28,11 +28,11 @@ func seedRepairFixture(t *testing.T) repairFixture {
 	t.Helper()
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	if err := os.MkdirAll(dataDir, 0o700); err != nil {
 		t.Fatalf("mkdir data dir: %v", err)
 	}
-	dbPath := filepath.Join(dataDir, "yesmem.db")
+	dbPath := filepath.Join(dataDir, "nemons.db")
 
 	store, err := storage.Open(dbPath)
 	if err != nil {
@@ -103,7 +103,7 @@ func runRestoreRuleBased(t *testing.T, args ...string) string {
 		done <- sb.String()
 	}()
 
-	os.Args = append([]string{"yesmem", "restore-rulebased-learnings"}, args...)
+	os.Args = append([]string{"nemons", "restore-rulebased-learnings"}, args...)
 	os.Stderr = writer
 	runRestoreRuleBasedLearnings()
 	os.Stderr = prevStderr

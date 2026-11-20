@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/carsteneu/yesmem/internal/repair"
+	"github.com/NasserJabir/Nemons/internal/repair"
 )
 
 // runRepairMessagesFTS backfills the messages_fts rows of messages that
@@ -17,7 +17,7 @@ import (
 // repair that rewrites an index of a multi-gigabyte file belongs to an operator
 // run with a dry run in front of it, not to an upgrade.
 func runRepairMessagesFTS() {
-	dbPath := filepath.Join(yesmemDataDir(), "messages.db")
+	dbPath := filepath.Join(nemonsDataDir(), "messages.db")
 	apply := false
 	examples := 5
 

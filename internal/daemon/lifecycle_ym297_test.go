@@ -35,7 +35,7 @@ func ym297NewProcFixture(t *testing.T) *ym297ProcFixture {
 
 	f := &ym297ProcFixture{root: t.TempDir(), sigkill: map[int]bool{}}
 	procRoot = f.root
-	selfBinaryPath = "/opt/yesmem/yesmem"
+	selfBinaryPath = "/opt/nemons/nemons"
 	daemonProcSignal = func(pid int, sig syscall.Signal) error {
 		f.signalled = append(f.signalled, fmt.Sprintf("%d:%s", pid, sig))
 		if sig == syscall.SIGKILL {
@@ -90,8 +90,8 @@ func (f *ym297ProcFixture) writePidFile(t *testing.T, dataDir, content string) {
 
 // TestYm297StopTouchesOnlyThePidFileProcess is the regression test for
 // YM-297 (1). The unpatched sweep signalled every process whose argv contained
-// "yesmem" and "daemon" — the systemd instance, another data dir's daemon, a
-// *.test binary from a yesmem worktree. The stop may only touch the PID that
+// "nemons" and "daemon" — the systemd instance, another data dir's daemon, a
+// *.test binary from a nemons worktree. The stop may only touch the PID that
 // this data dir's PID file names and that actually runs this binary.
 func TestYm297StopTouchesOnlyThePidFileProcess(t *testing.T) {
 	const (
@@ -146,17 +146,17 @@ func TestYm297StopTouchesOnlyThePidFileProcess(t *testing.T) {
 			pidFile:     strconv.Itoa(ourDaemon),
 			want:        []string{"100:terminated", "100:killed"},
 			wantStopped: true,
-			scenario:    "a second, foreign yesmem daemon exists in the table",
+			scenario:    "a second, foreign nemons daemon exists in the table",
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			f := ym297NewProcFixture(t)
-			f.addProc(t, ourDaemon, "/opt/yesmem/yesmem", "yesmem\x00daemon")
-			f.addProc(t, lookalike, "/home/u/yesmem-internal/daemon.test", "yesmem-internal/daemon.test\x00daemon")
-			f.addProc(t, otherArgv, "/opt/yesmem/yesmem", "yesmem\x00agent-tty\x00--sock\x00/tmp/s")
-			f.addProc(t, foreignInst, "/opt/yesmem/yesmem", "yesmem\x00daemon\x00--replace")
+			f.addProc(t, ourDaemon, "/opt/nemons/nemons", "nemons\x00daemon")
+			f.addProc(t, lookalike, "/home/u/nemons-internal/daemon.test", "nemons-internal/daemon.test\x00daemon")
+			f.addProc(t, otherArgv, "/opt/nemons/nemons", "nemons\x00agent-tty\x00--sock\x00/tmp/s")
+			f.addProc(t, foreignInst, "/opt/nemons/nemons", "nemons\x00daemon\x00--replace")
 
 			dataDir := t.TempDir()
 			f.writePidFile(t, dataDir, tc.pidFile)
@@ -184,7 +184,7 @@ func TestYm297StopTouchesOnlyThePidFileProcess(t *testing.T) {
 // signals: the stop must report the failure instead of pretending success.
 func TestYm297StopReportsSurvivor(t *testing.T) {
 	f := ym297NewProcFixture(t)
-	f.addProc(t, 100, "/opt/yesmem/yesmem", "yesmem\x00daemon")
+	f.addProc(t, 100, "/opt/nemons/nemons", "nemons\x00daemon")
 	oldGone, oldNow := daemonProcGone, daemonProcNow
 	t.Cleanup(func() { daemonProcGone, daemonProcNow = oldGone, oldNow })
 	daemonProcGone = func(pid int) bool { return false } // never dies
@@ -230,7 +230,7 @@ func TestYm297ReplaceContract(t *testing.T) {
 	})
 
 	t.Run("foreign live process blocks the replacement", func(t *testing.T) {
-		selfBinaryPath = "/opt/yesmem/yesmem" // not the fixture's binary
+		selfBinaryPath = "/opt/nemons/nemons" // not the fixture's binary
 		_, fixture2 := ym297SpawnAliveDaemonArgv(t)
 		dataDir := t.TempDir()
 		if err := os.WriteFile(filepath.Join(dataDir, "daemon.pid"), []byte(strconv.Itoa(fixture2.Process.Pid)), 0644); err != nil {
@@ -266,7 +266,7 @@ func describeProcessIdentity(pid int) string {
 // "<path> daemon" and which stays alive and dies on SIGTERM. Returns its binary
 // path (the identity the stop path compares against) and the command. Used to
 // drive ensureSingleInstance, whose liveness check reads the real process table.
-// The name deliberately carries no "yesmem": an unpatched sweep in a parallel
+// The name deliberately carries no "nemons": an unpatched sweep in a parallel
 // worktree would otherwise kill this fixture mid-test.
 func ym297SpawnAliveDaemonArgv(t *testing.T) (string, *exec.Cmd) {
 	t.Helper()
@@ -419,7 +419,7 @@ func TestYm297SocketBranchRefusesUnidentifiedDaemon(t *testing.T) {
 	})
 
 	t.Run("foreign PID file blocks the replace and keeps the socket", func(t *testing.T) {
-		selfBinaryPath = "/opt/yesmem/yesmem" // not the fixture's binary
+		selfBinaryPath = "/opt/nemons/nemons" // not the fixture's binary
 		_, fixture := ym297SpawnAliveDaemonArgv(t)
 		dataDir := t.TempDir()
 		ym297ServeFakeDaemon(t, dataDir)

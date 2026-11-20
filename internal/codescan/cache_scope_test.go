@@ -16,7 +16,7 @@ func mainRepoWithWorktree(t *testing.T) (mainRepo, worktree string) {
 	t.Helper()
 	root := realPath(t, t.TempDir())
 
-	mainRepo = filepath.Join(root, "yesmem")
+	mainRepo = filepath.Join(root, "nemons")
 	gitDir := filepath.Join(mainRepo, ".git")
 	if err := os.MkdirAll(filepath.Join(gitDir, "refs", "heads"), 0755); err != nil {
 		t.Fatal(err)
@@ -30,7 +30,7 @@ func mainRepoWithWorktree(t *testing.T) (mainRepo, worktree string) {
 	}
 	os.WriteFile(filepath.Join(wtGitDir, "HEAD"), []byte("wthead22\n"), 0644)
 
-	worktree = filepath.Join(root, "yesmem-wt")
+	worktree = filepath.Join(root, "nemons-wt")
 	if err := os.MkdirAll(worktree, 0755); err != nil {
 		t.Fatal(err)
 	}

@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // YM-251 (Los 11c). The live damage on 17.10.2026: an agent called
@@ -16,7 +16,7 @@ import (
 const (
 	los11cLiveQuery      = "Los 11: Proxy Rules-Cache und Injektionszähler"
 	los11cUnrelatedNote  = "Scheduled job proxy-health-check (sched-proxy-health-check-54806) was triggered on 2026-05-11 but the session ends after cap activation"
-	los11cProject        = "yesmem"
+	los11cProject        = "nemons"
 	los11cTargetTaskText = "Los 11: Proxy Rules-Cache und Injektionszähler reparieren"
 )
 

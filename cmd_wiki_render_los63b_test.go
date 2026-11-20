@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/codescan"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/codescan"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // los63bGitCheckout builds a checkout whose HEAD can be read the way the
@@ -49,7 +49,7 @@ func (s los63bStubScanner) Scan(string) (*codescan.ScanResult, error) {
 // the scan produced (nothing, in this case).
 func TestWikiRenderScan_FailedScanIsReported(t *testing.T) {
 	dir := los63bGitCheckout(t)
-	store, err := storage.Open(filepath.Join(t.TempDir(), "yesmem.db"))
+	store, err := storage.Open(filepath.Join(t.TempDir(), "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -81,7 +81,7 @@ func TestWikiRenderScan_FailedScanIsReported(t *testing.T) {
 // stored under the checkout's own key, with the head read at that same key.
 func TestWikiRenderScan_StoresTheCheckoutsDocument(t *testing.T) {
 	dir := los63bGitCheckout(t)
-	store, err := storage.Open(filepath.Join(t.TempDir(), "yesmem.db"))
+	store, err := storage.Open(filepath.Join(t.TempDir(), "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}

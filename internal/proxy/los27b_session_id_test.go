@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 // YM-290 (BRF-I2, Pin 4): the identity line inside the channel block was the
@@ -68,7 +68,7 @@ func TestLos27b_AnthropicChannelNamesSessionNeutral(t *testing.T) {
 
 	const sessionID = "ses_los27b_anthropic"
 	body := `{"model":"claude-opus-4-6","stream":false,"thinking":{"type":"adaptive"},` +
-		`"system":[{"type":"text","text":"Primary working directory: /home/tester/memory/yesmem"}],` +
+		`"system":[{"type":"text","text":"Primary working directory: /home/tester/memory/nemons"}],` +
 		`"messages":[{"role":"user","content":"start the task"}]}`
 	reqx := httptest.NewRequest("POST", "/v1/messages", strings.NewReader(body))
 	reqx.Header.Set("X-Claude-Code-Session-Id", sessionID)

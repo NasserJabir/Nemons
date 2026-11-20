@@ -3,7 +3,7 @@ package extraction
 import (
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func TestLooksLikeStateSnapshot(t *testing.T) {
@@ -12,7 +12,7 @@ func TestLooksLikeStateSnapshot(t *testing.T) {
 		content string
 		want    bool
 	}{
-		{"tool count snapshot", "YesMem has 70 MCP tools registered", true},
+		{"tool count snapshot", "Nemons has 70 MCP tools registered", true},
 		{"health snapshot", "Proxy is in degraded state with 6 restarts", true},
 		{"version snapshot", "reply_model was deepseek-v4-pro as of 2026-06-27", true},
 		{"hit ratio", "Global prefix cache hit-ratio was 93.8% as of 20.08.", true},
@@ -37,7 +37,7 @@ func TestClassifyVolatileBatch(t *testing.T) {
 	}
 
 	batch := []models.Learning{
-		{ID: 1, Content: "YesMem has 70 MCP tools registered"},
+		{ID: 1, Content: "Nemons has 70 MCP tools registered"},
 		{ID: 2, Content: "Piping pytest into tail hides failures"},
 	}
 

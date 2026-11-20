@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // toyLanguage is a language the verifier has never heard of: a text file and a
@@ -26,7 +26,7 @@ var toyLanguage = engine.Language{
 // makeMutationRepo builds a repository with a base and a head commit.
 func makeMutationRepo(t *testing.T, name string, base, head map[string]string) (repo, baseCommit, headCommit string) {
 	t.Helper()
-	parent, err := filepath.Abs(filepath.Join("..", "..", ".yesmem", "tmp", "mutationrepos"))
+	parent, err := filepath.Abs(filepath.Join("..", "..", ".nemons", "tmp", "mutationrepos"))
 	if err != nil {
 		t.Fatalf("abs: %v", err)
 	}

@@ -10,7 +10,7 @@ import (
 )
 
 // TestReapStaleMCPHelpersKillsOnlyAnchoredStaleHelpers: the reap decides on the
-// same argv-anchored scan as `yesmem status`. The fixture carries one stale helper
+// same argv-anchored scan as `nemons status`. The fixture carries one stale helper
 // (fixtureHelperStale, exe replaced) and several processes whose command line
 // merely contains the words — none of those may be signalled.
 func TestReapStaleMCPHelpersKillsOnlyAnchoredStaleHelpers(t *testing.T) {
@@ -36,7 +36,7 @@ func TestReapStaleMCPHelpersKillsOnlyAnchoredStaleHelpers(t *testing.T) {
 }
 
 // TestReapStaleMCPHelpersSparesSelf: a helper whose pid is our own is never
-// signalled, otherwise `yesmem reap-stale-mcp` could kill itself mid-sweep.
+// signalled, otherwise `nemons reap-stale-mcp` could kill itself mid-sweep.
 func TestReapStaleMCPHelpersSparesSelf(t *testing.T) {
 	root := buildProcFixture(t)
 	now := time.Unix(fixtureBtime+1000, 0)

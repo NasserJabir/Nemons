@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 func TestHandleRememberStoresExplicitModel(t *testing.T) {
@@ -20,7 +20,7 @@ func TestHandleRememberStoresExplicitModel(t *testing.T) {
 		Params: map[string]any{
 			"text":     "Explizites Modell soll gespeichert werden",
 			"category": "decision",
-			"project":  "yesmem",
+			"project":  "nemons",
 			"model":    "gpt-5.4-mini",
 		},
 	})
@@ -60,7 +60,7 @@ func TestHandleRememberFallsBackToSelfModel(t *testing.T) {
 		Params: map[string]any{
 			"text":     "Ohne Modell bleibt der bestehende Fallback aktiv",
 			"category": "decision",
-			"project":  "yesmem",
+			"project":  "nemons",
 		},
 	})
 
@@ -110,7 +110,7 @@ func TestHandleRememberFallsBackToSessionModel(t *testing.T) {
 		Params: map[string]any{
 			"text":        "Modell wird via session_model proxy_state aufgelöst",
 			"category":    "decision",
-			"project":     "yesmem",
+			"project":     "nemons",
 			"_session_id": "ses-abc-123",
 		},
 	})
@@ -156,7 +156,7 @@ func TestHandleRememberExplicitModelOverridesProxyState(t *testing.T) {
 		Params: map[string]any{
 			"text":        "Explizites Modell schlägt proxy_state",
 			"category":    "decision",
-			"project":     "yesmem",
+			"project":     "nemons",
 			"_session_id": "ses-xyz",
 			"model":       "deepseek-v4-pro",
 		},
@@ -190,7 +190,7 @@ func TestHandleRememberClientModelOverridesProxyState(t *testing.T) {
 		Params: map[string]any{
 			"text":          "_client_model schlägt proxy_state",
 			"category":      "decision",
-			"project":       "yesmem",
+			"project":       "nemons",
 			"_session_id":   "ses-env",
 			"_client_model": "glm-5.2",
 		},
@@ -218,7 +218,7 @@ func TestHandleRememberAcceptsAnticipatedQueries(t *testing.T) {
 		Params: map[string]any{
 			"text":                "Reddit gibt 403 bei WebFetch",
 			"category":            "gotcha",
-			"project":             "yesmem",
+			"project":             "nemons",
 			"anticipated_queries": []any{"reddit 403", "webfetch blocked", "curl workaround reddit"},
 		},
 	})
@@ -255,7 +255,7 @@ func TestHandleRememberInvalidCategoryFallsBackToExplicitTeaching(t *testing.T) 
 		Params: map[string]any{
 			"text":     "Category validation test",
 			"category": "totally_bogus",
-			"project":  "yesmem",
+			"project":  "nemons",
 		},
 	})
 
@@ -285,7 +285,7 @@ func TestHandleRememberDeduplicatesExactContent(t *testing.T) {
 	params := map[string]any{
 		"text":     "Exact duplicate content for dedup test",
 		"category": "pattern",
-		"project":  "yesmem",
+		"project":  "nemons",
 	}
 
 	resp1 := h.Handle(Request{Method: "remember", Params: params})
@@ -321,7 +321,7 @@ func TestHandleRememberDoesNotDedupSubsumedShortLearning(t *testing.T) {
 	shortParams := map[string]any{
 		"text":     "daemon make deploy binary version proof signal killed",
 		"category": "gotcha",
-		"project":  "yesmem",
+		"project":  "nemons",
 	}
 	shortResp := h.Handle(Request{Method: "remember", Params: shortParams})
 	if shortResp.Error != "" {
@@ -331,11 +331,11 @@ func TestHandleRememberDoesNotDedupSubsumedShortLearning(t *testing.T) {
 	json.Unmarshal(shortResp.Result, &shortResult)
 	shortID := shortResult["id"].(float64)
 
-	longText := "Deploy state only verifiable through the binary version string: make deploy can exit cleanly even when the deployed binary predates the target commit, and the daemon process then still runs the old code so the timeout symptom such as signal killed remains live. The correct proof that a fix is live is checking yesmem version output, confirming the daemon and proxy restarted, and verifying the proc exe inode is not stale."
+	longText := "Deploy state only verifiable through the binary version string: make deploy can exit cleanly even when the deployed binary predates the target commit, and the daemon process then still runs the old code so the timeout symptom such as signal killed remains live. The correct proof that a fix is live is checking nemons version output, confirming the daemon and proxy restarted, and verifying the proc exe inode is not stale."
 	longResp := h.Handle(Request{Method: "remember", Params: map[string]any{
 		"text":     longText,
 		"category": "gotcha",
-		"project":  "yesmem",
+		"project":  "nemons",
 	}})
 	if longResp.Error != "" {
 		t.Fatalf("long insert error: %s", longResp.Error)
@@ -367,7 +367,7 @@ func TestHandleRememberStoresEntitiesAndActions(t *testing.T) {
 		Params: map[string]any{
 			"text":     "Nginx config needs reload after SSL cert change",
 			"category": "gotcha",
-			"project":  "yesmem",
+			"project":  "nemons",
 			"entities": []any{"nginx.conf", "ssl-cert"},
 			"actions":  []any{"nginx reload", "certbot renew"},
 			"trigger":  "when editing nginx SSL",
@@ -415,7 +415,7 @@ func TestHandleRememberSupersedes(t *testing.T) {
 		Params: map[string]any{
 			"text":     "Old approach: use polling for updates",
 			"category": "decision",
-			"project":  "yesmem",
+			"project":  "nemons",
 		},
 	})
 	if resp1.Error != "" {
@@ -430,7 +430,7 @@ func TestHandleRememberSupersedes(t *testing.T) {
 		Params: map[string]any{
 			"text":       "New approach: use websockets for updates",
 			"category":   "decision",
-			"project":    "yesmem",
+			"project":    "nemons",
 			"supersedes": oldID,
 		},
 	})
@@ -465,7 +465,7 @@ func TestHandleRememberHighTrustSupersedeRecordsContradiction(t *testing.T) {
 
 	oldID, err := s.InsertLearning(&models.Learning{
 		Category: "decision", Content: "Always run the full baseline before merging",
-		Project: "yesmem", Confidence: 1.0, CreatedAt: time.Now(),
+		Project: "nemons", Confidence: 1.0, CreatedAt: time.Now(),
 		ModelUsed: "test", Source: "user_stated", Importance: 5,
 	})
 	if err != nil {
@@ -488,7 +488,7 @@ func TestHandleRememberHighTrustSupersedeRecordsContradiction(t *testing.T) {
 		Params: map[string]any{
 			"text":       "Run the baseline suite before any merge to main",
 			"category":   "decision",
-			"project":    "yesmem",
+			"project":    "nemons",
 			"supersedes": float64(oldID),
 		},
 	})
@@ -524,7 +524,7 @@ func insertLos11eHighTrust(t *testing.T, s *storage.Store) int64 {
 	t.Helper()
 	id, err := s.InsertLearning(&models.Learning{
 		Category: "gotcha", Content: "BuildSandboxedCommand ist der Weg, einen Befehl einzusperren",
-		Project: "yesmem", Confidence: 1.0, CreatedAt: time.Now(),
+		Project: "nemons", Confidence: 1.0, CreatedAt: time.Now(),
 		ModelUsed: "test", Source: "user_stated", Importance: 3,
 	})
 	if err != nil {
@@ -547,7 +547,7 @@ func insertLos11eHighTrust(t *testing.T, s *storage.Store) int64 {
 // file backed store, where GetLearning reads through a second connection pool
 // (production topology, unlike the shared handle of ":memory:").
 func TestHandleRememberSupersedeConfirmsAcrossReaderPool(t *testing.T) {
-	s, err := storage.Open(filepath.Join(t.TempDir(), "yesmem.db"))
+	s, err := storage.Open(filepath.Join(t.TempDir(), "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -558,7 +558,7 @@ func TestHandleRememberSupersedeConfirmsAcrossReaderPool(t *testing.T) {
 
 	oldID, err := s.InsertLearning(&models.Learning{
 		Category: "gotcha", Content: "Datei-Store: Sandbox laeuft ueber WrapCommand",
-		Project: "yesmem", Confidence: 1.0, CreatedAt: time.Now(),
+		Project: "nemons", Confidence: 1.0, CreatedAt: time.Now(),
 		ModelUsed: "test", Source: "llm_extracted",
 	})
 	if err != nil {
@@ -570,7 +570,7 @@ func TestHandleRememberSupersedeConfirmsAcrossReaderPool(t *testing.T) {
 		Params: map[string]any{
 			"text":       "Datei-Store: Sandbox laeuft ueber Run",
 			"category":   "gotcha",
-			"project":    "yesmem",
+			"project":    "nemons",
 			"supersedes": float64(oldID),
 		},
 	})
@@ -598,7 +598,7 @@ func TestHandleRememberHighTrustSupersedeReportsOutcome(t *testing.T) {
 		Params: map[string]any{
 			"text":       "internal/daemon/sandbox.go hat kein BuildSandboxedCommand mehr",
 			"category":   "gotcha",
-			"project":    "yesmem",
+			"project":    "nemons",
 			"supersedes": float64(oldID),
 		},
 	})
@@ -632,7 +632,7 @@ func TestHandleRememberSupersedeReportsReplaced(t *testing.T) {
 
 	oldID, err := s.InsertLearning(&models.Learning{
 		Category: "gotcha", Content: "Alte Fassung: Sandbox laeuft ueber WrapCommand",
-		Project: "yesmem", Confidence: 1.0, CreatedAt: time.Now(),
+		Project: "nemons", Confidence: 1.0, CreatedAt: time.Now(),
 		ModelUsed: "test", Source: "llm_extracted",
 	})
 	if err != nil {
@@ -644,7 +644,7 @@ func TestHandleRememberSupersedeReportsReplaced(t *testing.T) {
 		Params: map[string]any{
 			"text":       "Neue Fassung: Sandbox laeuft ueber Run(command, timeoutSec)",
 			"category":   "gotcha",
-			"project":    "yesmem",
+			"project":    "nemons",
 			"supersedes": float64(oldID),
 		},
 	})
@@ -678,7 +678,7 @@ func TestHandleRememberSupersedeMissingTargetReportsNotFound(t *testing.T) {
 		Params: map[string]any{
 			"text":       "Sandbox bietet Run und RunWithEnv",
 			"category":   "gotcha",
-			"project":    "yesmem",
+			"project":    "nemons",
 			"supersedes": float64(999999),
 		},
 	})
@@ -705,7 +705,7 @@ func TestHandleRememberForceSupersedeAcceptsCanonicalProjectMatch(t *testing.T) 
 
 	oldID, err := s.InsertLearning(&models.Learning{
 		Category: "gotcha", Content: "Pfadform: BuildSandboxedCommand gibt es",
-		Project: "/home/tester/memory/yesmem", Confidence: 1.0, CreatedAt: time.Now(),
+		Project: "/home/tester/memory/nemons", Confidence: 1.0, CreatedAt: time.Now(),
 		ModelUsed: "test", Source: "user_stated", Importance: 3,
 	})
 	if err != nil {
@@ -720,7 +720,7 @@ func TestHandleRememberForceSupersedeAcceptsCanonicalProjectMatch(t *testing.T) 
 		Params: map[string]any{
 			"text":             "Kurzname: Sandbox bietet Run",
 			"category":         "gotcha",
-			"project":          "yesmem",
+			"project":          "nemons",
 			"supersedes":       float64(oldID),
 			"force_supersede":  true,
 			"supersede_reason": "seit YM-224 entfernt",
@@ -755,9 +755,9 @@ func TestHandleRememberForceSupersedeFailsClosedOnMissingProject(t *testing.T) {
 	resp := h.Handle(Request{
 		Method: "remember",
 		Params: map[string]any{
-			"text":             "yesmem: Sandbox bietet Run",
+			"text":             "nemons: Sandbox bietet Run",
 			"category":         "gotcha",
-			"project":          "yesmem",
+			"project":          "nemons",
 			"supersedes":       float64(oldID),
 			"force_supersede":  true,
 			"supersede_reason": "veraltet",
@@ -792,7 +792,7 @@ func TestHandleRememberForceSupersedeRejectedSavesNothing(t *testing.T) {
 		Params: map[string]any{
 			"text":             "Sandbox hat nur noch Run",
 			"category":         "gotcha",
-			"project":          "yesmem",
+			"project":          "nemons",
 			"supersedes":       float64(oldID),
 			"force_supersede":  true,
 			"supersede_reason": "   ",
@@ -832,9 +832,9 @@ func TestHandleRememberForceSupersedeRefusesForeignProject(t *testing.T) {
 	resp := h.Handle(Request{
 		Method: "remember",
 		Params: map[string]any{
-			"text":             "yesmem: Sandbox bietet Run",
+			"text":             "nemons: Sandbox bietet Run",
 			"category":         "gotcha",
-			"project":          "yesmem",
+			"project":          "nemons",
 			"supersedes":       float64(oldID),
 			"force_supersede":  true,
 			"supersede_reason": "veraltet",
@@ -861,7 +861,7 @@ func TestHandleRememberSupersedeAlreadySupersededReportsFailed(t *testing.T) {
 
 	oldID, err := s.InsertLearning(&models.Learning{
 		Category: "gotcha", Content: "Alte Fassung: WrapCommand",
-		Project: "yesmem", Confidence: 1.0, CreatedAt: time.Now(),
+		Project: "nemons", Confidence: 1.0, CreatedAt: time.Now(),
 		ModelUsed: "test", Source: "llm_extracted",
 	})
 	if err != nil {
@@ -873,7 +873,7 @@ func TestHandleRememberSupersedeAlreadySupersededReportsFailed(t *testing.T) {
 		Params: map[string]any{
 			"text":       "Erste Korrektur: Run statt WrapCommand",
 			"category":   "gotcha",
-			"project":    "yesmem",
+			"project":    "nemons",
 			"supersedes": float64(oldID),
 		},
 	})
@@ -889,7 +889,7 @@ func TestHandleRememberSupersedeAlreadySupersededReportsFailed(t *testing.T) {
 		Params: map[string]any{
 			"text":             "Zweite Korrektur: Run(command, timeoutSec)",
 			"category":         "gotcha",
-			"project":          "yesmem",
+			"project":          "nemons",
 			"supersedes":       float64(oldID),
 			"force_supersede":  true,
 			"supersede_reason": "nochmal praeziser",
@@ -929,7 +929,7 @@ func TestHandleRememberSupersedeDuplicateSkipsAndSaysSo(t *testing.T) {
 	first := h.Handle(Request{
 		Method: "remember",
 		Params: map[string]any{
-			"text": text, "category": "gotcha", "project": "yesmem",
+			"text": text, "category": "gotcha", "project": "nemons",
 		},
 	})
 	if first.Error != "" {
@@ -944,7 +944,7 @@ func TestHandleRememberSupersedeDuplicateSkipsAndSaysSo(t *testing.T) {
 	second := h.Handle(Request{
 		Method: "remember",
 		Params: map[string]any{
-			"text": text, "category": "gotcha", "project": "yesmem",
+			"text": text, "category": "gotcha", "project": "nemons",
 			"supersedes": float64(oldID),
 		},
 	})
@@ -979,7 +979,7 @@ func TestHandleRememberSupersedeRejectsNonIntegerID(t *testing.T) {
 	resp := h.Handle(Request{
 		Method: "remember",
 		Params: map[string]any{
-			"text": "Sandbox bietet Run", "category": "gotcha", "project": "yesmem",
+			"text": "Sandbox bietet Run", "category": "gotcha", "project": "nemons",
 			"supersedes": 1.5,
 		},
 	})
@@ -999,7 +999,7 @@ func TestHandleRememberForceSupersedeRequiresReason(t *testing.T) {
 		Params: map[string]any{
 			"text":            "Sandbox hat nur noch Run, kein BuildSandboxedCommand",
 			"category":        "gotcha",
-			"project":         "yesmem",
+			"project":         "nemons",
 			"supersedes":      float64(oldID),
 			"force_supersede": true,
 		},
@@ -1027,7 +1027,7 @@ func TestHandleRememberForceSupersedeRequiresTarget(t *testing.T) {
 		Params: map[string]any{
 			"text":             "Sandbox hat nur noch Run",
 			"category":         "gotcha",
-			"project":          "yesmem",
+			"project":          "nemons",
 			"force_supersede":  true,
 			"supersede_reason": "veraltet",
 		},
@@ -1050,7 +1050,7 @@ func TestHandleRememberForceSupersedeReplacesHighTrust(t *testing.T) {
 		Params: map[string]any{
 			"text":             "internal/daemon/sandbox.go bietet Run, RunWithEnv, ... aber kein BuildSandboxedCommand",
 			"category":         "gotcha",
-			"project":          "yesmem",
+			"project":          "nemons",
 			"supersedes":       float64(oldID),
 			"force_supersede":  true,
 			"supersede_reason": reason,
@@ -1114,7 +1114,7 @@ func TestHandleGetLearningsByID(t *testing.T) {
 		Params: map[string]any{
 			"text":     "Specific learning for ID retrieval",
 			"category": "pattern",
-			"project":  "yesmem",
+			"project":  "nemons",
 		},
 	})
 	var r map[string]any
@@ -1225,11 +1225,11 @@ func TestHandleRelateHappyPath(t *testing.T) {
 
 	resp1 := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{"text": "engine reads the allowlist before the argument rules", "category": "pattern", "project": "yesmem"},
+		Params: map[string]any{"text": "engine reads the allowlist before the argument rules", "category": "pattern", "project": "nemons"},
 	})
 	resp2 := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{"text": "sandbox masks the home directory", "category": "pattern", "project": "yesmem"},
+		Params: map[string]any{"text": "sandbox masks the home directory", "category": "pattern", "project": "nemons"},
 	})
 	var r1, r2 map[string]any
 	json.Unmarshal(resp1.Result, &r1)
@@ -1300,11 +1300,11 @@ func TestHandleRelateAllValidTypes(t *testing.T) {
 	for _, relType := range validTypes {
 		resp1 := h.Handle(Request{
 			Method: "remember",
-			Params: map[string]any{"text": "retry budget for the " + relType + " edges", "category": "pattern", "project": "yesmem"},
+			Params: map[string]any{"text": "retry budget for the " + relType + " edges", "category": "pattern", "project": "nemons"},
 		})
 		resp2 := h.Handle(Request{
 			Method: "remember",
-			Params: map[string]any{"text": "sandbox profile forbids the " + relType + " writes", "category": "pattern", "project": "yesmem"},
+			Params: map[string]any{"text": "sandbox profile forbids the " + relType + " writes", "category": "pattern", "project": "nemons"},
 		})
 		var r1, r2 map[string]any
 		json.Unmarshal(resp1.Result, &r1)
@@ -1332,7 +1332,7 @@ func TestHandleQueryFactsNoFiltersError(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "query_facts",
-		Params: map[string]any{"project": "yesmem"},
+		Params: map[string]any{"project": "nemons"},
 	})
 
 	if resp.Error == "" {
@@ -1351,14 +1351,14 @@ func TestHandleQueryFactsByEntity(t *testing.T) {
 		Params: map[string]any{
 			"text":     "proxy.go handles HTTP interception for context management",
 			"category": "pattern",
-			"project":  "yesmem",
+			"project":  "nemons",
 			"entities": []any{"proxy.go"},
 		},
 	})
 
 	resp := h.Handle(Request{
 		Method: "query_facts",
-		Params: map[string]any{"entity": "proxy.go", "project": "yesmem"},
+		Params: map[string]any{"entity": "proxy.go", "project": "nemons"},
 	})
 
 	if resp.Error != "" {
@@ -1380,7 +1380,7 @@ func TestHandleQueryFactsByCategory(t *testing.T) {
 		Params: map[string]any{
 			"text":     "Always check error returns in Go code",
 			"category": "gotcha",
-			"project":  "yesmem",
+			"project":  "nemons",
 		},
 	})
 
@@ -1425,7 +1425,7 @@ func TestHandleQuarantineSessionHappyPath(t *testing.T) {
 	_, err := s.InsertLearning(&models.Learning{
 		Category:  "pattern",
 		Content:   "Learning from a broken session",
-		Project:   "yesmem",
+		Project:   "nemons",
 		SessionID: sid,
 	})
 	if err != nil {
@@ -1568,7 +1568,7 @@ func TestHandleIncrementNoiseSkipsBehavioralCategories(t *testing.T) {
 	id, err := s.InsertLearning(&models.Learning{
 		Category: "gotcha",
 		Content:  "Never push to main without review",
-		Project:  "yesmem",
+		Project:  "nemons",
 	})
 	if err != nil {
 		t.Fatalf("insert: %v", err)
@@ -1598,7 +1598,7 @@ func TestHandleIncrementNoiseBumpsActiveRefCategories(t *testing.T) {
 	id, err := s.InsertLearning(&models.Learning{
 		Category: "pattern",
 		Content:  "Use structured logging everywhere",
-		Project:  "yesmem",
+		Project:  "nemons",
 	})
 	if err != nil {
 		t.Fatalf("insert: %v", err)
@@ -1624,7 +1624,7 @@ func TestHandleIncrementNoiseBumpsActiveRefCategories(t *testing.T) {
 func TestHandleFlagContradictionMissingDescription(t *testing.T) {
 	h, _ := mustHandler(t)
 
-	resp := h.handleFlagContradiction(map[string]any{"project": "yesmem"})
+	resp := h.handleFlagContradiction(map[string]any{"project": "nemons"})
 	if resp.Error == "" {
 		t.Fatal("expected error for missing description")
 	}
@@ -1635,7 +1635,7 @@ func TestHandleFlagContradictionHappyPath(t *testing.T) {
 
 	resp := h.handleFlagContradiction(map[string]any{
 		"description":  "Learning 1 says X, learning 2 says Y",
-		"project":      "yesmem",
+		"project":      "nemons",
 		"learning_ids": []any{float64(1), float64(2)},
 	})
 
@@ -1674,7 +1674,7 @@ func gitTmpRoot(t *testing.T) (main, worktree string) {
 
 const (
 	attrOpenencode = "/home/test/projects/opencode"
-	attrYesmem     = "/home/test/memory/yesmem"
+	attrNemons     = "/home/test/memory/nemons"
 	attrDeepseek   = "/home/test/projects/deepseek"
 )
 
@@ -1684,15 +1684,15 @@ func TestAttributeLearningProjectShortNameSession(t *testing.T) {
 	// A short project name (not a filesystem path) must pass through
 	// uncoalesced — repo.Root on a bare name resolves to whatever repo
 	// hosts the running process, not to the named project.
-	proj, source := h.attributeLearningProject("Cache TTL matters", nil, "", "yesmem", "")
-	if proj != "yesmem" || source != "session" {
-		t.Errorf("short-name session project = (%q, %q), want (yesmem, session)", proj, source)
+	proj, source := h.attributeLearningProject("Cache TTL matters", nil, "", "nemons", "")
+	if proj != "nemons" || source != "session" {
+		t.Errorf("short-name session project = (%q, %q), want (nemons, session)", proj, source)
 	}
 }
 
 func TestAttributeLearningProject(t *testing.T) {
 	h, s := mustHandler(t)
-	for _, p := range []string{attrOpenencode, attrYesmem, attrDeepseek} {
+	for _, p := range []string{attrOpenencode, attrNemons, attrDeepseek} {
 		if _, err := s.InsertLearning(&models.Learning{
 			Category: "gotcha", Content: "seed " + p, Project: p,
 			Source: "test", CreatedAt: time.Now(),
@@ -1713,17 +1713,17 @@ func TestAttributeLearningProject(t *testing.T) {
 		wantProject string
 		wantSource  string
 	}{
-		{"explicit wins regardless of content", dup(attrYesmem), attrYesmem, "", subjectWorktree, attrYesmem, "explicit"},
-		{"content reassign ≥2 foreign, 0 session", dup(attrYesmem), "", "", subjectWorktree, attrYesmem, "content"},
-		{"ambiguous: two foreign ≥2", dup(attrYesmem) + " plus " + dup(attrDeepseek), "", "", subjectWorktree, subjectMain, "ambiguous"},
-		{"ambiguous: foreign ≥2 and session present", dup(attrYesmem) + " plus " + dup(subjectMain), "", "", subjectWorktree, subjectMain, "ambiguous"},
+		{"explicit wins regardless of content", dup(attrNemons), attrNemons, "", subjectWorktree, attrNemons, "explicit"},
+		{"content reassign ≥2 foreign, 0 session", dup(attrNemons), "", "", subjectWorktree, attrNemons, "content"},
+		{"ambiguous: two foreign ≥2", dup(attrNemons) + " plus " + dup(attrDeepseek), "", "", subjectWorktree, subjectMain, "ambiguous"},
+		{"ambiguous: foreign ≥2 and session present", dup(attrNemons) + " plus " + dup(subjectMain), "", "", subjectWorktree, subjectMain, "ambiguous"},
 		{"repo default without content signal", "some generic note without paths", "", "", subjectWorktree, subjectMain, "repo"},
-		{"single foreign mention stays at repo default", "one mention of " + attrYesmem + "/a.go", "", "", subjectWorktree, subjectMain, "repo"},
-		{"fork content reassign", dup(attrYesmem), "", attrOpenencode, "", attrYesmem, "content"},
+		{"single foreign mention stays at repo default", "one mention of " + attrNemons + "/a.go", "", "", subjectWorktree, subjectMain, "repo"},
+		{"fork content reassign", dup(attrNemons), "", attrOpenencode, "", attrNemons, "content"},
 		{"fork session default without signal", "some generic note without paths", "", attrOpenencode, "", attrOpenencode, "session"},
-		{"fork ambiguous keeps session project", dup(attrYesmem) + " plus " + dup(attrDeepseek), "", attrOpenencode, "", attrOpenencode, "ambiguous"},
+		{"fork ambiguous keeps session project", dup(attrNemons) + " plus " + dup(attrDeepseek), "", attrOpenencode, "", attrOpenencode, "ambiguous"},
 		{"worktree token prefix-matches main repo", dup(subjectMain + "/.worktrees/yesloop-x"), "", "", subjectWorktree, subjectMain, "repo"},
-		{"trailing sentence dot still counts", dup(attrYesmem+"/a.go") + ". Plus " + attrYesmem + "/b.go.", "", "", subjectWorktree, attrYesmem, "content"},
+		{"trailing sentence dot still counts", dup(attrNemons+"/a.go") + ". Plus " + attrNemons + "/b.go.", "", "", subjectWorktree, attrNemons, "content"},
 		{"known worktree session path counts as main repo", dup(subjectMain + "/.worktrees/wt/ent"), "", subjectMain + "/.worktrees/wt", subjectWorktree, subjectMain, "session"},
 	}
 	for _, tc := range cases {
@@ -1741,7 +1741,7 @@ func TestAttributeLearningProject(t *testing.T) {
 
 func TestAttributeLearningProjectEntitiesCounted(t *testing.T) {
 	h, s := mustHandler(t)
-	for _, p := range []string{attrYesmem} {
+	for _, p := range []string{attrNemons} {
 		if _, err := s.InsertLearning(&models.Learning{
 			Category: "gotcha", Content: "seed " + p, Project: p,
 			Source: "test", CreatedAt: time.Now(),
@@ -1751,10 +1751,10 @@ func TestAttributeLearningProjectEntitiesCounted(t *testing.T) {
 	}
 	_, worktree := gitTmpRoot(t)
 
-	entities := []string{attrYesmem + "/internal/daemon", attrYesmem + "/internal/proxy"}
+	entities := []string{attrNemons + "/internal/daemon", attrNemons + "/internal/proxy"}
 	got, src := h.attributeLearningProject("fix these files", entities, "", "", worktree)
-	if got != attrYesmem || src != "content" {
-		t.Errorf("got (%q, %q), want (%q, content)", got, src, attrYesmem)
+	if got != attrNemons || src != "content" {
+		t.Errorf("got (%q, %q), want (%q, content)", got, src, attrNemons)
 	}
 }
 
@@ -1762,14 +1762,14 @@ func TestHandleRememberAttributesProjectByContent(t *testing.T) {
 	h, s := mustHandler(t)
 	_, worktree := gitTmpRoot(t)
 	if _, err := s.InsertLearning(&models.Learning{
-		Category: "gotcha", Content: "seed " + attrYesmem, Project: attrYesmem,
+		Category: "gotcha", Content: "seed " + attrNemons, Project: attrNemons,
 		Source: "test", CreatedAt: time.Now(),
 	}); err != nil {
 		t.Fatal(err)
 	}
 
 	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
-		"text":     "check " + attrYesmem + "/internal/daemon and " + attrYesmem + "/internal/proxy",
+		"text":     "check " + attrNemons + "/internal/daemon and " + attrNemons + "/internal/proxy",
 		"category": "gotcha",
 		"_cwd":     worktree,
 	}})
@@ -1784,13 +1784,13 @@ func TestHandleRememberAttributesProjectByContent(t *testing.T) {
 	if err != nil {
 		t.Fatalf("get: %v", err)
 	}
-	if got.Project != attrYesmem {
-		t.Errorf("Project = %q, want %q", got.Project, attrYesmem)
+	if got.Project != attrNemons {
+		t.Errorf("Project = %q, want %q", got.Project, attrNemons)
 	}
 	if got.ProjectSource != "content" {
 		t.Errorf("ProjectSource = %q, want content", got.ProjectSource)
 	}
-	if got.CanonicalProject != models.CanonicalProject(attrYesmem) {
+	if got.CanonicalProject != models.CanonicalProject(attrNemons) {
 		t.Errorf("CanonicalProject = %q", got.CanonicalProject)
 	}
 }
@@ -1802,7 +1802,7 @@ func TestHandleRememberExplicitProjectSource(t *testing.T) {
 	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
 		"text":     "some note without path signals",
 		"category": "gotcha",
-		"project":  attrYesmem,
+		"project":  attrNemons,
 		"_cwd":     worktree,
 	}})
 	if resp.Error != "" {
@@ -1813,13 +1813,13 @@ func TestHandleRememberExplicitProjectSource(t *testing.T) {
 	if err != nil {
 		t.Fatalf("get: %v", err)
 	}
-	if got.Project != attrYesmem {
-		t.Errorf("Project = %q, want %q", got.Project, attrYesmem)
+	if got.Project != attrNemons {
+		t.Errorf("Project = %q, want %q", got.Project, attrNemons)
 	}
 	if got.ProjectSource != "explicit" {
 		t.Errorf("ProjectSource = %q, want explicit", got.ProjectSource)
 	}
-	if got.CanonicalProject != models.CanonicalProject(attrYesmem) {
+	if got.CanonicalProject != models.CanonicalProject(attrNemons) {
 		t.Errorf("CanonicalProject = %q", got.CanonicalProject)
 	}
 }
@@ -1837,7 +1837,7 @@ func TestHandleRemember_InheritsSessionIntensity(t *testing.T) {
 	const sessionID = "opencode:ses_RATED"
 	if _, err := s.InsertLearning(&models.Learning{
 		Category: "gotcha", Content: "the extraction rated this session",
-		Project: attrYesmem, SessionID: sessionID, Source: "llm_extracted",
+		Project: attrNemons, SessionID: sessionID, Source: "llm_extracted",
 		Confidence: 1.0, EmotionalIntensity: 0.7, CreatedAt: time.Now(),
 	}); err != nil {
 		t.Fatalf("seed sibling learning: %v", err)
@@ -1845,7 +1845,7 @@ func TestHandleRemember_InheritsSessionIntensity(t *testing.T) {
 
 	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
 		"text": "a later remember call in the same session", "category": "decision",
-		"project": attrYesmem, "_session_id": sessionID,
+		"project": attrNemons, "_session_id": sessionID,
 	}})
 	if resp.Error != "" {
 		t.Fatalf("unexpected error: %s", resp.Error)
@@ -1864,7 +1864,7 @@ func TestHandleRemember_UnratedSessionStaysAtZero(t *testing.T) {
 
 	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
 		"text": "first learning of a session that was never rated", "category": "decision",
-		"project": attrYesmem, "_session_id": "opencode:ses_UNRATED",
+		"project": attrNemons, "_session_id": "opencode:ses_UNRATED",
 	}})
 	if resp.Error != "" {
 		t.Fatalf("unexpected error: %s", resp.Error)
@@ -1886,7 +1886,7 @@ func TestHandleRemember_SessionFallbackDoesNotLendIntensity(t *testing.T) {
 	const foreign = "opencode:ses_OTHER_RATED"
 	if _, err := s.InsertLearning(&models.Learning{
 		Category: "gotcha", Content: "a different session carried this rating",
-		Project: attrYesmem, SessionID: foreign, Source: "llm_extracted",
+		Project: attrNemons, SessionID: foreign, Source: "llm_extracted",
 		Confidence: 1.0, EmotionalIntensity: 0.9, CreatedAt: time.Now(),
 	}); err != nil {
 		t.Fatalf("seed sibling learning: %v", err)
@@ -1897,7 +1897,7 @@ func TestHandleRemember_SessionFallbackDoesNotLendIntensity(t *testing.T) {
 
 	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
 		"text": "remember call without a session of its own", "category": "decision",
-		"project": attrYesmem,
+		"project": attrNemons,
 	}})
 	if resp.Error != "" {
 		t.Fatalf("unexpected error: %s", resp.Error)
@@ -1930,7 +1930,7 @@ func TestHandleRemember_UsesCallerSessionNotActive(t *testing.T) {
 	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
 		"text":          "session attribution: the caller's per-call session wins over the global active session",
 		"category":      "decision",
-		"project":       attrYesmem,
+		"project":       attrNemons,
 		"_session_id":   "opencode:ses_CALLER",
 		"_source_agent": "opencode",
 	}})
@@ -1955,7 +1955,7 @@ func TestHandleRemember_FallsBackToActiveSession(t *testing.T) {
 	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
 		"text":     "session attribution: without per-call context the active session stays the fallback",
 		"category": "decision",
-		"project":  attrYesmem,
+		"project":  attrNemons,
 	}})
 	if resp.Error != "" {
 		t.Fatalf("unexpected error: %s", resp.Error)
@@ -2015,8 +2015,8 @@ func TestAttributeLearningProjectAbsoluteExplicitProjectUnchanged(t *testing.T) 
 	h, _ := mustHandler(t)
 	_, worktree := gitTmpRoot(t)
 
-	proj, source := h.attributeLearningProject("note", nil, attrYesmem, "", worktree)
-	if proj != attrYesmem || source != "explicit" {
-		t.Errorf("got (%q, %q), want (%q, explicit)", proj, source, attrYesmem)
+	proj, source := h.attributeLearningProject("note", nil, attrNemons, "", worktree)
+	if proj != attrNemons || source != "explicit" {
+		t.Errorf("got (%q, %q), want (%q, explicit)", proj, source, attrNemons)
 	}
 }

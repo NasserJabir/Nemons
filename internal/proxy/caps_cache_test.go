@@ -6,7 +6,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/config"
+	"github.com/NasserJabir/Nemons/internal/config"
 )
 
 func TestCapsCache_GetSetRoundTrip(t *testing.T) {
@@ -160,7 +160,7 @@ func TestInvalidateThreadCaches_RefreshesBriefingWhenProjectSet(t *testing.T) {
 		logger:    log.New(io.Discard, "", 0),
 		capsCache: NewCapsCache(),
 	}
-	s.setCachedBriefing("t-1", "yesmem", "OLD-text", "OLD-cm")
+	s.setCachedBriefing("t-1", "nemons", "OLD-text", "OLD-cm")
 
 	calls := 0
 	var gotProj, gotDir string
@@ -170,15 +170,15 @@ func TestInvalidateThreadCaches_RefreshesBriefingWhenProjectSet(t *testing.T) {
 		return briefingData{Text: "NEW-text", CodeMap: "NEW-cm"}
 	}
 
-	s.invalidateThreadCaches("t-1", "yesmem", "/home/user/memory/yesmem", "claude-opus-4-6")
+	s.invalidateThreadCaches("t-1", "nemons", "/home/user/memory/nemons", "claude-opus-4-6")
 
 	if calls != 1 {
 		t.Errorf("expected briefingLoader called once, got %d", calls)
 	}
-	if gotProj != "yesmem" || gotDir != "/home/user/memory/yesmem" {
+	if gotProj != "nemons" || gotDir != "/home/user/memory/nemons" {
 		t.Errorf("loader args: proj=%q dir=%q", gotProj, gotDir)
 	}
-	text, cm, ok := s.getCachedBriefing("t-1", "yesmem")
+	text, cm, ok := s.getCachedBriefing("t-1", "nemons")
 	if !ok || text != "NEW-text" || cm != "NEW-cm" {
 		t.Errorf("cache not refreshed: ok=%v text=%q cm=%q", ok, text, cm)
 	}
@@ -209,15 +209,15 @@ func TestInvalidateThreadCaches_PreservesBriefingOnEmptyLoaderResult(t *testing.
 		logger:    log.New(io.Discard, "", 0),
 		capsCache: NewCapsCache(),
 	}
-	s.setCachedBriefing("t-3", "yesmem", "OLD-text", "OLD-cm")
+	s.setCachedBriefing("t-3", "nemons", "OLD-text", "OLD-cm")
 
 	s.briefingLoader = func(proj, projectDir, threadID string) briefingData {
 		return briefingData{}
 	}
 
-	s.invalidateThreadCaches("t-3", "yesmem", "/home/user/memory/yesmem", "claude-opus-4-6")
+	s.invalidateThreadCaches("t-3", "nemons", "/home/user/memory/nemons", "claude-opus-4-6")
 
-	text, cm, ok := s.getCachedBriefing("t-3", "yesmem")
+	text, cm, ok := s.getCachedBriefing("t-3", "nemons")
 	if !ok || text != "OLD-text" || cm != "OLD-cm" {
 		t.Errorf("transient loader failure must preserve existing cache: ok=%v text=%q cm=%q", ok, text, cm)
 	}
@@ -231,7 +231,7 @@ func TestLos33InvalidateThreadCachesSkipsBriefingWhenGateOff(t *testing.T) {
 		logger:    log.New(io.Discard, "", 0),
 		capsCache: NewCapsCache(),
 	}
-	s.setCachedBriefing("t-4", "yesmem", "OLD-text", "OLD-cm")
+	s.setCachedBriefing("t-4", "nemons", "OLD-text", "OLD-cm")
 
 	calls := 0
 	s.briefingLoader = func(proj, projectDir, threadID string) briefingData {
@@ -239,7 +239,7 @@ func TestLos33InvalidateThreadCachesSkipsBriefingWhenGateOff(t *testing.T) {
 		return briefingData{Text: "NEW-text"}
 	}
 
-	s.invalidateThreadCaches("t-4", "yesmem", "/home/user/memory/yesmem", "claude-opus-4-6")
+	s.invalidateThreadCaches("t-4", "nemons", "/home/user/memory/nemons", "claude-opus-4-6")
 
 	if calls != 0 {
 		t.Errorf("briefing gate off must skip generation, got %d loader calls", calls)

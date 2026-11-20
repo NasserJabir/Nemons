@@ -303,7 +303,7 @@ func TestResolveSystemTemplate_NilModelTemplates(t *testing.T) {
 
 func TestResolveSystemTemplateForDir_ProjectOverrides(t *testing.T) {
 	workDir := t.TempDir()
-	projDir := filepath.Join(workDir, ".yesmem")
+	projDir := filepath.Join(workDir, ".nemons")
 	if err := os.MkdirAll(projDir, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -322,7 +322,7 @@ func TestResolveSystemTemplateForDir_ProjectOverrides(t *testing.T) {
 }
 
 func TestResolveSystemTemplateForDir_FallsBackToModel(t *testing.T) {
-	workDir := t.TempDir() // no .yesmem/SYSTEM.md
+	workDir := t.TempDir() // no .nemons/SYSTEM.md
 
 	s := &Server{
 		customSystemPrompt: []byte("default"),

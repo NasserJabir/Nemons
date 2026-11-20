@@ -26,7 +26,7 @@ async ({cap, table, where, args, limit, offset, all, max_rows}) => {
   const lim = (typeof limit === 'number' && limit > 0) ? limit : 100;
   const argsJson = Array.isArray(args) ? JSON.stringify(args) : (args || '[]');
   const callOnce = async (l, o) => {
-    const r = await mcp__yesmem__cap_store({capability: cap, action: 'query', table, where: where || '', args: argsJson, limit: l, offset: o});
+    const r = await mcp__nemons__cap_store({capability: cap, action: 'query', table, where: where || '', args: argsJson, limit: l, offset: o});
     if (typeof r === 'string') return {error: r.slice(0, 500)};
     try { return typeof r === 'object' ? r : JSON.parse(r); }
     catch (e) { return {error: 'parse failed: ' + String(e).slice(0,200)}; }

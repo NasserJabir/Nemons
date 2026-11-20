@@ -29,7 +29,7 @@ const archiveFingerprintBytes = 256
 // Archiver copies JSONL session files to a permanent archive directory.
 // Protects against Claude Code's 30-day cleanup (cleanupPeriodDays).
 type Archiver struct {
-	baseDir string // e.g. ~/.claude/yesmem/archive/
+	baseDir string // e.g. ~/.claude/nemons/archive/
 
 	// Counters per archive mode. Kept unexported and atomic: the daemon archives
 	// from several indexing workers at once, and the tests use them to tell an
@@ -50,7 +50,7 @@ func New(baseDir string) *Archiver {
 // the folder names below the base carry project paths and session ids.
 //
 // An existing directory is reported, not narrowed. paths.archive accepts any
-// absolute path, so the base may be a directory yesmem did not create, and a
+// absolute path, so the base may be a directory nemons did not create, and a
 // silent chmod of a user's shared folder is worse than a warning. Setup hardens
 // its own dataDir/archive separately.
 func EnsureBaseDir(dir string) error {

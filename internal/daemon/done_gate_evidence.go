@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
-	"github.com/carsteneu/yesmem/internal/verify/claimtypes"
-	"github.com/carsteneu/yesmem/internal/verify/engine"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/verify/claimtypes"
+	"github.com/NasserJabir/Nemons/internal/verify/engine"
 )
 
 // evidenceLookupTimeout bounds one session lookup for the DONE-guard's Phase 5
@@ -72,7 +72,7 @@ var queryOpencodeSession = func(ocDBPath, sessionID string) (found bool, parentI
 // the row exists, its parent is the report's session, the agent type is in the
 // allowed set, and no id serves two keys. This function is the adapter the
 // verification operation uses when it has only opencode's database; the gate
-// goes through the yesmem session store instead (Handler.verifyPhaseEvidence).
+// goes through the nemons session store instead (Handler.verifyPhaseEvidence).
 // Both feed the same rule, so neither can drift.
 //
 // An empty ocDBPath or parentSessionID skips verification — that is a
@@ -89,7 +89,7 @@ func VerifySubagentEvidence(ocDBPath, parentSessionID string, evidence map[strin
 }
 
 // verifyPhaseEvidence is the DONE gate's entry into the same rule, over the
-// yesmem session store: the store is the basis because it is harness-neutral,
+// nemons session store: the store is the basis because it is harness-neutral,
 // opencode's database only enriches what the store cannot answer (the subagent's
 // agent type, and an id whose session row has not been indexed yet).
 func (h *Handler) verifyPhaseEvidence(agent storage.Agent, evidence map[string]string) []FieldError {
@@ -107,7 +107,7 @@ func (h *Handler) verifyPhaseEvidence(agent storage.Agent, evidence map[string]s
 }
 
 // evidenceStore is a session store that also knows the shape of the parent id it
-// compares against: the yesmem store keys opencode sessions namespaced, so the
+// compares against: the nemons store keys opencode sessions namespaced, so the
 // bare id an agent reports has to be normalized before it is matched.
 type evidenceStore interface {
 	engine.SessionStore
@@ -156,7 +156,7 @@ func (s opencodeEvidenceStore) Session(id string) (engine.SessionRecord, bool, e
 	return engine.SessionRecord{ID: id, ParentID: parentID, AgentType: agentType}, true, nil
 }
 
-// sessionEvidenceStore answers over the yesmem session store and enriches what
+// sessionEvidenceStore answers over the nemons session store and enriches what
 // that store does not hold for an opencode session: its agent type, and a
 // session row the indexer has not caught up with yet.
 //

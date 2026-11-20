@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// opencodeBuiltinPluginMarkers are literals that only the yesmem plugin source
+// opencodeBuiltinPluginMarkers are literals that only the nemons plugin source
 // carries: the plugin id it registers (index.ts, Plugin.define) and the daemon
 // RPC it calls when a session starts (session.ts, shell.ts). A build that
 // compiles the plugin into the server has both in its binary; upstream opencode
@@ -19,7 +19,7 @@ import (
 // install, which is the one direction that removes the guard instead of adding a
 // redundant copy.
 var opencodeBuiltinPluginMarkers = [][]byte{
-	[]byte("opencode.yesmem"),
+	[]byte("opencode.nemons"),
 	[]byte("register_pid"),
 }
 
@@ -36,12 +36,12 @@ const markerChunkSize = 512 << 10
 var markerScanBudget = 15 * time.Second
 
 // opencodeBuiltinPluginFn reports whether the opencode binary on this host has
-// the yesmem plugin compiled in, and which binary it examined. Tests pin it:
+// the nemons plugin compiled in, and which binary it examined. Tests pin it:
 // setup must not depend on the build the host happens to have.
 var opencodeBuiltinPluginFn = detectBuiltinOpencodePlugin
 
 // opencodePluginBuiltin reports whether the installed opencode carries the
-// yesmem plugin itself, together with the binary that was asked. Where it does,
+// nemons plugin itself, together with the binary that was asked. Where it does,
 // an external plugin copy is redundant: opencode keeps the built-in one and
 // reports the second copy as a duplicate plugin id.
 //

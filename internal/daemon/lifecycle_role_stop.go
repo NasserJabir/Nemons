@@ -19,7 +19,7 @@ const maxProcEnvironBytes = 64 << 10
 
 // processEnviron reads a process's environment. It is the only way to learn which
 // data dir an already running instance resolved: the flag set carries no data dir,
-// so the process took it from YESMEM_DATA_DIR or from its own HOME.
+// so the process took it from NEMONS_DATA_DIR or from its own HOME.
 func processEnviron(pid int) []string {
 	f, err := os.Open(fmt.Sprintf("%s/%d/environ", procRoot, pid))
 	if err != nil {
@@ -39,10 +39,10 @@ func processEnviron(pid int) []string {
 }
 
 // effectiveDataDir resolves the data dir a process with this environment runs
-// with. Only HOME counts: no yesmem service binary reads YESMEM_DATA_DIR — the
+// with. Only HOME counts: no nemons service binary reads NEMONS_DATA_DIR — the
 // daemon and the proxy both derive their state dir from the user's home, and the
 // variable is inert for them (the MCP client sets it for its own children, who run
-// as `yesmem mcp` and never match a service role). A stray value in the environment
+// as `nemons mcp` and never match a service role). A stray value in the environment
 // must therefore not reclassify a process as another installation.
 func effectiveDataDir(environ []string, fallbackHome string) string {
 	var home string
@@ -56,22 +56,22 @@ func effectiveDataDir(environ []string, fallbackHome string) string {
 	if home == "" {
 		home = fallbackHome
 	}
-	return filepath.Join(home, ".claude", "yesmem")
+	return filepath.Join(home, ".claude", "nemons")
 }
 
-// isYesmemBinary reports whether a basename names a yesmem binary. A Go test
-// binary from a yesmem worktree (yesmem.test, the name `go test -c` produces) is
+// isNemonsBinary reports whether a basename names a nemons binary. A Go test
+// binary from a nemons worktree (nemons.test, the name `go test -c` produces) is
 // not one: its argv carries -test.* flags and it never runs the daemon loop, but a
 // fixture or a stray argument could still put "daemon" in argv[1].
-func isYesmemBinary(base string) bool {
+func isNemonsBinary(base string) bool {
 	if strings.HasSuffix(base, ".test") {
 		return false
 	}
-	return strings.Contains(base, "yesmem")
+	return strings.Contains(base, "nemons")
 }
 
 // ownRoleProcess reports whether pid is an instance of role (daemon or proxy)
-// belonging to dataDir. Identity has two parts: the argv structure names a yesmem
+// belonging to dataDir. Identity has two parts: the argv structure names a nemons
 // subcommand (a pgrep name match does not — a shell carrying the words in its
 // command line matches that), and the process's own environment resolves to the
 // same data dir.
@@ -80,7 +80,7 @@ func ownRoleProcess(pid int, role, dataDir, fallbackHome string) bool {
 		return false
 	}
 	argv := strings.Split(procCmdline(pid), "\x00")
-	if len(argv) < 2 || !isYesmemBinary(filepath.Base(argv[0])) || argv[1] != role {
+	if len(argv) < 2 || !isNemonsBinary(filepath.Base(argv[0])) || argv[1] != role {
 		return false
 	}
 	environ := processEnviron(pid)
@@ -183,7 +183,7 @@ func pidFileOwner(dataDir string) (int, bool) {
 // returns the pids it signalled.
 //
 // Why so narrow: the former pgrep sweep signalled every process whose command line
-// contained "yesmem daemon" — the systemd instance, another data dir's daemon, a
+// contained "nemons daemon" — the systemd instance, another data dir's daemon, a
 // worktree's *.test binary, a shell that merely mentioned the words. On
 // 2026-10-17 that class of sweep took the live daemon down and with it every
 // running agent (YM-297).

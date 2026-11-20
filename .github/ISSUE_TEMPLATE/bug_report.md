@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Report a bug in YesMem
+about: Report a bug in Nemons
 title: ''
 labels: bug
 assignees: ''
@@ -8,7 +8,7 @@ assignees: ''
 
 ## Environment
 
-- **YesMem version:** (`yesmem --version`)
+- **Nemons version:** (`nemons --version`)
 - **OS:** (e.g. Ubuntu 24.04, macOS 15.3)
 - **Claude Code version:** (`claude --version`)
 
@@ -33,5 +33,5 @@ What actually happened. Include error messages or log output if available.
 ## Logs
 
 ```
-# Relevant output from ~/.claude/yesmem/logs/ (if applicable)
+# Relevant output from ~/.claude/nemons/logs/ (if applicable)
 ```

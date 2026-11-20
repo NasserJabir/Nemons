@@ -3,7 +3,7 @@
 // never touches either.
 package claimtypes
 
-import "github.com/carsteneu/yesmem/internal/verify/engine"
+import "github.com/NasserJabir/Nemons/internal/verify/engine"
 
 // All returns the registered claim types.
 //

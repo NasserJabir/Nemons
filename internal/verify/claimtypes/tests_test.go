@@ -12,7 +12,7 @@ func TestShowsTestEvidence(t *testing.T) {
 		"Ran 162 tests in 4.2s",
 		"3 passed in 0.4s",
 		"2 failing",
-		"ok  \tgithub.com/carsteneu/yesmem/internal/verify\t0.5s",
+		"ok  \tgithub.com/NasserJabir/Nemons/internal/verify\t0.5s",
 		"--- PASS: TestParseReport (0.00s)",
 		"OK (2 tests, 3 assertions)",
 		"##teamcity[testFinished name='test_x']",

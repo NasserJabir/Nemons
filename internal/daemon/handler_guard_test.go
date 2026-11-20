@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/guard"
+	"github.com/NasserJabir/Nemons/internal/guard"
 )
 
 // guardHandlerEnv builds a handler whose guard resolves an OpenAI-compatible provider at the stub endpoint, so
@@ -19,8 +19,8 @@ func guardHandlerEnv(t *testing.T, endpoint string) (*Handler, string) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 	t.Setenv("ANTHROPIC_API_KEY", "")
-	t.Setenv("YESMEM_GUARD_MODEL", "")
-	t.Setenv("YESMEM_GUARD_MODELS_URL", "http://127.0.0.1:1")
+	t.Setenv("NEMONS_GUARD_MODEL", "")
+	t.Setenv("NEMONS_GUARD_MODELS_URL", "http://127.0.0.1:1")
 
 	writeGuardFile(t, filepath.Join(home, ".cache", "opencode", "models.json"), `{"deepseek":{"api":"`+endpoint+`","npm":"@ai-sdk/openai-compatible","models":{"deepseek-v4-flash":{}}}}`)
 	writeGuardFile(t, filepath.Join(home, ".local", "share", "opencode", "auth.json"), `{"deepseek":{"key":"sk-test"}}`)

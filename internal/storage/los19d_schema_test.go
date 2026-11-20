@@ -13,7 +13,7 @@ import (
 // already carries the column) nor "no such table" (a fresh database, where the
 // migrations run before the CREATE TABLE statements) must fail the open.
 func TestLos19d_CreateSchemaReportsFailedMigration(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "yesmem.db")
+	path := filepath.Join(t.TempDir(), "nemons.db")
 	first, err := Open(path)
 	if err != nil {
 		t.Fatalf("open fresh store: %v", err)

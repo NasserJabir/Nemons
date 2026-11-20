@@ -13,10 +13,10 @@ func TestShortName(t *testing.T) {
 		project string
 		want    string
 	}{
-		{"absolute path", "/home/tester/memory/yesmem", "yesmem"},
-		{"trailing slash", "/home/tester/memory/yesmem/", "yesmem"},
+		{"absolute path", "/home/tester/memory/nemons", "nemons"},
+		{"trailing slash", "/home/tester/memory/nemons/", "nemons"},
 		{"nested path", "/home/tester/worktrees/agent-42", "agent-42"},
-		{"short name stays", "yesmem", "yesmem"},
+		{"short name stays", "nemons", "nemons"},
 		{"sentinel stays", "__global__", "__global__"},
 		{"empty", "", ""},
 		{"root", "/", ""},
@@ -34,16 +34,16 @@ func TestShortName(t *testing.T) {
 }
 
 func TestDisplayDir(t *testing.T) {
-	if got, want := DisplayDir("/home/tester/memory/yesmem"), "~/.claude/yesmem/wiki/yesmem"; got != want {
+	if got, want := DisplayDir("/home/tester/memory/nemons"), "~/.claude/nemons/wiki/nemons"; got != want {
 		t.Errorf("DisplayDir(path) = %q, want %q", got, want)
 	}
-	if got, want := DisplayDir("yesmem"), "~/.claude/yesmem/wiki/yesmem"; got != want {
+	if got, want := DisplayDir("nemons"), "~/.claude/nemons/wiki/nemons"; got != want {
 		t.Errorf("DisplayDir(name) = %q, want %q", got, want)
 	}
 }
 
 func TestRoot(t *testing.T) {
-	if got, want := Root("/home/u/.claude/yesmem"), filepath.Join("/home/u/.claude/yesmem", "wiki"); got != want {
+	if got, want := Root("/home/u/.claude/nemons"), filepath.Join("/home/u/.claude/nemons", "wiki"); got != want {
 		t.Errorf("Root = %q, want %q", got, want)
 	}
 }
@@ -150,14 +150,14 @@ func TestAssignNames_NoDuplicateDirs(t *testing.T) {
 }
 
 func TestWriteMarker_RoundTrip(t *testing.T) {
-	dir := filepath.Join(t.TempDir(), "yesmem")
+	dir := filepath.Join(t.TempDir(), "nemons")
 	if MarkerProject(dir) != "" {
 		t.Fatalf("expected no marker before writing")
 	}
-	if err := WriteMarker(dir, "/home/tester/memory/yesmem"); err != nil {
+	if err := WriteMarker(dir, "/home/tester/memory/nemons"); err != nil {
 		t.Fatalf("WriteMarker: %v", err)
 	}
-	if got := MarkerProject(dir); got != "/home/tester/memory/yesmem" {
+	if got := MarkerProject(dir); got != "/home/tester/memory/nemons" {
 		t.Errorf("MarkerProject = %q", got)
 	}
 	info, err := os.Stat(dir)

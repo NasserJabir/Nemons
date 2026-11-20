@@ -12,7 +12,7 @@ func newTestServer(ccEnabled bool, tpl []byte) *Server {
 		cfg: Config{
 			CustomSystemPrompt: CustomSystemPromptConfig{
 				EnabledClaudeCode: ccEnabled,
-				TemplatePath:      "~/.claude/yesmem/SYSTEM.md",
+				TemplatePath:      "~/.claude/nemons/SYSTEM.md",
 			},
 		},
 		customSystemPrompt: tpl,

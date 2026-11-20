@@ -3,7 +3,7 @@ package setup
 import (
 	"fmt"
 
-	"github.com/carsteneu/yesmem/internal/guard"
+	"github.com/NasserJabir/Nemons/internal/guard"
 )
 
 // printGuardStatus writes the rule guard's line into the setup report.

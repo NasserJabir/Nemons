@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/archive"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/archive"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 
 	_ "modernc.org/sqlite"
 )
@@ -431,8 +431,8 @@ func TestOpencodeScanner_PersistsWatermarkAcrossRestart(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	yesmemDBPath := filepath.Join(tmpDir, "yesmem.db")
-	store, err := storage.Open(yesmemDBPath)
+	nemonsDBPath := filepath.Join(tmpDir, "nemons.db")
+	store, err := storage.Open(nemonsDBPath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -455,7 +455,7 @@ func TestOpencodeScanner_PersistsWatermarkAcrossRestart(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	store, err = storage.Open(yesmemDBPath)
+	store, err = storage.Open(nemonsDBPath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -549,7 +549,7 @@ func TestOpencodeScanner_SessionOrder(t *testing.T) {
 
 func TestIsExtractionPipelineSession_MoreThanFiveMessages(t *testing.T) {
 	msgs := []models.Message{
-		{Role: "user", Content: "Du bist der Briefing-Autor für YesMem — ein Memory-System..."},
+		{Role: "user", Content: "Du bist der Briefing-Autor für Nemons — ein Memory-System..."},
 		{Role: "assistant", Content: "ok"},
 		{Role: "user", Content: "Generate the narrative"},
 		{Role: "assistant", Content: "I'm back. 22000 times..."},

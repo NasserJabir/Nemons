@@ -49,11 +49,11 @@ func useRealOpencodeBuiltin(t *testing.T) {
 // v1InstallDir is a literal expectation on purpose: the tests must not derive
 // what they assert from v1PluginPersistentRelPath, the code under test.
 func v1InstallDir(home string) string {
-	return filepath.Join(home, ".local", "share", "yesmem", "plugins", "opencode-yesmem")
+	return filepath.Join(home, ".local", "share", "nemons", "plugins", "opencode-nemons")
 }
 
 func v2InstallDir(home string) string {
-	return filepath.Join(home, ".config", "opencode", "plugins", "opencode-yesmem")
+	return filepath.Join(home, ".config", "opencode", "plugins", "opencode-nemons")
 }
 
 func TestParseOpencodeMajorVersion(t *testing.T) {
@@ -99,14 +99,14 @@ func TestInstallOpencodePlugin_BelowV2GetsMessageNotAnInstall(t *testing.T) {
 			for _, p := range []string{
 				v1InstallDir(home),
 				v2InstallDir(home),
-				filepath.Join(home, ".config", "opencode", "plugins", "yesmem.ts"),
+				filepath.Join(home, ".config", "opencode", "plugins", "nemons.ts"),
 			} {
 				if _, statErr := os.Lstat(p); !os.IsNotExist(statErr) {
 					t.Errorf("pre-v2 host got %s written (lstat err=%v)", p, statErr)
 				}
 			}
 			if _, statErr := os.Stat(filepath.Join(home, ".config", "opencode", "opencode.jsonc")); statErr == nil {
-				if data := readFileOrFail(t, filepath.Join(home, ".config", "opencode", "opencode.jsonc")); strings.Contains(string(data), "yesmem") {
+				if data := readFileOrFail(t, filepath.Join(home, ".config", "opencode", "opencode.jsonc")); strings.Contains(string(data), "nemons") {
 					t.Errorf("plugin entry written for a pre-v2 host: %s", data)
 				}
 			}
@@ -131,7 +131,7 @@ func TestInstallOpencodePlugin_UnknownMajorInstallsV2AndCleansV1(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(v1InstallDir(home), "index.ts")); !os.IsNotExist(err) {
 		t.Errorf("v1 sources survived (stat err=%v)", err)
 	}
-	if _, err := os.Lstat(filepath.Join(home, ".config", "opencode", "plugins", "yesmem.ts")); !os.IsNotExist(err) {
+	if _, err := os.Lstat(filepath.Join(home, ".config", "opencode", "plugins", "nemons.ts")); !os.IsNotExist(err) {
 		t.Errorf("v1 symlink survived (lstat err=%v)", err)
 	}
 	if data := readFileOrFail(t, filepath.Join(home, ".config", "opencode", "opencode.jsonc")); strings.Contains(string(data), v1Index) {
@@ -222,14 +222,14 @@ func TestInstallOpencodePlugin_V2RemovesV1Artifacts(t *testing.T) {
 	if err := os.MkdirAll(pluginsDir, 0755); err != nil {
 		t.Fatal(err)
 	}
-	symlinkPath := filepath.Join(pluginsDir, "yesmem.ts")
+	symlinkPath := filepath.Join(pluginsDir, "nemons.ts")
 	if err := os.Symlink(v1Index, symlinkPath); err != nil {
 		t.Fatal(err)
 	}
 	// A dev-tree entry is only ours while it sits next to the running binary
 	// (isDevTreeEntry). This one does not, so the v2 install has to leave it
 	// alone: it may belong to another project in the same home.
-	devIndex := filepath.Join(home, "projects", "otherapp", "plugins", "opencode-yesmem", "index.ts")
+	devIndex := filepath.Join(home, "projects", "otherapp", "plugins", "opencode-nemons", "index.ts")
 	writeOpencodeJSONC(t, home, `{
 	  "$schema": "https://opencode.ai/config.json",
 	  "plugin": ["`+v1Index+`", "`+devIndex+`", "superpowers@git+https://github.com/obra/superpowers.git"]
@@ -240,7 +240,7 @@ func TestInstallOpencodePlugin_V2RemovesV1Artifacts(t *testing.T) {
 	}
 
 	if _, err := os.Lstat(symlinkPath); !os.IsNotExist(err) {
-		t.Errorf("v1 symlink yesmem.ts survived the v2 install (lstat err=%v)", err)
+		t.Errorf("v1 symlink nemons.ts survived the v2 install (lstat err=%v)", err)
 	}
 	data := readFileOrFail(t, filepath.Join(home, ".config", "opencode", "opencode.jsonc"))
 	if strings.Contains(string(data), v1Index) {
@@ -280,7 +280,7 @@ func TestInstallOpencodePlugin_V2ToleratesUnparseableConfig(t *testing.T) {
 	}
 }
 
-// A config yesmem cannot parse keeps the v1 sources: deleting them would leave
+// A config nemons cannot parse keeps the v1 sources: deleting them would leave
 // the surviving entry pointing at a path that no longer exists. The symlink is
 // a separate artifact and still goes.
 func TestInstallOpencodePlugin_KeepsV1SourcesWhenConfigIsUnparseable(t *testing.T) {
@@ -297,7 +297,7 @@ func TestInstallOpencodePlugin_KeepsV1SourcesWhenConfigIsUnparseable(t *testing.
 	if _, statErr := os.Stat(v1Index); statErr != nil {
 		t.Errorf("v1 sources deleted while the config still names them: %v", statErr)
 	}
-	if _, statErr := os.Lstat(filepath.Join(home, ".config", "opencode", "plugins", "yesmem.ts")); !os.IsNotExist(statErr) {
+	if _, statErr := os.Lstat(filepath.Join(home, ".config", "opencode", "plugins", "nemons.ts")); !os.IsNotExist(statErr) {
 		t.Errorf("v1 symlink survived (lstat err=%v)", statErr)
 	}
 	if _, statErr := os.Stat(filepath.Join(v2InstallDir(home), "index.ts")); statErr != nil {
@@ -306,12 +306,12 @@ func TestInstallOpencodePlugin_KeepsV1SourcesWhenConfigIsUnparseable(t *testing.
 }
 
 // The v2 plugin lives in opencode's plugin directory, next to plugins the user
-// added. Uninstall removes yesmem's entries and leaves the rest alone; the old
+// added. Uninstall removes nemons's entries and leaves the rest alone; the old
 // RemoveAll on the whole directory would delete every foreign plugin.
 func TestRemoveOpencodePlugin_KeepsForeignPlugins(t *testing.T) {
 	home := filepath.Join(t.TempDir(), "home")
 	pluginsDir := filepath.Join(home, ".config", "opencode", "plugins")
-	for _, dir := range []string{"opencode-yesmem", "yesmem-window", "my-plugin"} {
+	for _, dir := range []string{"opencode-nemons", "nemons-window", "my-plugin"} {
 		if err := os.MkdirAll(filepath.Join(pluginsDir, dir), 0755); err != nil {
 			t.Fatal(err)
 		}
@@ -319,7 +319,7 @@ func TestRemoveOpencodePlugin_KeepsForeignPlugins(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	if err := os.WriteFile(filepath.Join(pluginsDir, "yesmem.ts"), []byte("// symlink stand-in"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(pluginsDir, "nemons.ts"), []byte("// symlink stand-in"), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -327,9 +327,9 @@ func TestRemoveOpencodePlugin_KeepsForeignPlugins(t *testing.T) {
 		t.Fatalf("removeOpencodePlugin: %v", err)
 	}
 
-	for _, gone := range []string{"opencode-yesmem", "yesmem-window", "yesmem.ts"} {
+	for _, gone := range []string{"opencode-nemons", "nemons-window", "nemons.ts"} {
 		if _, err := os.Lstat(filepath.Join(pluginsDir, gone)); !os.IsNotExist(err) {
-			t.Errorf("yesmem entry %s survived uninstall (lstat err=%v)", gone, err)
+			t.Errorf("nemons entry %s survived uninstall (lstat err=%v)", gone, err)
 		}
 	}
 	if _, err := os.Stat(filepath.Join(pluginsDir, "my-plugin", "index.ts")); err != nil {
@@ -337,7 +337,7 @@ func TestRemoveOpencodePlugin_KeepsForeignPlugins(t *testing.T) {
 	}
 }
 
-// The v1 source tree is yesmem's own and goes away, wherever the version
+// The v1 source tree is nemons's own and goes away, wherever the version
 // dispatch last pointed.
 func TestRemoveOpencodePlugin_RemovesV1SourceTree(t *testing.T) {
 	home := filepath.Join(t.TempDir(), "home")
@@ -358,7 +358,7 @@ func TestRemoveOpencodePlugin_RemovesV1SourceTree(t *testing.T) {
 	}
 }
 
-// `yesmem status` must see a v2 install. The v2 plugin is a discovered
+// `nemons status` must see a v2 install. The v2 plugin is a discovered
 // directory, not a "plugin" entry, so the config scan alone reports "missing"
 // for a working installation.
 func TestReadOpencodeConfigState_V2DirectoryCountsAsConfigured(t *testing.T) {
@@ -377,7 +377,7 @@ func TestReadOpencodeConfigState_V2DirectoryCountsAsConfigured(t *testing.T) {
 	}
 }
 
-func TestReadOpencodeConfigState_ForeignPluginDirIsNotYesmem(t *testing.T) {
+func TestReadOpencodeConfigState_ForeignPluginDirIsNotNemons(t *testing.T) {
 	home := filepath.Join(t.TempDir(), "home")
 	writeOpencodeJSONC(t, home, `{"$schema": "https://opencode.ai/config.json"}`)
 	dir := filepath.Join(home, ".config", "opencode", "plugins", "my-plugin")
@@ -389,11 +389,11 @@ func TestReadOpencodeConfigState_ForeignPluginDirIsNotYesmem(t *testing.T) {
 	}
 
 	if state := readOpencodeConfigState(home); state.PluginConfigured {
-		t.Error("foreign plugin directory reported as yesmem")
+		t.Error("foreign plugin directory reported as nemons")
 	}
 }
 
-// The embedded bundle is a glob over plugins/opencode-yesmem-v2, so a module added to the repo is picked
+// The embedded bundle is a glob over plugins/opencode-nemons-v2, so a module added to the repo is picked
 // up automatically. This guards the other direction: what the repo carries is what gets installed.
 //
 // The expected set is written out on purpose. Deriving it from isOpencodePluginRuntimeFile would make the
@@ -453,7 +453,7 @@ func TestInstallOpencodePlugin_V2PreservesChosenModel(t *testing.T) {
 	pinOpencodeMajor(t, 2)
 	home := filepath.Join(t.TempDir(), "home")
 
-	if _, err := installOpencodePlugin(home, "/test/yesmem", "opencode/big-pickle", "opencode/big-pickle"); err != nil {
+	if _, err := installOpencodePlugin(home, "/test/nemons", "opencode/big-pickle", "opencode/big-pickle"); err != nil {
 		t.Fatalf("installOpencodePlugin: %v", err)
 	}
 
@@ -472,13 +472,13 @@ func TestInstallOpencodePlugin_V2PreservesChosenModel(t *testing.T) {
 	if entry, ok := cfg["plugin"]; ok {
 		t.Errorf("v1 plugin entry written for opencode 2.x: %v", entry)
 	}
-	if _, err := os.Stat(filepath.Join(home, ".config", "opencode", "plugins", "yesmem.ts")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(home, ".config", "opencode", "plugins", "nemons.ts")); !os.IsNotExist(err) {
 		t.Errorf("v1 symlink created for opencode 2.x (stat err=%v)", err)
 	}
 }
 
-// writeV1Artifacts plants what an old yesmem setup left on a v1 host: the
-// source tree, the yesmem.ts symlink and the config entry. Returns the v1
+// writeV1Artifacts plants what an old nemons setup left on a v1 host: the
+// source tree, the nemons.ts symlink and the config entry. Returns the v1
 // index path the entry points at.
 func writeV1Artifacts(t *testing.T, home string) string {
 	t.Helper()
@@ -496,7 +496,7 @@ func writeV1Artifacts(t *testing.T, home string) string {
 	if err := os.MkdirAll(pluginsDir, 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.Symlink(v1Index, filepath.Join(pluginsDir, "yesmem.ts")); err != nil {
+	if err := os.Symlink(v1Index, filepath.Join(pluginsDir, "nemons.ts")); err != nil {
 		t.Fatal(err)
 	}
 	writeOpencodeJSONC(t, home, `{
@@ -512,7 +512,7 @@ func TestInstallOpencodePlugin_RemovesV1ArtifactsOnV1Host(t *testing.T) {
 	pinOpencodeMajor(t, 1)
 	home := filepath.Join(t.TempDir(), "home")
 	v1Index := writeV1Artifacts(t, home)
-	userRules := filepath.Join(home, "memory", "yesmem", "RULES.md")
+	userRules := filepath.Join(home, "memory", "nemons", "RULES.md")
 	if err := os.MkdirAll(filepath.Dir(userRules), 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -527,7 +527,7 @@ func TestInstallOpencodePlugin_RemovesV1ArtifactsOnV1Host(t *testing.T) {
 	if _, err := os.Stat(v1InstallDir(home)); !os.IsNotExist(err) {
 		t.Errorf("v1 source tree survived (stat err=%v)", err)
 	}
-	if _, err := os.Lstat(filepath.Join(home, ".config", "opencode", "plugins", "yesmem.ts")); !os.IsNotExist(err) {
+	if _, err := os.Lstat(filepath.Join(home, ".config", "opencode", "plugins", "nemons.ts")); !os.IsNotExist(err) {
 		t.Errorf("v1 symlink survived (lstat err=%v)", err)
 	}
 	cfg := string(readFileOrFail(t, filepath.Join(home, ".config", "opencode", "opencode.jsonc")))
@@ -707,16 +707,16 @@ func TestReadOpencodeConfigState_V2WinsOverUnparseableConfig(t *testing.T) {
 
 // Only our own path is dropped from the config: an identically named path in
 // another home belongs to someone else.
-func TestDropYesmemPluginEntry_MatchesOwnPathOnly(t *testing.T) {
+func TestDropNemonsPluginEntry_MatchesOwnPathOnly(t *testing.T) {
 	home := filepath.Join(t.TempDir(), "home")
-	own := filepath.Join(home, ".local", "share", "yesmem", "plugins", "opencode-yesmem", "index.ts")
-	foreign := "/home/other/.local/share/yesmem/plugins/opencode-yesmem/index.ts"
+	own := filepath.Join(home, ".local", "share", "nemons", "plugins", "opencode-nemons", "index.ts")
+	foreign := "/home/other/.local/share/nemons/plugins/opencode-nemons/index.ts"
 	// A directory with our plugin's name outside our home is someone else's
 	// project, not our install (YM-371).
-	foreignProject := "/srv/apps/plugins/opencode-yesmem/index.ts"
+	foreignProject := "/srv/apps/plugins/opencode-nemons/index.ts"
 	cfg := map[string]any{"plugin": []any{own, foreign, foreignProject}}
 
-	if !dropYesmemPluginEntry(cfg, home) {
+	if !dropNemonsPluginEntry(cfg, home) {
 		t.Fatal("own entry not dropped")
 	}
 	kept, _ := cfg["plugin"].([]any)
@@ -737,32 +737,32 @@ func TestIsV1PluginEntry(t *testing.T) {
 		{"own persistent", filepath.Join(v1InstallDir(home), "index.ts"), true},
 		// The dev shape next to a binary needs the executable anchor, so the bare
 		// path is not ours (see TestLos18iDevTreeEntryIsAnchoredAtTheRunningBinary).
-		{"dev fallback as written", "/home/dev/bin/../plugins/opencode-yesmem/index.ts", false},
-		{"dev fallback cleaned", "/home/dev/plugins/opencode-yesmem/index.ts", false},
-		{"system-wide install", "/opt/local/share/yesmem/plugins/opencode-yesmem/index.ts", true},
-		{"system-wide install under usr", "/usr/local/share/yesmem/plugins/opencode-yesmem/index.ts", true},
-		{"another home's install", "/home/other/.local/share/yesmem/plugins/opencode-yesmem/index.ts", false},
+		{"dev fallback as written", "/home/dev/bin/../plugins/opencode-nemons/index.ts", false},
+		{"dev fallback cleaned", "/home/dev/plugins/opencode-nemons/index.ts", false},
+		{"system-wide install", "/opt/local/share/nemons/plugins/opencode-nemons/index.ts", true},
+		{"system-wide install under usr", "/usr/local/share/nemons/plugins/opencode-nemons/index.ts", true},
+		{"another home's install", "/home/other/.local/share/nemons/plugins/opencode-nemons/index.ts", false},
 		// A directory that merely carries the tail is not ours. Claiming it
 		// deleted another project's registration on uninstall and reported it
 		// as our install in status (YM-371).
-		{"another project's plugin directory", "/srv/apps/plugins/opencode-yesmem/index.ts", false},
-		{"another project inside our home", "/home/dev/projects/otherapp/plugins/opencode-yesmem/index.ts", false},
-		{"another home's dev fallback", "/home/other/plugins/opencode-yesmem/index.ts", false},
-		{"nested beside the binaries of another project", "/home/dev2/plugins/opencode-yesmem/index.ts", false},
-		// A share/yesmem tail under a foreign prefix is a copy, not a
+		{"another project's plugin directory", "/srv/apps/plugins/opencode-nemons/index.ts", false},
+		{"another project inside our home", "/home/dev/projects/otherapp/plugins/opencode-nemons/index.ts", false},
+		{"another home's dev fallback", "/home/other/plugins/opencode-nemons/index.ts", false},
+		{"nested beside the binaries of another project", "/home/dev2/plugins/opencode-nemons/index.ts", false},
+		// A share/nemons tail under a foreign prefix is a copy, not a
 		// system-wide install of ours (YM-371 cold review).
-		{"another user's share tree", "/home/other/share/yesmem/plugins/opencode-yesmem/index.ts", false},
-		{"a project's share tree", "/srv/apps/share/yesmem/plugins/opencode-yesmem/index.ts", false},
-		{"a vendor tree under opt", "/opt/vendor-x/share/yesmem/plugins/opencode-yesmem/index.ts", false},
+		{"another user's share tree", "/home/other/share/nemons/plugins/opencode-nemons/index.ts", false},
+		{"a project's share tree", "/srv/apps/share/nemons/plugins/opencode-nemons/index.ts", false},
+		{"a vendor tree under opt", "/opt/vendor-x/share/nemons/plugins/opencode-nemons/index.ts", false},
 		// A path nested inside a persistent install belongs to that install, not
 		// to the tail shape it happens to end with.
-		{"nested under a persistent install", "/home/dev/.local/share/yesmem/plugins/opencode-yesmem/vendor/plugins/opencode-yesmem/index.ts", false},
-		{"user's own plugin", "/home/other/projects/yesmem-tools/plugins/index.ts", false},
-		{"relative entry", "plugins/opencode-yesmem/index.ts", false},
-		{"relative with parent", "../plugins/opencode-yesmem/index.ts", false},
+		{"nested under a persistent install", "/home/dev/.local/share/nemons/plugins/opencode-nemons/vendor/plugins/opencode-nemons/index.ts", false},
+		{"user's own plugin", "/home/other/projects/nemons-tools/plugins/index.ts", false},
+		{"relative entry", "plugins/opencode-nemons/index.ts", false},
+		{"relative with parent", "../plugins/opencode-nemons/index.ts", false},
 		// A config entry pointing at the v2 install dir is stale too: opencode
 		// discovers that directory, and uninstall deletes it.
-		{"v2 install dir entry", "/home/dev/.config/opencode/plugins/opencode-yesmem/index.ts", true},
+		{"v2 install dir entry", "/home/dev/.config/opencode/plugins/opencode-nemons/index.ts", true},
 		{"empty", "", false},
 	}
 	for _, tc := range tests {
@@ -773,24 +773,24 @@ func TestIsV1PluginEntry(t *testing.T) {
 }
 
 // The dev fallback is anchored at the binary that wrote it: the v1 installer
-// used <bin>/../plugins/opencode-yesmem/index.ts, so an entry next to the running
+// used <bin>/../plugins/opencode-nemons/index.ts, so an entry next to the running
 // binary is provably ours while an identically shaped path next to a different
 // binary is not.
 func TestLos18iDevTreeEntryIsAnchoredAtTheRunningBinary(t *testing.T) {
 	const home = "/home/dev"
-	const executable = "/srv/checkout/yesmem"
-	entry := "/srv/plugins/opencode-yesmem/index.ts"
+	const executable = "/srv/checkout/nemons"
+	entry := "/srv/plugins/opencode-nemons/index.ts"
 
 	if !isV1PluginEntryFrom(entry, home, executable) {
 		t.Error("dev tree entry next to the running binary was not claimed")
 	}
-	if isV1PluginEntryFrom(entry, home, "/opt/build/yesmem") {
+	if isV1PluginEntryFrom(entry, home, "/opt/build/nemons") {
 		t.Error("dev tree entry was claimed for a different binary")
 	}
 	if isV1PluginEntryFrom(entry, home, "") {
 		t.Error("dev tree entry was claimed without an executable")
 	}
-	if isV1PluginEntryFrom("/srv/plugins/opencode-yesmem/other.ts", home, executable) {
+	if isV1PluginEntryFrom("/srv/plugins/opencode-nemons/other.ts", home, executable) {
 		t.Error("a different file next to the binary was claimed")
 	}
 }
@@ -925,7 +925,7 @@ func TestWriteOpencodeConfig_KeepsASymlinkedConfigALink(t *testing.T) {
 // literals. A marker that straddles a read boundary must still be found; a
 // per-chunk search without overlap would miss exactly that case.
 func TestFileContainsMarkers_AcrossChunkBoundary(t *testing.T) {
-	markers := [][]byte{[]byte("opencode.yesmem"), []byte("register_pid")}
+	markers := [][]byte{[]byte("opencode.nemons"), []byte("register_pid")}
 	dir := t.TempDir()
 
 	for _, at := range []int{
@@ -1014,7 +1014,7 @@ func fileContainsMarkersOrFail(t *testing.T, path string, markers [][]byte) bool
 	return found
 }
 
-// YM-241: an opencode build that carries the yesmem plugin drops a second copy
+// YM-241: an opencode build that carries the nemons plugin drops a second copy
 // with the same id and reports "Duplicate plugin ID". Where the plugin is
 // built in, there is nothing to deliver, so setup writes no external copy.
 // The v1 artifacts are dead on every path and still go.
@@ -1036,7 +1036,7 @@ func TestInstallOpencodePlugin_BuiltinPluginSkipsTheExternalCopy(t *testing.T) {
 	if _, err := os.Stat(v1Index); !os.IsNotExist(err) {
 		t.Errorf("v1 sources survived the skip (stat err=%v)", err)
 	}
-	if _, err := os.Lstat(filepath.Join(home, ".config", "opencode", "plugins", "yesmem.ts")); !os.IsNotExist(err) {
+	if _, err := os.Lstat(filepath.Join(home, ".config", "opencode", "plugins", "nemons.ts")); !os.IsNotExist(err) {
 		t.Errorf("v1 symlink survived the skip (lstat err=%v)", err)
 	}
 }
@@ -1128,7 +1128,7 @@ func TestInstallOpencodePlugin_RedundantCopyCannotForgeALine(t *testing.T) {
 	}
 }
 
-// A host that ran an older yesmem has the external copy already. Setup does not
+// A host that ran an older nemons has the external copy already. Setup does not
 // delete it, because it may be newer than the plugin compiled into the binary,
 // but it must name it: otherwise the duplicate-id entry stays unexplained.
 func TestInstallOpencodePlugin_BuiltinPluginNamesTheRedundantCopy(t *testing.T) {
@@ -1213,7 +1213,7 @@ func TestInstallOpencodePlugin_RealProbeFindsTheBuiltinAndSkips(t *testing.T) {
 		t.Fatal(err)
 	}
 	bin := filepath.Join(binDir, "opencode")
-	if err := os.WriteFile(bin, []byte("#!/bin/sh\n// Plugin.define id opencode.yesmem\n// rpc.call register_pid\n"), 0755); err != nil {
+	if err := os.WriteFile(bin, []byte("#!/bin/sh\n// Plugin.define id opencode.nemons\n// rpc.call register_pid\n"), 0755); err != nil {
 		t.Fatal(err)
 	}
 	t.Setenv("HOME", home)

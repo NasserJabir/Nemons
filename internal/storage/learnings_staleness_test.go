@@ -3,7 +3,7 @@ package storage
 import (
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func TestStaleness_CRUD(t *testing.T) {
@@ -13,7 +13,7 @@ func TestStaleness_CRUD(t *testing.T) {
 	l := &models.Learning{
 		Category:  "gotcha",
 		Content:   "Test function FooBar was removed in v2.0",
-		Project:   "yesmem",
+		Project:   "nemons",
 		ModelUsed: "test",
 	}
 	id, err := s.InsertLearning(l)
@@ -27,7 +27,7 @@ func TestStaleness_CRUD(t *testing.T) {
 	}
 
 	// Verify via GetStaleLearnings
-	stale, err := s.GetStaleLearnings("yesmem", 0.5)
+	stale, err := s.GetStaleLearnings("nemons", 0.5)
 	if err != nil {
 		t.Fatalf("GetStaleLearnings: %v", err)
 	}
@@ -57,19 +57,19 @@ func TestStaleness_CRUD(t *testing.T) {
 func TestStaleness_FilterByMinScore(t *testing.T) {
 	s := mustOpen(t)
 
-	l1 := &models.Learning{Category: "gotcha", Content: "High staleness", Project: "yesmem", ModelUsed: "test"}
+	l1 := &models.Learning{Category: "gotcha", Content: "High staleness", Project: "nemons", ModelUsed: "test"}
 	id1, _ := s.InsertLearning(l1)
 	s.SetStalenessScore(id1, 0.9, "test", "code_contradicts")
 
-	l2 := &models.Learning{Category: "gotcha", Content: "Medium staleness", Project: "yesmem", ModelUsed: "test"}
+	l2 := &models.Learning{Category: "gotcha", Content: "Medium staleness", Project: "nemons", ModelUsed: "test"}
 	id2, _ := s.InsertLearning(l2)
 	s.SetStalenessScore(id2, 0.6, "test", "code_renamed")
 
-	l3 := &models.Learning{Category: "gotcha", Content: "Low staleness", Project: "yesmem", ModelUsed: "test"}
+	l3 := &models.Learning{Category: "gotcha", Content: "Low staleness", Project: "nemons", ModelUsed: "test"}
 	id3, _ := s.InsertLearning(l3)
 	s.SetStalenessScore(id3, 0.3, "test", "code_changed_insight_holds")
 
-	stale, err := s.GetStaleLearnings("yesmem", 0.5)
+	stale, err := s.GetStaleLearnings("nemons", 0.5)
 	if err != nil {
 		t.Fatalf("GetStaleLearnings: %v", err)
 	}
@@ -91,7 +91,7 @@ func TestStaleness_FilterByMinScore(t *testing.T) {
 func TestStaleness_Fingerprint(t *testing.T) {
 	s := mustOpen(t)
 
-	l := &models.Learning{Category: "pattern", Content: "Fingerprint test", Project: "yesmem", ModelUsed: "test"}
+	l := &models.Learning{Category: "pattern", Content: "Fingerprint test", Project: "nemons", ModelUsed: "test"}
 	id, _ := s.InsertLearning(l)
 
 	if err := s.StoreCodeFingerprint(id, "abc123def456"); err != nil {
@@ -110,11 +110,11 @@ func TestStaleness_Fingerprint(t *testing.T) {
 func TestStaleness_GetScores(t *testing.T) {
 	s := mustOpen(t)
 
-	l1 := &models.Learning{Category: "gotcha", Content: "Score 0.9", Project: "yesmem", ModelUsed: "test"}
+	l1 := &models.Learning{Category: "gotcha", Content: "Score 0.9", Project: "nemons", ModelUsed: "test"}
 	id1, _ := s.InsertLearning(l1)
 	s.SetStalenessScore(id1, 0.9, "t1", "code_contradicts")
 
-	l2 := &models.Learning{Category: "gotcha", Content: "No score", Project: "yesmem", ModelUsed: "test"}
+	l2 := &models.Learning{Category: "gotcha", Content: "No score", Project: "nemons", ModelUsed: "test"}
 	id2, _ := s.InsertLearning(l2)
 
 	scores, err := s.GetStalenessScores([]int64{id1, id2})

@@ -54,7 +54,7 @@ func TestLos34hClaudeConfigMapRespectsMask(t *testing.T) {
 }
 
 // YM-334 Befund 4: ein gedroppter Mount war nur eine Logzeile. Liegt die
-// yesmem-CLI oder der Job-Socket je unter einer Maske, laufen store() und llm()
+// nemons-CLI oder der Job-Socket je unter einer Maske, laufen store() und llm()
 // im Cap in ein Kommando, das es im Sandbox nicht gibt, und der Cap-Aufrufer
 // sieht nur den Folgesymptom-Fehler. AddReadOnlyMounts muss den Verlust melden.
 // Gleichheit zaehlt wie "darunter": ein Mount, der genau die Maske ist, legt
@@ -62,7 +62,7 @@ func TestLos34hClaudeConfigMapRespectsMask(t *testing.T) {
 func TestLos34hAddReadOnlyMountsReportsDropped(t *testing.T) {
 	t.Run("below a masked directory", func(t *testing.T) {
 		masked := t.TempDir()
-		cli := filepath.Join(masked, "bin", "yesmem")
+		cli := filepath.Join(masked, "bin", "nemons")
 		curl := filepath.Join(t.TempDir(), "curl")
 
 		sb := NewSandbox(SandboxConfig{Enabled: true, MaskedPaths: []string{masked}})
@@ -109,12 +109,12 @@ func TestLos34hAddReadOnlyMountsReportsDropped(t *testing.T) {
 // Profil rendert Mounts: none startet das Kommando direkt, strict verwirft jedes
 // --map unter --lockdown, dort aendert ein verlorener Mount nichts (N1).
 func TestLos34hRequiredMountLossRefusesTheRun(t *testing.T) {
-	sock := "/run/yesmem-run/job.sock"
-	cli := "/home/alice/.local/bin/yesmem"
+	sock := "/run/nemons-run/job.sock"
+	cli := "/home/alice/.local/bin/nemons"
 
 	err := requiredMountErr([]string{cli}, []string{cli, sock}, ProfileStandard)
 	if err == nil {
-		t.Fatal("a lost yesmem CLI mount must refuse the run")
+		t.Fatal("a lost nemons CLI mount must refuse the run")
 	}
 	if !errors.Is(err, errMaskPrepare) {
 		t.Errorf("error %q does not carry errMaskPrepare", err)
@@ -195,9 +195,9 @@ func TestLos34hExecuteCapRefusesProjectBoundWithoutProfile(t *testing.T) {
 	los35bUnsandboxed(t, h)
 	// The caller states its project the way a real call does (session or cwd); a
 	// project-bound cap is not reachable without one (YM-359).
-	los35bInsertCap(t, h, "los34h_probe", "/home/tester/memory/yesmem", "echo ok", "")
+	los35bInsertCap(t, h, "los34h_probe", "/home/tester/memory/nemons", "echo ok", "")
 
-	resp := h.handleExecuteCap(map[string]any{"name": "los34h_probe", "project": "/home/tester/memory/yesmem"})
+	resp := h.handleExecuteCap(map[string]any{"name": "los34h_probe", "project": "/home/tester/memory/nemons"})
 	if resp.Error == "" {
 		t.Fatalf("a project-bound cap without a sandbox line ran unsandboxed, result = %s", resp.Result)
 	}
@@ -241,9 +241,9 @@ func TestLos34hExecuteCapBindingShapes(t *testing.T) {
 		scope      string
 		wantRefuse bool
 	}{
-		{"project and project scope", "/home/tester/memory/yesmem", "project", true},
+		{"project and project scope", "/home/tester/memory/nemons", "project", true},
 		{"project scope without a project", "", "project", true},
-		{"legacy project column on a user-scoped row", "/home/tester/memory/yesmem", "user", true},
+		{"legacy project column on a user-scoped row", "/home/tester/memory/nemons", "user", true},
 		{"user scope without a project", "", "user", false},
 	}
 	for _, tc := range cases {

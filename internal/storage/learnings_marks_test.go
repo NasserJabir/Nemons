@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func TestCountLearningsForSession(t *testing.T) {
@@ -81,7 +81,7 @@ func TestGetLatestStateBrief(t *testing.T) {
 
 	mk := func(content string, created time.Time) *models.Learning {
 		return &models.Learning{
-			Category: "strategic", Content: content, Project: "/home/testuser/memory/yesmem",
+			Category: "strategic", Content: content, Project: "/home/testuser/memory/nemons",
 			Confidence: 1.0, CreatedAt: created, ModelUsed: "self",
 		}
 	}
@@ -99,7 +99,7 @@ func TestGetLatestStateBrief(t *testing.T) {
 		t.Fatalf("insert non-brief: %v", err)
 	}
 
-	got, err := s.GetLatestStateBrief("yesmem")
+	got, err := s.GetLatestStateBrief("nemons")
 	if err != nil {
 		t.Fatalf("GetLatestStateBrief: %v", err)
 	}
@@ -116,7 +116,7 @@ func TestGetLatestStateBrief_LocalWinsOverNewerGlobal(t *testing.T) {
 
 	// Older, but ACTIVE and project-local — must win over the newer foreign brief
 	if _, err := s.InsertLearning(&models.Learning{
-		Category: "strategic", Content: "State brief, local head", Project: "/home/testuser/memory/yesmem",
+		Category: "strategic", Content: "State brief, local head", Project: "/home/testuser/memory/nemons",
 		Confidence: 1.0, CreatedAt: time.Now().Add(-24 * time.Hour), ModelUsed: "self",
 	}); err != nil {
 		t.Fatalf("insert local: %v", err)
@@ -128,7 +128,7 @@ func TestGetLatestStateBrief_LocalWinsOverNewerGlobal(t *testing.T) {
 		t.Fatalf("insert global: %v", err)
 	}
 
-	got, err := s.GetLatestStateBrief("yesmem")
+	got, err := s.GetLatestStateBrief("nemons")
 	if err != nil {
 		t.Fatalf("GetLatestStateBrief: %v", err)
 	}
@@ -140,9 +140,9 @@ func TestGetLatestStateBrief_LocalWinsOverNewerGlobal(t *testing.T) {
 func TestGetLatestStateBrief_FallsBackToGlobalWhenNoLocalActive(t *testing.T) {
 	s := mustOpen(t)
 
-	// yesmem brief exists but is superseded (e.g. by an old cross-project write)
+	// nemons brief exists but is superseded (e.g. by an old cross-project write)
 	localID, err := s.InsertLearning(&models.Learning{
-		Category: "strategic", Content: "State brief, dead local head", Project: "/home/testuser/memory/yesmem",
+		Category: "strategic", Content: "State brief, dead local head", Project: "/home/testuser/memory/nemons",
 		Confidence: 1.0, CreatedAt: time.Now().Add(-48 * time.Hour), ModelUsed: "self",
 	})
 	if err != nil {
@@ -160,7 +160,7 @@ func TestGetLatestStateBrief_FallsBackToGlobalWhenNoLocalActive(t *testing.T) {
 	}
 	// Even newer, but superseded too — must not win the fallback
 	newestID, err := s.InsertLearning(&models.Learning{
-		Category: "strategic", Content: "State brief, superseded newest", Project: "/home/testuser/memory/yesmem",
+		Category: "strategic", Content: "State brief, superseded newest", Project: "/home/testuser/memory/nemons",
 		Confidence: 1.0, CreatedAt: time.Now(), ModelUsed: "self",
 	})
 	if err != nil {
@@ -170,7 +170,7 @@ func TestGetLatestStateBrief_FallsBackToGlobalWhenNoLocalActive(t *testing.T) {
 		t.Fatalf("supersede newest: %v", err)
 	}
 
-	got, err := s.GetLatestStateBrief("yesmem")
+	got, err := s.GetLatestStateBrief("nemons")
 	if err != nil {
 		t.Fatalf("GetLatestStateBrief: %v", err)
 	}

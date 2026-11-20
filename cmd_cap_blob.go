@@ -7,9 +7,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/capblob"
-	"github.com/carsteneu/yesmem/internal/daemon"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/capblob"
+	"github.com/NasserJabir/Nemons/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // rpcStore satisfies capblob.Store by routing every call through the daemon's
@@ -19,7 +19,7 @@ type rpcStore struct {
 }
 
 func dialCapStore() (*rpcStore, func(), error) {
-	client, err := daemon.DialTimeout(yesmemDataDir(), 5*time.Second)
+	client, err := daemon.DialTimeout(nemonsDataDir(), 5*time.Second)
 	if err != nil {
 		return nil, nil, fmt.Errorf("connect to daemon: %w", err)
 	}
@@ -203,13 +203,13 @@ func runCapBlobGet() {
 }
 
 func printCapBlobPutHelp() {
-	fmt.Fprintln(os.Stderr, `yesmem cap-blob-put --cap NAME --key KEY
+	fmt.Fprintln(os.Stderr, `nemons cap-blob-put --cap NAME --key KEY
   Reads stdin and stores it as chunked blob in the named cap's blobs table.
-  Use with: curl URL | yesmem cap-blob-put --cap reddit_fetch --key "url:$URL"`)
+  Use with: curl URL | nemons cap-blob-put --cap reddit_fetch --key "url:$URL"`)
 }
 
 func printCapBlobGetHelp() {
-	fmt.Fprintln(os.Stderr, `yesmem cap-blob-get --cap NAME --key KEY
+	fmt.Fprintln(os.Stderr, `nemons cap-blob-get --cap NAME --key KEY
   Retrieves a previously stored blob and writes it to stdout.`)
 }
 

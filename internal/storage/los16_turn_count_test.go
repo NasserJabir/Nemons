@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // YM-34: models.Learning.CurrentTurnCount is read by the scoring functions but
@@ -73,7 +73,7 @@ func TestLos16ActiveLearningsCarryCurrentTurnCount(t *testing.T) {
 // briefings read learnings while extraction and maintenance batches hold a write
 // transaction, and a read on that connection waits until the transaction ends.
 func TestLos16ActiveLearningsDoNotBlockOnOpenWriteTx(t *testing.T) {
-	s, err := Open(filepath.Join(t.TempDir(), "yesmem.db"))
+	s, err := Open(filepath.Join(t.TempDir(), "nemons.db"))
 	if err != nil {
 		t.Fatalf("open: %v", err)
 	}

@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/claudemd"
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/extraction"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/claudemd"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/extraction"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 type claudeMdTestClient struct{ calls int }
@@ -29,7 +29,7 @@ func (c *claudeMdTestClient) Name() string  { return "test" }
 func (c *claudeMdTestClient) Model() string { return "test-model" }
 
 func TestClaudeMdOutputForOpencode(t *testing.T) {
-	cfg := &config.ClaudeMdConfig{OutputFileName: "yesmem-ops.md"}
+	cfg := &config.ClaudeMdConfig{OutputFileName: "nemons-ops.md"}
 
 	agents := claudeMdOutputFor(cfg, true)
 	if !agents.agents {
@@ -43,8 +43,8 @@ func TestClaudeMdOutputForOpencode(t *testing.T) {
 	if claude.agents {
 		t.Error("default mode must not select the agents target")
 	}
-	if claude.fileName != "yesmem-ops.md" {
-		t.Errorf("default mode fileName = %q, want yesmem-ops.md", claude.fileName)
+	if claude.fileName != "nemons-ops.md" {
+		t.Errorf("default mode fileName = %q, want nemons-ops.md", claude.fileName)
 	}
 }
 
@@ -70,7 +70,7 @@ func TestGenerateForOpencodeWritesAgentsMd(t *testing.T) {
 
 	cfg := &config.ClaudeMdConfig{
 		MaxPerCategory: map[string]int{"gotcha": 5},
-		OutputFileName: "yesmem-ops.md",
+		OutputFileName: "nemons-ops.md",
 	}
 	dir := t.TempDir()
 	gen := claudemd.NewGenerator(store, &claudeMdTestClient{}, cfg)
@@ -82,7 +82,7 @@ func TestGenerateForOpencodeWritesAgentsMd(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(dir, "AGENTS.md")); err != nil {
 		t.Errorf("AGENTS.md not written: %v", err)
 	}
-	if _, err := os.Stat(filepath.Join(dir, ".claude", "yesmem-ops.md")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(dir, ".claude", "nemons-ops.md")); !os.IsNotExist(err) {
 		t.Errorf("default target written in --opencode mode: %v", err)
 	}
 }

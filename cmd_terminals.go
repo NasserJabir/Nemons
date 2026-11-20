@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/terminals"
+	"github.com/NasserJabir/Nemons/internal/terminals"
 )
 
 func runSaveTerminals() {
-	if err := terminals.Save(yesmemDataDir()); err != nil {
+	if err := terminals.Save(nemonsDataDir()); err != nil {
 		fmt.Fprintf(os.Stderr, "save-terminals: %v\n", err)
 		os.Exit(1)
 	}
@@ -18,7 +18,7 @@ func runSaveTerminals() {
 }
 
 func runRestartTerminals() {
-	if err := terminals.Restore(yesmemDataDir()); err != nil {
+	if err := terminals.Restore(nemonsDataDir()); err != nil {
 		fmt.Fprintf(os.Stderr, "restart-terminals: %v\n", err)
 		os.Exit(1)
 	}
@@ -57,10 +57,10 @@ func runSpawnTerminal() {
 		fmt.Fprintf(os.Stderr, "spawn-terminal: Verzeichnis %q nicht gefunden: %v\n", abs, err)
 		os.Exit(1)
 	}
-	id, err := terminals.SpawnNewTerminal(yesmemDataDir(), abs, backend)
+	id, err := terminals.SpawnNewTerminal(nemonsDataDir(), abs, backend)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "spawn-terminal: %v (läuft der Daemon?)\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("Neue Terminal-Session gestartet: Agent %s (in %s)\nReinrelayen: yesmem relay --to %s --content \"...\"\n", id, abs, id)
+	fmt.Printf("Neue Terminal-Session gestartet: Agent %s (in %s)\nReinrelayen: nemons relay --to %s --content \"...\"\n", id, abs, id)
 }

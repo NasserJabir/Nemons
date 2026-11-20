@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // YM-359 (OPS-88, key 1): loadCapMeta read every active cap row regardless of
@@ -167,8 +167,8 @@ func TestLos35fTrustedSessionNamesTheCallersProject(t *testing.T) {
 func TestLos35fSameBasenameInAnotherRepositoryIsForeign(t *testing.T) {
 	isolateHome(t)
 	h, _ := mustHandler(t)
-	rowProject := filepath.Join(t.TempDir(), "yesmem")
-	callerProject := filepath.Join(t.TempDir(), "yesmem")
+	rowProject := filepath.Join(t.TempDir(), "nemons")
+	callerProject := filepath.Join(t.TempDir(), "nemons")
 	insertCapRow(t, h, "los35f_same_basename", rowProject, "echo elsewhere", "", "project")
 
 	resp := h.handleExecuteCap(map[string]any{
@@ -189,7 +189,7 @@ func TestLos35fWorktreeOfTheSameRepositoryReachesTheRow(t *testing.T) {
 	isolateHome(t)
 	los35fRequireAijail(t)
 	h, _ := mustHandler(t)
-	root := filepath.Join(t.TempDir(), "yesmem")
+	root := filepath.Join(t.TempDir(), "nemons")
 	insertCapRow(t, h, "los35f_worktree_row", root, "echo worktree-body", "", "project")
 
 	resp := h.handleExecuteCap(map[string]any{
@@ -208,7 +208,7 @@ func TestLos35fWorktreeOfTheSameRepositoryReachesTheRow(t *testing.T) {
 }
 
 // A caller that states a bare name names no repository, so it must not reach a row
-// that is bound to a full path: otherwise "yesmem" picks up the cap of any checkout
+// that is bound to a full path: otherwise "nemons" picks up the cap of any checkout
 // of that name, the same leak this ticket closes one level up.
 func TestLos35fBareNameCallerReachesNoPathBoundRow(t *testing.T) {
 	isolateHome(t)

@@ -35,7 +35,7 @@ func dumpFilesIn(t *testing.T, dir string) []string {
 // again after a proxy restart. Dumps named <kind>/req_<reqIdx>_body.json were
 // silently overwritten by the next process lifetime.
 func TestDebugDumps_DoNotOverwriteAcrossRestart(t *testing.T) {
-	t.Setenv("YESMEM_PROXY_DEBUG", "1")
+	t.Setenv("NEMONS_PROXY_DEBUG", "1")
 	dir := t.TempDir()
 
 	// Same reqIdx twice = two process lifetimes writing request #7.
@@ -52,7 +52,7 @@ func TestDebugDumps_DoNotOverwriteAcrossRestart(t *testing.T) {
 // while the pre/post dumps went to <dataDir>/debug/. All dumps belong in one
 // directory.
 func TestDebugDumps_LiveInDebugDir(t *testing.T) {
-	t.Setenv("YESMEM_PROXY_DEBUG", "1")
+	t.Setenv("NEMONS_PROXY_DEBUG", "1")
 	dir := t.TempDir()
 
 	writeDebugDump(dir, "sess-1759abc", dumpKindBody, 3, []byte(`{"hi":1}`))
@@ -67,7 +67,7 @@ func TestDebugDumps_LiveInDebugDir(t *testing.T) {
 
 // Regression YM-3: dumps are full transcripts and were written world-readable.
 func TestDebugDumps_ModeIs0600(t *testing.T) {
-	t.Setenv("YESMEM_PROXY_DEBUG", "1")
+	t.Setenv("NEMONS_PROXY_DEBUG", "1")
 	dir := t.TempDir()
 
 	writeDebugDump(dir, "", dumpKindBody, 5, []byte(`{"hi":1}`))
@@ -88,8 +88,8 @@ func TestDebugDumps_ModeIs0600(t *testing.T) {
 // Regression YM-3: neither logs/ nor debug/ had any size or age bound (53 GB
 // during the incident). The new scheme prunes itself and touches nothing else.
 func TestDebugDumps_PruneKeepsBoundAndSparesForeignFiles(t *testing.T) {
-	t.Setenv("YESMEM_PROXY_DEBUG", "1")
-	t.Setenv("YESMEM_PROXY_DEBUG_MAX_FILES", "10")
+	t.Setenv("NEMONS_PROXY_DEBUG", "1")
+	t.Setenv("NEMONS_PROXY_DEBUG_MAX_FILES", "10")
 	lastDumpPruneNano.Store(0) // otherwise the throttle skips this prune
 	dir := t.TempDir()
 	dumpDir := filepath.Join(dir, "debug")

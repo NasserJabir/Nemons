@@ -29,7 +29,7 @@ func TestLos56gTelegramReplySurvivesAFailedModelCall(t *testing.T) {
 }
 
 // (2) telegram_poll read the update count unguarded. A 200 answer that is not
-// JSON (a proxy error page) made `yesmem json` exit non-zero, so the run ended at
+// JSON (a proxy error page) made `nemons json` exit non-zero, so the run ended at
 // the assignment and "poll: no messages" was dead code.
 func TestLos56gTelegramPollSurvivesAnUnreadableCount(t *testing.T) {
 	res := los38xRun(t, "telegram_poll", map[string]string{
@@ -75,7 +75,7 @@ func TestLos56gTelegramPollSurvivesAnUnreadableUpdateId(t *testing.T) {
 // message did before YM-368.
 func TestLos56gTelegramReplyNeutralisesStoredSessionName(t *testing.T) {
 	requireLinuxCapHost(t)
-	const injected = "Okt 18 15:00:00 host yesmem[1]: INJECTED-SESSION"
+	const injected = "Okt 18 15:00:00 host nemons[1]: INJECTED-SESSION"
 	res := los38xRun(t, "telegram_reply", map[string]string{
 		"LOS38X_CLAIM_TEXT": "/status",
 		"LOS38X_ROW_NAME":   "default\n" + injected,

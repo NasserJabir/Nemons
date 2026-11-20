@@ -1,8 +1,8 @@
-# Code of Conduct — YesMem
+# Code of Conduct — Nemons
 
 ## 1. Purpose
 
-YesMem aims to provide a focused, high-signal environment for building and improving a local-first memory system for developer workflows.
+Nemons aims to provide a focused, high-signal environment for building and improving a local-first memory system for developer workflows.
 
 We prioritize:
 
@@ -117,7 +117,7 @@ Maintainers are expected to:
 
 ## 9. Project-Specific Principles
 
-Given the nature of YesMem:
+Given the nature of Nemons:
 
 * discussions should favor technical depth over verbosity
 * claims should be backed by implementation details or measurable effects

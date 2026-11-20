@@ -7,13 +7,13 @@ import (
 	"testing"
 )
 
-// YM-338 (Los 24d): openSQLite hardens yesmem.db, runtime.db and messages.db, but
+// YM-338 (Los 24d): openSQLite hardens nemons.db, runtime.db and messages.db, but
 // the data directory also holds databases that never pass through it
 // (guard_state.db, caps.db, and the empty legacy stubs agents.db,
 // sessions.db, learnings.db, proxy_rt.db). They kept the umask mode.
 func TestHardenDBFilesInDirCoversEveryDatabaseAndSidecar(t *testing.T) {
 	dir := t.TempDir()
-	databases := []string{"guard_state.db", "cap_store.db", "agents.db", "yesmem.db-wal", "runtime.db-shm", "yesmem.db.bak-pre-apply"}
+	databases := []string{"guard_state.db", "cap_store.db", "agents.db", "nemons.db-wal", "runtime.db-shm", "nemons.db.bak-pre-apply"}
 	for _, name := range databases {
 		writeWithMode(t, filepath.Join(dir, name), 0o644)
 	}
@@ -66,7 +66,7 @@ func TestHardenDBFilesInDirIgnoresAMissingDirectory(t *testing.T) {
 // daemon unstartable because a failed chmod was a hard error. The data directory
 // itself is 0700, so a mode that cannot be set is a warning, not a lost start.
 func TestOpenSQLiteSurvivesAFileSystemWithoutChmod(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "yesmem.db")
+	path := filepath.Join(t.TempDir(), "nemons.db")
 
 	previous := chmodFile
 	chmodFile = func(string, os.FileMode) error { return syscall.EPERM }

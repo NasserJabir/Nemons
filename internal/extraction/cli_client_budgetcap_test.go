@@ -3,7 +3,7 @@ package extraction
 import (
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/sanitize"
+	"github.com/NasserJabir/Nemons/internal/sanitize"
 )
 
 // The daemon wraps every LLM handle with a SanitizingClient as the OUTERMOST

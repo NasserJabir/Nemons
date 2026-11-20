@@ -8,7 +8,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // ScriptInjection carries one script entry inside a cap — Cap-Spec v1.1
@@ -100,7 +100,7 @@ func renderCapabilitiesCatalog(caps []CapInjection) string {
 	var b strings.Builder
 	b.WriteString("<system-reminder>\n<caps-available>\n")
 	b.WriteString("# Available Capabilities\n\n")
-	b.WriteString("Activate before use: `await mcp__yesmem__activate_cap({name: \"<name>\"})` in REPL — fetches full handler from DB and returns `{code, description}`. Then `eval(result.code)` to register the tool.\n\n")
+	b.WriteString("Activate before use: `await mcp__nemons__activate_cap({name: \"<name>\"})` in REPL — fetches full handler from DB and returns `{code, description}`. Then `eval(result.code)` to register the tool.\n\n")
 	b.WriteString("When a capability handler errors: diagnose the root cause, fix the handler, save the corrected version via `save_cap` (auto-supersedes), then retry.\n\n")
 
 	b.WriteString("| Capability | Description |\n|---|---|\n")
@@ -402,9 +402,9 @@ func renderOpencodeCapabilitiesCatalog(caps []CapInjection) string {
 	var b strings.Builder
 	b.WriteString("<system-reminder>\n<caps-available>\n")
 	b.WriteString("# Available Capabilities\n\n")
-	b.WriteString("To execute: in Code Mode `await tools.yesmem.execute_cap({name: \"<name>\", fn: \"<function>\", args: '{\"key\":\"value\"}'})`, as a direct MCP tool `yesmem_execute_cap(...)`. The daemon runs the script sandboxed: a script that names no sandbox profile inherits the daemon default (standard unless configured otherwise), and `none` applies only when the script writes it out. The result comes back as the return value.\n\n")
+	b.WriteString("To execute: in Code Mode `await tools.nemons.execute_cap({name: \"<name>\", fn: \"<function>\", args: '{\"key\":\"value\"}'})`, as a direct MCP tool `nemons_execute_cap(...)`. The daemon runs the script sandboxed: a script that names no sandbox profile inherits the daemon default (standard unless configured otherwise), and `none` applies only when the script writes it out. The result comes back as the return value.\n\n")
 	b.WriteString("`fn` is one of the names in the Functions column; omit it only when the cap has a single tool script.\n\n")
-	b.WriteString("When a capability script errors: diagnose the root cause, fix the script, save the corrected version via `save_cap` (`tools.yesmem.save_cap` in Code Mode), then retry.\n\n")
+	b.WriteString("When a capability script errors: diagnose the root cause, fix the script, save the corrected version via `save_cap` (`tools.nemons.save_cap` in Code Mode), then retry.\n\n")
 	b.WriteString("| Capability | Functions | Description |\n|---|---|---|\n")
 	for _, cap := range sorted {
 		fns := capFunctionCell(cap)

@@ -14,10 +14,10 @@ import (
 // the user sees in their config and what setup documents.
 func TestAllLiveConfigKeysPresent(t *testing.T) {
 	if testing.Short() {
-		t.Skip("requires reading ~/.claude/yesmem/config.yaml")
+		t.Skip("requires reading ~/.claude/nemons/config.yaml")
 	}
 	home, _ := os.UserHomeDir()
-	livePath := home + "/.claude/yesmem/config.yaml"
+	livePath := home + "/.claude/nemons/config.yaml"
 	liveData, err := os.ReadFile(livePath)
 	if err != nil {
 		t.Skipf("live config not readable: %v", err)

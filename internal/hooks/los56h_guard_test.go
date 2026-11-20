@@ -18,7 +18,7 @@ func TestLos56hTildeCdReachesTheGuard(t *testing.T) {
 	blocked := [][3]string{
 		{"the reported shape", `cd ~ && printf PWNED > .claude/settings.json`, settings},
 		{"a quoted tilde", `cd "~" && printf PWNED > .claude/settings.json`, settings},
-		{"the generated ops file behind a tilde cd", `cd ~ && printf PWNED > .claude/yesmem-ops.md`, "yesmem-ops.md"},
+		{"the generated ops file behind a tilde cd", `cd ~ && printf PWNED > .claude/nemons-ops.md`, "nemons-ops.md"},
 	}
 	allowed := [][2]string{
 		{"a tilde cd to an unrelated tree", `cd ~ && printf PWNED > notes.txt`},
@@ -32,7 +32,7 @@ func TestLos56hTildeCdReachesTheGuard(t *testing.T) {
 		t.Fatalf("create .claude: %v", err)
 	}
 	los31gAssert(t, home, [][3]string{
-		{"a tilde cd before a copy", `cd ~/.claude && cp /x/yesmem-ops.md .`, "yesmem-ops.md"},
+		{"a tilde cd before a copy", `cd ~/.claude && cp /x/nemons-ops.md .`, "nemons-ops.md"},
 	}, nil)
 }
 
@@ -51,7 +51,7 @@ func TestLos56hAssignedVariableTargetReachesTheGuard(t *testing.T) {
 		{"a directory variable before cd", `d=$HOME/.claude; cd $d && printf PWNED > settings.json`, settings},
 		{"a file name variable", `f=settings.json; printf PWNED > $HOME/.claude/$f`, settings},
 		{"a tee behind a variable verb", `x=tee; printf PWNED | $x $HOME/.claude/settings.json`, settings},
-		{"the generated ops file", `p=$HOME/.claude/yesmem-ops.md; echo x > $p`, "yesmem-ops.md"},
+		{"the generated ops file", `p=$HOME/.claude/nemons-ops.md; echo x > $p`, "nemons-ops.md"},
 		{"an assigned partial name", `p=$HOME/.claude/$f.json; printf PWNED > $p`, settings},
 		{"an assigned substitution", `p=$HOME/.claude/$(printf settings.json); printf PWNED > $p`, settings},
 	}
@@ -76,7 +76,7 @@ func TestLos56hDefaultExpansionReachesTheGuard(t *testing.T) {
 		{"the reported shape", `printf PWNED > ${x:-$HOME/.claude/settings.json}`, settings},
 		{"a braced home in the fallback", `printf PWNED > ${x:-${HOME}/.claude/settings.json}`, settings},
 		{"an absolute fallback", `printf PWNED > ${x:-` + settings + `}`, settings},
-		{"the generated ops file", `echo x > ${x:-$HOME/.claude/yesmem-ops.md}`, "yesmem-ops.md"},
+		{"the generated ops file", `echo x > ${x:-$HOME/.claude/nemons-ops.md}`, "nemons-ops.md"},
 	}
 	allowed := [][2]string{
 		{"a fallback into an unrelated file", `printf PWNED > ${x:-` + filepath.Join(home, "notes.txt") + `}`},
@@ -98,7 +98,7 @@ func TestLos56hPartialExpansionReachesTheGuard(t *testing.T) {
 		{"an unknown name behind a literal prefix", `printf PWNED > $HOME/.claude/settings$x`, "settings.json"},
 		{"a command substitution as the name", `printf PWNED > $HOME/.claude/$(printf settings.json)`, settings},
 		{"a backtick substitution as the name", "printf PWNED > $HOME/.claude/`printf settings.json`", settings},
-		{"a substitution on the ops file", `echo x > $HOME/.claude/$(echo yesmem-ops).md`, "yesmem-ops.md"},
+		{"a substitution on the ops file", `echo x > $HOME/.claude/$(echo nemons-ops).md`, "nemons-ops.md"},
 	}
 	allowed := [][2]string{
 		{"a suffix that cannot name a protected file", `printf PWNED > $HOME/.claude/$f.log`},

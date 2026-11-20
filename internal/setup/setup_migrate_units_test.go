@@ -15,28 +15,28 @@ func TestMigrateSystemdUnits_RemovesNetworkOnline(t *testing.T) {
 	}
 
 	units := map[string]string{
-		"yesmem.service": `[Unit]
-Description=YesMem — Long-term memory for coding agents
+		"nemons.service": `[Unit]
+Description=Nemons — Long-term memory for coding agents
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/yesmem daemon --replace
+ExecStart=/usr/local/bin/nemons daemon --replace
 Restart=always
 RestartSec=10
 
 [Install]
 WantedBy=default.target
 `,
-		"yesmem-proxy.service": `[Unit]
-Description=YesMem Proxy — Infinite-thread context for coding agents
+		"nemons-proxy.service": `[Unit]
+Description=Nemons Proxy — Infinite-thread context for coding agents
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/yesmem proxy
+ExecStart=/usr/local/bin/nemons proxy
 Restart=always
 RestartSec=10
 
@@ -59,8 +59,8 @@ WantedBy=default.target
 	}
 
 	for name, ref := range map[string]string{
-		"yesmem.service":      "ExecStart=/usr/local/bin/yesmem daemon --replace",
-		"yesmem-proxy.service": "ExecStart=/usr/local/bin/yesmem proxy",
+		"nemons.service":      "ExecStart=/usr/local/bin/nemons daemon --replace",
+		"nemons-proxy.service": "ExecStart=/usr/local/bin/nemons proxy",
 	} {
 		data, err := os.ReadFile(filepath.Join(dir, name))
 		if err != nil {
@@ -86,8 +86,8 @@ func TestMigrateSystemdUnits_Idempotent(t *testing.T) {
 		t.Fatal(err)
 	}
 	// A unit exactly as this binary writes it: migration must leave it alone.
-	clean := buildDaemonUnit("/usr/local/bin/yesmem", ":0", "/home/u/.Xauthority", "unix:path=/run/user/1000/bus", "http://localhost:9099")
-	if err := os.WriteFile(filepath.Join(dir, "yesmem.service"), []byte(clean), 0644); err != nil {
+	clean := buildDaemonUnit("/usr/local/bin/nemons", ":0", "/home/u/.Xauthority", "unix:path=/run/user/1000/bus", "http://localhost:9099")
+	if err := os.WriteFile(filepath.Join(dir, "nemons.service"), []byte(clean), 0644); err != nil {
 		t.Fatal(err)
 	}
 

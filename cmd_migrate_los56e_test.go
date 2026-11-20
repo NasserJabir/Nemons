@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/archive"
-	"github.com/carsteneu/yesmem/internal/models"
-	"github.com/carsteneu/yesmem/internal/storage"
+	"github.com/NasserJabir/Nemons/internal/archive"
+	"github.com/NasserJabir/Nemons/internal/models"
+	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
 // TestLos56eMigrateProjectMovesTheArchiveDirectory is the regression test for
@@ -19,7 +19,7 @@ import (
 func TestLos56eMigrateProjectMovesTheArchiveDirectory(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	if err := os.MkdirAll(dataDir, 0o700); err != nil {
 		t.Fatal(err)
 	}
@@ -27,7 +27,7 @@ func TestLos56eMigrateProjectMovesTheArchiveDirectory(t *testing.T) {
 	fromPath := filepath.Join(home, "old-project")
 	toPath := filepath.Join(home, "new-project")
 
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -59,7 +59,7 @@ func TestLos56eMigrateProjectMovesTheArchiveDirectory(t *testing.T) {
 
 	prevArgs := os.Args
 	t.Cleanup(func() { os.Args = prevArgs })
-	os.Args = []string{"yesmem", "migrate-project", fromPath, toPath, "--no-backup"}
+	os.Args = []string{"nemons", "migrate-project", fromPath, toPath, "--no-backup"}
 	runMigrateProject()
 
 	newDir := filepath.Join(dataDir, "archive", archive.ProjectDirName(toPath))
@@ -75,7 +75,7 @@ func TestLos56eMigrateProjectMovesTheArchiveDirectory(t *testing.T) {
 	}
 
 	// The database rename itself must still have happened.
-	store2, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store2, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("reopen store: %v", err)
 	}
@@ -95,7 +95,7 @@ func TestLos56eMigrateProjectMovesTheArchiveDirectory(t *testing.T) {
 func TestLos56eMigrateProjectMergesIntoAnExistingArchiveDir(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	if err := os.MkdirAll(dataDir, 0o700); err != nil {
 		t.Fatal(err)
 	}
@@ -103,7 +103,7 @@ func TestLos56eMigrateProjectMergesIntoAnExistingArchiveDir(t *testing.T) {
 	fromPath := filepath.Join(home, "old-project")
 	toPath := filepath.Join(home, "new-project")
 
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -139,7 +139,7 @@ func TestLos56eMigrateProjectMergesIntoAnExistingArchiveDir(t *testing.T) {
 
 	prevArgs := os.Args
 	t.Cleanup(func() { os.Args = prevArgs })
-	os.Args = []string{"yesmem", "migrate-project", fromPath, toPath, "--no-backup"}
+	os.Args = []string{"nemons", "migrate-project", fromPath, toPath, "--no-backup"}
 	runMigrateProject()
 
 	if body, err := os.ReadFile(filepath.Join(newDir, "kept.jsonld")); err != nil || string(body) != "already-there" {
@@ -160,7 +160,7 @@ func TestLos56eMigrateProjectMergesIntoAnExistingArchiveDir(t *testing.T) {
 func TestLos56eMigrateProjectUsesTheConfiguredArchiveDir(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	dataDir := filepath.Join(home, ".claude", "yesmem")
+	dataDir := filepath.Join(home, ".claude", "nemons")
 	if err := os.MkdirAll(dataDir, 0o700); err != nil {
 		t.Fatal(err)
 	}
@@ -176,7 +176,7 @@ func TestLos56eMigrateProjectUsesTheConfiguredArchiveDir(t *testing.T) {
 	fromPath := filepath.Join(home, "old-project")
 	toPath := filepath.Join(home, "new-project")
 
-	store, err := storage.Open(filepath.Join(dataDir, "yesmem.db"))
+	store, err := storage.Open(filepath.Join(dataDir, "nemons.db"))
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -207,7 +207,7 @@ func TestLos56eMigrateProjectUsesTheConfiguredArchiveDir(t *testing.T) {
 
 	prevArgs := os.Args
 	t.Cleanup(func() { os.Args = prevArgs })
-	os.Args = []string{"yesmem", "migrate-project", fromPath, toPath, "--no-backup"}
+	os.Args = []string{"nemons", "migrate-project", fromPath, toPath, "--no-backup"}
 	runMigrateProject()
 
 	newDir := filepath.Join(customArchive, archive.ProjectDirName(toPath))

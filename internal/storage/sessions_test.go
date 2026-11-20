@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 func insertSessionForResolve(t *testing.T, s *Store, id, project, projectShort string, startedAt time.Time) {
@@ -117,14 +117,14 @@ func TestResolveProjectShortStrict_UniqueShortResolvesWithFullpathData(t *testin
 	s := mustOpen(t)
 	base := time.Now()
 	// Real data shape after v0.65: project_short = full path
-	insertSessionForResolve(t, s, "s1", "/home/user/yesmem", "/home/user/yesmem", base)
+	insertSessionForResolve(t, s, "s1", "/home/user/nemons", "/home/user/nemons", base)
 
-	got, err := s.ResolveProjectShortStrict("yesmem", "")
+	got, err := s.ResolveProjectShortStrict("nemons", "")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if got != "/home/user/yesmem" {
-		t.Errorf("got %q, want /home/user/yesmem", got)
+	if got != "/home/user/nemons" {
+		t.Errorf("got %q, want /home/user/nemons", got)
 	}
 }
 
@@ -166,44 +166,44 @@ func TestResolveProjectShortStrict_UnknownShortPassthrough(t *testing.T) {
 func TestResolveProjectShortStrict_CwdExactMatch(t *testing.T) {
 	s := mustOpen(t)
 	base := time.Now()
-	insertSessionForResolve(t, s, "s1", "/home/user/memory/yesmem", "/home/user/memory/yesmem", base)
-	insertSessionForResolve(t, s, "s2", "/home/user/other/yesmem", "/home/user/other/yesmem", base.Add(time.Minute))
+	insertSessionForResolve(t, s, "s1", "/home/user/memory/nemons", "/home/user/memory/nemons", base)
+	insertSessionForResolve(t, s, "s2", "/home/user/other/nemons", "/home/user/other/nemons", base.Add(time.Minute))
 
 	// cwd matches first candidate exactly
-	got, err := s.ResolveProjectShortStrict("yesmem", "/home/user/memory/yesmem")
+	got, err := s.ResolveProjectShortStrict("nemons", "/home/user/memory/nemons")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if got != "/home/user/memory/yesmem" {
-		t.Errorf("got %q, want /home/user/memory/yesmem", got)
+	if got != "/home/user/memory/nemons" {
+		t.Errorf("got %q, want /home/user/memory/nemons", got)
 	}
 }
 
 func TestResolveProjectShortStrict_CwdAncestorMatch(t *testing.T) {
 	s := mustOpen(t)
 	base := time.Now()
-	insertSessionForResolve(t, s, "s1", "/home/user/memory/yesmem", "/home/user/memory/yesmem", base)
-	insertSessionForResolve(t, s, "s2", "/home/user/other/yesmem", "/home/user/other/yesmem", base.Add(time.Minute))
+	insertSessionForResolve(t, s, "s1", "/home/user/memory/nemons", "/home/user/memory/nemons", base)
+	insertSessionForResolve(t, s, "s2", "/home/user/other/nemons", "/home/user/other/nemons", base.Add(time.Minute))
 
 	// cwd is a subdirectory (worktree) of the first candidate
-	got, err := s.ResolveProjectShortStrict("yesmem", "/home/user/memory/yesmem/.worktrees/yesloop-test")
+	got, err := s.ResolveProjectShortStrict("nemons", "/home/user/memory/nemons/.worktrees/yesloop-test")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if got != "/home/user/memory/yesmem" {
-		t.Errorf("got %q, want /home/user/memory/yesmem", got)
+	if got != "/home/user/memory/nemons" {
+		t.Errorf("got %q, want /home/user/memory/nemons", got)
 	}
 }
 
 func TestResolveProjectShortStrict_CwdAncestorExactBoundary(t *testing.T) {
-	// Guard: /home/user/memory/yes must NOT be ancestor of /home/user/memory/yesmem
+	// Guard: /home/user/memory/yes must NOT be ancestor of /home/user/memory/nemons
 	s := mustOpen(t)
 	base := time.Now()
 	insertSessionForResolve(t, s, "s1", "/home/user/memory/yes", "/home/user/memory/yes", base)
-	insertSessionForResolve(t, s, "s2", "/home/user/memory/yesmem", "/home/user/memory/yesmem", base.Add(time.Minute))
+	insertSessionForResolve(t, s, "s2", "/home/user/memory/nemons", "/home/user/memory/nemons", base.Add(time.Minute))
 
-	// "yes" only matches /home/user/memory/yes (basename), not /home/user/memory/yesmem
-	got, err := s.ResolveProjectShortStrict("yes", "/home/user/memory/yesmem")
+	// "yes" only matches /home/user/memory/yes (basename), not /home/user/memory/nemons
+	got, err := s.ResolveProjectShortStrict("yes", "/home/user/memory/nemons")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -217,16 +217,16 @@ func TestResolveProjectShortStrict_CwdLongestAncestor(t *testing.T) {
 	// a caller inside the worktree should resolve to the worktree (longest match).
 	s := mustOpen(t)
 	base := time.Now()
-	insertSessionForResolve(t, s, "s1", "/home/user/memory/yesmem", "/home/user/memory/yesmem", base)
-	insertSessionForResolve(t, s, "s2", "/home/user/memory/yesmem/.worktrees/yesmem", "/home/user/memory/yesmem/.worktrees/yesmem", base.Add(time.Minute))
+	insertSessionForResolve(t, s, "s1", "/home/user/memory/nemons", "/home/user/memory/nemons", base)
+	insertSessionForResolve(t, s, "s2", "/home/user/memory/nemons/.worktrees/nemons", "/home/user/memory/nemons/.worktrees/nemons", base.Add(time.Minute))
 
 	// cwd inside the worktree
-	got, err := s.ResolveProjectShortStrict("yesmem", "/home/user/memory/yesmem/.worktrees/yesmem/src")
+	got, err := s.ResolveProjectShortStrict("nemons", "/home/user/memory/nemons/.worktrees/nemons/src")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if got != "/home/user/memory/yesmem/.worktrees/yesmem" {
-		t.Errorf("got %q, want /home/user/memory/yesmem/.worktrees/yesmem (longest ancestor)", got)
+	if got != "/home/user/memory/nemons/.worktrees/nemons" {
+		t.Errorf("got %q, want /home/user/memory/nemons/.worktrees/nemons (longest ancestor)", got)
 	}
 }
 
@@ -251,11 +251,11 @@ func TestResolveProjectShortStrict_CwdAncestorFalsePositiveGuard(t *testing.T) {
 func TestResolveProjectShortStrict_AmbiguousNoCwdMatch(t *testing.T) {
 	s := mustOpen(t)
 	base := time.Now()
-	insertSessionForResolve(t, s, "s1", "/home/user/memory/yesmem", "/home/user/memory/yesmem", base)
-	insertSessionForResolve(t, s, "s2", "/home/user/other/yesmem", "/home/user/other/yesmem", base.Add(time.Minute))
+	insertSessionForResolve(t, s, "s1", "/home/user/memory/nemons", "/home/user/memory/nemons", base)
+	insertSessionForResolve(t, s, "s2", "/home/user/other/nemons", "/home/user/other/nemons", base.Add(time.Minute))
 
 	// cwd doesn't match either candidate → AmbiguousProjectError
-	got, err := s.ResolveProjectShortStrict("yesmem", "/unrelated/path")
+	got, err := s.ResolveProjectShortStrict("nemons", "/unrelated/path")
 	if err == nil {
 		t.Fatalf("expected AmbiguousProjectError for unresolved cwd mismatch, got %q", got)
 	}
@@ -301,12 +301,12 @@ func TestMigrationV066_AgentsProjectBackfill(t *testing.T) {
 
 	// Insert sessions with full paths (post-v0.65 data shape)
 	_, err := s.db.Exec(`INSERT INTO sessions (id, project, project_short, started_at, indexed_at, jsonl_path)
-		VALUES ('s1', '/home/user/memory/yesmem', '/home/user/memory/yesmem', datetime('now'), datetime('now'), '/s1.jsonl')`)
+		VALUES ('s1', '/home/user/memory/nemons', '/home/user/memory/nemons', datetime('now'), datetime('now'), '/s1.jsonl')`)
 	if err != nil {
 		t.Fatalf("insert session s1: %v", err)
 	}
 	_, err = s.db.Exec(`INSERT INTO sessions (id, project, project_short, started_at, indexed_at, jsonl_path)
-		VALUES ('s2', '/home/user/other/yesmem', '/home/user/other/yesmem', datetime('now'), datetime('now'), '/s2.jsonl')`)
+		VALUES ('s2', '/home/user/other/nemons', '/home/user/other/nemons', datetime('now'), datetime('now'), '/s2.jsonl')`)
 	if err != nil {
 		t.Fatalf("insert session s2: %v", err)
 	}
@@ -317,7 +317,7 @@ func TestMigrationV066_AgentsProjectBackfill(t *testing.T) {
 	}
 
 	// Insert agents with short-name projects (the pre-v0.66 state)
-	_, err = s.db.Exec(`INSERT INTO agents (id, project, section, status) VALUES ('a1', 'yesmem', 'test1', 'running')`)
+	_, err = s.db.Exec(`INSERT INTO agents (id, project, section, status) VALUES ('a1', 'nemons', 'test1', 'running')`)
 	if err != nil {
 		t.Fatalf("insert agent a1: %v", err)
 	}
@@ -345,11 +345,11 @@ func TestMigrationV066_AgentsProjectBackfill(t *testing.T) {
 		t.Fatalf("migration v0.66: %v", err)
 	}
 
-	// a1 'yesmem' → ambiguous (2 matches) → should NOT be updated
+	// a1 'nemons' → ambiguous (2 matches) → should NOT be updated
 	var proj string
 	s.db.QueryRow("SELECT project FROM agents WHERE id = 'a1'").Scan(&proj)
-	if proj != "yesmem" {
-		t.Errorf("agent a1: got %q, want 'yesmem' (ambiguous, should not backfill)", proj)
+	if proj != "nemons" {
+		t.Errorf("agent a1: got %q, want 'nemons' (ambiguous, should not backfill)", proj)
 	}
 
 	// a2 'unique-proj' → unique match → should be updated

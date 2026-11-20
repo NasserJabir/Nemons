@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/opencode"
+	"github.com/NasserJabir/Nemons/internal/opencode"
 )
 
 // modelsJSONEntry represents one provider entry in OpenCode's models.json cache.
@@ -357,7 +357,7 @@ func maybePatchOpenCodeBaseURL(path string, active []autoDiscoveredProvider) (in
 	// untracked copy of the keys would end up in the next commit). Restore it with
 	// `cp`, not `mv`: a move would replace the symlink with a regular file.
 	backupPath := path + autoconfBackupSuffix
-	// The backup is yesmem's own artifact, so it is written without following a
+	// The backup is nemons's own artifact, so it is written without following a
 	// symlink at its path: the rename replaces a link there instead of copying the
 	// config through it to whatever the link points at. A directory cannot be
 	// replaced by a rename, and treating it as "already backed up" would skip the
@@ -399,7 +399,7 @@ func providerConfigChangedSince(path string, before os.FileInfo) bool {
 
 // autoconfBackupSuffix marks the copy of opencode's config taken before the first
 // automatic baseURL patch.
-const autoconfBackupSuffix = ".yesmem-backup"
+const autoconfBackupSuffix = ".nemons-backup"
 
 // runAutoDiscovery loads models.json and opencode.json, discovers active providers,
 // builds autoProviderTargets, and patches opencode.json baseURLs.

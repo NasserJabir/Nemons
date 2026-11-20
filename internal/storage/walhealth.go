@@ -112,7 +112,7 @@ type dbPool struct {
 // WAL to poison. Its rollback journal is a different failure and a different
 // heal.
 func (s *Store) walGuardPools() []dbPool {
-	main := dbPool{name: "yesmem.db", path: s.dbPath, writer: s.db, all: []*sql.DB{s.db}}
+	main := dbPool{name: "nemons.db", path: s.dbPath, writer: s.db, all: []*sql.DB{s.db}}
 	if s.readDB != nil && s.readDB != s.db {
 		main.all = append(main.all, s.readDB)
 	}

@@ -3,8 +3,8 @@ package main
 import (
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/config"
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/config"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // YM-136: the profile layers must survive the mapping from config.yaml into the

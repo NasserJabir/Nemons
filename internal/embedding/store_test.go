@@ -442,8 +442,8 @@ func TestVectorStoreSearchAllowedLargeSet(t *testing.T) {
 }
 
 // TestVectorStoreSearchWithProject_FullPathAgainstShort verifies the regression fix:
-// when a caller passes project="/home/user/memory/yesmem" but learnings carry
-// project="yesmem" (legacy) or canonical_project="yesmem", the vector search
+// when a caller passes project="/home/user/memory/nemons" but learnings carry
+// project="nemons" (legacy) or canonical_project="nemons", the vector search
 // must still return matches. Before the fix bruteForceScan filtered via
 // `WHERE project = ?` and excluded everything.
 func TestVectorStoreSearchWithProject_FullPathAgainstShort(t *testing.T) {
@@ -455,10 +455,10 @@ func TestVectorStoreSearchWithProject_FullPathAgainstShort(t *testing.T) {
 	ctx := context.Background()
 
 	db.Exec(`INSERT INTO learnings(id, content, category, project, canonical_project)
-		VALUES (1, 'vector project filter regression doc', 'test', 'yesmem', 'yesmem')`)
+		VALUES (1, 'vector project filter regression doc', 'test', 'nemons', 'nemons')`)
 	store.Add(ctx, VectorDoc{ID: "1", Embedding: makeVec(384, 0.5)})
 
-	results, err := store.SearchWithProject(ctx, makeVec(384, 0.5), 5, "/home/user/memory/yesmem")
+	results, err := store.SearchWithProject(ctx, makeVec(384, 0.5), 5, "/home/user/memory/nemons")
 	if err != nil {
 		t.Fatalf("SearchWithProject: %v", err)
 	}
@@ -479,10 +479,10 @@ func TestVectorStoreSearchWithProject_WorktreeAgainstShort(t *testing.T) {
 	ctx := context.Background()
 
 	db.Exec(`INSERT INTO learnings(id, content, category, project, canonical_project)
-		VALUES (1, 'worktree project filter vector match', 'test', 'yesmem', 'yesmem')`)
+		VALUES (1, 'worktree project filter vector match', 'test', 'nemons', 'nemons')`)
 	store.Add(ctx, VectorDoc{ID: "1", Embedding: makeVec(384, 0.5)})
 
-	results, err := store.SearchWithProject(ctx, makeVec(384, 0.5), 5, "/home/user/memory/yesmem/.worktrees/foo")
+	results, err := store.SearchWithProject(ctx, makeVec(384, 0.5), 5, "/home/user/memory/nemons/.worktrees/foo")
 	if err != nil {
 		t.Fatalf("SearchWithProject: %v", err)
 	}
@@ -502,7 +502,7 @@ func TestVectorStoreSearchWithProject_NoMatchFiltered(t *testing.T) {
 	ctx := context.Background()
 
 	db.Exec(`INSERT INTO learnings(id, content, category, project, canonical_project)
-		VALUES (1, 'unrelated project vector must filter out', 'test', 'yesmem', 'yesmem')`)
+		VALUES (1, 'unrelated project vector must filter out', 'test', 'nemons', 'nemons')`)
 	store.Add(ctx, VectorDoc{ID: "1", Embedding: makeVec(384, 0.5)})
 
 	results, err := store.SearchWithProject(ctx, makeVec(384, 0.5), 5, "/home/user/projects/other")
@@ -511,7 +511,7 @@ func TestVectorStoreSearchWithProject_NoMatchFiltered(t *testing.T) {
 	}
 	for _, r := range results {
 		if r.ID == "1" {
-			t.Fatalf("expected unrelated project to be filtered, got result from yesmem: %+v", r)
+			t.Fatalf("expected unrelated project to be filtered, got result from nemons: %+v", r)
 		}
 	}
 }
@@ -557,7 +557,7 @@ func TestVectorStoreSearchWithProject_LegacyEmptyProjectMatches(t *testing.T) {
 		VALUES (1, 'legacy vector row with empty project metadata', 'test', '', '')`)
 	store.Add(ctx, VectorDoc{ID: "1", Embedding: makeVec(384, 0.5)})
 
-	results, err := store.SearchWithProject(ctx, makeVec(384, 0.5), 5, "/home/user/memory/yesmem")
+	results, err := store.SearchWithProject(ctx, makeVec(384, 0.5), 5, "/home/user/memory/nemons")
 	if err != nil {
 		t.Fatalf("SearchWithProject: %v", err)
 	}

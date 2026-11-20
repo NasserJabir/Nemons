@@ -35,8 +35,8 @@ const (
 	// defaultDumpMaxFiles / defaultDumpMaxAge / defaultDumpMaxBytes bound the
 	// directory: a debugging session writes megabytes per request (53 GB during
 	// the PRX-P16 incident) and a single dump reached 49.9 MB, so a file count
-	// alone is no disk bound. Override with YESMEM_PROXY_DEBUG_MAX_FILES,
-	// YESMEM_PROXY_DEBUG_MAX_AGE and YESMEM_PROXY_DEBUG_MAX_BYTES.
+	// alone is no disk bound. Override with NEMONS_PROXY_DEBUG_MAX_FILES,
+	// NEMONS_PROXY_DEBUG_MAX_AGE and NEMONS_PROXY_DEBUG_MAX_BYTES.
 	defaultDumpMaxFiles = 200
 	defaultDumpMaxAge   = 24 * time.Hour
 	defaultDumpMaxBytes = 1 << 30 // 1 GiB
@@ -55,9 +55,9 @@ var lastDumpPruneNano atomic.Int64
 // dumps in logs/ and the logs/dumps-pre-deploy-* archives all have to survive.
 var dumpNameRe = regexp.MustCompile(`^req_\d{8}-\d{6}\.\d{3}_[A-Za-z0-9.-]+_\d+_(?:pre|body|post)(?:-\d+)?\.json$`)
 
-// debugDumpsEnabled reports whether YESMEM_PROXY_DEBUG=1 is set. Call sites use
+// debugDumpsEnabled reports whether NEMONS_PROXY_DEBUG=1 is set. Call sites use
 // it to skip the marshalling work; writeDebugDump re-checks it.
-func debugDumpsEnabled() bool { return os.Getenv("YESMEM_PROXY_DEBUG") == "1" }
+func debugDumpsEnabled() bool { return os.Getenv("NEMONS_PROXY_DEBUG") == "1" }
 
 // writeDebugDump writes one request body and prunes the dump directory.
 // Returns the path written, or "" when dumps are off, dataDir is empty, or the
@@ -190,7 +190,7 @@ func pruneDebugDumps(dir string, now time.Time, maxFiles int, maxAge time.Durati
 }
 
 func dumpMaxFiles() int {
-	if v := os.Getenv("YESMEM_PROXY_DEBUG_MAX_FILES"); v != "" {
+	if v := os.Getenv("NEMONS_PROXY_DEBUG_MAX_FILES"); v != "" {
 		if n, err := strconv.Atoi(v); err == nil {
 			return n
 		}
@@ -199,7 +199,7 @@ func dumpMaxFiles() int {
 }
 
 func dumpMaxAge() time.Duration {
-	if v := os.Getenv("YESMEM_PROXY_DEBUG_MAX_AGE"); v != "" {
+	if v := os.Getenv("NEMONS_PROXY_DEBUG_MAX_AGE"); v != "" {
 		if d, err := time.ParseDuration(v); err == nil {
 			return d
 		}
@@ -208,7 +208,7 @@ func dumpMaxAge() time.Duration {
 }
 
 func dumpMaxBytes() int64 {
-	if v := os.Getenv("YESMEM_PROXY_DEBUG_MAX_BYTES"); v != "" {
+	if v := os.Getenv("NEMONS_PROXY_DEBUG_MAX_BYTES"); v != "" {
 		if n, err := strconv.ParseInt(v, 10, 64); err == nil {
 			return n
 		}

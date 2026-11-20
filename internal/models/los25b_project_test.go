@@ -11,13 +11,13 @@ func TestLos25b_ClusterProjectKeySeparatesSameBasenameRepos(t *testing.T) {
 		project string
 		want    string
 	}{
-		{"main repo", "/home/tester/memory/yesmem", "/home/tester/memory/yesmem"},
-		{"worktree", "/home/tester/memory/yesmem/.worktrees/yesloop-los-25b", "/home/tester/memory/yesmem"},
+		{"main repo", "/home/tester/memory/nemons", "/home/tester/memory/nemons"},
+		{"worktree", "/home/tester/memory/nemons/.worktrees/yesloop-los-25b", "/home/tester/memory/nemons"},
 		{"claude worktree", "/home/tester/other/.claude/worktrees/feature-x", "/home/tester/other"},
-		{"trailing slash", "/home/tester/memory/yesmem/", "/home/tester/memory/yesmem"},
-		{"same basename, other root", "/home/tester/archive/yesmem", "/home/tester/archive/yesmem"},
+		{"trailing slash", "/home/tester/memory/nemons/", "/home/tester/memory/nemons"},
+		{"same basename, other root", "/home/tester/archive/nemons", "/home/tester/archive/nemons"},
 		// YM-424: a bare name names no repository, so it mints no key.
-		{"legacy bare name", "yesmem", ""},
+		{"legacy bare name", "nemons", ""},
 		{"empty", "", ""},
 	}
 
@@ -30,7 +30,7 @@ func TestLos25b_ClusterProjectKeySeparatesSameBasenameRepos(t *testing.T) {
 		seen[got] = tc.project
 	}
 
-	if ClusterProjectKey("/home/tester/memory/yesmem") == ClusterProjectKey("/home/tester/archive/yesmem") {
+	if ClusterProjectKey("/home/tester/memory/nemons") == ClusterProjectKey("/home/tester/archive/nemons") {
 		t.Fatal("two repositories with the same basename share one cluster key")
 	}
 }
@@ -39,10 +39,10 @@ func TestLos25b_ClusterProjectKeySeparatesSameBasenameRepos(t *testing.T) {
 // be mistaken for one, otherwise the caller would group it as its own repository.
 func TestLos25b_RepositoryRootOnlyForPaths(t *testing.T) {
 	cases := map[string]string{
-		"/home/tester/memory/yesmem":                            "/home/tester/memory/yesmem",
-		"/home/tester/memory/yesmem/.worktrees/yesloop-los-25b": "/home/tester/memory/yesmem",
+		"/home/tester/memory/nemons":                            "/home/tester/memory/nemons",
+		"/home/tester/memory/nemons/.worktrees/yesloop-los-25b": "/home/tester/memory/nemons",
 		"/home/tester/other/.claude/worktrees/x/y":              "/home/tester/other",
-		"yesmem":          "",
+		"nemons":          "",
 		"":                "",
 		"./relative/path": "",
 	}

@@ -1,4 +1,4 @@
-# YesMem — Features
+# Nemons — Features
 
 > Long-term memory system for Claude Code.
 > Not memory FOR an agent, but memory AS agent.
@@ -14,11 +14,11 @@ Every Claude Code session (JSONL files under `~/.claude/projects/`) is automatic
 
 ### Key properties
 - **Zero-cost indexing:** Phase 1 requires no LLM calls — all messages go into SQLite/FTS5 for free
-- **Separate messages.db:** Messages live in their own database file, keeping yesmem.db lean for fast learnings/sessions queries. Messages.db grows independently and can be partitioned when >1 GB
+- **Separate messages.db:** Messages live in their own database file, keeping nemons.db lean for fast learnings/sessions queries. Messages.db grows independently and can be partitioned when >1 GB
 - **Subagent awareness:** Sessions from subagents are linked via `parent_session_id` and annotated in search results (detected by `cc_entrypoint=sdk-ts` or model containing "haiku")
 - **Session flavors:** Each session gets a `session_flavor` tag for categorization
 - **File coverage tracking:** Which files were touched in which sessions (`file_coverage` table)
-- **Permanent archive:** Claude Code deletes sessions after 30 days — YesMem archives all JSONL files permanently in `~/.claude/yesmem/archive/`, organized by project
+- **Permanent archive:** Claude Code deletes sessions after 30 days — Nemons archives all JSONL files permanently in `~/.claude/nemons/archive/`, organized by project
 
 ### Content-Aware Pre-Processing
 
@@ -273,7 +273,7 @@ trust_score = recall × source_multiplier × (importance / 3.0)  <!-- save_count
 - `supersedes` / `superseded_by` — explicit chain linking
 - Navigable chains: `GetSupersededChain(id)` walks the full history
 
-**Unfinished tasks:** `evolution.unfinished_ttl_days` (default 30) only filters the briefing display: older `unfinished` items stop being shown as open tasks. Nothing is archived automatically. Archiving is an explicit step via `yesmem resolve-stale` (`--dry-run` lists the candidates).
+**Unfinished tasks:** `evolution.unfinished_ttl_days` (default 30) only filters the briefing display: older `unfinished` items stop being shown as open tasks. Nothing is archived automatically. Archiving is an explicit step via `nemons resolve-stale` (`--dry-run` lists the candidates).
 
 ### 2.8 Quarantine & Skip-Indexing
 
@@ -385,7 +385,7 @@ Conservative by design: 6-7 build loops in a 500-message session are normal deve
 - **Embedded in binary** via `go:embed` — no download, no external dependencies, no ONNX runtime
 - **Multilingual:** 100+ Sprachen (bert-base-multilingual-uncased Vocab, eigenes Static-Embedding-Format)
 - **Pure Go:** Keine CGo-Abhängigkeit, keine C-Runtime — `SSEProvider` in `internal/embedding/sse.go`
-- **Persistent store:** `~/.claude/yesmem/vectors/`
+- **Persistent store:** `~/.claude/nemons/vectors/`
 - **Async embedding:** Background worker queue, non-blocking
 - **`BuildEmbeddingText()`** generates enriched text from all V2 fields for better vector search
 
@@ -393,11 +393,11 @@ Conservative by design: 6-7 build loops in a 500-message session are normal deve
 
 ## 3. MEMORY.md Auto-Generation
 
-YesMem maintains a `MEMORY.md` file per project that Claude Code loads automatically via its built-in auto-memory feature. Contains only a **narrative redirect** to YesMem's MCP tools — no learning content is written into MEMORY.md.
+Nemons maintains a `MEMORY.md` file per project that Claude Code loads automatically via its built-in auto-memory feature. Contains only a **narrative redirect** to Nemons's MCP tools — no learning content is written into MEMORY.md.
 
 ### What it generates
 - A usage guide pointing Claude to `hybrid_search()`, `search()`, `deep_search()`, `query_facts()`, `expand_context()`, `remember()`, `get_session()`, `get_learnings()`, `related_to_file()`, `set_plan()`, `update_plan()`, `get_plan()`, `complete_plan()`
-- Injected below the `# --- YesMem Auto-Generated ---` marker
+- Injected below the `# --- Nemons Auto-Generated ---` marker
 - User-written content above the marker is preserved
 
 ### Why no learning content
@@ -406,17 +406,17 @@ Early versions wrote Sackgassen, Patterns, Preferences, and Open Tasks directly 
 - Learnings are better served dynamically via briefing and associative context (scored, decayed, deduplicated)
 - Static snapshots in MEMORY.md became stale immediately after new extractions
 
-Triggered by `GenerateAllMemoryMDs()` via CLI commands (`yesmem claudemd`). Note: The `OnMutation` callback in the daemon handler is defined but not wired — runtime auto-generation does not currently happen.
+Triggered by `GenerateAllMemoryMDs()` via CLI commands (`nemons claudemd`). Note: The `OnMutation` callback in the daemon handler is defined but not wired — runtime auto-generation does not currently happen.
 
 ### 5b. AGENTS.md Auto-Generation
 
-For opencode users, yesmem generates `AGENTS.md` — an opencode-specific instruction file (`yesmem claudemd --opencode`). While MEMORY.md is Claude Code's project instruction file with condensed learnings, AGENTS.md is the opencode equivalent with:
+For opencode users, nemons generates `AGENTS.md` — an opencode-specific instruction file (`nemons claudemd --opencode`). While MEMORY.md is Claude Code's project instruction file with condensed learnings, AGENTS.md is the opencode equivalent with:
 
-- **Tool preference directives** — instructions to use yesmem MCP tools (search, learnings, wiki) before raw grep/cat/find
+- **Tool preference directives** — instructions to use nemons MCP tools (search, learnings, wiki) before raw grep/cat/find
 - **OpenCode-relevant structural info** — project name, session history summary, open tasks, wiki path
-- **Same database** — AGENTS.md is generated from the same yesmem.db learnings as MEMORY.md, just formatted for opencode's tool and instruction structure
+- **Same database** — AGENTS.md is generated from the same nemons.db learnings as MEMORY.md, just formatted for opencode's tool and instruction structure
 
-Written to `AGENTS.md` at the project root (constant `claudemd.AgentsFileName`), never to `CLAUDE.md`. Before writing, `ensureOwnedTarget` refuses to overwrite a file yesmem did not generate, and refuses a symlink or non-regular file at that path.
+Written to `AGENTS.md` at the project root (constant `claudemd.AgentsFileName`), never to `CLAUDE.md`. Before writing, `ensureOwnedTarget` refuses to overwrite a file nemons did not generate, and refuses a symlink or non-regular file at that path.
 
 ---
 
@@ -482,11 +482,11 @@ Active expansion of archived/compacted conversation parts. Bridges stub/collapse
 
 ### Knowledge Gap Review
 - **Daily daemon timer** — `runGapReviewDaemon()` reviews unreviewed gaps automatically
-- **CLI:** `yesmem gap-review [--project] [--dry-run] [--limit]`
+- **CLI:** `nemons gap-review [--project] [--dry-run] [--limit]`
 - **Context-enriched** — each gap is enriched with existing related learnings via BM25 search before LLM review
 - **Three verdicts:** `keep` (genuine gap), `resolved` (existing learnings answer it), `noise` (not a real gap — deleted)
 - **Noise patterns:** lost context references, meta-reflection, implementation lookups, incomplete response logs
-- **Differentiated metrics:** `yesmem stats` and `yesmem benchmark` show gaps as `open | auto-resolved | review-resolved`
+- **Differentiated metrics:** `nemons stats` and `nemons benchmark` show gaps as `open | auto-resolved | review-resolved`
 
 ### Self-Feedback
 - `get_self_feedback(days?)` — corrections, patterns, and feedback from recent sessions
@@ -520,8 +520,8 @@ Regenerated as new sessions accumulate.
 
 ## 8. Export & Import
 
-- `yesmem export [path]` — export all learnings + persona to JSON (default: `yesmem-export.json`)
-- `yesmem import <file>` — import learnings from JSON export
+- `nemons export [path]` — export all learnings + persona to JSON (default: `nemons-export.json`)
+- `nemons import <file>` — import learnings from JSON export
 
 Note: Manually saved learnings (`remember()` calls) are NOT recoverable from session data — only `llm_extracted` learnings can be regenerated via re-extraction. Export is the only backup for manual learnings.
 ## 9. Forked Agent Proxy — Background Learning Extraction

@@ -17,7 +17,7 @@ type SessionCap struct {
 
 // capDB returns the preferred database for session-active-caps storage.
 // When caps.db is available (OpenCapsDB was called), it uses that to avoid
-// SQLITE_BUSY contention with yesmem.db writes. Falls back to the main db
+// SQLITE_BUSY contention with nemons.db writes. Falls back to the main db
 // for in-memory tests and backward compatibility.
 func (s *Store) capDB() *sql.DB {
 	if s.capStoreDB != nil {

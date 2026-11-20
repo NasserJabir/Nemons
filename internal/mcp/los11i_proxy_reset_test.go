@@ -77,7 +77,7 @@ func callToolHandlerLOS11i(t *testing.T, h mcpserver.ToolHandlerFunc) string {
 // connection. The daemon answered, so throwing the proxy away forces a pointless
 // reconnect (and a possible daemon start attempt) on the next call.
 func TestLos11iProxyFormatWithParamsKeepsProxyOnDaemonError(t *testing.T) {
-	t.Setenv("YESMEM_SOCK", fakeDaemonError(t, "remember: text is required"))
+	t.Setenv("NEMONS_SOCK", fakeDaemonError(t, "remember: text is required"))
 
 	s := &Server{dataDir: t.TempDir()}
 	s.proxy = &ProxyClient{dataDir: s.dataDir}
@@ -94,7 +94,7 @@ func TestLos11iProxyFormatWithParamsKeepsProxyOnDaemonError(t *testing.T) {
 // TestLos11iProxyFormatWithParamsResetsProxyOnConnectionError is the counter-test:
 // a transport error must still drop the proxy so the next call reconnects.
 func TestLos11iProxyFormatWithParamsResetsProxyOnConnectionError(t *testing.T) {
-	t.Setenv("YESMEM_SOCK", filepath.Join(t.TempDir(), "absent.sock"))
+	t.Setenv("NEMONS_SOCK", filepath.Join(t.TempDir(), "absent.sock"))
 
 	s := &Server{dataDir: t.TempDir()}
 	s.proxy = &ProxyClient{dataDir: s.dataDir}

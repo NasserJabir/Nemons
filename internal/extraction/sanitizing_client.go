@@ -3,7 +3,7 @@ package extraction
 import (
 	"errors"
 
-	"github.com/carsteneu/yesmem/internal/sanitize"
+	"github.com/NasserJabir/Nemons/internal/sanitize"
 )
 
 var _ LLMClient = (*SanitizingClient)(nil)

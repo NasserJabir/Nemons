@@ -11,12 +11,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/opencode"
+	"github.com/NasserJabir/Nemons/internal/opencode"
 )
 
 // A detached OpenCode server still inherits the daemon's systemd cgroup.
-// Stopping yesmem then kills the shared server and every session's shell,
-// including a deployment that was supposed to restart yesmem afterwards.
+// Stopping nemons then kills the shared server and every session's shell,
+// including a deployment that was supposed to restart nemons afterwards.
 // Explicit --server prevents the agent TUI from starting a shared server in
 // our cgroup. New servers are launched by the user manager in their own unit.
 var prepareOpencodeAgentServer = defaultPrepareOpencodeAgentServer
@@ -43,7 +43,7 @@ func serviceControlGroup(group string) bool {
 
 func opencodeServerConnection(svc opencode.Service, daemonGroup, serverGroup string) ([]string, []string, error) {
 	if serverGroup == daemonGroup || strings.HasPrefix(serverGroup, daemonGroup+"/") {
-		return nil, nil, fmt.Errorf("OpenCode server PID %d belongs to the daemon's service; restart that shared server outside yesmem before spawning agents", svc.PID)
+		return nil, nil, fmt.Errorf("OpenCode server PID %d belongs to the daemon's service; restart that shared server outside nemons before spawning agents", svc.PID)
 	}
 	return []string{"--server", svc.URL}, []string{"OPENCODE_PASSWORD=" + svc.Password}, nil
 }
@@ -104,7 +104,7 @@ func startIndependentOpencodeServer(bin string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	args := []string{"--user", "--quiet", "--collect", "--property=Type=exec",
-		"--unit=yesmem-opencode-" + strconv.FormatInt(time.Now().UnixNano(), 10)}
+		"--unit=nemons-opencode-" + strconv.FormatInt(time.Now().UnixNano(), 10)}
 	// systemd supplies the home and runtime dir. Preserve the executable search
 	// path and proxy address the server's tools need, but not agent identity.
 	for _, key := range []string{"PATH", "ANTHROPIC_BASE_URL", "DISPLAY", "XAUTHORITY"} {

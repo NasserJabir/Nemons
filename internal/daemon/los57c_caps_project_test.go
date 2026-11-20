@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 const los57cReplScript = `[{"name":"run","kind":"tool","runtime":"repl","body":"async () => 1"}]`
@@ -151,16 +151,16 @@ func TestLos57cGetCapsListsShadowedNameOnce(t *testing.T) {
 // catalog (get_caps) — against a repository that carries exactly that basename.
 func TestLos57cRelativeRowProjectServesNoRepository(t *testing.T) {
 	h, _ := mustHandler(t)
-	ownMain := filepath.Join(t.TempDir(), "a", "yesmem")
+	ownMain := filepath.Join(t.TempDir(), "a", "nemons")
 	if err := os.MkdirAll(filepath.Join(ownMain, ".git"), 0o755); err != nil {
 		t.Fatalf("mkdir repo: %v", err)
 	}
 
-	seedCap(t, h, "los57c_relative_row", "yesmem/.worktrees/w1", "echo hi", nil)
+	seedCap(t, h, "los57c_relative_row", "nemons/.worktrees/w1", "echo hi", nil)
 
 	if _, _, err := h.loadCapMeta("los57c_relative_row", ownMain); err == nil {
 		t.Errorf("a row stored under the relative project %q was reachable from %s",
-			"yesmem/.worktrees/w1", ownMain)
+			"nemons/.worktrees/w1", ownMain)
 	}
 	caps := unmarshalCaps(t, h.handleGetCaps(map[string]any{"project": ownMain}))
 	if hasCap(caps, "los57c_relative_row") {
@@ -410,12 +410,12 @@ func TestLos57cProjectLessScopeUserLeavesAmbiguousRowsAlone(t *testing.T) {
 // handed that row to every checkout of the name.
 func TestLos57cCatalogHidesRelativeRows(t *testing.T) {
 	h, _ := mustHandler(t)
-	ownMain := filepath.Join(t.TempDir(), "a", "yesmem")
+	ownMain := filepath.Join(t.TempDir(), "a", "nemons")
 	if err := os.MkdirAll(filepath.Join(ownMain, ".git"), 0o755); err != nil {
 		t.Fatalf("mkdir repo: %v", err)
 	}
 
-	seedCapAutoActive(t, h, "los57c_relative_auto", "yesmem/.worktrees/w1")
+	seedCapAutoActive(t, h, "los57c_relative_auto", "nemons/.worktrees/w1")
 
 	caps := unmarshalCaps(t, h.handleGetActiveCaps(map[string]any{"thread_id": "t", "project": ownMain}))
 	if hasCap(caps, "los57c_relative_auto") {
@@ -493,7 +493,7 @@ func TestLos57cScopeUserImportKeepsTheProjectCopy(t *testing.T) {
 // the same folding, otherwise the catalog offers a cap that execute_cap refuses.
 func TestLos57cSubdirectoryCallerIsFoldedOnBothPaths(t *testing.T) {
 	h, _ := mustHandler(t)
-	ownMain := filepath.Join(t.TempDir(), "a", "yesmem")
+	ownMain := filepath.Join(t.TempDir(), "a", "nemons")
 	sub := filepath.Join(ownMain, "internal", "daemon")
 	if err := os.MkdirAll(filepath.Join(ownMain, ".git"), 0o755); err != nil {
 		t.Fatalf("mkdir repo: %v", err)

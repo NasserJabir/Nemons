@@ -6,12 +6,12 @@ import (
 	"io"
 	"os"
 
-	"github.com/carsteneu/yesmem/internal/daemon"
-	"github.com/carsteneu/yesmem/internal/terminals"
+	"github.com/NasserJabir/Nemons/internal/daemon"
+	"github.com/NasserJabir/Nemons/internal/terminals"
 )
 
 // RunIdleTick reads UserPromptSubmit hook JSON from stdin, calls daemon idle_tick,
-// and outputs an escalating reminder if Claude hasn't used yesmem recently.
+// and outputs an escalating reminder if Claude hasn't used nemons recently.
 // Falls back to static micro-reminder if daemon is unreachable.
 func RunIdleTick(dataDir string) {
 	input, err := io.ReadAll(os.Stdin)
@@ -69,7 +69,7 @@ func RunIdleTick(dataDir string) {
 }
 
 func outputStaticReminder() {
-	reminder := `Du hast ein Langzeitgedaechtnis (yesmem). Bei JEDER nicht-trivialen Aufgabe: ZUERST search(thema). Wenn du etwas Wichtiges entdeckst: remember(text, category).`
+	reminder := `Du hast ein Langzeitgedaechtnis (nemons). Bei JEDER nicht-trivialen Aufgabe: ZUERST search(thema). Wenn du etwas Wichtiges entdeckst: remember(text, category).`
 	out := map[string]any{
 		"hookSpecificOutput": map[string]any{
 			"hookEventName":     "UserPromptSubmit",

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/carsteneu/yesmem/internal/verify"
+	"github.com/NasserJabir/Nemons/internal/verify"
 )
 
 // claimsRepo builds a deterministic repository for the operation's tests: one

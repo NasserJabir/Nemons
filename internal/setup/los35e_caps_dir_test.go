@@ -13,8 +13,8 @@ func TestLos35eCapsDirForSetupFollowsTheDataDir(t *testing.T) {
 	home := t.TempDir()
 
 	for _, tt := range []struct{ dataDir, want string }{
-		{filepath.Join(home, ".claude", "yesmem"), filepath.Join(home, ".claude", "caps")},
-		{filepath.Join(home, "xdg-data", "yesmem"), filepath.Join(home, "xdg-data", "caps")},
+		{filepath.Join(home, ".claude", "nemons"), filepath.Join(home, ".claude", "caps")},
+		{filepath.Join(home, "xdg-data", "nemons"), filepath.Join(home, "xdg-data", "caps")},
 	} {
 		if got := los35eCapsDirForSetup(tt.dataDir); got != tt.want {
 			t.Errorf("caps dir for data dir %q = %q, want %q", tt.dataDir, got, tt.want)
@@ -63,7 +63,7 @@ func TestLos35eInstallBundledCapsRejectsARelativeDir(t *testing.T) {
 // ~/.claude has to receive the bundled caps where the daemon reads them.
 func TestLos35eBundledCapsLandWhereTheDaemonImports(t *testing.T) {
 	home := t.TempDir()
-	dataDir := filepath.Join(home, "xdg-data", "yesmem")
+	dataDir := filepath.Join(home, "xdg-data", "nemons")
 	if err := os.MkdirAll(dataDir, 0o755); err != nil {
 		t.Fatalf("mkdir data dir: %v", err)
 	}

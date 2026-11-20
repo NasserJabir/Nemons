@@ -7,13 +7,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/carsteneu/yesmem/internal/wikidir"
+	"github.com/NasserJabir/Nemons/internal/wikidir"
 )
 
 func TestRenderWikiLink_FileMissing(t *testing.T) {
 	t.Setenv("HOME", t.TempDir())
-	out := renderWikiLink("yesmem")
-	if !strings.Contains(out, "~/.claude/yesmem/wiki/yesmem/") {
+	out := renderWikiLink("nemons")
+	if !strings.Contains(out, "~/.claude/nemons/wiki/nemons/") {
 		t.Errorf("missing wiki path in: %q", out)
 	}
 	if !strings.Contains(out, "not yet rendered") {
@@ -30,7 +30,7 @@ func TestRenderWikiLink_FileMissing(t *testing.T) {
 func TestRenderWikiLink_FilePresent(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	wikiDir := filepath.Join(home, ".claude", "yesmem", "wiki", "yesmem")
+	wikiDir := filepath.Join(home, ".claude", "nemons", "wiki", "nemons")
 	if err := os.MkdirAll(wikiDir, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -38,7 +38,7 @@ func TestRenderWikiLink_FilePresent(t *testing.T) {
 	if err := os.WriteFile(healthPath, []byte("test"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	out := renderWikiLink("yesmem")
+	out := renderWikiLink("nemons")
 	if !strings.Contains(out, "last build:") {
 		t.Errorf("missing timestamp label in: %q", out)
 	}
@@ -63,8 +63,8 @@ func TestRenderWikiLink_FilePresent(t *testing.T) {
 // wiki/<basename>/.
 func TestRenderWikiLink_PathInputResolvesToShortName(t *testing.T) {
 	t.Setenv("HOME", t.TempDir())
-	out := renderWikiLink("/home/tester/memory/yesmem")
-	if !strings.Contains(out, "~/.claude/yesmem/wiki/yesmem/") {
+	out := renderWikiLink("/home/tester/memory/nemons")
+	if !strings.Contains(out, "~/.claude/nemons/wiki/nemons/") {
 		t.Errorf("expected short-name wiki path for a path input, got: %q", out)
 	}
 	if strings.Contains(out, "/home/tester/memory") {
@@ -75,14 +75,14 @@ func TestRenderWikiLink_PathInputResolvesToShortName(t *testing.T) {
 func TestRenderWikiLink_PathInputFindsHealthFile(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	wikiDir := filepath.Join(home, ".claude", "yesmem", "wiki", "yesmem")
+	wikiDir := filepath.Join(home, ".claude", "nemons", "wiki", "nemons")
 	if err := os.MkdirAll(wikiDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(wikiDir, "health.md"), []byte("test"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	out := renderWikiLink("/home/tester/memory/yesmem")
+	out := renderWikiLink("/home/tester/memory/nemons")
 	if !strings.Contains(out, "last build:") {
 		t.Errorf("expected health.md of the short-name dir to be found, got: %q", out)
 	}
@@ -94,7 +94,7 @@ func TestRenderWikiLink_PathInputFindsHealthFile(t *testing.T) {
 func TestRenderWikiLink_FollowsCollisionMarker(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	root := filepath.Join(home, ".claude", "yesmem", "wiki")
+	root := filepath.Join(home, ".claude", "nemons", "wiki")
 	projects := []string{"/a/samename", "/z/samename"}
 	names := wikidir.AssignNames(root, projects)
 	for _, p := range projects {

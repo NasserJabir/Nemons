@@ -6,7 +6,7 @@ import (
 	"math"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/models"
+	"github.com/NasserJabir/Nemons/internal/models"
 )
 
 // QueryCluster represents a cluster of semantically similar queries.

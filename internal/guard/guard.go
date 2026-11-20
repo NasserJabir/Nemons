@@ -10,7 +10,7 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/carsteneu/yesmem/internal/guardmodel"
+	"github.com/NasserJabir/Nemons/internal/guardmodel"
 )
 
 // Decision is the judgement. The field names are the wire format of both callers: the hook's
@@ -45,7 +45,7 @@ type Request struct {
 	Context string `json:"context,omitempty"`
 	// Rules is the RULES.md content, already filtered by the caller: the catalogue and the Decision Policy.
 	Rules string `json:"-"`
-	// DataDir is the installation directory (~/.claude/yesmem). Empty means the default installation.
+	// DataDir is the installation directory (~/.claude/nemons). Empty means the default installation.
 	DataDir string `json:"-"`
 	// Purpose selects the prompt template: the guard judges a call, the nudge suggests a skill. One RPC, one
 	// model chain, one cache for both.
