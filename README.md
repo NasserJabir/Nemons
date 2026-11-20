@@ -1,62 +1,108 @@
-# نيمونز Nemons
+# Nemons
 
-**Nemons is a governance-first memory layer for AI coding agents, built on Nemons (Apache-2.0).** كل جلسة برمجة تبدأ من الحالة الحية للمشروع المحكوم — لا من الصفر، ولا من ذاكرة عشوائية.
+[![Go](https://img.shields.io/badge/Go-1.25-00ADD8?logo=go)](https://go.dev)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-45%20packages%20green-brightgreen)](#development)
 
-نيمونز يبني فوق [Nemons](https://github.com/carsteneu/yesmem) (لإسكارين نيو) عبر **22 رقعة موثقة المراسئ** تحوّله من طبقة استمرارية إلى **منظومة ذاكرة تحكمها الحوكمة أولًا**: كل قراءة تمر عبر بوابة إنفاذ خادمية، وكل أثر يُعدّ ولا يُخزَّن محتواه، وكل ادعاء يحمل مصدره وهاشه.
+**A governance-first memory layer for AI coding agents.**
 
-## لماذا نيمونز
+Nemons gives Claude Code, OpenCode, Codex and other agents a project memory they can *trust*: every read passes a server-side enforcement gate, every claim carries its evidence, and nothing the agent "remembers" exists without provenance. It is built on [YesMem](https://github.com/carsteneu/yesmem) (Apache-2.0) and extended by a documented chain of patches.
 
-وكلاء البرمجة الأقوياء داخل الجلسة الواحدة عمالقة النسيان عبر الجلسات. الحلول الشائعة إما تفريغ ذاكرة خام، أو طبقة RAG لا تعرف معنى «خاص». نيمونز يفرض الخط الفاصل الذي رسمته وثيقة التأسيس:
+## Why Nemons
 
-- **الذاكرة ليست سياقًا.** الذاكرة تراكم معرفة؛ السياق ما تستلمه مهمة واحدة فقط — يُبنى عبر البوابة، بميزانية معلنة، وبمراسئ مصدر لكل جزء.
-- **الخصوصية بنية خادمية لا اتفاقية.** ثلاثة نطاقات (`project` / `private` / `shared`) تُحسم في الطبقة التخزينية — الصف الخاص لوكيل ما لا تعبر قراءة وكيل آخر أبدًا، لأن العرض نفسه يفلترها.
-- **البرهان قبل الادعاء.** التجربة تُسجل بدليل وهاش؛ الاعتماد على معرفة يتطلب تجربة مسجلة؛ فاحص الخسارة الدلالية يتحقق أن ما وصل للوكيل هو ما بنته البوابة حرفيًا.
-- **التنظيم مُقترَح لا تلقائي.** التطور المتحكم به: لا تترقّي المعرفة إلا بمسار مقترح → معتمد → مُوثّق، مع الحفاظ على توازن الالتزامات العلوية.
+AI coding agents are powerful inside one session and strangely amnesic across sessions. The usual fixes — a raw memory dump, or a RAG layer over chat logs — share one flaw: they treat *remembering* and *context* as the same thing, and they treat *private* as an agreement between agents instead of a property of the system.
 
-## الأعمدة (من الكود الحي، 22 رقعة فوق الأساس)
+Nemons enforces the distinction:
 
-| العمود | ما يفعله | أين |
+- **Memory is not context.** Memory accumulates knowledge across sessions; context is what one task receives, built through the gate, under a declared budget, with a source anchor for every element.
+- **Privacy is server-side, not contractual.** Three scopes (`project` / `private` / `shared`) are resolved in the storage layer itself. A row marked private for agent A never crosses a read by agent B — because the *view* filters it, not the prompt.
+- **Evidence before claims.** Experience is recorded with a proof and a digest; relying on a claim requires a recorded experiment; and `check_pack_loss` verifies that what the agent *actually received* matches what the gate *actually built* — missing, altered, or injected, per claim.
+- **Evolution is proposed, not automatic.** Knowledge moves through a governed path (proposed → approved → documented) with reconciliation of the top-level commitments.
+
+## Architecture
+
+| Pillar | What it does | Where |
 |---|---|---|
-| جداول الحوكمة | نطاقات المعرفة واعتماداتها في التخزين | `internal/storage` |
-| بوابة الإنفاذ | قرار قرائي صرف: ماذا يرى كل وكيل في كل نداء | `internal/storage` |
-| سجل الأحداث | تدقيق يعدّ لا يخزن — عدادات وبصمات، لا محتوى | `internal/daemon` |
-| سلسلة الإثبات | دليل + hash لكل تجربة، ورفض الادعاء بلا مرسئ | `internal/daemon` |
-| بناء الحزمة | سياق المهمة عبر البوابة، بأولوية معلنة | `internal/daemon/context_engineering.go` |
-| الميزانية المعلنة (رقعة 21) | `budget_chars`: اختيار عناصر كاملة لا بتر نصي — القرارات المعتمدة تصمد أخيرًا، وعدادات الإسقاط معلنة | `internal/daemon/context_budget_test.go` |
-| كشف الخسارة الدلالية (رقعة 22) | `check_pack_loss`: مقارنة المُسلَّم بالمصدر المحكوم ادعاءً بادعاء — missing / altered / injected بنسبة تغطية | `internal/daemon/context_loss_test.go` |
-| أدوات MCP اختيارية | تعريض العمليات المحكومة كأدوات وكيل عبر `NEMONS_FEATURE_TOOLS=1` | `internal/mcp/server.go` |
+| Governance tables | Knowledge scopes and approvals in storage | `internal/storage` |
+| Enforcement gate | A pure read decision: what each agent sees on every call | `internal/storage` |
+| Event ledger | Audit that counts, never stores content — counters and truncated descriptions only | `internal/daemon` |
+| Evidence chain | Proof + digest per experiment; claims without anchors are rejected | `internal/daemon` |
+| Context pack | Task context assembled through the gate with declared priority | `internal/daemon/context_engineering.go` |
+| Declared budget | `budget_chars`: whole elements are kept or dropped, never truncated mid-claim; approved decisions survive last | `internal/daemon/context_budget_test.go` |
+| Semantic loss detection | `check_pack_loss` compares the delivered pack against the governed source claim-by-claim: `missing` / `altered` / `injected`, with a coverage ratio | `internal/daemon/context_loss_test.go` |
+| Caps registry | Upgrade, pinning and rollback for bundled capabilities, with body-digest provenance | `caps/`, `internal/setup` |
+| Optional MCP tools | Governed operations exposed as agent tools via `NEMONS_FEATURE_TOOLS=1` | `internal/mcp/server.go` |
 
-## البدء السريع
+## Quick start
 
-المتطلبات: Go 1.25.
+Requirements: Go 1.25.
 
 ```bash
 git clone https://github.com/NasserJabir/Nemons.git
 cd Nemons
-go build ./...
-go test ./...        # 45 حزمة — آخر جولة موثقة: 45 ok صفر فشل
+make build          # produces ./nemons
+./nemons version
 ```
 
-تشغيل الديمون مع المصادقة الحاملية والسطح القرائي فقط، وتمكين أدوات MCP الاختيارية:
+Install the binary and the daemon integration for your machine:
 
 ```bash
-NEMONS_BEARER_TOKEN=<token-of-your-own> \
-NEMONS_FEATURE_TOOLS=1 \
+make install        # installs to ~/.local/bin/nemons
+./nemons install
+./nemons status
+```
+
+Start the daemon:
+
+```bash
 ./nemons daemon
 ```
 
-ثم من وكيل البرمجة (Claude Code أو OpenCode أو أي عميل MCP): `build_context_pack` يجمع حزمة المهمة عبر العرض الخادمي، و`check_pack_loss` يتحقق من ما وصل فعليًا.
+On first run Nemons creates its data directory at `~/.claude/nemons` (mode `0700`) and generates a bearer token at `~/.claude/nemons/auth_token` (mode `0600`). The HTTP surface authenticates with `Authorization: Bearer <token>`; the token never travels through an environment variable.
 
-## اختبار الحوكمة بلمستك (بلا خادم)
+Enable the optional MCP tools for coding agents:
+
+```bash
+NEMONS_FEATURE_TOOLS=1 ./nemons daemon
+```
+
+Then, from any MCP client: `build_context_pack` assembles a task pack through the gate, and `check_pack_loss` verifies what actually arrived.
+
+## Testing your governance locally
+
+No server needed:
 
 ```bash
 go test ./internal/daemon/ -run 'TestContextPack|TestPackLoss' -v -count=1
 ```
 
-تشمل الاختبارات: بقاء القرار المعتمد تحت ضغط الميزانية، منع البتر النصي (نصف الادعاء ادعاء كاذب)، كشف سقوط ادعاء وتحريف نص، وحفظ النطاق — الخاص لوكيل آخر يظهر كإشارة حقن لا كمعرفة.
+These tests cover: an approved decision surviving budget pressure, the prohibition on mid-claim truncation (half a claim is a false claim), detection of dropped and altered claims, and scope preservation — another agent's private row shows up as an injection signal, never as knowledge.
 
-## الإسناد والترخيص
+## Configuration
 
-- الأساس: [Nemons](https://github.com/carsteneu/yesmem) عند `d0bba3f4` — ترخيص [Apache-2.0](LICENSE)، ومشكور لمالكه الأصلي.
-- طبقة نيمونز (الرقع 1–22): مبنية فوقه بروح Apache-2.0 نفسها، والتاريخ الكامل محفوظ في git — كل رقعة بمرسئها يمكن تصديرها `git format-patch d0bba3f4..HEAD`.
-- الحالة: إصدار داخلي `v0.1.0-internal`.
+All environment variables are prefixed `NEMONS_`. The most common:
+
+| Variable | Purpose |
+|---|---|
+| `NEMONS_FEATURE_TOOLS` | `1` exposes the governed operations as MCP tools |
+| `NEMONS_JOB_DIR` | Working directory for sandboxed jobs |
+| `NEMONS_SOCK` | Daemon socket path |
+| `NEMONS_SESSION_ID` / `NEMONS_SOURCE_AGENT` | Session and agent identity for scoped reads |
+| `NEMONS_PROJECT` | Project scope identifier |
+| `NEMONS_SKILL_ROOTS` | Roots scanned for bundled skills |
+| `NEMONS_GUARD_URL` / `NEMONS_GUARD_KEY` / `NEMONS_GUARD_MODEL` | Guard endpoint for controlled generation |
+| `NEMONS_LOG_FILE` | Daemon log destination |
+
+## Development
+
+```bash
+go test ./...       # 45 packages — the full suite is green on every pushed commit
+```
+
+Every change lands as a numbered patch over the upstream base with its own tests; `git format-patch d0bba3f4..HEAD` exports the complete chain.
+
+## Provenance & licensing
+
+- Base: [YesMem](https://github.com/carsteneu/yesmem) at `d0bba3f4` — Apache-2.0, with thanks to its author.
+- The Nemons layer (patches 1–25) is built on it under the same Apache-2.0 license. The full history is preserved in git; the [SECURITY policy](SECURITY.md) documents the security model as enforced in code.
+- Status: internal release `v0.1.0-internal`.
