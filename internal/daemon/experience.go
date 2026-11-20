@@ -82,13 +82,23 @@ func (h *Handler) handleLogExperience(params map[string]any) Response {
 	if err != nil {
 		return errorResponse(fmt.Sprintf("log_experience: %v", err))
 	}
-	caller, _ := params["_source_agent"].(string)
-	scope, _ := params["sharing_scope"].(string)
+	caller := h.resolveActor(params).ActorID
+	rawScope, _ := params["sharing_scope"].(string)
+	scope := models.NormalizeSharingScope(rawScope)
 	if scope == "" {
-		scope = "project"
+		return errorResponse(fmt.Sprintf("log_experience: unknown sharing scope %q — project, private or global; nothing was saved", rawScope))
 	}
 	if scope == "private" && caller == "" {
 		return errorResponse("log_experience: a private row needs the caller it belongs to (_source_agent); nothing was saved")
+	}
+	// Global scope needs explicit operator authorization (WS-C): the same
+	// standing grant remember uses, no model-controlled path around it.
+	if scope == models.ScopeGlobal {
+		grantKey := storage.GateKey("memory.public_write", nil)
+		grant, err := h.store.ApprovalForKey(grantKey)
+		if err != nil || grant == nil || grant.Status != storage.ApprovalDecided || grant.Decision != storage.ApprovalAllow {
+			return errorResponse("log_experience: publishing needs the memory.public_write grant; nothing was saved")
+		}
 	}
 	row := &models.Learning{
 		Category: "experience", Content: task, Project: project,
@@ -107,7 +117,7 @@ func (h *Handler) handleLogExperience(params map[string]any) Response {
 
 func (h *Handler) handleValidateExperience(params map[string]any) Response {
 	id, _ := params["id"].(float64)
-	validator, _ := params["_source_agent"].(string)
+	validator := h.resolveActor(params).ActorID
 	reject, _ := params["reject"].(bool)
 	if id == 0 {
 		return errorResponse("validate_experience: 'id' is required")
@@ -150,7 +160,7 @@ func (h *Handler) handleGetExperienceSummary(params map[string]any) Response {
 	if project == "" {
 		return errorResponse("get_experience_summary: 'project' is required")
 	}
-	viewer, _ := params["_source_agent"].(string)
+	viewer := h.actorViewerOrDefault(params, "get_experience_summary")
 	rows, err := h.store.GetActiveLearningsFiltered(storage.LearningsFilter{Project: project, Viewer: viewer}, 0)
 	if err != nil {
 		return errorResponse(fmt.Sprintf("get_experience_summary: %v", err))

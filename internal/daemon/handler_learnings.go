@@ -71,7 +71,7 @@ func (h *Handler) handleRemember(params map[string]any) Response {
 		// The supersede target is read as this caller's agent sees it: another
 		// agent's private row reads as absent here, so its existence is not
 		// confirmed through a supersede either.
-		rawCaller, _ := params["_source_agent"].(string)
+		rawCaller := h.resolveActor(params).ActorID
 		target, targetErr = h.store.GetLearningForViewer(int64(supersedesID), rawCaller)
 	}
 
@@ -144,17 +144,22 @@ func (h *Handler) handleRemember(params map[string]any) Response {
 			return errorResponse("remember: a private row needs the caller it belongs to (_source_agent); nothing was saved")
 		}
 		sharingScope = "private"
-	case "public":
-		// The grant is a standing allow on its own key, read directly: the
-		// governed registry is about method calls, this is about a policy grant.
+	case "public", "global":
+		// Global scope requires explicit authorization (WS-C): the standing
+		// memory.public_write grant, decided by the operator. No implicit
+		// promotion — the grant is a standing allow on its own key, read
+		// directly: the governed registry is about method calls, this is about
+		// a policy grant.
 		grantKey := storage.GateKey("memory.public_write", nil)
 		grant, err := h.store.ApprovalForKey(grantKey)
 		if err != nil || grant == nil || grant.Status != storage.ApprovalDecided || grant.Decision != storage.ApprovalAllow {
 			return errorResponse("remember: publishing needs the memory.public_write grant (open ask " + grantKey + " and have it allowed); nothing was saved")
 		}
-		sharingScope = "public"
+		// The canonical value is stored: legacy writers keep reading 'public'
+		// databases fine, but everything written from here on is 'global'.
+		sharingScope = models.ScopeGlobal
 	default:
-		return errorResponse(fmt.Sprintf("remember: unknown sharing scope %q — project, private or public; nothing was saved", rawScope))
+		return errorResponse(fmt.Sprintf("remember: unknown sharing scope %q — project, private or global; nothing was saved", rawScope))
 	}
 	// A cap row is executable code shared by definition: it never takes a
 	// narrower or wider scope than the shared one.
@@ -542,10 +547,13 @@ func (h *Handler) rememberModel(params map[string]any) string {
 }
 
 func (h *Handler) handleGetLearnings(params map[string]any) Response {
+	// Scope enforcement (remediation WS-B): every agent-facing read goes out
+	// through the actor's view. No identity, no read.
+	viewer := h.actorViewerOrDefault(params, "get_learnings")
 	// Single learning by ID
 	if id, ok := params["id"].(float64); ok && id > 0 {
 		if history, _ := params["history"].(bool); history {
-			chain, err := h.store.GetLearningChain(int64(id))
+			chain, err := h.store.GetLearningChainForViewer(int64(id), viewer)
 			if err != nil {
 				return errorResponse(err.Error())
 			}
@@ -554,7 +562,7 @@ func (h *Handler) handleGetLearnings(params map[string]any) Response {
 			}
 			return jsonResponse(chain)
 		}
-		l, err := h.store.GetLearning(int64(id))
+		l, err := h.store.GetLearningForViewer(int64(id), viewer)
 		if err != nil {
 			return errorResponse(err.Error())
 		}
@@ -591,6 +599,7 @@ func (h *Handler) handleGetLearnings(params map[string]any) Response {
 		Since:    since,
 		Before:   before,
 		TaskType: taskType,
+		Viewer:   viewer,
 	}, limit*5)
 	if err != nil {
 		return errorResponse(err.Error())
@@ -622,6 +631,7 @@ func (h *Handler) handleGetLearnings(params map[string]any) Response {
 }
 
 func (h *Handler) handleQueryFacts(params map[string]any) Response {
+	viewer := h.actorViewerOrDefault(params, "query_facts")
 	opts := storage.QueryFactsOpts{
 		Entity:   stringOr(params, "entity", ""),
 		Action:   stringOr(params, "action", ""),
@@ -629,6 +639,7 @@ func (h *Handler) handleQueryFacts(params map[string]any) Response {
 		Domain:   stringOr(params, "domain", ""),
 		Project:  stringOr(params, "project", ""),
 		Category: stringOr(params, "category", ""),
+		Viewer:   viewer,
 		Limit:    intOr(params, "limit", 20),
 	}
 

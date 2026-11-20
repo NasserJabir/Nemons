@@ -672,8 +672,8 @@ func (s *Store) GetActiveLearningsFiltered(f LearningsFilter, limit int) ([]mode
 	// 'project') and published rows ('public') pass for every agent viewer; a
 	// private row passes only for the agent that owns it. A system read (empty
 	// Viewer) gains no clause at all — its behaviour is unchanged to the byte.
-	if viewer := models.NormalizeSourceAgent(f.Viewer); viewer != "" {
-		query += ` AND (COALESCE(scope, '') IN ('', 'project', 'public') OR (scope = 'private' AND source_agent = ?))`
+	if viewer := strings.ToLower(strings.TrimSpace(f.Viewer)); viewer != "" { // strict: empty viewer stays the system read (NormalizeSourceAgent maps "" to claude)
+		query += ` AND (COALESCE(scope, '') IN ('', 'project', 'global', 'public') OR (scope = 'private' AND source_agent = ?))`
 		args = append(args, viewer)
 	}
 	if subtree != "" {
@@ -824,7 +824,8 @@ func (s *Store) GetLearning(id int64) (*models.Learning, error) {
 		COALESCE(source_file, ''), COALESCE(source_hash, ''), COALESCE(doc_chunk_ref, 0), COALESCE(task_type, ''), COALESCE(turns_at_creation, 0), COALESCE(origin_tool, ''), COALESCE(source_msg_from, -1), COALESCE(source_msg_to, -1),
 		COALESCE(canonical_project, ''),
 		COALESCE(attribution, ''),
-		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), COALESCE(staleness_checked_at, ''), COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, ''), COALESCE(scope, '')
+		COALESCE(staleness_score, 0.0), COALESCE(staleness_reason, ''), COALESCE(staleness_checked_at, ''), COALESCE(staleness_type, ''), COALESCE(code_fingerprint, ''), COALESCE(project_source, ''), COALESCE(scope, ''),
+		COALESCE(source_agent, '')
 		FROM learnings WHERE id = ?`, id)
 
 	l := &models.Learning{}
@@ -838,7 +839,7 @@ func (s *Store) GetLearning(id int64) (*models.Learning, error) {
 		&l.Context, &l.Domain, &l.TriggerRule, &l.EmbeddingText,
 		&l.SourceFile, &l.SourceHash, &l.DocChunkRef, &l.TaskType, &l.TurnsAtCreation, &l.OriginTool, &l.SourceMsgFrom, &l.SourceMsgTo,
 		&l.CanonicalProject, &l.Attribution,
-		&l.StalenessScore, &l.StalenessReason, &l.StalenessCheckedAt, &l.StalenessType, &l.CodeFingerprint, &projectSource, &l.SharingScope)
+		&l.StalenessScore, &l.StalenessReason, &l.StalenessCheckedAt, &l.StalenessType, &l.CodeFingerprint, &projectSource, &l.SharingScope, &l.SourceAgent)
 	if err != nil {
 		return nil, fmt.Errorf("get learning %d: %w", id, err)
 	}

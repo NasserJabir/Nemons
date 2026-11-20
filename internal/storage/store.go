@@ -22,6 +22,10 @@ var ErrNotFound = errors.New("not found")
 // Store wraps an SQLite database connection.
 type Store struct {
 	db        *sql.DB
+
+	// operatorToken is the governance decision authority's secret (WS-F),
+	// generated once at first open and cached here.
+	operatorToken string
 	runtimeDB *sql.DB
 	readDB    *sql.DB
 
@@ -89,6 +93,24 @@ func Open(path string) (*Store, error) {
 	if err := s.createSchema(); err != nil {
 		s.Close()
 		return nil, fmt.Errorf("create schema: %w", err)
+	}
+
+	// First-run governance bootstrap (WS-F): the operator token is generated
+	// once here, so the decision authority exists before any governed call can
+	// ever ask for one — no manual DB edits, no gate bypass.
+	if err := s.ensureOperatorToken(); err != nil {
+		s.Close()
+		return nil, fmt.Errorf("operator token bootstrap: %w", err)
+	}
+
+	// Canonical scope migration (WS-C): the legacy 'public' value becomes
+	// 'global'. Nothing becomes more accessible — 'public' already meant
+	// "visible to every viewer", 'global' is the same semantics with a name
+	// the governance model owns. Readers keep accepting the legacy value so
+	// databases migrated by older binaries stay readable.
+	if err := s.migrateSharingScopes(); err != nil {
+		s.Close()
+		return nil, fmt.Errorf("sharing scope migration: %w", err)
 	}
 
 	if err := s.createRuntimeSchema(); err != nil {

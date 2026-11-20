@@ -321,6 +321,8 @@ func dropSkippedResults(results []embedding.RankedResult, skip map[string]bool) 
 
 func (h *Handler) handleHybridSearch(params map[string]any) Response {
 	t0 := time.Now()
+	// Scope enforcement (remediation WS-B): the search serves one actor's view.
+	viewer := h.actorViewerOrDefault(params, "hybrid_search")
 	query, _ := params["query"].(string)
 	project, _ := params["project"].(string)
 	since, _ := params["since"].(string)
@@ -407,7 +409,7 @@ func (h *Handler) handleHybridSearch(params map[string]any) Response {
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), searchTimeout)
 		defer cancel()
-		results, err := h.store.SearchLearningsBM25Ctx(ctx, query, project, since, before, laneLimit)
+		results, err := h.store.SearchLearningsBM25Ctx(ctx, query, project, since, before, viewer, laneLimit)
 		if err != nil {
 			bm25Ch <- bm25Result{err: err}
 			return
@@ -569,6 +571,25 @@ func (h *Handler) handleHybridSearch(params map[string]any) Response {
 	tMerge := time.Since(t0)
 	merged = h.resolveSupersededResults(merged)
 	tSupersede := time.Since(t0)
+
+	// Scope pass (remediation WS-B): whatever the lane produced — the vector
+	// and AQ lanes read unscoped stores, and a supersede redirect can pull a
+	// successor in — a hit the viewer must not see drops exactly like a missing
+	// row. The BM25 lane is scoped inside its metadata query; this pass covers
+	// the rest. The internal system read (empty viewer) skips it.
+	if viewer != "" {
+		visible, verr := h.store.VisibleLearningIDs(viewer, project)
+		if verr != nil {
+			return errorResponse(fmt.Sprintf("hybrid_search: scope check failed: %v", verr))
+		}
+		scoped := merged[:0]
+		for _, r := range merged {
+			if id, perr := strconv.ParseInt(r.ID, 10, 64); perr == nil && visible[id] {
+				scoped = append(scoped, r)
+			}
+		}
+		merged = scoped
+	}
 
 	// Bulk metadata lookup: category, source, created_at, quarantine in a single
 	// round-trip. Replaces the old GetCategoriesBulk + separate source + separate
@@ -765,6 +786,9 @@ func (h *Handler) handleVectorSearch(params map[string]any) Response {
 		limit = maxVectorSearchLimit
 	}
 
+	// Scope enforcement (remediation WS-B): the vector lane reads an unscoped
+	// index, so the caller's view is applied to the hits before they surface.
+	viewer := h.actorViewerOrDefault(params, "vector_search")
 	w := h.embedSnapshot()
 	queryProvider := w.queryProvider()
 	if queryProvider == nil || !queryProvider.Enabled() || w.vectorStore == nil {
@@ -794,6 +818,23 @@ func (h *Handler) handleVectorSearch(params map[string]any) Response {
 		Metadata        map[string]string `json:"metadata,omitempty"`
 		AgentType       string            `json:"agent_type,omitempty"`
 		ParentSessionID string            `json:"parent_session_id,omitempty"`
+	}
+
+	// Scope pass (remediation WS-B): a hit the viewer must not see drops here,
+	// exactly like a row that does not exist — the oversampled fetch keeps the
+	// result list full without surfacing foreign private rows.
+	if viewer != "" {
+		visible, verr := h.store.VisibleLearningIDs(viewer, "")
+		if verr != nil {
+			return errorResponse("vector_search: scope check failed")
+		}
+		scoped := searchResults[:0]
+		for _, r := range searchResults {
+			if id, perr := strconv.ParseInt(r.ID, 10, 64); perr == nil && visible[id] {
+				scoped = append(scoped, r)
+			}
+		}
+		searchResults = scoped
 	}
 
 	// Bulk-load subagent metadata (deduplicate IDs)

@@ -176,7 +176,7 @@ func TestSearchLearningsBM25Ctx_ProjectFilter_FullPathMatches(t *testing.T) {
 	insertTestLearningForProject(t, s, "hybrid search bm25 project filter regression", "gotcha",
 		"/home/user/code/nemons", "nemons")
 
-	results, err := s.SearchLearningsBM25Ctx(context.Background(), "project filter regression", "/home/user/code/nemons", "", "", 10)
+	results, err := s.SearchLearningsBM25Ctx(context.Background(), "project filter regression", "/home/user/code/nemons", "", "", "", 10)
 	if err != nil {
 		t.Fatalf("SearchLearningsBM25Ctx: %v", err)
 	}
@@ -192,7 +192,7 @@ func TestSearchLearningsBM25Ctx_ProjectFilter_ShortNameMatches(t *testing.T) {
 	insertTestLearningForProject(t, s, "short name hybrid search bm25 match", "gotcha",
 		"/home/user/code/nemons", "nemons")
 
-	results, err := s.SearchLearningsBM25Ctx(context.Background(), "short name hybrid bm25", "nemons", "", "", 10)
+	results, err := s.SearchLearningsBM25Ctx(context.Background(), "short name hybrid bm25", "nemons", "", "", "", 10)
 	if err != nil {
 		t.Fatalf("SearchLearningsBM25Ctx: %v", err)
 	}
@@ -209,7 +209,7 @@ func TestSearchLearningsBM25Ctx_ProjectFilter_WorktreeMatches(t *testing.T) {
 	insertTestLearningForProject(t, s, "worktree project filter must match parent canonical", "gotcha",
 		"/home/user/code/nemons/.worktrees/foo", "nemons")
 
-	results, err := s.SearchLearningsBM25Ctx(context.Background(), "worktree project filter parent", "/home/user/code/nemons/.worktrees/foo", "", "", 10)
+	results, err := s.SearchLearningsBM25Ctx(context.Background(), "worktree project filter parent", "/home/user/code/nemons/.worktrees/foo", "", "", "", 10)
 	if err != nil {
 		t.Fatalf("SearchLearningsBM25Ctx: %v", err)
 	}
@@ -225,7 +225,7 @@ func TestSearchLearningsBM25Ctx_ProjectFilter_NoMatchFiltered(t *testing.T) {
 	insertTestLearningForProject(t, s, "unrelated project must be filtered out bm25", "gotcha",
 		"/home/user/code/nemons", "nemons")
 
-	results, err := s.SearchLearningsBM25Ctx(context.Background(), "unrelated project filtered bm25", "/home/user/code/other", "", "", 10)
+	results, err := s.SearchLearningsBM25Ctx(context.Background(), "unrelated project filtered bm25", "/home/user/code/other", "", "", "", 10)
 	if err != nil {
 		t.Fatalf("SearchLearningsBM25Ctx: %v", err)
 	}
@@ -267,7 +267,7 @@ func TestSearchLearningsBM25Ctx_ProjectFilter_SameBasenameDifferentParentNotMatc
 
 	// Caller passes a DIFFERENT parent directory but the same basename.
 	// The naive canonical(basename) comparison would match; the both-abs guard must reject it.
-	results, err := s.SearchLearningsBM25Ctx(context.Background(), "same basename different parent", "/home/user/memory/foo", "", "", 10)
+	results, err := s.SearchLearningsBM25Ctx(context.Background(), "same basename different parent", "/home/user/memory/foo", "", "", "", 10)
 	if err != nil {
 		t.Fatalf("SearchLearningsBM25Ctx: %v", err)
 	}
@@ -288,7 +288,7 @@ func TestSearchLearningsBM25Ctx_ProjectFilter_LegacyEmptyCanonicalMatches(t *tes
 	id := insertTestLearningWithTime(t, s, "legacy row without project metadata must still be findable", "gotcha", time.Now().UTC())
 	_ = id
 
-	results, err := s.SearchLearningsBM25Ctx(context.Background(), "legacy row without project", "/home/user/code/nemons", "", "", 10)
+	results, err := s.SearchLearningsBM25Ctx(context.Background(), "legacy row without project", "/home/user/code/nemons", "", "", "", 10)
 	if err != nil {
 		t.Fatalf("SearchLearningsBM25Ctx: %v", err)
 	}
@@ -305,7 +305,7 @@ func TestSearchLearningsBM25Ctx_SingleTokenQuery(t *testing.T) {
 	s := mustOpen(t)
 	insertTestLearningWithTime(t, s, "config field think_reminder_min_chars gates injection by user text length", "decision", time.Now().UTC())
 
-	results, err := s.SearchLearningsBM25Ctx(context.Background(), "min_chars", "", "", "", 10)
+	results, err := s.SearchLearningsBM25Ctx(context.Background(), "min_chars", "", "", "", "", 10)
 	if err != nil {
 		t.Fatalf("SearchLearningsBM25Ctx: %v", err)
 	}

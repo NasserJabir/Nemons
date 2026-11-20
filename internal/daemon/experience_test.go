@@ -115,7 +115,7 @@ func TestExperienceSummaryListsRecentFailuresForReuse(t *testing.T) {
 	seedExperience(t, h, "trap one", "failure", "SKILL", "e1", "")
 	seedExperience(t, h, "trap two", "failure", "KNOWLEDGE", "e2", "")
 	resp := h.Handle(Request{Method: "get_experience_summary", Params: map[string]any{
-		"project": "/w"}})
+		"project": "/w", "_source_agent": "claude"}})
 	var m map[string]any
 	json.Unmarshal(resp.Result, &m)
 	recent := m["recent_failures"].([]any)

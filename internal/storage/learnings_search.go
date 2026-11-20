@@ -65,7 +65,11 @@ type QueryFactsOpts struct {
 	Domain   string // Exact match on learnings.domain
 	Project  string // Project filter
 	Category string // Category filter
-	Limit    int    // Default 20
+	// Viewer is the agent the read is served to (remediation WS-B). The scope
+	// clause is applied in the query itself: an agent viewer loses the private
+	// rows of other agents; an empty Viewer stays the internal system read.
+	Viewer string
+	Limit  int // Default 20
 }
 
 // QueryFacts returns active learnings matching structured metadata filters (entities, actions, keywords).
@@ -92,6 +96,13 @@ func (s *Store) QueryFacts(opts QueryFactsOpts) ([]models.Learning, error) {
 	where = append(where, models.RecallableLearningSQLAlias)
 	where = append(where, `(l.expires_at IS NULL OR julianday(l.expires_at) > julianday(?))`)
 	args = append(args, fmtTime(time.Now()))
+	// Sharing scope judged at the query (remediation WS-B): the same clause the
+	// central read applies — private rows only for their owner, unknown scopes
+	// shared-nothing, and an empty viewer keeps the internal system read.
+	if viewer := strings.ToLower(strings.TrimSpace(opts.Viewer)); viewer != "" { // strict: empty viewer stays the system read
+		where = append(where, `(COALESCE(l.scope, '') IN ('', 'project', 'global', 'public') OR (l.scope = 'private' AND l.source_agent = ?))`)
+		args = append(args, viewer)
+	}
 
 	if opts.Entity != "" {
 		joins = append(joins, `JOIN learning_entities le ON le.learning_id = l.id`)
@@ -379,7 +390,7 @@ type LearningSearchResult struct {
 // SearchLearningsBM25 searches active learnings using FTS5 and returns ranked results
 // with BM25 scores. Designed for RRF fusion with vector search (same ID space).
 func (s *Store) SearchLearningsBM25(query, project string, limit int) ([]LearningSearchResult, error) {
-	return s.SearchLearningsBM25Ctx(context.Background(), query, project, "", "", limit)
+	return s.SearchLearningsBM25Ctx(context.Background(), query, project, "", "", "", limit)
 }
 
 // SearchLearningsBM25Ctx is like SearchLearningsBM25 but accepts a context for cancellation/timeout.
@@ -387,7 +398,10 @@ func (s *Store) SearchLearningsBM25(query, project string, limit int) ([]Learnin
 //   - Tier 1 (100% terms AND) → score max 100
 //   - Tier 2 (66% terms AND) → score max 60
 //   - Tier 3 (33% terms AND) → score max 40
-func (s *Store) SearchLearningsBM25Ctx(ctx context.Context, query, project, since, before string, limit int) ([]LearningSearchResult, error) {
+// viewer names the agent the search is served to (remediation WS-B): the scope
+// clause rides the metadata lookup, so a hit whose row the viewer must not see
+// drops exactly like a row that does not exist. Empty viewer = internal system read.
+func (s *Store) SearchLearningsBM25Ctx(ctx context.Context, query, project, since, before, viewer string, limit int) ([]LearningSearchResult, error) {
 	words := splitWords(query)
 	if len(words) == 0 {
 		return nil, nil
@@ -531,6 +545,10 @@ func (s *Store) SearchLearningsBM25Ctx(ctx context.Context, query, project, sinc
 	}
 
 	metaSQL := `SELECT CAST(id AS TEXT), COALESCE(project, ''), COALESCE(canonical_project, ''), category, created_at FROM learnings WHERE id IN (` + strings.Join(placeholders, ",") + `) AND ` + models.RecallableLearningSQL
+	if v := strings.ToLower(strings.TrimSpace(viewer)); v != "" { // strict: empty viewer stays the system read
+		metaSQL += ` AND (COALESCE(scope, '') IN ('', 'project', 'global', 'public') OR (scope = 'private' AND source_agent = ?))`
+		args = append(args, v)
+	}
 	metaRows, err := s.readerDB().QueryContext(ctx, metaSQL, args...)
 	if err != nil {
 		return nil, fmt.Errorf("search learnings meta: %w", err)

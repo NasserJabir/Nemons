@@ -162,7 +162,7 @@ func (h *Handler) handleGetEvaluationSummary(params map[string]any) Response {
 	if project == "" {
 		return errorResponse("get_evaluation_summary: 'project' is required")
 	}
-	viewer, _ := params["_source_agent"].(string)
+	viewer := h.actorViewerOrDefault(params, "get_evaluation_summary")
 	rows, err := h.store.GetActiveLearningsFiltered(storage.LearningsFilter{
 		Project: project, Viewer: viewer,
 	}, 0)

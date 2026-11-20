@@ -64,7 +64,7 @@ func TestSearchLearningsBM25CtxExcludesSupersededLos10b(t *testing.T) {
 		t.Fatalf("supersede: %v", err)
 	}
 
-	hits, err := s.SearchLearningsBM25Ctx(context.Background(), "los10b superseded sentinel alpha", "", "", "", 5)
+	hits, err := s.SearchLearningsBM25Ctx(context.Background(), "los10b superseded sentinel alpha", "", "", "", "", 5)
 	if err != nil {
 		t.Fatalf("bm25: %v", err)
 	}

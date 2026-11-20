@@ -12,6 +12,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/NasserJabir/Nemons/internal/buildinfo"
+	"github.com/NasserJabir/Nemons/internal/models"
 	mcplib "github.com/mark3labs/mcp-go/mcp"
 	mcpserver "github.com/mark3labs/mcp-go/server"
 )
@@ -123,12 +124,28 @@ func buildProxyParams(arguments map[string]any, withThreadID bool) map[string]an
 	}
 
 	sessionID, sourceAgent := resolveClientSessionID()
+	// Session identity: the caller-supplied id wins — under opencode v2 the
+	// `nemons mcp` children belong to the shared service process, so this
+	// server's env may carry the LAST-created session, not the caller's
+	// (see sessionIDSourceEnv below). The env id only fills an absent claim,
+	// and the marker is server-authored: a model-forged marker is deleted so
+	// the daemon never grants env-trust to a caller-supplied id.
 	if _, exists := params["_session_id"]; !exists && sessionID != "" {
 		params["_session_id"] = sessionID
-		params["_session_id_source"] = sessionIDSourceEnv
+		params[models.MarkSessionIDSource] = models.SessionIDSourceEnv
+	} else {
+		delete(params, models.MarkSessionIDSource)
 	}
-	if _, exists := params["_source_agent"]; !exists && sourceAgent != "" && sourceAgent != "claude" {
+	// Agent identity: the boundary decides, not the model (remediation WS-A).
+	// resolveClientSessionID always names an agent type (default "claude"),
+	// so every MCP client is authenticated at type level; a model-written
+	// _source_agent or marker is overwritten here, never honored. The claim
+	// channel survives only for callers that bypass this boundary.
+	if sourceAgent != "" {
 		params["_source_agent"] = sourceAgent
+		params[models.MarkSourceAgentSource] = models.SourceAgentSourceResolved
+	} else {
+		delete(params, models.MarkSourceAgentSource)
 	}
 	if value, ok := params["_source_agent"].(string); ok && value != "" {
 		sourceAgent = value

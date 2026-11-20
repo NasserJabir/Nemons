@@ -153,10 +153,10 @@ func (h *Handler) resolveActiveSessionFallback(params map[string]any) string {
 	// OpenCode has no hooks — the proxy persists the active session on each request.
 	// Check this BEFORE activeSessionID to avoid returning a stale Claude Code session
 	// that was set by a proxy-health-check or other non-OpenCode caller.
-	if sa, _ := params["_source_agent"].(string); sa == "opencode" {
-		// The key is shared with codex, and _source_agent is caller-supplied, so
-		// the label alone does not make the value an opencode session (audit
-		// 16.10.2026, YM-328). The value is returned, not cached: h.activeSessionID
+	if sa := h.resolveActor(params).ActorID; sa == "opencode" {
+		// The boundary resolves _source_agent (WS-A), so "opencode" here means
+		// the client's own resolved identity, not a label the model chose.
+		// The value is returned, not cached: h.activeSessionID
 		// is the global last-writer state, and writing it here would hand this
 		// session to every later caller without an identity of its own (YM-338).
 		if sid, err := h.store.GetProxyState("active_session_opencode"); err == nil && strings.HasPrefix(sid, "opencode:") {
@@ -195,7 +195,7 @@ func (h *Handler) callerPIDIsAgent(params map[string]any) bool {
 	if pid <= 0 {
 		return false
 	}
-	if sa, _ := params["_source_agent"].(string); sa != "opencode" {
+	if sa := h.resolveActor(params).ActorID; sa != "opencode" {
 		return true
 	}
 	agent, err := h.store.AgentGetByPID(int(pid))
@@ -223,7 +223,7 @@ func (h *Handler) envDerivedSessionUntrusted(params map[string]any) bool {
 	if src, _ := params["_session_id_source"].(string); src != "env" {
 		return false
 	}
-	if sa, _ := params["_source_agent"].(string); sa != "opencode" {
+	if sa := h.resolveActor(params).ActorID; sa != "opencode" {
 		return false
 	}
 	pid, _ := params["_caller_pid"].(float64)
@@ -256,7 +256,7 @@ func (h *Handler) envDerivedSessionUntrusted(params map[string]any) bool {
 // worktree layout, and the effect stays inside one user's own sessions
 // (telemetry, dialog initiator, scratchpad owner).
 func (h *Handler) agentByCallerCWD(params map[string]any) *storage.Agent {
-	if sa, _ := params["_source_agent"].(string); sa != "opencode" {
+	if sa := h.resolveActor(params).ActorID; sa != "opencode" {
 		return nil
 	}
 	cwd, _ := params["_cwd"].(string)

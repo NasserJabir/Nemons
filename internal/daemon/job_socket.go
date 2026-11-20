@@ -68,9 +68,12 @@ var jobSocketAllowed = map[string]bool{
 	// out: it would let a job steer an unsandboxed agent.
 	"broadcast": true,
 
-	// The governance ops are governed surfaces in their own right; a job's
-	// call to one is judged under job.<method> (the job surface work).
-	"governance_decide": true,
+	// The governed operations are governed surfaces in their own right; a
+	// job's call to one is judged under job.<method> (the job surface work).
+	// governance_decide stays out: it is not a governed call any more (WS-F) —
+	// it is the operator surface, authenticated by the operator token, and a
+	// sandboxed job never holds that token.
+	"governance_bind": true,
 }
 
 // handleJobSocket serves the restricted socket a sandboxed run mounts. It is the

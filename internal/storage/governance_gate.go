@@ -27,13 +27,18 @@ const (
 
 // governedMethods is the registry of methods the gate judges. The list grows
 // only by a documented decision; everything outside it passes untouched.
-// The registry starts with the governance operations themselves and grows
-// only as the chain adds governed surfaces (the binding, the persona
-// overrides). The memory-facing operations keep their upstream behaviour
-// byte for byte: a governed ask on them would change what upstream callers
-// see, which the stage record forbids.
+// The registry grows as the chain adds governed surfaces (the binding, the
+// persona overrides). The memory-facing operations keep their upstream
+// behaviour byte for byte: a governed ask on them would change what upstream
+// callers see, which the stage record forbids.
+//
+// governance_decide is NOT in this registry (remediation WS-F): the decision
+// authority must stand outside the gate it operates, or deciding an ask would
+// itself need an ask — a bootstrap cycle the operator can never close. The
+// decide surface is instead authenticated by the operator token (see
+// operator_token.go): separating the authority from the governed operation is
+// the fix, not a gate weakening.
 var governedMethods = map[string]bool{
-	"governance_decide":  true,
 	"governance_bind":    true,
 	"governance_persona": true,
 }

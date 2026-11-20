@@ -70,14 +70,22 @@ func TestBuildProxyParamsPreservesAuthoritativeContext(t *testing.T) {
 	}
 	params := buildProxyParams(arguments, true)
 
+	// Under the WS-A contract the boundary decides identity. The plugin's
+	// session claim passes through as a claim (its env marker is absent here),
+	// but the agent identity the arguments carry is replaced by the
+	// server-resolved default: a caller the boundary cannot identify is
+	// claude-attributed, never whatever the payload claimed. A genuine
+	// opencode client resolves authoritatively through its env signals
+	// (NEMONS_SOURCE_AGENT / OPENCODE=1).
 	for key, want := range map[string]any{
-		"query":         "needle",
-		"_session_id":   "opencode:session-a",
-		"_source_agent": "opencode",
-		"_cwd":          "/workspace/a",
-		"_caller_pid":   float64(4242),
-		"_client_model": "plugin-model",
-		"thread_id":     "opencode:session-a",
+		"query":                "needle",
+		"_session_id":          "opencode:session-a",
+		"_source_agent":        "claude",
+		"_source_agent_source": "resolved",
+		"_cwd":                 "/workspace/a",
+		"_caller_pid":          float64(4242),
+		"_client_model":        "plugin-model",
+		"thread_id":            "opencode:session-a",
 	} {
 		if got := params[key]; got != want {
 			t.Errorf("%s: got %v, want %v", key, got, want)

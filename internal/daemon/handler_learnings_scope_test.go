@@ -86,7 +86,7 @@ func TestRememberUnknownScopeRefused(t *testing.T) {
 	if resp.Error == "" {
 		t.Fatal("an unknown scope value was accepted")
 	}
-	for _, want := range []string{"project", "private", "public"} {
+	for _, want := range []string{"project", "private", "global"} {
 		if !strings.Contains(resp.Error, want) {
 			t.Errorf("refusal %q does not name the valid value %q", resp.Error, want)
 		}
@@ -99,7 +99,7 @@ func TestRememberUnknownScopeRefused(t *testing.T) {
 func TestRememberPublicNeedsTheGrant(t *testing.T) {
 	h, s := mustHandler(t)
 	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
-		"text": "publish me", "project": "/w", "scope": "public", "_source_agent": "claude"}})
+		"text": "publish me", "project": "/w", "scope": "global", "_source_agent": "claude"}})
 	if resp.Error == "" {
 		t.Fatal("a public write passed without the grant")
 	}
@@ -119,7 +119,7 @@ func TestRememberPublicNeedsTheGrant(t *testing.T) {
 		t.Fatalf("allow grant: %v", err)
 	}
 	resp = h.Handle(Request{Method: "remember", Params: map[string]any{
-		"text": "publish me", "project": "/w", "scope": "public", "_source_agent": "claude"}})
+		"text": "publish me", "project": "/w", "scope": "global", "_source_agent": "claude"}})
 	if resp.Error != "" {
 		t.Fatalf("granted public write refused: %v", resp.Error)
 	}

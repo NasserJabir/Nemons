@@ -47,7 +47,7 @@ func DefaultQueryConfig() QueryConfig {
 
 // SearchLearnings searches the learning store using BM25 full-text search.
 func SearchLearnings(store *storage.Store, project, query string, limit int) ([]SearchResult, error) {
-	results, err := store.SearchLearningsBM25Ctx(context.Background(), query, project, "", "", limit)
+	results, err := store.SearchLearningsBM25Ctx(context.Background(), query, project, "", "", "", limit)
 	if err != nil {
 		return nil, fmt.Errorf("search learnings: %w", err)
 	}

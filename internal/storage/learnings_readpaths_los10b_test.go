@@ -151,7 +151,7 @@ func TestStorageRejectsInvalidBoundsLos10b(t *testing.T) {
 	if _, err := s.GetActiveLearnings("gotcha", "los10b-proj", "gestern", "", 0); err == nil {
 		t.Error("GetActiveLearnings accepted since=gestern")
 	}
-	if _, err := s.SearchLearningsBM25Ctx(t.Context(), "los10b bound probe", "", "", "last week", 5); err == nil {
+	if _, err := s.SearchLearningsBM25Ctx(t.Context(), "los10b bound probe", "", "", "last week", "", 5); err == nil {
 		t.Error("SearchLearningsBM25Ctx accepted before=last week")
 	}
 	if _, err := s.SearchAnticipatedQueries("los10b bound probe", "", 5, "irgendwann", ""); err == nil {

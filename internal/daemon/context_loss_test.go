@@ -20,7 +20,7 @@ func seedAndBuildPack(t *testing.T, h *Handler, contents map[string]string) (Res
 	}
 	_ = ids
 	resp := h.Handle(Request{Method: "build_context_pack", Params: map[string]any{
-		"task": "loss check", "project": "/w"}})
+		"task": "loss check", "project": "/w", "_source_agent": "claude"}})
 	if resp.Error != "" {
 		t.Fatalf("build: %v", resp.Error)
 	}
@@ -40,7 +40,7 @@ func callLossCheck(t *testing.T, h *Handler, delivered []map[string]any) map[str
 		arr = append(arr, map[string]any{"id": d["id"], "content": d["content"]})
 	}
 	resp := h.Handle(Request{Method: "check_pack_loss", Params: map[string]any{
-		"task": "loss check", "project": "/w", "delivered": arr}})
+		"task": "loss check", "project": "/w", "delivered": arr, "_source_agent": "claude"}})
 	if resp.Error != "" {
 		t.Fatalf("check: %v", resp.Error)
 	}

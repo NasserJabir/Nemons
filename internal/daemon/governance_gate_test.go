@@ -1,9 +1,11 @@
 package daemon
 
 // The gate wired into Handle: a governed call asks before it runs, the ask is
-// idempotent per packet, an approved packet proceeds, a denied one is refused,
-// and an ungoverned method passes untouched. These tests drive the gate
-// through Handle exactly as a caller would.
+// idempotent per packet, an approved packet proceeds, a denied one is refused.
+// The decide surface is NOT governed by the gate (WS-F): the decision
+// authority stands outside the gate it operates, authenticated by the operator
+// token instead. These tests drive the wiring through Handle exactly as a
+// caller would.
 
 import (
 	"strings"
@@ -12,6 +14,13 @@ import (
 
 	"github.com/NasserJabir/Nemons/internal/storage"
 )
+
+// governanceBindParams is one fixed governed packet used across the gate tests.
+func governanceBindParams() map[string]any {
+	return map[string]any{
+		"agent": "claude", "project": "/w", "role": "reviewer", "_source_agent": "claude",
+	}
+}
 
 func TestGateWiredBeforeDispatch_UngovernedPasses(t *testing.T) {
 	h, s := mustHandler(t)
@@ -26,16 +35,14 @@ func TestGateWiredBeforeDispatch_UngovernedPasses(t *testing.T) {
 
 func TestGateGovernedCallAsksFirst(t *testing.T) {
 	h, s := mustHandler(t)
-	resp := h.Handle(Request{Method: "governance_decide", Params: map[string]any{
-		"key": "abcd1234", "decision": "allow", "decider": "operator", "project": "/w", "_source_agent": "claude"}})
+	resp := h.Handle(Request{Method: "governance_bind", Params: governanceBindParams()})
 	if resp.Error == "" {
 		t.Fatal("a governed write ran without an approval")
 	}
 	if !strings.Contains(resp.Error, "governance ask") {
 		t.Errorf("refusal %q does not name the ask", resp.Error)
 	}
-	key := storage.GateKey("governance_decide", map[string]any{
-		"key": "abcd1234", "decision": "allow", "decider": "operator", "project": "/w", "_source_agent": "claude"})
+	key := storage.GateKey("governance_bind", governanceBindParams())
 	a, _ := s.ApprovalForKey(key)
 	if a == nil || a.Status != storage.ApprovalOpen {
 		t.Errorf("approval = %+v, want the open ask the wiring opened", a)
@@ -47,9 +54,8 @@ func TestGateGovernedCallAsksFirst(t *testing.T) {
 
 func TestGateAskIsIdempotentPerPacket(t *testing.T) {
 	h, s := mustHandler(t)
-	params := map[string]any{"key": "abcd1234", "decision": "allow", "decider": "operator", "project": "/w", "_source_agent": "claude"}
-	_ = h.Handle(Request{Method: "governance_decide", Params: params})
-	_ = h.Handle(Request{Method: "governance_decide", Params: params})
+	_ = h.Handle(Request{Method: "governance_bind", Params: governanceBindParams()})
+	_ = h.Handle(Request{Method: "governance_bind", Params: governanceBindParams()})
 	n, _ := s.OpenApprovalCount()
 	if n != 1 {
 		t.Errorf("open asks = %d, want 1: the resend did not stack a second ask", n)
@@ -61,41 +67,41 @@ func TestGateAskIsIdempotentPerPacket(t *testing.T) {
 
 func TestGateApprovedPacketProceeds(t *testing.T) {
 	h, s := mustHandler(t)
-	// The target ask waits open; the approved decide packet is what closes it.
-	if _, err := s.RequestApproval("abcd1234", "remember", "claude", "agent", time.Minute); err != nil {
-		t.Fatalf("seed ask: %v", err)
-	}
-	// The decide packet takes its own ask (the op is governed), the operator
-	// allows it, and the resend runs the handler for real.
-	first := h.Handle(Request{Method: "governance_decide", Params: map[string]any{
-		"key": "abcd1234", "decision": "allow", "decider": "operator", "_source_agent": "claude"}})
+	first := h.Handle(Request{Method: "governance_bind", Params: governanceBindParams()})
 	if first.Error == "" || !strings.Contains(first.Error, "governance ask") {
 		t.Fatalf("expected the governed ask, got %q", first.Error)
 	}
-	key := strings.Fields(first.Error)[2]
-	if err := s.DecideApproval(key, storage.ApprovalAllow, "operator"); err != nil {
-		t.Fatalf("admit: %v", err)
-	}
+	// The operator closes the ask with the decision authority: authenticated,
+	// audited, and not gated by its own packet — the bootstrap cycle is gone.
 	resp := h.Handle(Request{Method: "governance_decide", Params: map[string]any{
-		"key": "abcd1234", "decision": "allow", "decider": "operator", "_source_agent": "claude"}})
+		"key": askKeyFrom(t, first.Error), "decision": storage.ApprovalAllow, "decider": "operator",
+		"operator_token": s.OperatorToken(), "_source_agent": "claude"}})
 	if resp.Error != "" {
-		t.Fatalf("approved call refused: %v", resp.Error)
+		t.Fatalf("operator decide refused: %v", resp.Error)
 	}
-	a, _ := s.ApprovalForKey("abcd1234")
+	second := h.Handle(Request{Method: "governance_bind", Params: governanceBindParams()})
+	if second.Error != "" {
+		t.Fatalf("approved governed call refused: %v", second.Error)
+	}
+	key := storage.GateKey("governance_bind", governanceBindParams())
+	a, _ := s.ApprovalForKey(key)
 	if a.Decision != storage.ApprovalAllow || a.Status != storage.ApprovalDecided {
-		t.Errorf("target row = %+v, want the handler's decision applied", a)
+		t.Errorf("approval row = %+v, want the operator's allow applied", a)
 	}
 }
 
 func TestGateDeniedPacketRefused(t *testing.T) {
 	h, s := mustHandler(t)
-	params := map[string]any{"key": "abcd1234", "decision": "allow", "decider": "operator", "project": "/w", "_source_agent": "claude"}
-	_ = h.Handle(Request{Method: "governance_decide", Params: params})
-	key := storage.GateKey("governance_decide", params)
-	if err := s.DecideApproval(key, storage.ApprovalDeny, "operator"); err != nil {
-		t.Fatalf("decide: %v", err)
+	first := h.Handle(Request{Method: "governance_bind", Params: governanceBindParams()})
+	if first.Error == "" || !strings.Contains(first.Error, "governance ask") {
+		t.Fatalf("expected the governed ask, got %q", first.Error)
 	}
-	resp := h.Handle(Request{Method: "governance_decide", Params: params})
+	if resp := h.Handle(Request{Method: "governance_decide", Params: map[string]any{
+		"key": askKeyFrom(t, first.Error), "decision": storage.ApprovalDeny, "decider": "operator",
+		"operator_token": s.OperatorToken(), "_source_agent": "claude"}}); resp.Error != "" {
+		t.Fatalf("operator deny refused: %v", resp.Error)
+	}
+	resp := h.Handle(Request{Method: "governance_bind", Params: governanceBindParams()})
 	if resp.Error == "" {
 		t.Fatal("a denied call ran")
 	}
@@ -106,9 +112,8 @@ func TestGateDeniedPacketRefused(t *testing.T) {
 
 func TestGateOpenAskStillBlocksResends(t *testing.T) {
 	h, _ := mustHandler(t)
-	params := map[string]any{"key": "abcd1234", "decision": "allow", "decider": "operator", "project": "/w", "_source_agent": "claude"}
-	_ = h.Handle(Request{Method: "governance_decide", Params: params})
-	resp := h.Handle(Request{Method: "governance_decide", Params: params})
+	_ = h.Handle(Request{Method: "governance_bind", Params: governanceBindParams()})
+	resp := h.Handle(Request{Method: "governance_bind", Params: governanceBindParams()})
 	if resp.Error == "" || !strings.Contains(resp.Error, "is open for") {
 		t.Errorf("resend response = %q, want the open-ask wait", resp.Error)
 	}
@@ -116,14 +121,18 @@ func TestGateOpenAskStillBlocksResends(t *testing.T) {
 
 func TestGateDenySurvivesExpiryWindow(t *testing.T) {
 	h, s := mustHandler(t)
-	params := map[string]any{"key": "abcd1234", "decision": "allow", "decider": "operator", "project": "/w", "_source_agent": "claude"}
-	_ = h.Handle(Request{Method: "governance_decide", Params: params})
-	key := storage.GateKey("governance_decide", params)
-	if err := s.DecideApproval(key, storage.ApprovalDeny, "operator"); err != nil {
-		t.Fatalf("decide: %v", err)
+	first := h.Handle(Request{Method: "governance_bind", Params: governanceBindParams()})
+	if first.Error == "" {
+		t.Fatal("expected the governed ask")
+	}
+	if resp := h.Handle(Request{Method: "governance_decide", Params: map[string]any{
+		"key": askKeyFrom(t, first.Error), "decision": storage.ApprovalDeny, "decider": "operator",
+		"operator_token": s.OperatorToken(), "_source_agent": "claude"}}); resp.Error != "" {
+		t.Fatalf("operator deny refused: %v", resp.Error)
 	}
 	// The deny decision stands regardless of the ask's expiry clock: the row is
 	// closed, not aged out.
+	key := storage.GateKey("governance_bind", governanceBindParams())
 	a, _ := s.ApprovalForKey(key)
 	if a.Status != storage.ApprovalDecided {
 		t.Errorf("status = %q, want decided", a.Status)
@@ -135,16 +144,79 @@ func TestGateDenySurvivesExpiryWindow(t *testing.T) {
 
 func TestGateNilStoreFoldsOpen(t *testing.T) {
 	h := &Handler{}
-	resp := h.gateRequest(Request{Method: "governance_decide", Params: nil})
+	resp := h.gateRequest(Request{Method: "governance_bind", Params: nil})
 	if resp != nil {
 		t.Errorf("nil-store gate returned %v, want the fold-open nil", resp)
 	}
 }
 
-func mustParse(t string) time.Time {
-	p, err := time.Parse(time.RFC3339, t)
+// The decision authority is never model-controlled: without the operator token
+// the decide surface refuses, whatever the packet claims.
+func TestOperatorTokenGatesDecide(t *testing.T) {
+	h, s := mustHandler(t)
+	seed := h.Handle(Request{Method: "governance_bind", Params: governanceBindParams()})
+	if seed.Error == "" {
+		t.Fatal("expected the governed ask")
+	}
+	for name, token := range map[string]any{
+		"missing":    nil,
+		"empty":      "",
+		"fabricated": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+	} {
+		params := map[string]any{
+			"key": askKeyFrom(t, seed.Error), "decision": storage.ApprovalAllow, "decider": "operator",
+			"_source_agent": "claude",
+		}
+		if token != nil {
+			params["operator_token"] = token
+		}
+		resp := h.Handle(Request{Method: "governance_decide", Params: params})
+		if resp.Error == "" || !strings.Contains(resp.Error, "operator authorization") {
+			t.Fatalf("%s token was accepted: %v", name, resp.Error)
+		}
+	}
+	// And with the real token the same packet decides.
+	if resp := h.Handle(Request{Method: "governance_decide", Params: map[string]any{
+		"key": askKeyFrom(t, seed.Error), "decision": storage.ApprovalAllow, "decider": "operator",
+		"operator_token": s.OperatorToken(), "_source_agent": "claude"}}); resp.Error != "" {
+		t.Fatalf("operator decide refused with the real token: %v", resp.Error)
+	}
+}
+
+// Replay: a decided ask refuses a second decision instead of being re-applied.
+func TestGovernanceReplayRefused(t *testing.T) {
+	h, s := mustHandler(t)
+	seed := h.Handle(Request{Method: "governance_bind", Params: governanceBindParams()})
+	decide := map[string]any{
+		"key": askKeyFrom(t, seed.Error), "decision": storage.ApprovalAllow, "decider": "operator",
+		"operator_token": s.OperatorToken(), "_source_agent": "claude",
+	}
+	if resp := h.Handle(Request{Method: "governance_decide", Params: decide}); resp.Error != "" {
+		t.Fatalf("first decide refused: %v", resp.Error)
+	}
+	resp := h.Handle(Request{Method: "governance_decide", Params: decide})
+	if resp.Error == "" {
+		t.Fatal("a replayed decision was accepted")
+	}
+	if !strings.Contains(resp.Error, "not open") {
+		t.Errorf("replay refusal %q does not name the closed row", resp.Error)
+	}
+}
+
+func mustParse(s string) time.Time {
+	p, err := time.Parse(time.RFC3339, s)
 	if err != nil {
 		return time.Now().Add(time.Hour)
 	}
 	return p
+}
+// askKeyFrom extracts the packet key the gate names in its ask refusal
+// ("governance ask <key> is open for <method>: ...").
+func askKeyFrom(t *testing.T, ask string) string {
+	t.Helper()
+	fields := strings.Fields(ask)
+	if len(fields) < 3 {
+		t.Fatalf("unexpected ask refusal format: %q", ask)
+	}
+	return fields[2]
 }

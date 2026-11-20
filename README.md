@@ -78,6 +78,46 @@ go test ./internal/daemon/ -run 'TestContextPack|TestPackLoss' -v -count=1
 
 These tests cover: an approved decision surviving budget pressure, the prohibition on mid-claim truncation (half a claim is a false claim), detection of dropped and altered claims, and scope preservation — another agent's private row shows up as an injection signal, never as knowledge.
 
+### Security regression commands
+
+The remediation added four adversarial matrices; each maps to one enforcement
+layer:
+
+```bash
+# Trusted identity: the boundary overwrites model-written identity fields
+go test ./internal/mcp/ ./internal/models/ -run 'BuildProxyParams|Actor' -v -count=1
+
+# Scope isolation: one matrix over every agent-facing read path
+go test ./internal/daemon/ -run 'TestScopeMatrix' -v -count=1
+
+# Pack manifest integrity: fingerprint covers content, verification is exact
+go test ./internal/daemon/ -run 'TestManifest' -v -count=1
+
+# Governance bootstrap: empty database -> ask -> operator decides -> audit
+go test ./internal/daemon/ ./internal/storage/ -run 'TestGate|TestGovernance|TestOperatorToken' -v -count=1
+```
+
+The full regression is `go test ./... -count=1`; race coverage is
+`go test -race -timeout 40m ./internal/daemon ./internal/storage
+./internal/httpapi ./internal/mcp`. The security acceptance checklist with
+per-guarantee test references lives in `docs/remediation/SECURITY_ACCEPTANCE.md`.
+
+### Trusted identity and sharing scopes (remediation)
+
+Agent identity is established by the trusted integration boundary — the MCP
+server resolves the agent type from its own environment and overwrites anything
+the model wrote (`_source_agent_source=resolved`); session identity stays
+caller-first because the shared-service env may name the last-created session.
+Sharing scopes are canonical (`global` / `project` / `private`); the legacy
+`public` value migrates to `global` at open time without widening access, and
+global writes require the operator's `memory.public_write` standing grant.
+The pack build returns a manifest whose fingerprint covers the delivered
+content (item ids, content hashes, positions) — `check_pack_loss` verifies the
+delivery against that manifest or the deterministic re-assembly, so budget
+exclusions are never reported as loss. Governance decisions are authenticated
+by the operator token (first-run bootstrap, constant-time comparison) — the
+decision authority stands outside the gate it operates.
+
 ## Configuration
 
 All environment variables are prefixed `NEMONS_`. The most common:

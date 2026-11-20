@@ -111,7 +111,7 @@ func TestEvaluationSummaryTalliesAgainstBaseline(t *testing.T) {
 	h.Handle(Request{Method: "record_golden_result", Params: map[string]any{
 		"task_id": "t1", "project": "/w", "passed": false}})
 	resp := h.Handle(Request{Method: "get_evaluation_summary", Params: map[string]any{
-		"project": "/w"}})
+		"project": "/w", "_source_agent": "claude"}})
 	m := unpack(t, resp.Result)
 	tasks := m["golden_tasks"].([]any)
 	if len(tasks) != 1 {
@@ -137,7 +137,7 @@ func TestTokenEconomySurfacesIdleKnowledge(t *testing.T) {
 		t.Fatal(err)
 	}
 	resp := h.Handle(Request{Method: "get_evaluation_summary", Params: map[string]any{
-		"project": "/w"}})
+		"project": "/w", "_source_agent": "claude"}})
 	m := unpack(t, resp.Result)
 	economy := m["token_economy"].(map[string]any)
 	if economy["injected"].(float64) != 2 || economy["used"].(float64) != 1 {

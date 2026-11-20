@@ -51,7 +51,7 @@ func TestContextPackCuratesKnowledgeAndSkills(t *testing.T) {
 	seedCapV1(t, h, "pack_test_cap")
 
 	resp := h.Handle(Request{Method: "build_context_pack", Params: map[string]any{
-		"task": "deploy the service", "project": "/w"}})
+		"task": "deploy the service", "project": "/w", "_source_agent": "claude"}})
 	if resp.Error != "" {
 		t.Fatalf("pack: %v", resp.Error)
 	}
@@ -121,7 +121,7 @@ func TestContextPackRespectsTheCurationLimit(t *testing.T) {
 		seedPackLearning(t, h, "decision", "decision row number", "")
 	}
 	resp := h.Handle(Request{Method: "build_context_pack", Params: map[string]any{
-		"task": "review", "project": "/w", "max_items": 3.0}})
+		"task": "review", "project": "/w", "max_items": 3.0, "_source_agent": "claude"}})
 	knowledge := packResult(t, resp)["pack"].(map[string]any)["knowledge"].([]any)
 	if len(knowledge) != 3 {
 		t.Fatalf("knowledge = %d, want the bounded 3", len(knowledge))

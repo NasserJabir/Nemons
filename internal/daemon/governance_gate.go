@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/NasserJabir/Nemons/internal/models"
 	"github.com/NasserJabir/Nemons/internal/storage"
 )
 
@@ -46,7 +47,7 @@ func (h *Handler) gateRequest(req Request) *Response {
 	if _, ok := params["_internal_call"].(internalCallMark); ok {
 		return nil
 	}
-	caller, _ := params["_source_agent"].(string)
+	caller := models.ActorFromParams(params).ActorID
 	d := h.store.EvaluateGovernance(method, caller, surface, params)
 	switch d.Action {
 	case storage.GateAllow:
@@ -74,9 +75,17 @@ type internalCallMark struct{}
 
 // handleGovernanceDecide is the operator's surface over the approval
 // lifecycle: it closes the open ask a key names with allow or deny, through
-// the audited store interface. The gate judged the packet itself (the op is
-// governed), so a decision call already stands on its own approval.
+// the audited store interface. It is not governed by the gate itself (the
+// decision authority stands outside the gate it operates — WS-F); it is
+// authenticated by the operator token instead.
 func (h *Handler) handleGovernanceDecide(params map[string]any) Response {
+	// The decision authority is the operator, authenticated by the token the
+	// store generated at first open (WS-F). A model-controlled tool argument
+	// never holds it, so a model can ask, but never decide.
+	token, _ := params["operator_token"].(string)
+	if !h.store.OperatorTokenOK(token) {
+		return errorResponse("governance_decide: operator authorization required — present the operator token; the deciding authority is never model-controlled")
+	}
 	key, _ := params["key"].(string)
 	decision, _ := params["decision"].(string)
 	decider, _ := params["decider"].(string)

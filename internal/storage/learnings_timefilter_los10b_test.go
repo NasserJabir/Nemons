@@ -44,7 +44,7 @@ func TestSearchLearningsBM25CtxComparesParsedTimestampsLos10b(t *testing.T) {
 	id := insertTimedLos10bLearning(t, s, "los10b timestamp sentinel", time.Now().Add(-time.Hour).In(los10bOffset))
 
 	// Control: a bound two hours back keeps the row, so the FTS query itself matches.
-	hits, err := s.SearchLearningsBM25Ctx(ctx, "los10b timestamp sentinel", "", time.Now().Add(-2*time.Hour).UTC().Format(time.RFC3339), "", 5)
+	hits, err := s.SearchLearningsBM25Ctx(ctx, "los10b timestamp sentinel", "", time.Now().Add(-2*time.Hour).UTC().Format(time.RFC3339), "", "", 5)
 	if err != nil {
 		t.Fatalf("bm25 control: %v", err)
 	}
@@ -53,7 +53,7 @@ func TestSearchLearningsBM25CtxComparesParsedTimestampsLos10b(t *testing.T) {
 	}
 
 	bound := time.Now().Add(-30 * time.Minute).UTC().Format(time.RFC3339)
-	hits, err = s.SearchLearningsBM25Ctx(ctx, "los10b timestamp sentinel", "", bound, "", 5)
+	hits, err = s.SearchLearningsBM25Ctx(ctx, "los10b timestamp sentinel", "", bound, "", "", 5)
 	if err != nil {
 		t.Fatalf("bm25 since filter: %v", err)
 	}
@@ -62,7 +62,7 @@ func TestSearchLearningsBM25CtxComparesParsedTimestampsLos10b(t *testing.T) {
 	}
 
 	// before: the same row is older than the bound and has to survive.
-	beforeHits, err := s.SearchLearningsBM25Ctx(ctx, "los10b timestamp sentinel", "", "", bound, 5)
+	beforeHits, err := s.SearchLearningsBM25Ctx(ctx, "los10b timestamp sentinel", "", "", bound, "", 5)
 	if err != nil {
 		t.Fatalf("bm25 before filter: %v", err)
 	}
