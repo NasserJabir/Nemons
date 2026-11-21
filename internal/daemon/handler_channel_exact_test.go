@@ -18,7 +18,7 @@ const (
 )
 
 func sendTo(h *Handler, target, content, sender string) Response {
-	return h.Handle(Request{Method: "send_to", Params: map[string]any{
+	return h.Handle(Request{Method: "send_to", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"target": target, "content": content, "sender": sender,
 	}})
 }
@@ -26,7 +26,7 @@ func sendTo(h *Handler, target, content, sender string) Response {
 // checkChannel returns the messages the session would receive right now.
 func checkChannel(t *testing.T, h *Handler, sessionID string) []map[string]any {
 	t.Helper()
-	resp := h.Handle(Request{Method: "check_channel", Params: map[string]any{"session_id": sessionID}})
+	resp := h.Handle(Request{Method: "check_channel", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": sessionID}})
 	if resp.Error != "" {
 		t.Fatalf("check_channel(%s): %s", sessionID, resp.Error)
 	}
@@ -186,7 +186,7 @@ func TestHandleSendTo_ImplicitAckStaysWithTheSender(t *testing.T) {
 
 	// A real caller: the MCP layer always injects the caller's own _session_id.
 	// An explicit id-like sender is only acknowledged when it is that caller.
-	if resp := h.Handle(Request{Method: "send_to", Params: map[string]any{
+	if resp := h.Handle(Request{Method: "send_to", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"target": "orchestrator", "content": "hello", "sender": testOcB, "_session_id": testOcB,
 	}}); resp.Error != "" {
 		t.Fatal(resp.Error)
@@ -205,7 +205,7 @@ func TestHandleMarkChannelRead_ScopedToSession(t *testing.T) {
 	s.SendChannelMessage(testOcA, "someone", "for A", "command")
 	s.SendChannelMessage(testOcB, "someone", "for B", "command")
 
-	resp := h.Handle(Request{Method: "mark_channel_read", Params: map[string]any{"session_id": testOcA}})
+	resp := h.Handle(Request{Method: "mark_channel_read", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": testOcA}})
 	if resp.Error != "" {
 		t.Fatal(resp.Error)
 	}

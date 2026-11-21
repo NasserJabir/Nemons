@@ -46,7 +46,7 @@ func TestLos38R_UpdateAgentRefusesSessionID(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "update_agent",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"id":     "upd38r",
 			"fields": map[string]any{"session_id": "opencode:ses_foreign"},
 		},

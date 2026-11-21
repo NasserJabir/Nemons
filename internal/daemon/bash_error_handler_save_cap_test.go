@@ -25,7 +25,7 @@ func seedBundleCapForAutoCorrect(t *testing.T, h *Handler, name, project, pollBo
 		`]`
 	resp := h.Handle(Request{
 		Method: "save_cap",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"name":        name,
 			"description": "two bash handlers for the bundle",
 			"scripts":     scripts,
@@ -313,7 +313,7 @@ func TestAutoCorrect_MinimalFixKeepsTheCapActions(t *testing.T) {
 	}
 
 	scripts := `[{"name":"run","kind":"handler","runtime":"bash","lang":"bash","body":` + jsonString(body) + `}]`
-	if resp := h.Handle(Request{Method: "save_cap", Params: map[string]any{
+	if resp := h.Handle(Request{Method: "save_cap", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"name": "action_cap", "description": "has actions", "scripts": scripts,
 		"actions": `{"setup":"node setup.js"}`,
 	}}); resp.Error != "" {
@@ -377,7 +377,7 @@ func TestAutoCorrect_MinimalFixTargetsTheSameScriptAsTheLookup(t *testing.T) {
 		`{"name":"scan","kind":"tool","runtime":"bash","lang":"bash","schema":"{}","body":` + jsonString(toolBody) + `},` +
 		`{"name":"run","kind":"handler","runtime":"bash","lang":"bash","body":` + jsonString(handlerBody) + `}` +
 		`]`
-	if resp := h.Handle(Request{Method: "save_cap", Params: map[string]any{
+	if resp := h.Handle(Request{Method: "save_cap", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"name": "select_cap", "description": "tool plus handler", "scripts": scripts,
 	}}); resp.Error != "" {
 		t.Fatalf("seed save_cap: %s", resp.Error)

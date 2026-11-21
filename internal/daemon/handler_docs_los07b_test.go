@@ -30,7 +30,7 @@ func TestHandleRemoveDocs_RejectsNamesThatEscapeTheDocsDir(t *testing.T) {
 		t.Fatalf("upsert source: %v", err)
 	}
 
-	resp := h.Handle(Request{Method: "remove_docs", Params: map[string]any{
+	resp := h.Handle(Request{Method: "remove_docs", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"name":    "../victim",
 		"project": "p",
 	}})
@@ -51,7 +51,7 @@ func TestHandleRemoveDocs_RejectsNamesThatEscapeTheDocsDir(t *testing.T) {
 func TestHandleIngestDocs_RejectsRelativePath(t *testing.T) {
 	h, s := mustHandler(t)
 
-	resp := h.Handle(Request{Method: "ingest_docs", Params: map[string]any{
+	resp := h.Handle(Request{Method: "ingest_docs", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"name": "rel-docs",
 		"path": "docs",
 	}})
@@ -73,7 +73,7 @@ func TestHandleIngestDocs_RejectsRelativePath(t *testing.T) {
 func TestHandleIngestDocs_RejectsInvalidName(t *testing.T) {
 	h, s := mustHandler(t)
 
-	resp := h.Handle(Request{Method: "ingest_docs", Params: map[string]any{
+	resp := h.Handle(Request{Method: "ingest_docs", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"name": "../../escape",
 		"path": t.TempDir(),
 	}})
@@ -100,7 +100,7 @@ func TestHandleListDocs_FlagsRelativePath(t *testing.T) {
 		t.Fatalf("upsert source: %v", err)
 	}
 
-	resp := h.Handle(Request{Method: "list_docs", Params: map[string]any{"project": "p"}})
+	resp := h.Handle(Request{Method: "list_docs", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","project": "p"}})
 	if resp.Error != "" {
 		t.Fatalf("list_docs error: %s", resp.Error)
 	}
@@ -145,7 +145,7 @@ func TestHandleRemoveDocs_RemovesCloneDirUnderDataDir(t *testing.T) {
 		t.Fatalf("upsert source: %v", err)
 	}
 
-	resp := h.Handle(Request{Method: "remove_docs", Params: map[string]any{
+	resp := h.Handle(Request{Method: "remove_docs", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"name":    "url-docs",
 		"project": "p",
 	}})
@@ -173,7 +173,7 @@ func TestHandleListDocs_FlagsMissingPath(t *testing.T) {
 		}
 	}
 
-	resp := h.Handle(Request{Method: "list_docs", Params: map[string]any{"project": "p"}})
+	resp := h.Handle(Request{Method: "list_docs", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","project": "p"}})
 	if resp.Error != "" {
 		t.Fatalf("list_docs error: %s", resp.Error)
 	}

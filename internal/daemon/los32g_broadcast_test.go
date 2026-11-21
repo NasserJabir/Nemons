@@ -34,7 +34,7 @@ func TestLos32gBroadcastStoresTheResolvedProjectPath(t *testing.T) {
 		t.Fatalf("AgentCreate: %v", err)
 	}
 
-	resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{
+	resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"project": "bcproj", "content": "hello",
 		// The label is resolved from the kernel-reported peer (YM-271); the row
 		// below is what that peer maps to.

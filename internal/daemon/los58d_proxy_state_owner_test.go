@@ -34,7 +34,7 @@ func TestLos58dSetProxyStateRefusesAForeignPeerForAThreadKey(t *testing.T) {
 		"sawtooth:ses_victim",
 		"session_model:ses_victim",
 	} {
-		resp := h.Handle(Request{Method: "set_proxy_state", Params: map[string]any{
+		resp := h.Handle(Request{Method: "set_proxy_state", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"key": key, "value": "written-by-a-foreign-client", "_peer_pid": 4242,
 		}})
 		if resp.Error == "" {
@@ -50,7 +50,7 @@ func TestLos58dSetProxyStateAllowsTheProxyForAThreadKey(t *testing.T) {
 	h, s := mustHandler(t)
 	los58dWithPeer(t, "/home/u/.local/bin/nemons\x00proxy\x00--port\x004000")
 
-	resp := h.Handle(Request{Method: "set_proxy_state", Params: map[string]any{
+	resp := h.Handle(Request{Method: "set_proxy_state", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"key": "frozen:ses_live", "value": `{"messages":[]}`, "_peer_pid": 4242,
 	}})
 	if resp.Error != "" {
@@ -66,7 +66,7 @@ func TestLos58dSetProxyStateAllowsTheProxyForAThreadKey(t *testing.T) {
 func TestLos58dSetProxyStateKeepsInternalCallsWorking(t *testing.T) {
 	h, s := mustHandler(t)
 
-	resp := h.Handle(Request{Method: "set_proxy_state", Params: map[string]any{
+	resp := h.Handle(Request{Method: "set_proxy_state", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"key": "frozen:ses_internal", "value": `{"messages":[]}`,
 	}})
 	if resp.Error != "" {
@@ -84,7 +84,7 @@ func TestLos58dSetProxyStateAllowsTheGlobalConfigSlotFromAClient(t *testing.T) {
 	h, s := mustHandler(t)
 	los58dWithPeer(t, "/usr/local/bin/nemons\x00config\x00set\x00token_threshold\x00400000")
 
-	resp := h.Handle(Request{Method: "set_proxy_state", Params: map[string]any{
+	resp := h.Handle(Request{Method: "set_proxy_state", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"key": "config_override:token_threshold:deepseek", "value": "400000", "_peer_pid": 4242,
 	}})
 	if resp.Error != "" {
@@ -103,7 +103,7 @@ func TestLos58dSetProxyStateRefusesAForeignPeerForTheSourceAgent(t *testing.T) {
 	h, s := mustHandler(t)
 	los58dWithPeer(t, "/usr/bin/python3\x00-c\x00import os")
 
-	resp := h.Handle(Request{Method: "set_proxy_state", Params: map[string]any{
+	resp := h.Handle(Request{Method: "set_proxy_state", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"key": "source_agent:opencode:ses_victim", "value": "codex", "_peer_pid": 4242,
 	}})
 	if resp.Error == "" {
@@ -136,7 +136,7 @@ func TestLos58dDeleteProxyStatePrefixRefusesAForeignPeerForAThreadFamily(t *test
 		"session_model:ses_victim",
 		"source_agent:opencode:",
 	} {
-		resp := h.Handle(Request{Method: "delete_proxy_state_prefix", Params: map[string]any{
+		resp := h.Handle(Request{Method: "delete_proxy_state_prefix", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"prefix": prefix, "_peer_pid": 4242,
 		}})
 		if resp.Error == "" {
@@ -155,7 +155,7 @@ func TestLos58dDeleteProxyStatePrefixAllowsTheProxy(t *testing.T) {
 	}
 	los58dWithPeer(t, "/home/u/.local/bin/nemons\x00proxy\x00--port\x004000")
 
-	resp := h.Handle(Request{Method: "delete_proxy_state_prefix", Params: map[string]any{
+	resp := h.Handle(Request{Method: "delete_proxy_state_prefix", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"prefix": "frozen:", "_peer_pid": 4242,
 	}})
 	if resp.Error != "" {

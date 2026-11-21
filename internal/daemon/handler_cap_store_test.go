@@ -154,7 +154,7 @@ func TestHandleCapStore_ValidationErrors(t *testing.T) {
 
 func TestHandleCapStore_Dispatch(t *testing.T) {
 	h := mustHandlerWithCapStore(t)
-	resp := h.Handle(Request{Method: "cap_store", Params: map[string]any{
+	resp := h.Handle(Request{Method: "cap_store", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"capability": "test",
 		"action":     "list_tables",
 	}})

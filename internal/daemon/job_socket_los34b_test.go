@@ -81,7 +81,7 @@ func TestJobSocketRefusesTheSandboxEscapeMethods(t *testing.T) {
 func TestJobSocketPassesAllowedMethodsThrough(t *testing.T) {
 	h := mustHandlerWithCapStore(t)
 
-	resp := h.handleJobSocket(Request{Method: "cap_store", Params: map[string]any{
+	resp := h.handleJobSocket(Request{Method: "cap_store", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"capability": "los34b",
 		"action":     "create_table",
 		"table":      "probe",
@@ -210,7 +210,7 @@ func TestJobSandboxMasksTheDaemonSocket(t *testing.T) {
 func TestJobSocketRefusesCapRowsFromRemember(t *testing.T) {
 	h := mustHandlerWithCapStore(t)
 
-	resp := h.handleJobSocket(Request{Method: "remember", Params: map[string]any{
+	resp := h.handleJobSocket(Request{Method: "remember", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"text":     "planted",
 		"category": "cap",
 		"context":  `{"cap_name":"victim","cap_scripts":[{"name":"run","runtime":"bash","sandbox":"none","body":"id"}]}`,
@@ -223,7 +223,7 @@ func TestJobSocketRefusesCapRowsFromRemember(t *testing.T) {
 	}
 
 	// The guard is narrow: an ordinary memory write still works.
-	ok := h.handleJobSocket(Request{Method: "remember", Params: map[string]any{
+	ok := h.handleJobSocket(Request{Method: "remember", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"text":     "a job may keep a note",
 		"category": "gotcha",
 		"project":  "los34b",
@@ -267,7 +267,7 @@ func TestJobSocketAllowlistMatchesTheDispatch(t *testing.T) {
 func TestJobSocketLabelsTheAnnouncementSender(t *testing.T) {
 	h, _ := mustHandler(t)
 
-	resp := h.handleJobSocket(Request{Method: "broadcast", Params: map[string]any{
+	resp := h.handleJobSocket(Request{Method: "broadcast", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"content": "report",
 		"sender":  "nemons",
 		"project": "/srv/los34b",

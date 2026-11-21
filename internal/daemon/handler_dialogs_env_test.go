@@ -28,7 +28,7 @@ func TestResolveSessionID_EnvDerivedOpencodeSessionLosesToCallerCWD(t *testing.T
 	got := h.resolveSessionID(map[string]any{
 		"_session_id":        "opencode:ses_LEAKED",
 		"_session_id_source": "env",
-		"_source_agent":      "opencode",
+		"_source_agent":      "opencode", "_source_agent_source": "resolved",
 		"_cwd":               worktree,
 		"_caller_pid":        float64(opencodeSharedServicePID),
 	}, "missing")
@@ -51,7 +51,7 @@ func TestResolveSessionID_EnvDerivedOpencodeSessionHonouredForAgentPID(t *testin
 	got := h.resolveSessionID(map[string]any{
 		"_session_id":        "opencode:ses_v1_env",
 		"_session_id_source": "env",
-		"_source_agent":      "opencode",
+		"_source_agent":      "opencode", "_source_agent_source": "resolved",
 		"_caller_pid":        float64(4242),
 	}, "missing")
 	if got != "opencode:ses_v1_env" {
@@ -82,7 +82,7 @@ func TestResolveSessionID_InjectedSessionKeepsPrecedence(t *testing.T) {
 
 	got := h.resolveSessionID(map[string]any{
 		"_session_id":   "opencode:ses_injected",
-		"_source_agent": "opencode",
+		"_source_agent": "opencode", "_source_agent_source": "resolved",
 		"_cwd":          "/worktrees/never-matched",
 		"_caller_pid":   float64(opencodeSharedServicePID),
 	}, "missing")
@@ -116,7 +116,7 @@ func TestResolveSessionID_RegisteredServicePIDDoesNotOutrankCallerCWD(t *testing
 	got := h.resolveSessionID(map[string]any{
 		"_session_id":        "opencode:ses_ENVLEAK",
 		"_session_id_source": "env",
-		"_source_agent":      "opencode",
+		"_source_agent":      "opencode", "_source_agent_source": "resolved",
 		"_cwd":               worktree,
 		"_caller_pid":        float64(opencodeSharedServicePID),
 	}, "missing")
@@ -139,7 +139,7 @@ func TestResolveSessionID_AgentPIDStillResolvesThroughThePIDPath(t *testing.T) {
 	h.pidMapMu.Unlock()
 
 	got := h.resolveSessionID(map[string]any{
-		"_source_agent": "opencode",
+		"_source_agent": "opencode", "_source_agent_source": "resolved",
 		"_caller_pid":   float64(4243),
 	}, "missing")
 	if got != "opencode:ses_v1_registered" {

@@ -74,7 +74,7 @@ func TestGetLearningsSinceExcludesQuarantinedLos10b(t *testing.T) {
 		t.Fatalf("quarantine: %v", err)
 	}
 
-	learnings, err := s.GetLearningsSince(project, time.Now().Add(-time.Hour), 50)
+	learnings, err := s.GetLearningsSince("", project, time.Now().Add(-time.Hour), 50)
 	if err != nil {
 		t.Fatalf("get learnings since: %v", err)
 	}

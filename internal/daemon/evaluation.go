@@ -33,7 +33,14 @@ func (h *Handler) handleVerifyCitation(params map[string]any) Response {
 	if id == 0 {
 		return errorResponse("verify_citation: 'id' is required")
 	}
-	row, err := h.store.GetLearning(int64(id))
+	// Remediation 02 WS-B: a by-id read is a knowledge read — it goes out
+	// through the boundary-authenticated actor's view, so another agent's
+	// private row reads as absent, never as a citation to verify.
+	viewer, verr := h.actorViewer(params, "verify_citation")
+	if verr != nil {
+		return *verr
+	}
+	row, err := h.store.GetLearningForViewer(int64(id), viewer)
 	if err != nil {
 		return errorResponse("verify_citation: no learning with that id")
 	}
@@ -162,7 +169,10 @@ func (h *Handler) handleGetEvaluationSummary(params map[string]any) Response {
 	if project == "" {
 		return errorResponse("get_evaluation_summary: 'project' is required")
 	}
-	viewer := h.actorViewerOrDefault(params, "get_evaluation_summary")
+	viewer, verr := h.actorViewer(params, "get_evaluation_summary")
+	if verr != nil {
+		return *verr
+	}
 	rows, err := h.store.GetActiveLearningsFiltered(storage.LearningsFilter{
 		Project: project, Viewer: viewer,
 	}, 0)

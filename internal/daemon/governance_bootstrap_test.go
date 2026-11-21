@@ -60,7 +60,7 @@ func TestGovernanceBootstrap_FromEmptyDatabase(t *testing.T) {
 
 	// 3. Create an approval request: the governed call itself opens the ask.
 	bind := h.Handle(Request{Method: "governance_bind", Params: map[string]any{
-		"agent": "claude", "project": "/w", "role": "reviewer", "_source_agent": "claude"}})
+		"agent": "claude", "project": "/w", "role": "reviewer", "_source_agent": "claude", "_source_agent_source": "resolved"}})
 	if bind.Error == "" || !strings.Contains(bind.Error, "governance ask") {
 		t.Fatalf("step 3: the governed call did not open an ask: %v", bind.Error)
 	}
@@ -75,14 +75,14 @@ func TestGovernanceBootstrap_FromEmptyDatabase(t *testing.T) {
 	// 5. Decide it (allow) through the operator token.
 	resp := h.Handle(Request{Method: "governance_decide", Params: map[string]any{
 		"key": key, "decision": storage.ApprovalAllow, "decider": "operator",
-		"operator_token": token, "_source_agent": "claude"}})
+		"operator_token": token, "_source_agent": "claude", "_source_agent_source": "resolved"}})
 	if resp.Error != "" {
 		t.Fatalf("step 5: decide refused: %v", resp.Error)
 	}
 
 	// 6. Execute the governed operation — the standing grant admits the packet.
 	bind2 := h.Handle(Request{Method: "governance_bind", Params: map[string]any{
-		"agent": "claude", "project": "/w", "role": "reviewer", "_source_agent": "claude"}})
+		"agent": "claude", "project": "/w", "role": "reviewer", "_source_agent": "claude", "_source_agent_source": "resolved"}})
 	if bind2.Error != "" {
 		t.Fatalf("step 6: governed operation refused after approval: %v", bind2.Error)
 	}
@@ -99,7 +99,7 @@ func TestGovernanceBootstrap_FromEmptyDatabase(t *testing.T) {
 
 	// 8. Unauthorized approval attempt: no token, wrong token — both refuse.
 	for name, tok := range map[string]any{"missing": nil, "wrong": "not-the-token"} {
-		params := map[string]any{"key": key, "decision": storage.ApprovalDeny, "decider": "someone", "_source_agent": "claude"}
+		params := map[string]any{"key": key, "decision": storage.ApprovalDeny, "decider": "someone", "_source_agent": "claude", "_source_agent_source": "resolved"}
 		if tok != nil {
 			params["operator_token"] = tok
 		}
@@ -111,14 +111,14 @@ func TestGovernanceBootstrap_FromEmptyDatabase(t *testing.T) {
 	// 9. Replay: the decided row refuses a second decision.
 	if r := h.Handle(Request{Method: "governance_decide", Params: map[string]any{
 		"key": key, "decision": storage.ApprovalAllow, "decider": "operator",
-		"operator_token": token, "_source_agent": "claude"}}); r.Error == "" || !strings.Contains(r.Error, "not open") {
+		"operator_token": token, "_source_agent": "claude", "_source_agent_source": "resolved"}}); r.Error == "" || !strings.Contains(r.Error, "not open") {
 		t.Fatalf("step 9: replay accepted: %v", r.Error)
 	}
 
 	// 10. Mismatched approval: a decision naming an unknown key refuses.
 	if r := h.Handle(Request{Method: "governance_decide", Params: map[string]any{
 		"key": fmt.Sprintf("%x", []byte("nonexistent-key")), "decision": storage.ApprovalAllow, "decider": "operator",
-		"operator_token": token, "_source_agent": "claude"}}); r.Error == "" {
+		"operator_token": token, "_source_agent": "claude", "_source_agent_source": "resolved"}}); r.Error == "" {
 		t.Fatal("step 10: a decision on an unknown key was accepted")
 	}
 }

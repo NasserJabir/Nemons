@@ -322,7 +322,10 @@ func dropSkippedResults(results []embedding.RankedResult, skip map[string]bool) 
 func (h *Handler) handleHybridSearch(params map[string]any) Response {
 	t0 := time.Now()
 	// Scope enforcement (remediation WS-B): the search serves one actor's view.
-	viewer := h.actorViewerOrDefault(params, "hybrid_search")
+	viewer, verr := h.actorViewer(params, "hybrid_search")
+	if verr != nil {
+		return *verr
+	}
 	query, _ := params["query"].(string)
 	project, _ := params["project"].(string)
 	since, _ := params["since"].(string)
@@ -788,7 +791,10 @@ func (h *Handler) handleVectorSearch(params map[string]any) Response {
 
 	// Scope enforcement (remediation WS-B): the vector lane reads an unscoped
 	// index, so the caller's view is applied to the hits before they surface.
-	viewer := h.actorViewerOrDefault(params, "vector_search")
+	viewer, verr := h.actorViewer(params, "vector_search")
+	if verr != nil {
+		return *verr
+	}
 	w := h.embedSnapshot()
 	queryProvider := w.queryProvider()
 	if queryProvider == nil || !queryProvider.Enabled() || w.vectorStore == nil {

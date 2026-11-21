@@ -15,7 +15,7 @@ func TestHandleSendTo_WithMsgType(t *testing.T) {
 	h, s := mustHandler(t)
 	resp := h.Handle(Request{
 		Method: "send_to",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"target":   "target-session-1",
 			"content":  "task done",
 			"sender":   "sender-session-1",
@@ -41,7 +41,7 @@ func TestHandleSendTo_DefaultMsgType(t *testing.T) {
 	h, s := mustHandler(t)
 	resp := h.Handle(Request{
 		Method: "send_to",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"target":  "target-session-2",
 			"content": "do this task",
 			"sender":  "sender-session-2",
@@ -65,7 +65,7 @@ func TestHandleSendTo_AckOnAckDropped(t *testing.T) {
 	// First: A sends ack to B
 	h.Handle(Request{
 		Method: "send_to",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"target": "session-B", "content": "ok",
 			"sender": "session-A", "msg_type": "ack",
 		},
@@ -74,7 +74,7 @@ func TestHandleSendTo_AckOnAckDropped(t *testing.T) {
 	// B sends ack back to A → ACK-on-ACK, should be dropped
 	resp := h.Handle(Request{
 		Method: "send_to",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"target": "session-A", "content": "acknowledged",
 			"sender": "session-B", "msg_type": "ack",
 		},
@@ -332,11 +332,11 @@ func TestHandleStartDialog_MissingParams(t *testing.T) {
 
 func TestHandleSendTo_MissingParams(t *testing.T) {
 	h, _ := mustHandler(t)
-	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{"target": "t"}})
+	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","target": "t"}})
 	if resp.Error == "" {
 		t.Error("expected error for missing content")
 	}
-	resp = h.Handle(Request{Method: "send_to", Params: map[string]any{"content": "c"}})
+	resp = h.Handle(Request{Method: "send_to", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","content": "c"}})
 	if resp.Error == "" {
 		t.Error("expected error for missing target")
 	}
@@ -351,7 +351,7 @@ func TestHandleSendTo_UnidentifiedSenderIsNotTheActiveSession(t *testing.T) {
 	h.activeSessionID = "foreign-session"
 	h.activeSessionMu.Unlock()
 
-	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{"target": "tgt-1", "content": "hello"}})
+	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","target": "tgt-1", "content": "hello"}})
 	if resp.Error != "" {
 		t.Fatal(resp.Error)
 	}
@@ -373,7 +373,7 @@ func TestHandleSendTo_ImplicitAck(t *testing.T) {
 	s.SendChannelMessage("sender-X", "other", "incoming msg", "command")
 
 	// When sender-X sends a reply, their incoming messages should be marked read
-	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{
+	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"target": "other", "content": "reply", "sender": "sender-X",
 	}})
 	if resp.Error != "" {
@@ -394,7 +394,7 @@ func TestHandleCheckChannel_OK(t *testing.T) {
 	s.SendChannelMessage("sess-chan-1", "sender-a", "msg one", "command")
 	s.SendChannelMessage("sess-chan-1", "sender-b", "msg two", "status")
 
-	resp := h.Handle(Request{Method: "check_channel", Params: map[string]any{"session_id": "sess-chan-1"}})
+	resp := h.Handle(Request{Method: "check_channel", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": "sess-chan-1"}})
 	if resp.Error != "" {
 		t.Fatal(resp.Error)
 	}
@@ -414,7 +414,7 @@ func TestHandleCheckChannel_OK(t *testing.T) {
 
 func TestHandleCheckChannel_Empty(t *testing.T) {
 	h, _ := mustHandler(t)
-	resp := h.Handle(Request{Method: "check_channel", Params: map[string]any{"session_id": "no-messages"}})
+	resp := h.Handle(Request{Method: "check_channel", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": "no-messages"}})
 	if resp.Error != "" {
 		t.Fatal(resp.Error)
 	}
@@ -427,7 +427,7 @@ func TestHandleCheckChannel_Empty(t *testing.T) {
 
 func TestHandleCheckChannel_MissingSessionID(t *testing.T) {
 	h, _ := mustHandler(t)
-	resp := h.Handle(Request{Method: "check_channel", Params: map[string]any{}})
+	resp := h.Handle(Request{Method: "check_channel", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",}})
 	if resp.Error == "" {
 		t.Error("expected error for missing session_id")
 	}
@@ -439,7 +439,7 @@ func TestHandleMarkChannelRead_OK(t *testing.T) {
 	h, s := mustHandler(t)
 	s.SendChannelMessage("sess-mark-1", "other", "unread msg", "command")
 
-	resp := h.Handle(Request{Method: "mark_channel_read", Params: map[string]any{"session_id": "sess-mark-1"}})
+	resp := h.Handle(Request{Method: "mark_channel_read", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": "sess-mark-1"}})
 	if resp.Error != "" {
 		t.Fatal(resp.Error)
 	}
@@ -456,7 +456,7 @@ func TestHandleMarkChannelRead_OK(t *testing.T) {
 
 func TestHandleMarkChannelRead_MissingSessionID(t *testing.T) {
 	h, _ := mustHandler(t)
-	resp := h.Handle(Request{Method: "mark_channel_read", Params: map[string]any{}})
+	resp := h.Handle(Request{Method: "mark_channel_read", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",}})
 	if resp.Error == "" {
 		t.Error("expected error for missing session_id")
 	}
@@ -466,10 +466,10 @@ func TestHandleMarkChannelRead_MissingSessionID(t *testing.T) {
 
 func TestHandleListRegistrations(t *testing.T) {
 	h, _ := mustHandler(t)
-	h.Handle(Request{Method: "register_pid", Params: map[string]any{"session_id": "opencode:ses-1", "pid": float64(12345), "source_agent": "opencode"}})
-	h.Handle(Request{Method: "register_window", Params: map[string]any{"session_id": "opencode:ses-1", "window_id": "0x5600004", "terminal": "ghostty"}})
+	h.Handle(Request{Method: "register_pid", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": "opencode:ses-1", "pid": float64(12345), "source_agent": "opencode"}})
+	h.Handle(Request{Method: "register_window", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": "opencode:ses-1", "window_id": "0x5600004", "terminal": "ghostty"}})
 
-	resp := h.Handle(Request{Method: "list_registrations", Params: map[string]any{}})
+	resp := h.Handle(Request{Method: "list_registrations", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",}})
 	if resp.Error != "" {
 		t.Fatal(resp.Error)
 	}
@@ -493,7 +493,7 @@ func TestHandleListRegistrations(t *testing.T) {
 
 func TestHandleRegisterPID_OK(t *testing.T) {
 	h, _ := mustHandler(t)
-	resp := h.Handle(Request{Method: "register_pid", Params: map[string]any{"session_id": "pid-sess-1", "pid": float64(12345)}})
+	resp := h.Handle(Request{Method: "register_pid", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": "pid-sess-1", "pid": float64(12345)}})
 	if resp.Error != "" {
 		t.Fatal(resp.Error)
 	}
@@ -516,11 +516,11 @@ func TestHandleRegisterPID_OK(t *testing.T) {
 
 func TestHandleRegisterPID_MissingParams(t *testing.T) {
 	h, _ := mustHandler(t)
-	resp := h.Handle(Request{Method: "register_pid", Params: map[string]any{"session_id": "s"}})
+	resp := h.Handle(Request{Method: "register_pid", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": "s"}})
 	if resp.Error == "" {
 		t.Error("expected error for missing pid")
 	}
-	resp = h.Handle(Request{Method: "register_pid", Params: map[string]any{"pid": float64(1)}})
+	resp = h.Handle(Request{Method: "register_pid", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","pid": float64(1)}})
 	if resp.Error == "" {
 		t.Error("expected error for missing session_id")
 	}
@@ -528,7 +528,7 @@ func TestHandleRegisterPID_MissingParams(t *testing.T) {
 
 func TestHandleRegisterPID_WithSourceAgent(t *testing.T) {
 	h, _ := mustHandler(t)
-	resp := h.Handle(Request{Method: "register_pid", Params: map[string]any{
+	resp := h.Handle(Request{Method: "register_pid", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"session_id":   "opencode:ses-x",
 		"pid":          float64(99999),
 		"source_agent": "opencode",
@@ -550,7 +550,7 @@ func TestHandleRegisterPID_WithSourceAgent(t *testing.T) {
 
 func TestHandleRegisterWindow_OK(t *testing.T) {
 	h, _ := mustHandler(t)
-	resp := h.Handle(Request{Method: "register_window", Params: map[string]any{
+	resp := h.Handle(Request{Method: "register_window", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"session_id": "win-sess-1", "window_id": "0x1234", "terminal": "ghostty",
 	}})
 	if resp.Error != "" {
@@ -571,7 +571,7 @@ func TestHandleRegisterWindow_OK(t *testing.T) {
 
 func TestHandleRegisterWindow_NoTerminal(t *testing.T) {
 	h, _ := mustHandler(t)
-	resp := h.Handle(Request{Method: "register_window", Params: map[string]any{
+	resp := h.Handle(Request{Method: "register_window", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"session_id": "win-sess-2", "window_id": "0x5678",
 	}})
 	if resp.Error != "" {
@@ -587,11 +587,11 @@ func TestHandleRegisterWindow_NoTerminal(t *testing.T) {
 
 func TestHandleRegisterWindow_MissingParams(t *testing.T) {
 	h, _ := mustHandler(t)
-	resp := h.Handle(Request{Method: "register_window", Params: map[string]any{"session_id": "s"}})
+	resp := h.Handle(Request{Method: "register_window", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": "s"}})
 	if resp.Error == "" {
 		t.Error("expected error for missing window_id")
 	}
-	resp = h.Handle(Request{Method: "register_window", Params: map[string]any{"window_id": "w"}})
+	resp = h.Handle(Request{Method: "register_window", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","window_id": "w"}})
 	if resp.Error == "" {
 		t.Error("expected error for missing session_id")
 	}
@@ -613,7 +613,7 @@ func TestHandleBroadcast_OK(t *testing.T) {
 		t.Fatalf("AgentCreate: %v", err)
 	}
 
-	resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{
+	resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"project": "test-proj", "content": "hello everyone",
 		"_cwd": "/srv/test-proj", "_peer_pid": peer,
 	}})
@@ -635,11 +635,11 @@ func TestHandleBroadcast_MissingParams(t *testing.T) {
 	h.activeSessionID = "bc-sender"
 	h.activeSessionMu.Unlock()
 
-	resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{"content": "c"}})
+	resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","content": "c"}})
 	if resp.Error == "" {
 		t.Error("expected error for missing project")
 	}
-	resp = h.Handle(Request{Method: "broadcast", Params: map[string]any{"project": "p"}})
+	resp = h.Handle(Request{Method: "broadcast", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","project": "p"}})
 	if resp.Error == "" {
 		t.Error("expected error for missing content")
 	}
@@ -648,7 +648,7 @@ func TestHandleBroadcast_MissingParams(t *testing.T) {
 func TestHandleBroadcast_MissingSender(t *testing.T) {
 	h, _ := mustHandler(t)
 	// No activeSessionID, no sender param
-	resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{"project": "p", "content": "c"}})
+	resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","project": "p", "content": "c"}})
 	if resp.Error == "" {
 		t.Error("expected error for missing sender")
 	}
@@ -660,7 +660,7 @@ func TestHandleCheckBroadcasts_OK(t *testing.T) {
 	h, s := mustHandler(t)
 	s.SendBroadcast("sender-bc", "/srv/proj-1", "broadcast msg")
 
-	resp := h.Handle(Request{Method: "check_broadcasts", Params: map[string]any{
+	resp := h.Handle(Request{Method: "check_broadcasts", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"session_id": "reader-1", "project": "proj-1", "_cwd": "/srv/proj-1",
 	}})
 	if resp.Error != "" {
@@ -679,7 +679,7 @@ func TestHandleCheckBroadcasts_OK(t *testing.T) {
 
 func TestHandleCheckBroadcasts_Empty(t *testing.T) {
 	h, _ := mustHandler(t)
-	resp := h.Handle(Request{Method: "check_broadcasts", Params: map[string]any{
+	resp := h.Handle(Request{Method: "check_broadcasts", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"session_id": "reader-2", "project": "proj-2", "_cwd": "/srv/proj-2",
 	}})
 	if resp.Error != "" {
@@ -697,11 +697,11 @@ func TestHandleCheckBroadcasts_MissingParams(t *testing.T) {
 	// A broadcast read identifies its reader by the session id it names, so a
 	// caller that names none cannot be served at all (YM-235, same form as the
 	// endpoints YM-204 closed). The empty-project case stays a no-op.
-	resp := h.Handle(Request{Method: "check_broadcasts", Params: map[string]any{}})
+	resp := h.Handle(Request{Method: "check_broadcasts", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",}})
 	if resp.Error == "" {
 		t.Error("expected an error for a broadcast read without a session id")
 	}
-	resp = h.Handle(Request{Method: "check_broadcasts", Params: map[string]any{"session_id": "reader-x"}})
+	resp = h.Handle(Request{Method: "check_broadcasts", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": "reader-x"}})
 	if resp.Error != "" {
 		t.Fatalf("a missing project must stay a no-op: %s", resp.Error)
 	}
@@ -716,7 +716,7 @@ func TestHandleCheckBroadcasts_MarksRead(t *testing.T) {
 	s.SendBroadcast("sender-x", "/srv/proj-r", "first read")
 
 	// First check: should see the broadcast
-	resp := h.Handle(Request{Method: "check_broadcasts", Params: map[string]any{
+	resp := h.Handle(Request{Method: "check_broadcasts", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"session_id": "reader-r", "project": "proj-r", "_cwd": "/srv/proj-r",
 	}})
 	m := resultMap(t, resp)
@@ -725,7 +725,7 @@ func TestHandleCheckBroadcasts_MarksRead(t *testing.T) {
 	}
 
 	// Second check: should be empty (already read)
-	resp = h.Handle(Request{Method: "check_broadcasts", Params: map[string]any{
+	resp = h.Handle(Request{Method: "check_broadcasts", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"session_id": "reader-r", "project": "proj-r", "_cwd": "/srv/proj-r",
 	}})
 	m = resultMap(t, resp)
@@ -786,7 +786,7 @@ func TestCheckBroadcasts_ProxyCallerIsServed(t *testing.T) {
 	}
 	stubProcCmdline(t, "/home/u/.local/bin/nemons\x00proxy\x00")
 
-	resp := h.Handle(Request{Method: "check_broadcasts", Params: map[string]any{
+	resp := h.Handle(Request{Method: "check_broadcasts", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"session_id": "opencode:ses_READER_C", "project": "/srv/proj-c", "_peer_pid": 4321,
 	}})
 	if resp.Error != "" {
@@ -798,7 +798,7 @@ func TestCheckBroadcasts_ProxyCallerIsServed(t *testing.T) {
 
 	// The identity is still required: absence of the session id is refused for
 	// that reason, not because of the peer.
-	resp = h.Handle(Request{Method: "check_broadcasts", Params: map[string]any{
+	resp = h.Handle(Request{Method: "check_broadcasts", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"project": "/srv/proj-c", "_peer_pid": 4321,
 	}})
 	if !strings.Contains(resp.Error, "session_id") {
@@ -993,7 +993,7 @@ func TestHandleMarkRead_MissingParams(t *testing.T) {
 
 func TestHandleWhoami_NonAgent(t *testing.T) {
 	h, _ := mustHandler(t)
-	resp := h.Handle(Request{Method: "whoami", Params: map[string]any{"session_id": "regular-sess", "project": "proj-w"}})
+	resp := h.Handle(Request{Method: "whoami", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": "regular-sess", "project": "proj-w"}})
 	if resp.Error != "" {
 		t.Fatal(resp.Error)
 	}
@@ -1019,7 +1019,7 @@ func TestHandleWhoami_Agent(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	resp := h.Handle(Request{Method: "whoami", Params: map[string]any{"session_id": "agent-sess-1", "project": "proj-a"}})
+	resp := h.Handle(Request{Method: "whoami", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": "agent-sess-1", "project": "proj-a"}})
 	if resp.Error != "" {
 		t.Fatal(resp.Error)
 	}
@@ -1046,7 +1046,7 @@ func TestHandleWhoami_Agent(t *testing.T) {
 
 func TestHandleWhoami_EmptySession(t *testing.T) {
 	h, _ := mustHandler(t)
-	resp := h.Handle(Request{Method: "whoami", Params: map[string]any{}})
+	resp := h.Handle(Request{Method: "whoami", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",}})
 	if resp.Error != "" {
 		t.Fatal(resp.Error)
 	}
@@ -1132,7 +1132,7 @@ func TestCheckChannel_ProxyPeerReadsTheNamedSession(t *testing.T) {
 	}
 	stubProcCmdline(t, "/home/tester/.local/bin/nemons\x00proxy\x00")
 
-	resp := h.Handle(Request{Method: "check_channel", Params: map[string]any{
+	resp := h.Handle(Request{Method: "check_channel", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"session_id": "opencode:ses_TARGET", "_peer_pid": 4242,
 	}})
 	if resp.Error != "" {
@@ -1178,7 +1178,7 @@ func TestCheckChannel_ForeignInboxStaysClosed(t *testing.T) {
 
 	// A pid the caller sends itself is not a peer: JSON decoding makes every
 	// number a float64, and only the int the socket layer writes counts.
-	resp := h.Handle(Request{Method: "check_channel", Params: map[string]any{
+	resp := h.Handle(Request{Method: "check_channel", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"session_id": "opencode:ses_VICTIM", "_peer_pid": float64(4321),
 	}})
 	if resp.Error != "" {
@@ -1217,14 +1217,14 @@ func TestHTTPAdapter_DoesNotServeTheChannelEndpoints(t *testing.T) {
 	adapter := &handlerAdapter{h: h}
 
 	for _, method := range []string{"check_channel", "mark_channel_read", "check_broadcasts"} {
-		resp := adapter.Handle(httpapi.RPCRequest{Method: method, Params: map[string]any{"session_id": "opencode:ses_VICTIM"}})
+		resp := adapter.Handle(httpapi.RPCRequest{Method: method, Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": "opencode:ses_VICTIM"}})
 		if resp.Error == "" {
 			t.Errorf("%s is served over HTTP and read a foreign inbox: %s", method, resp.Result)
 		}
 	}
 	// broadcast writes, but its label is resolved from the caller's proven
 	// identity — and that proof lives on the socket (YM-271).
-	if resp := adapter.Handle(httpapi.RPCRequest{Method: "broadcast", Params: map[string]any{
+	if resp := adapter.Handle(httpapi.RPCRequest{Method: "broadcast", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"project": "http-proj", "content": "forged", "sender": "opencode:ses_VICTIM",
 	}}); resp.Error == "" {
 		t.Errorf("broadcast is served over HTTP, where no peer can vouch for the sender: %s", resp.Result)
@@ -1246,7 +1246,7 @@ func TestCheckChannel_InProcessCallerKeepsTheNamedSession(t *testing.T) {
 	if _, err := s.SendChannelMessage("opencode:ses_INTERNAL", "someone", "internal read", "command"); err != nil {
 		t.Fatal(err)
 	}
-	resp := h.Handle(Request{Method: "check_channel", Params: map[string]any{
+	resp := h.Handle(Request{Method: "check_channel", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"session_id": "opencode:ses_INTERNAL",
 	}})
 	if resp.Error != "" {
@@ -1268,7 +1268,7 @@ func TestMarkChannelRead_ForeignInboxStaysClosed(t *testing.T) {
 	}
 	stubProcCmdline(t, "/usr/bin/opencode\x00serve\x00")
 
-	resp := h.Handle(Request{Method: "mark_channel_read", Params: map[string]any{
+	resp := h.Handle(Request{Method: "mark_channel_read", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"session_id": "opencode:ses_VICTIM", "_peer_pid": 4321, "_session_id": "caller-session",
 	}})
 	if resp.Error == "" {
@@ -1288,7 +1288,7 @@ func TestHandleWhoami_IncludesModelFromProxyState(t *testing.T) {
 	if err := s.SetProxyState("session_model:sid-w-model", "claude-opus-4-7"); err != nil {
 		t.Fatal(err)
 	}
-	resp := h.Handle(Request{Method: "whoami", Params: map[string]any{"session_id": "sid-w-model"}})
+	resp := h.Handle(Request{Method: "whoami", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": "sid-w-model"}})
 	if resp.Error != "" {
 		t.Fatal(resp.Error)
 	}
@@ -1300,7 +1300,7 @@ func TestHandleWhoami_IncludesModelFromProxyState(t *testing.T) {
 
 func TestHandleWhoami_OmitsModelWhenProxyStateMissing(t *testing.T) {
 	h, _ := mustHandler(t)
-	resp := h.Handle(Request{Method: "whoami", Params: map[string]any{"session_id": "no-model-sess"}})
+	resp := h.Handle(Request{Method: "whoami", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": "no-model-sess"}})
 	if resp.Error != "" {
 		t.Fatal(resp.Error)
 	}
@@ -1329,7 +1329,7 @@ func TestHandleWhoami_StripsOpenCodePrefix(t *testing.T) {
 	}
 	resp := h.Handle(Request{Method: "whoami", Params: map[string]any{
 		"session_id":    "opencode:ses_oc_real_1",
-		"_source_agent": "opencode",
+		"_source_agent": "opencode", "_source_agent_source": "resolved",
 	}})
 	if resp.Error != "" {
 		t.Fatal(resp.Error)
@@ -1360,7 +1360,7 @@ func TestHandleWhoami_StripsCodexPrefix(t *testing.T) {
 	}
 	resp := h.Handle(Request{Method: "whoami", Params: map[string]any{
 		"session_id":    "codex:ses_cx_real_1",
-		"_source_agent": "codex",
+		"_source_agent": "codex", "_source_agent_source": "resolved",
 	}})
 	if resp.Error != "" {
 		t.Fatal(resp.Error)
@@ -1385,7 +1385,7 @@ func TestHandleRegisterPID_ReRegisterDisplacesOldSession(t *testing.T) {
 	h, _ := mustHandler(t)
 
 	// Register session A with PID 100.
-	h.Handle(Request{Method: "register_pid", Params: map[string]any{
+	h.Handle(Request{Method: "register_pid", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"session_id": "session-A", "pid": float64(100),
 	}})
 
@@ -1404,7 +1404,7 @@ func TestHandleRegisterPID_ReRegisterDisplacesOldSession(t *testing.T) {
 	}
 
 	// Re-register same PID 100 with session B.
-	h.Handle(Request{Method: "register_pid", Params: map[string]any{
+	h.Handle(Request{Method: "register_pid", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"session_id": "session-B", "pid": float64(100),
 	}})
 
@@ -1450,7 +1450,7 @@ func TestHandleRegisterPID_ReRegisterDisplacesAllOldSessions(t *testing.T) {
 	}
 
 	// Register PID 100 with session X — must remove A, B, C.
-	h.Handle(Request{Method: "register_pid", Params: map[string]any{
+	h.Handle(Request{Method: "register_pid", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"session_id": "session-X", "pid": float64(100),
 	}})
 

@@ -15,7 +15,7 @@ func TestStoreCompactedBlockRPCMustNotComeBack_Los57d(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "store_compacted_block",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"thread_id": "t-legacy",
 			"start_idx": float64(0),
 			"end_idx":   float64(50),

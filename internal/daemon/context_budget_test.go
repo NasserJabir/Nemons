@@ -34,7 +34,7 @@ func TestContextPackBudgetDropsWholeItemsNeverTruncates(t *testing.T) {
 	seedPackLearning(t, h, "gotcha", fmt.Sprintf("%080d", 3), "")
 
 	resp := h.Handle(Request{Method: "build_context_pack", Params: map[string]any{
-		"task": "budgeted build", "project": "/w", "budget_chars": 100.0, "_source_agent": "claude"}})
+		"task": "budgeted build", "project": "/w", "budget_chars": 100.0, "_source_agent": "claude", "_source_agent_source": "resolved"}})
 	if resp.Error != "" {
 		t.Fatalf("pack: %v", resp.Error)
 	}
@@ -63,7 +63,7 @@ func TestContextPackBudgetDecisionsSurviveLongest(t *testing.T) {
 	seedPackLearning(t, h, "decision", fmt.Sprintf("%060d", 3), "")
 
 	resp := h.Handle(Request{Method: "build_context_pack", Params: map[string]any{
-		"task": "priority build", "project": "/w", "budget_chars": 65.0, "max_items": 1.0, "_source_agent": "claude"}})
+		"task": "priority build", "project": "/w", "budget_chars": 65.0, "max_items": 1.0, "_source_agent": "claude", "_source_agent_source": "resolved"}})
 	if resp.Error != "" {
 		t.Fatalf("pack: %v", resp.Error)
 	}
@@ -82,7 +82,7 @@ func TestContextPackBudgetDefaultBackwardCompatible(t *testing.T) {
 	seedPackLearning(t, h, "decision", "small two", "")
 
 	resp := h.Handle(Request{Method: "build_context_pack", Params: map[string]any{
-		"task": "default build", "project": "/w", "_source_agent": "claude"}})
+		"task": "default build", "project": "/w", "_source_agent": "claude", "_source_agent_source": "resolved"}})
 	if resp.Error != "" {
 		t.Fatalf("pack: %v", resp.Error)
 	}

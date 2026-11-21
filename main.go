@@ -71,6 +71,8 @@ func main() {
 		if err := setup.Status(nemonsDataDir()); err != nil {
 			log.Fatalf("status: %s", textutil.ErrorLine(err))
 		}
+	case "governance":
+		runGovernance(os.Args[2:])
 	case "regenerate-narratives":
 		runRegenerateNarratives()
 	case "bootstrap-persona":

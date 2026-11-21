@@ -97,7 +97,7 @@ func los38sSigtermIgnoringProcess(t *testing.T) int {
 
 func los38sStopResult(t *testing.T, h *Handler, id string) map[string]any {
 	t.Helper()
-	resp := h.Handle(Request{Method: "stop_agent", Params: map[string]any{"to": id}})
+	resp := h.Handle(Request{Method: "stop_agent", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","to": id}})
 	if resp.Error != "" {
 		t.Fatalf("stop_agent(%s): %s", id, resp.Error)
 	}
@@ -378,7 +378,7 @@ func TestLos38sSkippedVerificationClaimsNothing(t *testing.T) {
 	pid := los38sSigtermIgnoringProcess(t)
 	los38sRow(t, s, "agent-los38s-quiet", map[string]any{"pid": pid})
 
-	resp := h.Handle(Request{Method: "stop_agent", Params: map[string]any{
+	resp := h.Handle(Request{Method: "stop_agent", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"to": "agent-los38s-quiet", "_verify": false,
 	}})
 	if resp.Error != "" {

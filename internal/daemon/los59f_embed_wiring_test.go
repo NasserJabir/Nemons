@@ -104,7 +104,7 @@ func TestVectorSearchWithoutWiring(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "vector_search",
-		Params: map[string]any{"query": "anything", "limit": float64(3)},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","query": "anything", "limit": float64(3)},
 	})
 
 	if resp.Error != "vector search not enabled" {

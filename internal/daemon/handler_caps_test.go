@@ -616,7 +616,7 @@ func TestHandle_GetCapabilities_Dispatch(t *testing.T) {
 	h, _ := mustHandler(t)
 	seedCap(t, h, "test_tool", "global", "echo hi", nil)
 
-	resp := h.Handle(Request{Method: "get_caps", Params: map[string]any{}})
+	resp := h.Handle(Request{Method: "get_caps", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",}})
 	if resp.Error != "" {
 		t.Fatalf("dispatch error: %s", resp.Error)
 	}
@@ -624,7 +624,7 @@ func TestHandle_GetCapabilities_Dispatch(t *testing.T) {
 
 func TestHandle_SaveCapability_Dispatch(t *testing.T) {
 	h, _ := mustHandler(t)
-	resp := h.Handle(Request{Method: "save_cap", Params: map[string]any{
+	resp := h.Handle(Request{Method: "save_cap", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"name":         "dispatch_test",
 		"description":  "Test",
 		"handler_bash": "echo dispatched",
@@ -829,7 +829,7 @@ func TestHandleRegisterCapabilities_InvalidSchemaSkipped(t *testing.T) {
 
 func TestHandle_RegisterCapabilities_Dispatch(t *testing.T) {
 	h, _ := mustHandler(t)
-	resp := h.Handle(Request{Method: "register_caps", Params: map[string]any{}})
+	resp := h.Handle(Request{Method: "register_caps", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",}})
 	if resp.Error != "" {
 		t.Fatalf("dispatch error: %s", resp.Error)
 	}

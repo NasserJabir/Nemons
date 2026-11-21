@@ -343,7 +343,7 @@ func TestCapProposalDecide_AcceptCarriesActionsAndRequires(t *testing.T) {
 
 	saveResp := h.Handle(Request{
 		Method: "save_cap",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"name":        "declared_proposal",
 			"description": "declares its adapters",
 			"scripts":     los32bScriptsParam(t, "bash", "store '{\"op\":\"query\"}'\n"),
@@ -359,7 +359,7 @@ func TestCapProposalDecide_AcceptCarriesActionsAndRequires(t *testing.T) {
 	propID := seedCapProposed(t, h, "declared_proposal", "store '{\"op\":\"query\",\"limit\":1}'\n")
 	resp := h.Handle(Request{
 		Method: "cap_proposal_decide",
-		Params: map[string]any{"id": float64(propID), "decision": "accept"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","id": float64(propID), "decision": "accept"},
 	})
 	if resp.Error != "" {
 		t.Fatalf("accept: %s", resp.Error)

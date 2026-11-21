@@ -25,7 +25,7 @@ const doneDeliveryPayload = "[DONE] [DEPLOY: no] [BRANCH: main] [MERGE: no] the 
 // session, the target is its orchestrator.
 func sendDONE(t *testing.T, h *Handler, agent storage.Agent, content string) Response {
 	t.Helper()
-	return h.Handle(Request{Method: "send_to", Params: map[string]any{
+	return h.Handle(Request{Method: "send_to", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"target":      agent.CallerSession,
 		"content":     content,
 		"_session_id": agent.SessionID,
@@ -36,7 +36,7 @@ func sendDONE(t *testing.T, h *Handler, agent storage.Agent, content string) Res
 // the hold follows the orchestrator and not the payload alone.
 func sendDONETo(t *testing.T, h *Handler, agent storage.Agent, target, content string) Response {
 	t.Helper()
-	return h.Handle(Request{Method: "send_to", Params: map[string]any{
+	return h.Handle(Request{Method: "send_to", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"target":      target,
 		"content":     content,
 		"_session_id": agent.SessionID,
@@ -493,7 +493,7 @@ func TestDONEDeliveryCannotBeSwitchedOffByTheSenderLabel(t *testing.T) {
 	repo, head, _ := claimsRepo(t)
 	agent := endToEndAgent(t, h, s, "deliver-spoof", repo, "[COMMIT: "+head+"]\n[BRANCH: main]\n")
 
-	response := h.Handle(Request{Method: "send_to", Params: map[string]any{
+	response := h.Handle(Request{Method: "send_to", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"target":      agent.CallerSession,
 		"content":     doneDeliveryPayload,
 		"sender":      daemonSender("yesloop"),

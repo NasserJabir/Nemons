@@ -87,6 +87,45 @@ func ActorFromParams(params map[string]any) ActorContext {
 	return a
 }
 
+// The four identity concepts are carried by four distinct channels and must
+// never be conflated into one string (remediation 02 WS-A2):
+//
+//   - Authenticated Actor Identity  → AuthorizationID(): the actor id exactly
+//     when a trusted integration boundary authenticated it. This is the only
+//     id scope decisions may judge.
+//   - Unauthenticated Agent Attribution → AttributionID(): the caller's claimed
+//     label, for audit lines and display only — never for scope.
+//   - Session Identity → SessionID: the boundary-resolved session (YM-271),
+//     distinct from the agent id.
+//   - Internal System Identity → the in-process marks in internal/daemon
+//     (internalCallMark, jobSurfaceMark): private Go types no external payload
+//     can decode, at their own audited call sites.
+
+// AuthorizationID is the identity scope decisions judge: the actor id exactly
+// when a trusted integration boundary authenticated it (IdentitySourceResolved
+// — the boundary overwrites model-written values, so a resolved marker proves
+// boundary authorship). A caller claim never authorizes: the model chose that
+// label, and under the trusted-identity contract a claim must never silently
+// become an authorization identity, no matter how well it names another agent
+// (remediation 02 WS-A1). Session-only authentication authenticates the
+// session, not the agent id, so it does not authorize private scope either.
+func (a ActorContext) AuthorizationID() string {
+	if a.Authenticated && a.IdentitySource == IdentitySourceResolved {
+		return a.ActorID
+	}
+	return ""
+}
+
+// AttributionID is the caller's claimed agent label, when it is a claim. It
+// exists for audit lines and display: where a claim is recorded it must be
+// readable as a claim, never merged into the authorized identity.
+func (a ActorContext) AttributionID() string {
+	if a.IdentitySource == IdentitySourceClaim {
+		return a.ActorID
+	}
+	return ""
+}
+
 // ViewerID is the id scope decisions judge: the actor itself, never a label
 // the model chose.
 func (a ActorContext) ViewerID() string { return a.ActorID }

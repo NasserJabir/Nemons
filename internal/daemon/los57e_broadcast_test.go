@@ -35,7 +35,7 @@ func TestLos57eBroadcastRefusesAnUnresolvedProjectName(t *testing.T) {
 	// Twice: the second call is served from the resolution cache, and the marker
 	// has to survive that path too (cold review F1).
 	for i := 0; i < 2; i++ {
-		resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{
+		resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"project": "ghost-proj", "content": "hello", "_peer_pid": peer,
 		}})
 		if resp.Error == "" {
@@ -54,7 +54,7 @@ func TestLos57eBroadcastRefusesAnUnresolvedProjectName(t *testing.T) {
 	// A cwd that does not carry the name resolves to nothing as well, cached under
 	// its own key.
 	for i := 0; i < 2; i++ {
-		resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{
+		resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"project": "ghost-elsewhere", "content": "hello", "_peer_pid": peer,
 			"_cwd": "/srv/other-dir",
 		}})
@@ -68,7 +68,7 @@ func TestLos57eBroadcastRefusesAnUnresolvedProjectName(t *testing.T) {
 
 	// The reader refuses the same way: an empty inbox for a project that does not
 	// exist under that key reads like "no messages".
-	check := h.Handle(Request{Method: "check_broadcasts", Params: map[string]any{
+	check := h.Handle(Request{Method: "check_broadcasts", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"project": "ghost-proj", "session_id": "los57e-sender", "_peer_pid": peer,
 	}})
 	if check.Error == "" {
@@ -88,7 +88,7 @@ func TestLos57eBroadcastUsesTheResolvedPathForShortNames(t *testing.T) {
 	}
 	peer := los57eBroadcastSender(t, s, "test-proj")
 
-	resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{
+	resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"project": "test-proj", "content": "hello", "_peer_pid": peer,
 	}})
 	if resp.Error != "" {

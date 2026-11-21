@@ -365,7 +365,7 @@ func TestScheduleList_ExposesIntervalAndRecurring(t *testing.T) {
 		t.Fatalf("add job: %v", err)
 	}
 
-	resp := h.Handle(Request{Method: "schedule", Params: map[string]any{"action": "list"}})
+	resp := h.Handle(Request{Method: "schedule", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","action": "list"}})
 	if resp.Error != "" {
 		t.Fatalf("schedule list: %s", resp.Error)
 	}
@@ -396,7 +396,7 @@ func TestScheduleList_IntervalSecondsValue(t *testing.T) {
 		t.Fatalf("add job: %v", err)
 	}
 
-	resp := h.Handle(Request{Method: "schedule", Params: map[string]any{"action": "list"}})
+	resp := h.Handle(Request{Method: "schedule", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","action": "list"}})
 	var data struct {
 		Jobs []map[string]any `json:"jobs"`
 	}
@@ -451,7 +451,7 @@ func TestScheduleCreate_HonoursAConfiguredNoneDefault(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "schedule",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"action": "create", "name": "no-sandbox", "cron": "* * * * *",
 			"mode": "bash", "cap_name": "my_cap", "script_name": "run",
 		},
@@ -477,7 +477,7 @@ func TestScheduleCreate_UnsetDefaultStaysStandard(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "schedule",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"action": "create", "name": "default-sandbox", "cron": "* * * * *",
 			"mode": "bash", "cap_name": "my_cap2", "script_name": "run",
 		},
@@ -649,7 +649,7 @@ func TestScheduleDelete_KeepsTheDirOfARunningJob(t *testing.T) {
 	}
 	h.scheduler.running[job.ID] = true
 
-	resp := h.Handle(Request{Method: "schedule", Params: map[string]any{"action": "delete", "id": job.ID}})
+	resp := h.Handle(Request{Method: "schedule", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","action": "delete", "id": job.ID}})
 	if resp.Error != "" {
 		t.Fatalf("schedule delete: %s", resp.Error)
 	}
@@ -721,7 +721,7 @@ func TestScheduleDelete_RemovesTheJobDir(t *testing.T) {
 		t.Fatalf("ensureJobDir: %v", err)
 	}
 
-	resp := h.Handle(Request{Method: "schedule", Params: map[string]any{"action": "delete", "id": job.ID}})
+	resp := h.Handle(Request{Method: "schedule", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","action": "delete", "id": job.ID}})
 	if resp.Error != "" {
 		t.Fatalf("schedule delete: %s", resp.Error)
 	}
@@ -814,7 +814,7 @@ func TestScheduleCreate_IntervalSecondsWithoutCron(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "schedule",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"action":           "create",
 			"name":             "telegram-poll",
 			"interval_seconds": float64(15),
@@ -834,7 +834,7 @@ func TestScheduleCreate_EmptyCronAndZeroInterval(t *testing.T) {
 	h, _ := mustHandler(t)
 	resp := h.Handle(Request{
 		Method: "schedule",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"action": "create",
 			"name":   "no-schedule",
 			"mode":   "bash",

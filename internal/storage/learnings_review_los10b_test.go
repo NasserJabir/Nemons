@@ -25,7 +25,7 @@ func TestGetLearningsSinceComparesParsedTimestampsLos10b(t *testing.T) {
 	id := insertTimedLos10bLearning(t, s, "los10b metamemory sentinel", rowCreated)
 
 	// Control: a bound three hours back keeps the row.
-	control, err := s.GetLearningsSince("los10b-proj", time.Now().Add(-3*time.Hour), 10)
+	control, err := s.GetLearningsSince("", "los10b-proj", time.Now().Add(-3*time.Hour), 10)
 	if err != nil {
 		t.Fatalf("get learnings since (control): %v", err)
 	}
@@ -39,7 +39,7 @@ func TestGetLearningsSinceComparesParsedTimestampsLos10b(t *testing.T) {
 		t.Fatalf("control failed: learning %d missing from a three hour window", id)
 	}
 
-	out, err := s.GetLearningsSince("los10b-proj", bound, 10)
+	out, err := s.GetLearningsSince("", "los10b-proj", bound, 10)
 	if err != nil {
 		t.Fatalf("get learnings since: %v", err)
 	}

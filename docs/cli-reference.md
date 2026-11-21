@@ -118,13 +118,25 @@ All commands. Data directory defaults to `~/.claude/nemons` (overridable via `NE
 
 | Command | Flags/Args | Description |
 |---------|------------|-------------|
-| `nemons query` | `'<sql>'`; `--args '<json-array>'`; `--format json\|objects\|tsv` | Read-only SQL query against nemons.db (SELECT/WITH only) |
-| `nemons json` | `'<expr>'`; `-r`/`--raw-output`; `-n`/`--null-input`; `-R`/`--raw-input`; `-s`/`--slurp`; `-e`/`--exit-status`; `-c`/`--compact-output`; `--indent N`; `--arg NAME VALUE`; `--argjson NAME VALUE` | jq-style JSON filter on stdin (powered by gojq) |
+| `nemons query` | `'<sql>'`; `--args '<json-array>'`; `--format json\|objects\|tsv` | Read-only SQL query against nemons.db (SELECT/WITH only) || `nemons json` | `'<expr>'`; `-r`/`--raw-output`; `-n`/`--null-input`; `-R`/`--raw-input`; `-s`/`--slurp`; `-e`/`--exit-status`; `-c`/`--compact-output`; `--indent N`; `--arg NAME VALUE`; `--argjson NAME VALUE` | jq-style JSON filter on stdin (powered by gojq) |
 | `nemons store` | `'<json>'` — `{"capability":"...","action":"...","table":"...",...}` | Cap store RPC relay via daemon (create_table, upsert, query, delete, list_tables) |
 | `nemons cap-store` | `<capability> <action> <table> [where] [args_json]` (actions: `query`, `upsert`, `delete`) | Capability store direct CLI access |
 | `nemons cap-blob-put` | `--cap NAME` (required); `--key KEY` (required) | Store stdin as chunked blob in the named cap's blobs table |
 | `nemons cap-blob-get` | `--cap NAME` (required); `--key KEY` (required) | Retrieve a previously stored blob to stdout |
 | `nemons llm-complete` | `'<json>'` — `{"system":"...","user":"...","model":"..."}` | LLM completion via daemon RPC |
+
+## Governance (Operator)
+
+The human operator surface for the governance gate (see docs/remediation/02/OPERATOR_GUIDE.md). The operator token is read from NEMONS_OPERATOR_TOKEN or stdin — never argv, never printed.
+
+| Command | Flags/Args | Description |
+|---------|------------|-------------|
+| `nemons governance status` | *(none)* | Pending-ask count and queue; whether the operator token is configured (presence only) |
+| `nemons governance approvals list` | *(none)* | Every open ask: key, method, caller, surface, requested, expiry |
+| `nemons governance approvals show` | `<key>` | The full record of one ask |
+| `nemons governance approvals decide` | `<key> --decision allow\|deny` | Close an open ask under the operator token; transactional, audited, idempotent (a decided ask cannot be decided again) |
+| `nemons governance operator rotate-token` | `[--yes]` | Recovery/rotation: regenerate the operator token after interactive confirmation; audited; the old token stops working immediately |
+| `nemons governance pack-key rotate` | *(none)* | Rotate the Context Pack receipt signing key; outstanding receipts no longer verify, packs are re-issued by rebuilding |
 
 ## Scratchpad
 

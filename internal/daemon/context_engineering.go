@@ -61,19 +61,38 @@ func contextPackBudgetFrom(params map[string]any) contextPackBudget {
 	return b
 }
 
-// contextPackPriority: lower ranks out first under budget pressure.
-// decisions (approved claims) rank last — they are the claims the governance
-// chain already vetted; gotcha warnings rank first to drop.
-func contextPackPriority(category string) int {
+// contextPackPriority: lower ranks out first under budget pressure. The
+// decision tier is EARNED by approval provenance — the recorded Source of the
+// row (user_stated / agreed_upon are the user's own vetting) — never inferred
+// from the category name (remediation 02 WS-F): an llm-extracted decision is
+// a claim the governance chain has not seen, so it ranks with teaching, and a
+// vetted decision survives budget pressure longest.
+func contextPackPriority(item map[string]any) int {
+	category, _ := item["category"].(string)
+	source, _ := item["source"].(string)
 	switch category {
 	case "gotcha":
 		return 0
 	case "explicit_teaching":
 		return 1
 	case "decision":
-		return 2
+		if decisionApprovalProvenance(source) {
+			return 2
+		}
+		return 1
 	}
 	return -1
+}
+
+// decisionApprovalProvenance: the sources that record an actual user
+// decision. Everything else (llm_extracted, fork, claude_suggested, empty) is
+// unvetted extraction, whatever category the row carries.
+func decisionApprovalProvenance(source string) bool {
+	switch source {
+	case "user_stated", "agreed_upon":
+		return true
+	}
+	return false
 }
 
 // selectWithinBudget applies the item cap and the char cap as whole-item
@@ -89,7 +108,7 @@ func selectWithinBudget(items []map[string]any, b contextPackBudget) ([]map[stri
 	sorted := make([]map[string]any, len(items))
 	copy(sorted, items)
 	sort.SliceStable(sorted, func(i, j int) bool {
-		pi, pj := contextPackPriority(sorted[i]["category"].(string)), contextPackPriority(sorted[j]["category"].(string))
+		pi, pj := contextPackPriority(sorted[i]), contextPackPriority(sorted[j])
 		if pi != pj {
 			return pi > pj
 		}
@@ -181,6 +200,7 @@ func (h *Handler) assembleContextPack(viewer, task, project string, budget conte
 		}
 		knowledge = append(knowledge, map[string]any{
 			"id": l.ID, "category": l.Category, "content": l.Content,
+			"source": l.Source,
 			"created_at": l.CreatedAt.UTC().Format(time.RFC3339),
 		})
 	}
@@ -274,6 +294,15 @@ func (h *Handler) handleBuildContextPack(params map[string]any) Response {
 	}
 	knowledge, skills := pack.Knowledge, pack.Skills
 
+	// Remediation 02 WS-C: the manifest is issued under a server-signed
+	// receipt — check_pack_loss verifies authenticity before trusting any
+	// presented manifest. A key problem fails the build explicitly; it is
+	// never a degraded, unsigned pack.
+	receipt, rerr := h.issuePackReceipt(viewer, task, project, &pack.Manifest)
+	if rerr != nil {
+		return errorResponse(fmt.Sprintf("build_context_pack: %v", rerr))
+	}
+
 	skillsBudgetNote := ""
 	if budget.maxChars > 0 {
 		skillsBudgetNote = "skills list stays name/description only — the char budget applies to knowledge content"
@@ -288,6 +317,7 @@ func (h *Handler) handleBuildContextPack(params map[string]any) Response {
 	return jsonResponse(map[string]any{
 		"task": task, "project": project, "fingerprint": pack.Manifest.Fingerprint,
 		"manifest": pack.Manifest,
+		"receipt":  receipt,
 		"pack": map[string]any{
 			"knowledge": knowledge,
 			"skills":    skills,
@@ -365,6 +395,24 @@ func (h *Handler) handleCheckPackLoss(params map[string]any) Response {
 		}
 		if m.Fingerprint != manifestFingerprint(&m) {
 			return errorResponse("check_pack_loss: manifest fingerprint mismatch — the manifest was altered in transit; refusing verification")
+		}
+		// Remediation 02 WS-C: authenticity before trust. The manifest is
+		// accepted only under a server-issued receipt that binds it to this
+		// viewer, project and task and has not expired. An ordinary hash
+		// proves integrity, never issuance.
+		var receipt *packReceipt
+		if rraw, ok := params["receipt"]; ok && rraw != nil {
+			rb, err := json.Marshal(rraw)
+			if err != nil {
+				return errorResponse(fmt.Sprintf("check_pack_loss: unreadable receipt: %v", err))
+			}
+			receipt = &packReceipt{}
+			if err := json.Unmarshal(rb, receipt); err != nil {
+				return errorResponse(fmt.Sprintf("check_pack_loss: unreadable receipt: %v", err))
+			}
+		}
+		if verr := h.verifyPackReceipt(receipt, &m, viewer, project, textutil.ContentHash(task)); verr != nil {
+			return errorResponse(fmt.Sprintf("check_pack_loss: %v", verr))
 		}
 		expected = make(map[int64]string, len(m.Knowledge))
 		for _, it := range m.Knowledge {

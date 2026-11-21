@@ -18,13 +18,13 @@ import (
 // governanceBindParams is one fixed governed packet used across the gate tests.
 func governanceBindParams() map[string]any {
 	return map[string]any{
-		"agent": "claude", "project": "/w", "role": "reviewer", "_source_agent": "claude",
+		"agent": "claude", "project": "/w", "role": "reviewer", "_source_agent": "claude", "_source_agent_source": "resolved",
 	}
 }
 
 func TestGateWiredBeforeDispatch_UngovernedPasses(t *testing.T) {
 	h, s := mustHandler(t)
-	resp := h.Handle(Request{Method: "get_learnings", Params: map[string]any{"project": "/w"}})
+	resp := h.Handle(Request{Method: "get_learnings", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","project": "/w"}})
 	if resp.Error != "" {
 		t.Fatalf("ungoverned read refused: %v", resp.Error)
 	}
@@ -75,7 +75,7 @@ func TestGateApprovedPacketProceeds(t *testing.T) {
 	// audited, and not gated by its own packet — the bootstrap cycle is gone.
 	resp := h.Handle(Request{Method: "governance_decide", Params: map[string]any{
 		"key": askKeyFrom(t, first.Error), "decision": storage.ApprovalAllow, "decider": "operator",
-		"operator_token": s.OperatorToken(), "_source_agent": "claude"}})
+		"operator_token": s.OperatorToken(), "_source_agent": "claude", "_source_agent_source": "resolved"}})
 	if resp.Error != "" {
 		t.Fatalf("operator decide refused: %v", resp.Error)
 	}
@@ -98,7 +98,7 @@ func TestGateDeniedPacketRefused(t *testing.T) {
 	}
 	if resp := h.Handle(Request{Method: "governance_decide", Params: map[string]any{
 		"key": askKeyFrom(t, first.Error), "decision": storage.ApprovalDeny, "decider": "operator",
-		"operator_token": s.OperatorToken(), "_source_agent": "claude"}}); resp.Error != "" {
+		"operator_token": s.OperatorToken(), "_source_agent": "claude", "_source_agent_source": "resolved"}}); resp.Error != "" {
 		t.Fatalf("operator deny refused: %v", resp.Error)
 	}
 	resp := h.Handle(Request{Method: "governance_bind", Params: governanceBindParams()})
@@ -127,7 +127,7 @@ func TestGateDenySurvivesExpiryWindow(t *testing.T) {
 	}
 	if resp := h.Handle(Request{Method: "governance_decide", Params: map[string]any{
 		"key": askKeyFrom(t, first.Error), "decision": storage.ApprovalDeny, "decider": "operator",
-		"operator_token": s.OperatorToken(), "_source_agent": "claude"}}); resp.Error != "" {
+		"operator_token": s.OperatorToken(), "_source_agent": "claude", "_source_agent_source": "resolved"}}); resp.Error != "" {
 		t.Fatalf("operator deny refused: %v", resp.Error)
 	}
 	// The deny decision stands regardless of the ask's expiry clock: the row is
@@ -165,7 +165,7 @@ func TestOperatorTokenGatesDecide(t *testing.T) {
 	} {
 		params := map[string]any{
 			"key": askKeyFrom(t, seed.Error), "decision": storage.ApprovalAllow, "decider": "operator",
-			"_source_agent": "claude",
+			"_source_agent": "claude", "_source_agent_source": "resolved",
 		}
 		if token != nil {
 			params["operator_token"] = token
@@ -178,7 +178,7 @@ func TestOperatorTokenGatesDecide(t *testing.T) {
 	// And with the real token the same packet decides.
 	if resp := h.Handle(Request{Method: "governance_decide", Params: map[string]any{
 		"key": askKeyFrom(t, seed.Error), "decision": storage.ApprovalAllow, "decider": "operator",
-		"operator_token": s.OperatorToken(), "_source_agent": "claude"}}); resp.Error != "" {
+		"operator_token": s.OperatorToken(), "_source_agent": "claude", "_source_agent_source": "resolved"}}); resp.Error != "" {
 		t.Fatalf("operator decide refused with the real token: %v", resp.Error)
 	}
 }
@@ -189,7 +189,7 @@ func TestGovernanceReplayRefused(t *testing.T) {
 	seed := h.Handle(Request{Method: "governance_bind", Params: governanceBindParams()})
 	decide := map[string]any{
 		"key": askKeyFrom(t, seed.Error), "decision": storage.ApprovalAllow, "decider": "operator",
-		"operator_token": s.OperatorToken(), "_source_agent": "claude",
+		"operator_token": s.OperatorToken(), "_source_agent": "claude", "_source_agent_source": "resolved",
 	}
 	if resp := h.Handle(Request{Method: "governance_decide", Params: decide}); resp.Error != "" {
 		t.Fatalf("first decide refused: %v", resp.Error)

@@ -42,7 +42,7 @@ func TestTranscriptSearchFindsEveryTermInProject(t *testing.T) {
 	seedTranscript(t, h, "sess-2", "/w", "unrelated note about the weather")
 	seedTranscript(t, h, "sess-3", "/other", "deploy script notes from another project")
 
-	resp := h.Handle(Request{Method: "search_transcripts", Params: map[string]any{
+	resp := h.Handle(Request{Method: "search_transcripts", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"query": "deploy script", "project": "/w"}})
 	if resp.Error != "" {
 		t.Fatalf("search: %v", resp.Error)
@@ -52,7 +52,7 @@ func TestTranscriptSearchFindsEveryTermInProject(t *testing.T) {
 		t.Fatalf("hits = %d, want only the /w transcript", len(hits))
 	}
 	// The other project's transcript never crosses.
-	resp = h.Handle(Request{Method: "search_transcripts", Params: map[string]any{
+	resp = h.Handle(Request{Method: "search_transcripts", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"query": "deploy script", "project": "/other"}})
 	hits = hitsOf(t, resultMap(t, resp))
 	if len(hits) != 1 || hits[0]["session_id"] != "sess-3" {
@@ -62,7 +62,7 @@ func TestTranscriptSearchFindsEveryTermInProject(t *testing.T) {
 
 func TestTranscriptSearchRefusesAnEmptyQuery(t *testing.T) {
 	h, _ := mustHandler(t)
-	resp := h.Handle(Request{Method: "search_transcripts", Params: map[string]any{"query": "   "}})
+	resp := h.Handle(Request{Method: "search_transcripts", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","query": "   "}})
 	if resp.Error == "" {
 		t.Fatal("an empty query searched everything")
 	}

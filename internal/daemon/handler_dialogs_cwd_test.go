@@ -75,7 +75,7 @@ func TestResolveSessionID_OpencodeFallsBackToCallerCWD(t *testing.T) {
 	seedRootSession(t, worktree, "ses_cwd")
 
 	got := h.resolveSessionID(map[string]any{
-		"_source_agent": "opencode",
+		"_source_agent": "opencode", "_source_agent_source": "resolved",
 		"_cwd":          worktree,
 		// The shared service PID: matches no agent, exactly as in production.
 		"_caller_pid": float64(opencodeSharedServicePID),
@@ -102,7 +102,7 @@ func TestResolveSessionID_CWDMatchesWorktreeNotProject(t *testing.T) {
 	seedRootSession(t, "/repo/root/.worktrees/branch-a", "ses_wt")
 
 	got := h.resolveSessionID(map[string]any{
-		"_source_agent": "opencode",
+		"_source_agent": "opencode", "_source_agent_source": "resolved",
 		"_cwd":          "/repo/root/.worktrees/branch-a",
 		"_caller_pid":   float64(opencodeSharedServicePID),
 	}, "missing")
@@ -112,7 +112,7 @@ func TestResolveSessionID_CWDMatchesWorktreeNotProject(t *testing.T) {
 
 	// The repository root itself is not where the agent runs.
 	got = h.resolveSessionID(map[string]any{
-		"_source_agent": "opencode",
+		"_source_agent": "opencode", "_source_agent_source": "resolved",
 		"_cwd":          "/repo/root",
 		"_caller_pid":   float64(opencodeSharedServicePID),
 	}, "missing")
@@ -132,7 +132,7 @@ func TestResolveSessionID_CWDFallbackIgnoresForeignWorkDirs(t *testing.T) {
 	seedRootSession(t, "/worktrees/other", "ses_other")
 
 	got := h.resolveSessionID(map[string]any{
-		"_source_agent": "opencode",
+		"_source_agent": "opencode", "_source_agent_source": "resolved",
 		"_cwd":          "/worktrees/no-agent-here",
 		"_caller_pid":   float64(opencodeSharedServicePID),
 	}, "missing")
@@ -158,7 +158,7 @@ func TestResolveSessionID_CWDTwoAgentsIsAmbiguous(t *testing.T) {
 	}
 
 	got := h.resolveSessionID(map[string]any{
-		"_source_agent": "opencode",
+		"_source_agent": "opencode", "_source_agent_source": "resolved",
 		"_cwd":          worktree,
 		"_caller_pid":   float64(opencodeSharedServicePID),
 	}, "missing")
@@ -185,7 +185,7 @@ func TestResolveSessionID_CWDFallbackSkipsStoppedAndForeignBackends(t *testing.T
 
 	for _, dir := range []string{"/worktrees/stopped", "/worktrees/claude"} {
 		got := h.resolveSessionID(map[string]any{
-			"_source_agent": "opencode",
+			"_source_agent": "opencode", "_source_agent_source": "resolved",
 			"_cwd":          dir,
 			"_caller_pid":   float64(opencodeSharedServicePID),
 		}, "missing")
@@ -210,7 +210,7 @@ func TestResolveSessionID_ExplicitSessionIDStillWins(t *testing.T) {
 	got := h.resolveSessionID(map[string]any{
 		"session_id":    "explicit-wins",
 		"_session_id":   "mcp-claimed",
-		"_source_agent": "opencode",
+		"_source_agent": "opencode", "_source_agent_source": "resolved",
 		"_cwd":          "/worktrees/explicit",
 		"_caller_pid":   float64(opencodeSharedServicePID),
 	}, "session_id")
@@ -220,7 +220,7 @@ func TestResolveSessionID_ExplicitSessionIDStillWins(t *testing.T) {
 
 	got = h.resolveSessionID(map[string]any{
 		"_session_id":   "mcp-claimed",
-		"_source_agent": "opencode",
+		"_source_agent": "opencode", "_source_agent_source": "resolved",
 		"_cwd":          "/worktrees/explicit",
 		"_caller_pid":   float64(opencodeSharedServicePID),
 	}, "missing")

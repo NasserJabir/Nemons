@@ -23,7 +23,12 @@ func (h *Handler) handleCheckRegression(params map[string]any) Response {
 	if project == "" {
 		return errorResponse("check_regression: 'project' is required")
 	}
-	viewer, _ := params["_source_agent"].(string)
+	// Remediation 02 WS-A: the regression walk serves one actor's view — the
+	// boundary-authenticated identity, never the raw caller claim.
+	viewer, verr := h.actorViewer(params, "check_regression")
+	if verr != nil {
+		return *verr
+	}
 	rows, err := h.store.GetActiveLearningsFiltered(storage.LearningsFilter{
 		Project: project, Viewer: viewer,
 	}, 0)
@@ -96,11 +101,18 @@ func (h *Handler) handleRelateTyped(params map[string]any) Response {
 	if !LineageTypes[relType] {
 		return errorResponse(fmt.Sprintf("relate_typed: unknown lineage type %q — the closed set is EVIDENCES, SUPERSEDES, CAUSED_BY, DERIVED_FROM, INVALIDATES", relType))
 	}
-	from, err := h.store.GetLearning(int64(fromID))
+	// Remediation 02 WS-B: both endpoints are read through the caller's
+	// authenticated view — another agent's private row reads as absent, so a
+	// relation can never confirm (or bridge from) a hidden row.
+	viewer, verr := h.actorViewer(params, "relate_typed")
+	if verr != nil {
+		return *verr
+	}
+	from, err := h.store.GetLearningForViewer(int64(fromID), viewer)
 	if err != nil {
 		return errorResponse("relate_typed: no learning with from_id")
 	}
-	to, err := h.store.GetLearning(int64(toID))
+	to, err := h.store.GetLearningForViewer(int64(toID), viewer)
 	if err != nil {
 		return errorResponse("relate_typed: no learning with to_id")
 	}

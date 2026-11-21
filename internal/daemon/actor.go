@@ -1,9 +1,13 @@
 package daemon
 
-// The daemon side of the trusted actor identity (remediation WS-A). Identity
-// is resolved through models.ActorFromParams — trusted integration boundaries
-// only — and every agent-facing operation that decides scope goes through
-// actorViewer, which fails closed when the request carries no identity at all.
+// The daemon side of the trusted actor identity (remediation WS-A, tightened
+// by remediation 02 WS-A/B). Identity is resolved through
+// models.ActorFromParams — trusted integration boundaries only — and every
+// agent-facing operation that decides scope goes through actorViewer, which
+// returns exactly the boundary-authenticated authorization identity and fails
+// closed otherwise. A caller claim is attribution only: it never becomes the
+// viewer, and there is no hardcoded identity a request without one falls back
+// to (remediation 02 WS-B2 — the former Claude default is gone, not replaced).
 // The in-process marks are the explicit internal identity: private types no
 // external payload can decode, reading as the system exactly as before, at
 // their own audited call sites.
@@ -22,10 +26,14 @@ func (h *Handler) resolveActor(params map[string]any) models.ActorContext {
 }
 
 // actorViewer returns the viewer id scope decisions judge for one agent-facing
-// request. A request without any identity fails closed — it never reads as the
-// system, and the refusal does not disclose whether any row exists. Internal
-// callers (the daemon's own audited paths, the sandboxed job surface) carry the
-// in-process marks and keep their system view.
+// request: the boundary-authenticated authorization identity, and nothing
+// else. A request whose identity is missing, session-only, or a bare caller
+// claim is refused — it never reads under a default or under the label it
+// named, and the refusal does not disclose whether any row exists (remediation
+// 02 WS-A1/B2). Internal callers (the daemon's own audited paths, the
+// sandboxed job surface) carry the in-process marks and keep their system
+// view; the HTTP boundary authenticates its own service identity before the
+// request ever reaches here.
 func (h *Handler) actorViewer(params map[string]any, method string) (string, *Response) {
 	if _, ok := params["_internal_call"].(internalCallMark); ok {
 		return "", nil // the system acting on its own audited decision
@@ -33,34 +41,12 @@ func (h *Handler) actorViewer(params map[string]any, method string) (string, *Re
 	if _, ok := params["_job_surface"].(jobSurfaceMark); ok {
 		return "", nil // sandboxed job surface read
 	}
-	a := models.ActorFromParams(params)
-	if a.ActorID == "" {
+	id := models.ActorFromParams(params).AuthorizationID()
+	if id == "" {
 		r := errorResponse(fmt.Sprintf(
-			"%s: no actor identity — the client must resolve _source_agent (an env-resolved boundary or a plugin claim)",
+			"%s: no authorized actor identity — the trusted boundary must resolve the agent identity (env-resolved); a caller claim is attribution only and never authorizes",
 			method))
 		return "", &r
 	}
-	return a.ActorID, nil
-}
-
-// actorViewerOrDefault is the agent-facing read default: a request that carries
-// no identity at all is served as the shared least-privileged local identity
-// ("claude") — it sees project and public rows plus its own private rows, and
-// never another agent's. The system view stays exclusive to the in-process
-// marks, so an identity-less request can never read as the system (remediation
-// WS-B). The MCP boundary authenticates every client, so identity-less reads
-// arrive only from same-UID operational callers, whose compatibility this
-// default preserves. Operations whose whole point is the actor (the pack
-// build/verify surface) keep the strict actorViewer refusal instead.
-func (h *Handler) actorViewerOrDefault(params map[string]any, method string) string {
-	if _, ok := params["_internal_call"].(internalCallMark); ok {
-		return "" // the system acting on its own audited decision
-	}
-	if _, ok := params["_job_surface"].(jobSurfaceMark); ok {
-		return "" // sandboxed job surface read
-	}
-	if id, refusal := h.actorViewer(params, method); refusal == nil {
-		return id
-	}
-	return models.SourceAgentClaude
+	return id, nil
 }

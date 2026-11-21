@@ -128,7 +128,7 @@ func TestLos55bUpdateAgentCannotWriteAPid(t *testing.T) {
 		t.Fatalf("AgentCreate: %v", err)
 	}
 
-	resp := h.Handle(Request{Method: "update_agent", Params: map[string]any{
+	resp := h.Handle(Request{Method: "update_agent", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"id": "los55b-update-pid",
 		"fields": map[string]any{
 			"pid": float64(los55bForeignProcess(t)),
@@ -146,7 +146,7 @@ func TestLos55bUpdateAgentCannotWriteAPid(t *testing.T) {
 	}
 
 	// Clearing is still allowed: the exit tails and the resume path write pid 0.
-	resp = h.Handle(Request{Method: "update_agent", Params: map[string]any{
+	resp = h.Handle(Request{Method: "update_agent", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"id":     "los55b-update-pid",
 		"fields": map[string]any{"pid": float64(0)},
 	}})
@@ -445,7 +445,7 @@ func TestLos55bResumeWithExplicitClaudeSessionBindsTheProcess(t *testing.T) {
 
 func los55bStopAllResult(t *testing.T, h *Handler, project string) map[string]any {
 	t.Helper()
-	resp := h.Handle(Request{Method: "stop_all_agents", Params: map[string]any{"project": project}})
+	resp := h.Handle(Request{Method: "stop_all_agents", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","project": project}})
 	if resp.Error != "" {
 		t.Fatalf("stop_all_agents(%s): %s", project, resp.Error)
 	}

@@ -153,7 +153,7 @@ func TestLos56hStopRevokesTheRespawnClaim(t *testing.T) {
 	}
 
 	// The stop arrives while the replacement is being started.
-	resp := h.Handle(Request{Method: "stop_agent", Params: map[string]any{"to": "crash-2", "_verify": false}})
+	resp := h.Handle(Request{Method: "stop_agent", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","to": "crash-2", "_verify": false}})
 	if resp.Error != "" {
 		t.Fatalf("stop_agent must accept a claimed row, got %s", resp.Error)
 	}
@@ -292,7 +292,7 @@ func TestLos56hUpdateAgentRefusesDaemonOwnedStatus(t *testing.T) {
 		t.Fatalf("create row: %v", err)
 	}
 
-	resp := h.Handle(Request{Method: "update_agent", Params: map[string]any{
+	resp := h.Handle(Request{Method: "update_agent", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"id":     "caller-row",
 		"fields": map[string]any{"status": "respawn_claimed"},
 	}})
@@ -308,7 +308,7 @@ func TestLos56hUpdateAgentRefusesDaemonOwnedStatus(t *testing.T) {
 	}
 
 	// The statuses a caller legitimately reports still work.
-	ok := h.Handle(Request{Method: "update_agent", Params: map[string]any{
+	ok := h.Handle(Request{Method: "update_agent", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"id":     "caller-row",
 		"fields": map[string]any{"status": "paused", "progress": "waiting for a relay"},
 	}})

@@ -13,7 +13,7 @@ func TestHandleSetPersona(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "set_persona",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"trait_key": "language",
 			"value":     "de",
 			"dimension": "communication",
@@ -55,7 +55,7 @@ func TestHandleSetPersonaOverridesExisting(t *testing.T) {
 	// User overrides via MCP
 	resp := h.Handle(Request{
 		Method: "set_persona",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"trait_key": "language",
 			"value":     "de",
 			"dimension": "communication",
@@ -81,7 +81,7 @@ func TestHandleSetPersonaAutoDetectDimension(t *testing.T) {
 	// No dimension provided — should auto-detect from trait_key
 	resp := h.Handle(Request{
 		Method: "set_persona",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"trait_key": "language",
 			"value":     "de",
 		},
@@ -107,7 +107,7 @@ func TestHandleSetPersonaMissingParams(t *testing.T) {
 	// Missing trait_key
 	resp := h.Handle(Request{
 		Method: "set_persona",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"value": "de",
 		},
 	})
@@ -121,7 +121,7 @@ func TestHandleSetPersonaMissingParams(t *testing.T) {
 	// Missing value
 	resp = h.Handle(Request{
 		Method: "set_persona",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"trait_key": "language",
 		},
 	})
@@ -149,7 +149,7 @@ func TestHandleGetPersona(t *testing.T) {
 		TraitsHash: "abc123", GeneratedAt: time.Now(), ModelUsed: "opus",
 	})
 
-	resp := h.Handle(Request{Method: "get_persona", Params: map[string]any{}})
+	resp := h.Handle(Request{Method: "get_persona", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",}})
 	if resp.Error != "" {
 		t.Fatalf("unexpected error: %s", resp.Error)
 	}
@@ -226,7 +226,7 @@ func TestHandleSetPersonaNewDimensions(t *testing.T) {
 	// Set a context trait
 	resp := h.Handle(Request{
 		Method: "set_persona",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"trait_key": "os",
 			"value":     "linux",
 		},
@@ -246,7 +246,7 @@ func TestHandleSetPersonaNewDimensions(t *testing.T) {
 	// Set a boundary trait
 	resp = h.Handle(Request{
 		Method: "set_persona",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"trait_key": "never_auto_commit",
 			"value":     "true",
 		},
@@ -264,7 +264,7 @@ func TestHandleSetPersonaNewDimensions(t *testing.T) {
 func TestHandleGetPersonaEmpty(t *testing.T) {
 	h, _ := mustHandler(t)
 
-	resp := h.Handle(Request{Method: "get_persona", Params: map[string]any{}})
+	resp := h.Handle(Request{Method: "get_persona", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",}})
 	if resp.Error != "" {
 		t.Fatalf("unexpected error: %s", resp.Error)
 	}
@@ -340,7 +340,7 @@ func TestHandleSetPersonaAcceptsDocumentedDimensions(t *testing.T) {
 
 			resp := h.Handle(Request{
 				Method: "set_persona",
-				Params: map[string]any{"trait_key": "custom_key", "value": "v", "dimension": dim},
+				Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","trait_key": "custom_key", "value": "v", "dimension": dim},
 			})
 			if resp.Error != "" {
 				t.Fatalf("dimension %q should be accepted: %s", dim, resp.Error)

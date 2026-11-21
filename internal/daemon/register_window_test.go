@@ -12,7 +12,7 @@ func TestHandleRegisterWindow_OneSessionPerWindow(t *testing.T) {
 	h, _ := mustHandler(t)
 	reg := func(sid, wid string) {
 		t.Helper()
-		if r := h.Handle(Request{Method: "register_window", Params: map[string]any{"session_id": sid, "window_id": wid, "terminal": "ghostty"}}); r.Error != "" {
+		if r := h.Handle(Request{Method: "register_window", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": sid, "window_id": wid, "terminal": "ghostty"}}); r.Error != "" {
 			t.Fatal(r.Error)
 		}
 	}

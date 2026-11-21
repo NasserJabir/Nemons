@@ -27,7 +27,7 @@ func TestDeepSearchExcludesCurrentSession(t *testing.T) {
 	// Search WITH exclude_session — should only return other session
 	resp := h.Handle(Request{
 		Method: "deep_search",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"query":           "nginx proxy",
 			"limit":           float64(10),
 			"exclude_session": "current-session-abc",
@@ -69,7 +69,7 @@ func TestDeepSearchWithoutExcludeReturnsAll(t *testing.T) {
 	// Search WITHOUT exclude_session — should return both
 	resp := h.Handle(Request{
 		Method: "deep_search",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"query": "docker compose",
 			"limit": float64(10),
 		},
@@ -105,7 +105,7 @@ func TestSearchExcludesCurrentSession(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "search",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"query":           "kubernetes pod",
 			"limit":           float64(10),
 			"exclude_session": "my-session",
@@ -139,7 +139,7 @@ func TestSearchIncludesMessageSourceAgent(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "search",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"query": "agent provenance",
 			"limit": float64(10),
 		},
@@ -173,7 +173,7 @@ func TestExpandContextQueryDoesNotExcludeSession(t *testing.T) {
 	// expand_context with query should find own session (that's its purpose)
 	resp := h.Handle(Request{
 		Method: "expand_context",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"query":       "terraform state",
 			"_session_id": "expand-session",
 		},
@@ -230,7 +230,7 @@ func TestSearchAcceptsSinceFilter(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "search",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"query": "needle_dateflag",
 			"since": "2026-04-28",
 			"limit": float64(50),
@@ -260,7 +260,7 @@ func TestSearchAcceptsBeforeFilter(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "search",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"query":  "needle_dateflag",
 			"before": "2026-04-29",
 			"limit":  float64(50),
@@ -290,7 +290,7 @@ func TestDeepSearchAcceptsDateBounds(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "deep_search",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"query":  "needle_dateflag",
 			"since":  "2026-04-28",
 			"before": "2026-04-29",

@@ -17,7 +17,7 @@ func TestHandleRelateRefusesASelfLink(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "relate_learnings",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_id_a": float64(id),
 			"learning_id_b": float64(id),
 			"relation_type": "relates_to",
@@ -38,7 +38,7 @@ func TestHandleRelateNamesAnUnknownID(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "relate_learnings",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_id_a": float64(id),
 			"learning_id_b": float64(999999),
 			"relation_type": "supports",
@@ -66,7 +66,7 @@ func TestHandleRelateReportsAReplacedType(t *testing.T) {
 
 	first := h.Handle(Request{
 		Method: "relate_learnings",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_id_a": float64(a), "learning_id_b": float64(b), "relation_type": "supports",
 		},
 	})
@@ -76,7 +76,7 @@ func TestHandleRelateReportsAReplacedType(t *testing.T) {
 
 	second := h.Handle(Request{
 		Method: "relate_learnings",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_id_a": float64(a), "learning_id_b": float64(b), "relation_type": "relates_to",
 		},
 	})
@@ -107,7 +107,7 @@ func relateTestLearning(t *testing.T, h *Handler, text string) int64 {
 	t.Helper()
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{"text": text, "category": "pattern", "project": "nemons"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","text": text, "category": "pattern", "project": "nemons"},
 	})
 	if resp.Error != "" {
 		t.Fatalf("remember %q: %s", text, resp.Error)

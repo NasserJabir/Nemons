@@ -23,7 +23,7 @@ func TestLos56i_GuessedSessionIsLoggedWithItsMissingIdentity(t *testing.T) {
 	log.SetOutput(&buf)
 	defer log.SetOutput(prev)
 
-	got := h.resolveActiveSessionFallback(map[string]any{"_source_agent": "opencode"})
+	got := h.resolveActiveSessionFallback(map[string]any{"_source_agent": "opencode", "_source_agent_source": "resolved"})
 	if got != "opencode:ses_guessed" {
 		t.Fatalf("fallback = %q, want the stored opencode session (the fallback must keep working)", got)
 	}
@@ -42,7 +42,7 @@ func TestLos56i_GuessedSessionIsLoggedWithItsMissingIdentity(t *testing.T) {
 	// A guessed identity repeats on every request; the line is throttled so it
 	// does not turn into the loudest thing in the log.
 	buf.Reset()
-	if got := h.resolveActiveSessionFallback(map[string]any{"_source_agent": "opencode"}); got != "opencode:ses_guessed" {
+	if got := h.resolveActiveSessionFallback(map[string]any{"_source_agent": "opencode", "_source_agent_source": "resolved"}); got != "opencode:ses_guessed" {
 		t.Fatalf("second fallback = %q", got)
 	}
 	if buf.Len() != 0 {

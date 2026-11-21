@@ -210,7 +210,7 @@ func TestWindowMap_CapEvictsOldest(t *testing.T) {
 func TestRegisterWindow_RejectsBadPid(t *testing.T) {
 	h := windowHandler(t, t.TempDir(), &fakeDesk{unknown: true})
 	for _, pid := range []any{float64(-1), float64(0), float64(1.5), "100"} {
-		r := h.Handle(Request{Method: "register_window", Params: map[string]any{"session_id": "opencode:a", "window_id": "0x06800004", "window_pid": pid}})
+		r := h.Handle(Request{Method: "register_window", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": "opencode:a", "window_id": "0x06800004", "window_pid": pid}})
 		if r.Error == "" {
 			t.Errorf("window_pid %v accepted", pid)
 		}
@@ -274,7 +274,7 @@ func TestCallerWindowAndRegistrations_DropReusedWindows(t *testing.T) {
 	if got := h.callerWindowFromParams(map[string]any{"_session_id": "opencode:ok"}); got != "0x06800004" {
 		t.Fatalf("spawn lost live window: %q", got)
 	}
-	r := h.Handle(Request{Method: "list_registrations", Params: map[string]any{}})
+	r := h.Handle(Request{Method: "list_registrations", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",}})
 	var reg struct{ Windows map[string]string }
 	json.Unmarshal(r.Result, &reg)
 	if _, ok := reg.Windows["opencode:reused"]; ok || reg.Windows["opencode:ok"] != "0x06800004" {

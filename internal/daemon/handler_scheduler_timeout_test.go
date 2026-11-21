@@ -37,7 +37,7 @@ func TestResolveBashCommand_ReturnsTheDeclaredScriptTimeout(t *testing.T) {
 	h, _ := mustHandler(t)
 
 	scripts := `[{"name":"scan","kind":"handler","runtime":"bash","lang":"bash","timeout":120,"body":"echo scan\nexit 0\n"}]`
-	if resp := h.Handle(Request{Method: "save_cap", Params: map[string]any{
+	if resp := h.Handle(Request{Method: "save_cap", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"name": "timed_cap", "description": "declares its runtime", "scripts": scripts,
 	}}); resp.Error != "" {
 		t.Fatalf("seed save_cap: %s", resp.Error)
@@ -58,7 +58,7 @@ func TestResolveBashCommand_NoDeclaredTimeoutIsZero(t *testing.T) {
 	h, _ := mustHandler(t)
 
 	scripts := `[{"name":"plain","kind":"handler","runtime":"bash","lang":"bash","body":"echo plain\nexit 0\n"}]`
-	if resp := h.Handle(Request{Method: "save_cap", Params: map[string]any{
+	if resp := h.Handle(Request{Method: "save_cap", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"name": "plain_cap", "description": "no runtime declared", "scripts": scripts,
 	}}); resp.Error != "" {
 		t.Fatalf("seed save_cap: %s", resp.Error)

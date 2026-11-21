@@ -40,7 +40,7 @@ func TestGetLearningsClampsCallerLimitLos10c(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "get_learnings",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"category": "unfinished",
 			"limit":    float64(int64(1) << 61),
 		},
@@ -65,7 +65,7 @@ func TestGetLearningsRejectsNegativeLimitLos10c(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "get_learnings",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"category": "gotcha",
 			"limit":    float64(-5),
 		},

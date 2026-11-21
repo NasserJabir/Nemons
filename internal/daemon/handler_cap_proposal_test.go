@@ -68,7 +68,7 @@ func TestCapProposalDecide_AcceptUpdatesActiveCap(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "cap_proposal_decide",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"id":       float64(propID),
 			"decision": "accept",
 			"notes":    "looks ok",
@@ -116,7 +116,7 @@ func TestCapProposalDecide_RejectKeepsActiveCap(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "cap_proposal_decide",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"id":       float64(propID),
 			"decision": "reject",
 			"notes":    "too risky",
@@ -161,7 +161,7 @@ func TestCapProposalDecide_RefusesAlreadyDecided(t *testing.T) {
 
 	first := h.Handle(Request{
 		Method: "cap_proposal_decide",
-		Params: map[string]any{"id": float64(propID), "decision": "reject"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","id": float64(propID), "decision": "reject"},
 	})
 	if first.Error != "" {
 		t.Fatalf("first reject: %s", first.Error)
@@ -169,7 +169,7 @@ func TestCapProposalDecide_RefusesAlreadyDecided(t *testing.T) {
 
 	second := h.Handle(Request{
 		Method: "cap_proposal_decide",
-		Params: map[string]any{"id": float64(propID), "decision": "accept"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","id": float64(propID), "decision": "accept"},
 	})
 	if second.Error == "" {
 		t.Error("second decision on already-decided proposal must fail, got success")
@@ -193,7 +193,7 @@ func TestCapProposalDecide_AcceptPreservesBundleMetadata(t *testing.T) {
 		`]`
 	saveResp := h.Handle(Request{
 		Method: "save_cap",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"name":        "bundle_cap",
 			"description": "multi-script bundle",
 			"scripts":     scriptsJSON,
@@ -211,7 +211,7 @@ func TestCapProposalDecide_AcceptPreservesBundleMetadata(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "cap_proposal_decide",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"id":       float64(propID),
 			"decision": "accept",
 		},
@@ -280,7 +280,7 @@ func TestListCapProposals_DefaultsToPending(t *testing.T) {
 		t.Fatalf("set up rejected proposal: %v", err)
 	}
 
-	resp := h.Handle(Request{Method: "list_cap_proposals", Params: map[string]any{}})
+	resp := h.Handle(Request{Method: "list_cap_proposals", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",}})
 	if resp.Error != "" {
 		t.Fatalf("list failed: %s", resp.Error)
 	}
@@ -316,7 +316,7 @@ func TestCapProposalDecide_AcceptDoesNotDoubleCountInBudget(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "cap_proposal_decide",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"id":       float64(propID),
 			"decision": "accept",
 		},
@@ -349,7 +349,7 @@ func TestCapProposalDecide_AcceptTargetsScriptByName(t *testing.T) {
 		`]`
 	saveResp := h.Handle(Request{
 		Method: "save_cap",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"name":        "tg_bundle",
 			"description": "two bash handlers",
 			"scripts":     scriptsJSON,
@@ -405,7 +405,7 @@ func TestCapProposalDecide_AcceptTargetsScriptByName(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "cap_proposal_decide",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"id":       float64(propID),
 			"decision": "accept",
 		},

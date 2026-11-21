@@ -40,6 +40,10 @@ type Store struct {
 	runtimePath  string
 	messagesPath string
 
+	// ephemeralPackKey is the Context Pack signing key for an in-memory store:
+	// one key per store instance, no file, no key-id guard (remediation 02 WS-C).
+	ephemeralPackKey []byte
+
 	// readOnlyStore marks a handle opened by OpenReadOnly, whose contract is
 	// that it writes nothing. The WAL guard refuses to run there.
 	readOnlyStore bool

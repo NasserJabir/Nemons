@@ -41,7 +41,7 @@ func TestHandleResolveByText_Los11c_LiveCaseResolvesNothing(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "resolve_by_text",
-		Params: map[string]any{"text": los11cLiveQuery, "project": los11cProject},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","text": los11cLiveQuery, "project": los11cProject},
 	})
 	if resp.Error != "" {
 		t.Fatalf("unexpected error: %s", resp.Error)
@@ -88,7 +88,7 @@ func TestHandleResolveByText_Los11c_ResolvesTheCompleteMatch(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "resolve_by_text",
-		Params: map[string]any{"text": los11cLiveQuery, "project": los11cProject},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","text": los11cLiveQuery, "project": los11cProject},
 	})
 	if resp.Error != "" {
 		t.Fatalf("unexpected error: %s", resp.Error)
@@ -117,7 +117,7 @@ func TestHandleResolveByText_Los11c_ReportsCandidatesInsteadOfGuessing(t *testin
 
 	resp := h.Handle(Request{
 		Method: "resolve_by_text",
-		Params: map[string]any{"text": "Proxy Rules-Cache Injektionszähler", "project": los11cProject},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","text": "Proxy Rules-Cache Injektionszähler", "project": los11cProject},
 	})
 	if resp.Error != "" {
 		t.Fatalf("unexpected error: %s", resp.Error)
@@ -158,7 +158,7 @@ func TestHandleReopen_Los11c_MakesAResolvedItemActiveAgain(t *testing.T) {
 
 	resolveResp := h.Handle(Request{
 		Method: "resolve",
-		Params: map[string]any{"learning_id": float64(id), "reason": "wrongly resolved"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","learning_id": float64(id), "reason": "wrongly resolved"},
 	})
 	if resolveResp.Error != "" {
 		t.Fatalf("resolve failed: %s", resolveResp.Error)
@@ -166,7 +166,7 @@ func TestHandleReopen_Los11c_MakesAResolvedItemActiveAgain(t *testing.T) {
 
 	reopenResp := h.Handle(Request{
 		Method: "reopen",
-		Params: map[string]any{"learning_id": float64(id)},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","learning_id": float64(id)},
 	})
 	if reopenResp.Error != "" {
 		t.Fatalf("reopen: %s", reopenResp.Error)

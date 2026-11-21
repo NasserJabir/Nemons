@@ -54,7 +54,7 @@ func TestResolveActiveSessionFallbackDoesNotLeakIntoTheAnonymousPath(t *testing.
 		t.Fatalf("seed proxy state: %v", err)
 	}
 
-	if got := h.resolveActiveSessionFallback(map[string]any{"_source_agent": "opencode"}); got != "opencode:ses-42" {
+	if got := h.resolveActiveSessionFallback(map[string]any{"_source_agent": "opencode", "_source_agent_source": "resolved"}); got != "opencode:ses-42" {
 		t.Fatalf("opencode fallback = %q, want opencode:ses-42", got)
 	}
 	if got := h.resolveActiveSessionFallback(map[string]any{}); got != "" {

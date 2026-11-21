@@ -32,7 +32,7 @@ func TestBroadcastRefusesADONEPayload(t *testing.T) {
 		"[DONE] [DEPLOY: no] [BRANCH: main] [MERGE: no] the section is complete",
 		"\n\nDONE: Section 'x' is complete.",
 	} {
-		resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{
+		resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"project": "/srv/done-bc", "content": content, "_peer_pid": peer,
 		}})
 		if resp.Error == "" {
@@ -53,7 +53,7 @@ func TestBroadcastRefusesADONEPayload(t *testing.T) {
 
 	// Every other announcement still works: the refusal is about the DONE, not
 	// about the channel.
-	resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{
+	resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"project": "/srv/done-bc", "content": "PROXY HEALTH [OK]", "_peer_pid": peer,
 	}})
 	if resp.Error != "" {

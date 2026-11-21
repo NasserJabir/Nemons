@@ -17,7 +17,7 @@ func TestHandleRememberStoresExplicitModel(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":     "Explizites Modell soll gespeichert werden",
 			"category": "decision",
 			"project":  "nemons",
@@ -57,7 +57,7 @@ func TestHandleRememberFallsBackToSelfModel(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":     "Ohne Modell bleibt der bestehende Fallback aktiv",
 			"category": "decision",
 			"project":  "nemons",
@@ -107,7 +107,7 @@ func TestHandleRememberFallsBackToSessionModel(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":        "Modell wird via session_model proxy_state aufgelöst",
 			"category":    "decision",
 			"project":     "nemons",
@@ -153,7 +153,7 @@ func TestHandleRememberExplicitModelOverridesProxyState(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":        "Explizites Modell schlägt proxy_state",
 			"category":    "decision",
 			"project":     "nemons",
@@ -187,7 +187,7 @@ func TestHandleRememberClientModelOverridesProxyState(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":          "_client_model schlägt proxy_state",
 			"category":      "decision",
 			"project":       "nemons",
@@ -215,7 +215,7 @@ func TestHandleRememberAcceptsAnticipatedQueries(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":                "Reddit gibt 403 bei WebFetch",
 			"category":            "gotcha",
 			"project":             "nemons",
@@ -252,7 +252,7 @@ func TestHandleRememberInvalidCategoryFallsBackToExplicitTeaching(t *testing.T) 
 
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":     "Category validation test",
 			"category": "totally_bogus",
 			"project":  "nemons",
@@ -332,7 +332,7 @@ func TestHandleRememberDoesNotDedupSubsumedShortLearning(t *testing.T) {
 	shortID := shortResult["id"].(float64)
 
 	longText := "Deploy state only verifiable through the binary version string: make deploy can exit cleanly even when the deployed binary predates the target commit, and the daemon process then still runs the old code so the timeout symptom such as signal killed remains live. The correct proof that a fix is live is checking nemons version output, confirming the daemon and proxy restarted, and verifying the proc exe inode is not stale."
-	longResp := h.Handle(Request{Method: "remember", Params: map[string]any{
+	longResp := h.Handle(Request{Method: "remember", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"text":     longText,
 		"category": "gotcha",
 		"project":  "nemons",
@@ -364,7 +364,7 @@ func TestHandleRememberStoresEntitiesAndActions(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":     "Nginx config needs reload after SSL cert change",
 			"category": "gotcha",
 			"project":  "nemons",
@@ -412,7 +412,7 @@ func TestHandleRememberSupersedes(t *testing.T) {
 
 	resp1 := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":     "Old approach: use polling for updates",
 			"category": "decision",
 			"project":  "nemons",
@@ -427,7 +427,7 @@ func TestHandleRememberSupersedes(t *testing.T) {
 
 	resp2 := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":       "New approach: use websockets for updates",
 			"category":   "decision",
 			"project":    "nemons",
@@ -485,7 +485,7 @@ func TestHandleRememberHighTrustSupersedeRecordsContradiction(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":       "Run the baseline suite before any merge to main",
 			"category":   "decision",
 			"project":    "nemons",
@@ -567,7 +567,7 @@ func TestHandleRememberSupersedeConfirmsAcrossReaderPool(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":       "Datei-Store: Sandbox laeuft ueber Run",
 			"category":   "gotcha",
 			"project":    "nemons",
@@ -595,7 +595,7 @@ func TestHandleRememberHighTrustSupersedeReportsOutcome(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":       "internal/daemon/sandbox.go hat kein BuildSandboxedCommand mehr",
 			"category":   "gotcha",
 			"project":    "nemons",
@@ -641,7 +641,7 @@ func TestHandleRememberSupersedeReportsReplaced(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":       "Neue Fassung: Sandbox laeuft ueber Run(command, timeoutSec)",
 			"category":   "gotcha",
 			"project":    "nemons",
@@ -675,7 +675,7 @@ func TestHandleRememberSupersedeMissingTargetReportsNotFound(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":       "Sandbox bietet Run und RunWithEnv",
 			"category":   "gotcha",
 			"project":    "nemons",
@@ -717,7 +717,7 @@ func TestHandleRememberForceSupersedeAcceptsCanonicalProjectMatch(t *testing.T) 
 
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":             "Kurzname: Sandbox bietet Run",
 			"category":         "gotcha",
 			"project":          "nemons",
@@ -754,7 +754,7 @@ func TestHandleRememberForceSupersedeFailsClosedOnMissingProject(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":             "nemons: Sandbox bietet Run",
 			"category":         "gotcha",
 			"project":          "nemons",
@@ -789,7 +789,7 @@ func TestHandleRememberForceSupersedeRejectedSavesNothing(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":             "Sandbox hat nur noch Run",
 			"category":         "gotcha",
 			"project":          "nemons",
@@ -831,7 +831,7 @@ func TestHandleRememberForceSupersedeRefusesForeignProject(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":             "nemons: Sandbox bietet Run",
 			"category":         "gotcha",
 			"project":          "nemons",
@@ -870,7 +870,7 @@ func TestHandleRememberSupersedeAlreadySupersededReportsFailed(t *testing.T) {
 
 	first := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":       "Erste Korrektur: Run statt WrapCommand",
 			"category":   "gotcha",
 			"project":    "nemons",
@@ -886,7 +886,7 @@ func TestHandleRememberSupersedeAlreadySupersededReportsFailed(t *testing.T) {
 
 	second := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":             "Zweite Korrektur: Run(command, timeoutSec)",
 			"category":         "gotcha",
 			"project":          "nemons",
@@ -928,7 +928,7 @@ func TestHandleRememberSupersedeDuplicateSkipsAndSaysSo(t *testing.T) {
 	const text = "Derselbe Wortlaut, zweimal gespeichert"
 	first := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text": text, "category": "gotcha", "project": "nemons",
 		},
 	})
@@ -943,7 +943,7 @@ func TestHandleRememberSupersedeDuplicateSkipsAndSaysSo(t *testing.T) {
 
 	second := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text": text, "category": "gotcha", "project": "nemons",
 			"supersedes": float64(oldID),
 		},
@@ -978,7 +978,7 @@ func TestHandleRememberSupersedeRejectsNonIntegerID(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text": "Sandbox bietet Run", "category": "gotcha", "project": "nemons",
 			"supersedes": 1.5,
 		},
@@ -996,7 +996,7 @@ func TestHandleRememberForceSupersedeRequiresReason(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":            "Sandbox hat nur noch Run, kein BuildSandboxedCommand",
 			"category":        "gotcha",
 			"project":         "nemons",
@@ -1024,7 +1024,7 @@ func TestHandleRememberForceSupersedeRequiresTarget(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":             "Sandbox hat nur noch Run",
 			"category":         "gotcha",
 			"project":          "nemons",
@@ -1047,7 +1047,7 @@ func TestHandleRememberForceSupersedeReplacesHighTrust(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":             "internal/daemon/sandbox.go bietet Run, RunWithEnv, ... aber kein BuildSandboxedCommand",
 			"category":         "gotcha",
 			"project":          "nemons",
@@ -1090,7 +1090,7 @@ func TestHandleGetLearningsEmpty(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "get_learnings",
-		Params: map[string]any{"category": "gotcha", "project": "nonexistent"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","category": "gotcha", "project": "nonexistent"},
 	})
 
 	if resp.Error != "" {
@@ -1111,7 +1111,7 @@ func TestHandleGetLearningsByID(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":     "Specific learning for ID retrieval",
 			"category": "pattern",
 			"project":  "nemons",
@@ -1123,7 +1123,7 @@ func TestHandleGetLearningsByID(t *testing.T) {
 
 	resp = h.Handle(Request{
 		Method: "get_learnings",
-		Params: map[string]any{"id": id},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","id": id},
 	})
 
 	if resp.Error != "" {
@@ -1149,7 +1149,7 @@ func TestHandleGetLearningsByCategory(t *testing.T) {
 	for _, cat := range []string{"gotcha", "decision", "gotcha"} {
 		h.Handle(Request{
 			Method: "remember",
-			Params: map[string]any{
+			Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 				"text":     "Learning for " + cat + " category test unique " + cat,
 				"category": cat,
 				"project":  "testproj",
@@ -1159,7 +1159,7 @@ func TestHandleGetLearningsByCategory(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "get_learnings",
-		Params: map[string]any{"category": "gotcha", "project": "testproj"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","category": "gotcha", "project": "testproj"},
 	})
 
 	if resp.Error != "" {
@@ -1181,7 +1181,7 @@ func TestHandleGetLearningsRespectsLimit(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		h.Handle(Request{
 			Method: "remember",
-			Params: map[string]any{
+			Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 				"text":     "Limit test learning " + string(rune('A'+i)) + " unique content here xyz",
 				"category": "pattern",
 				"project":  "limitproj",
@@ -1191,7 +1191,7 @@ func TestHandleGetLearningsRespectsLimit(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "get_learnings",
-		Params: map[string]any{"category": "pattern", "project": "limitproj", "limit": float64(2)},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","category": "pattern", "project": "limitproj", "limit": float64(2)},
 	})
 
 	if resp.Error != "" {
@@ -1210,7 +1210,7 @@ func TestHandleGetLearningsByIDNotFound(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "get_learnings",
-		Params: map[string]any{"id": float64(99999)},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","id": float64(99999)},
 	})
 
 	if resp.Error == "" {
@@ -1225,11 +1225,11 @@ func TestHandleRelateHappyPath(t *testing.T) {
 
 	resp1 := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{"text": "engine reads the allowlist before the argument rules", "category": "pattern", "project": "nemons"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","text": "engine reads the allowlist before the argument rules", "category": "pattern", "project": "nemons"},
 	})
 	resp2 := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{"text": "sandbox masks the home directory", "category": "pattern", "project": "nemons"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","text": "sandbox masks the home directory", "category": "pattern", "project": "nemons"},
 	})
 	var r1, r2 map[string]any
 	json.Unmarshal(resp1.Result, &r1)
@@ -1239,7 +1239,7 @@ func TestHandleRelateHappyPath(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "relate_learnings",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_id_a": idA,
 			"learning_id_b": idB,
 			"relation_type": "supports",
@@ -1265,7 +1265,7 @@ func TestHandleRelateMissingIDs(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "relate_learnings",
-		Params: map[string]any{"relation_type": "supports"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","relation_type": "supports"},
 	})
 
 	if resp.Error == "" {
@@ -1278,7 +1278,7 @@ func TestHandleRelateInvalidRelationType(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "relate_learnings",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_id_a": float64(1),
 			"learning_id_b": float64(2),
 			"relation_type": "invalid_type",
@@ -1300,11 +1300,11 @@ func TestHandleRelateAllValidTypes(t *testing.T) {
 	for _, relType := range validTypes {
 		resp1 := h.Handle(Request{
 			Method: "remember",
-			Params: map[string]any{"text": "retry budget for the " + relType + " edges", "category": "pattern", "project": "nemons"},
+			Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","text": "retry budget for the " + relType + " edges", "category": "pattern", "project": "nemons"},
 		})
 		resp2 := h.Handle(Request{
 			Method: "remember",
-			Params: map[string]any{"text": "sandbox profile forbids the " + relType + " writes", "category": "pattern", "project": "nemons"},
+			Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","text": "sandbox profile forbids the " + relType + " writes", "category": "pattern", "project": "nemons"},
 		})
 		var r1, r2 map[string]any
 		json.Unmarshal(resp1.Result, &r1)
@@ -1312,7 +1312,7 @@ func TestHandleRelateAllValidTypes(t *testing.T) {
 
 		resp := h.Handle(Request{
 			Method: "relate_learnings",
-			Params: map[string]any{
+			Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 				"learning_id_a": r1["id"].(float64),
 				"learning_id_b": r2["id"].(float64),
 				"relation_type": relType,
@@ -1332,7 +1332,7 @@ func TestHandleQueryFactsNoFiltersError(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "query_facts",
-		Params: map[string]any{"project": "nemons"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","project": "nemons"},
 	})
 
 	if resp.Error == "" {
@@ -1348,7 +1348,7 @@ func TestHandleQueryFactsByEntity(t *testing.T) {
 
 	h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":     "proxy.go handles HTTP interception for context management",
 			"category": "pattern",
 			"project":  "nemons",
@@ -1358,7 +1358,7 @@ func TestHandleQueryFactsByEntity(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "query_facts",
-		Params: map[string]any{"entity": "proxy.go", "project": "nemons"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","entity": "proxy.go", "project": "nemons"},
 	})
 
 	if resp.Error != "" {
@@ -1377,7 +1377,7 @@ func TestHandleQueryFactsByCategory(t *testing.T) {
 
 	h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":     "Always check error returns in Go code",
 			"category": "gotcha",
 			"project":  "nemons",
@@ -1386,7 +1386,7 @@ func TestHandleQueryFactsByCategory(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "query_facts",
-		Params: map[string]any{"category": "gotcha"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","category": "gotcha"},
 	})
 
 	if resp.Error != "" {
@@ -1407,7 +1407,7 @@ func TestHandleQuarantineSessionMissingID(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "quarantine_session",
-		Params: map[string]any{},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",},
 	})
 
 	if resp.Error == "" {
@@ -1434,7 +1434,7 @@ func TestHandleQuarantineSessionHappyPath(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "quarantine_session",
-		Params: map[string]any{"session_id": sid},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": sid},
 	})
 
 	if resp.Error != "" {
@@ -1457,7 +1457,7 @@ func TestHandleQuarantineSessionNoLearnings(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "quarantine_session",
-		Params: map[string]any{"session_id": "nonexistent-session-xyz"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": "nonexistent-session-xyz"},
 	})
 
 	if resp.Error != "" {
@@ -1479,7 +1479,7 @@ func TestHandleUnquarantineSessionMissingID(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "unquarantine_session",
-		Params: map[string]any{},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",},
 	})
 
 	if resp.Error != "session_id (string) required" {
@@ -1505,7 +1505,7 @@ func TestHandleUnquarantineSessionLiftsQuarantine(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "unquarantine_session",
-		Params: map[string]any{"session_id": sid},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": sid},
 	})
 	if resp.Error != "" {
 		t.Fatalf("unexpected error: %s", resp.Error)
@@ -1525,7 +1525,7 @@ func TestHandleUnquarantineSessionLiftsQuarantine(t *testing.T) {
 	// Second call is a no-op: the rows are already active again.
 	resp = h.Handle(Request{
 		Method: "unquarantine_session",
-		Params: map[string]any{"session_id": sid},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": sid},
 	})
 	if resp.Error != "" {
 		t.Fatalf("second call error: %s", resp.Error)
@@ -1543,7 +1543,7 @@ func TestHandleSkipIndexingMissingSessionID(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "skip_indexing",
-		Params: map[string]any{},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",},
 	})
 
 	if resp.Error == "" {
@@ -1768,7 +1768,7 @@ func TestHandleRememberAttributesProjectByContent(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
+	resp := h.Handle(Request{Method: "remember", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"text":     "check " + attrNemons + "/internal/daemon and " + attrNemons + "/internal/proxy",
 		"category": "gotcha",
 		"_cwd":     worktree,
@@ -1799,7 +1799,7 @@ func TestHandleRememberExplicitProjectSource(t *testing.T) {
 	h, s := mustHandler(t)
 	_, worktree := gitTmpRoot(t)
 
-	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
+	resp := h.Handle(Request{Method: "remember", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"text":     "some note without path signals",
 		"category": "gotcha",
 		"project":  attrNemons,
@@ -1843,7 +1843,7 @@ func TestHandleRemember_InheritsSessionIntensity(t *testing.T) {
 		t.Fatalf("seed sibling learning: %v", err)
 	}
 
-	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
+	resp := h.Handle(Request{Method: "remember", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"text": "a later remember call in the same session", "category": "decision",
 		"project": attrNemons, "_session_id": sessionID,
 	}})
@@ -1862,7 +1862,7 @@ func TestHandleRemember_InheritsSessionIntensity(t *testing.T) {
 func TestHandleRemember_UnratedSessionStaysAtZero(t *testing.T) {
 	h, s := mustHandler(t)
 
-	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
+	resp := h.Handle(Request{Method: "remember", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"text": "first learning of a session that was never rated", "category": "decision",
 		"project": attrNemons, "_session_id": "opencode:ses_UNRATED",
 	}})
@@ -1895,7 +1895,7 @@ func TestHandleRemember_SessionFallbackDoesNotLendIntensity(t *testing.T) {
 	h.activeSessionID = foreign
 	h.activeSessionMu.Unlock()
 
-	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
+	resp := h.Handle(Request{Method: "remember", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"text": "remember call without a session of its own", "category": "decision",
 		"project": attrNemons,
 	}})
@@ -1932,7 +1932,7 @@ func TestHandleRemember_UsesCallerSessionNotActive(t *testing.T) {
 		"category":      "decision",
 		"project":       attrNemons,
 		"_session_id":   "opencode:ses_CALLER",
-		"_source_agent": "opencode",
+		"_source_agent": "opencode", "_source_agent_source": "resolved",
 	}})
 	if resp.Error != "" {
 		t.Fatalf("unexpected error: %s", resp.Error)
@@ -1952,7 +1952,7 @@ func TestHandleRemember_FallsBackToActiveSession(t *testing.T) {
 	h.activeSessionID = "opencode:ses_ACTIVE_ONLY"
 	h.activeSessionMu.Unlock()
 
-	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
+	resp := h.Handle(Request{Method: "remember", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"text":     "session attribution: without per-call context the active session stays the fallback",
 		"category": "decision",
 		"project":  attrNemons,
@@ -1981,7 +1981,7 @@ func TestHandleRemember_UnresolvableShortProjectFallsBackToCallerRepo(t *testing
 	h, s := mustHandler(t)
 	main, worktree := gitTmpRoot(t)
 
-	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
+	resp := h.Handle(Request{Method: "remember", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"text":     "release body note written from the worktree",
 		"category": "gotcha",
 		"project":  "v2-release-notes",

@@ -15,13 +15,13 @@ func TestCapPinAndRollback(t *testing.T) {
 	seedCapV1(t, h, "pin_test_cap")
 
 	// Pin: the row freezes.
-	if resp := h.Handle(Request{Method: "pin_cap", Params: map[string]any{"name": "pin_test_cap"}}); resp.Error != "" {
+	if resp := h.Handle(Request{Method: "pin_cap", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","name": "pin_test_cap"}}); resp.Error != "" {
 		t.Fatalf("pin_cap: %v", resp.Error)
 	}
 	// An agent-driven upgrade of the pinned name is refused until the lift.
 	resp := h.handleSaveCapFrom(map[string]any{
 		"name": "pin_test_cap", "description": "v2",
-		"scripts": capScriptV2, "_source_agent": "claude",
+		"scripts": capScriptV2, "_source_agent": "claude", "_source_agent_source": "resolved",
 		"citation": "text:try to rewrite a held script",
 	}, "")
 	if resp.Error == "" || !strings.Contains(resp.Error, "pinned") {
@@ -29,12 +29,12 @@ func TestCapPinAndRollback(t *testing.T) {
 	}
 
 	// The lift reopens the name; the upgrade lands.
-	if resp := h.Handle(Request{Method: "unpin_cap", Params: map[string]any{"name": "pin_test_cap"}}); resp.Error != "" {
+	if resp := h.Handle(Request{Method: "unpin_cap", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","name": "pin_test_cap"}}); resp.Error != "" {
 		t.Fatalf("unpin_cap: %v", resp.Error)
 	}
 	if resp := h.handleSaveCapFrom(map[string]any{
 		"name": "pin_test_cap", "description": "v2",
-		"scripts": capScriptV2, "_source_agent": "claude",
+		"scripts": capScriptV2, "_source_agent": "claude", "_source_agent_source": "resolved",
 		"citation": "text:the held script is open again",
 	}, ""); resp.Error != "" {
 		t.Fatalf("upgrade after lift: %v", resp.Error)
@@ -45,7 +45,7 @@ func TestCapPinAndRollback(t *testing.T) {
 	}
 
 	// Rollback restores the standing content as a NEW live row.
-	if resp := h.Handle(Request{Method: "rollback_cap", Params: map[string]any{"name": "pin_test_cap"}}); resp.Error != "" {
+	if resp := h.Handle(Request{Method: "rollback_cap", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","name": "pin_test_cap"}}); resp.Error != "" {
 		t.Fatalf("rollback_cap: %v", resp.Error)
 	}
 	after, _ := s.GetActiveLearnings("cap", "", "", "", 0)
@@ -81,7 +81,7 @@ func TestCapPinAndRollback(t *testing.T) {
 func TestCapPinRefusalKeepsTheDiskSyncPath(t *testing.T) {
 	h, _ := mustHandler(t)
 	seedCapV1(t, h, "pin_sync_cap")
-	if resp := h.Handle(Request{Method: "pin_cap", Params: map[string]any{"name": "pin_sync_cap"}}); resp.Error != "" {
+	if resp := h.Handle(Request{Method: "pin_cap", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","name": "pin_sync_cap"}}); resp.Error != "" {
 		t.Fatalf("pin_cap: %v", resp.Error)
 	}
 	// The sync's own provenance (the manifest) is not an agent-driven rewrite:
@@ -97,7 +97,7 @@ func TestCapPinRefusalKeepsTheDiskSyncPath(t *testing.T) {
 
 func TestCapRollbackOfUnknownNameRefused(t *testing.T) {
 	h, _ := mustHandler(t)
-	if resp := h.Handle(Request{Method: "rollback_cap", Params: map[string]any{"name": "no_such_cap"}}); resp.Error == "" {
+	if resp := h.Handle(Request{Method: "rollback_cap", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","name": "no_such_cap"}}); resp.Error == "" {
 		t.Fatal("a rollback of an unknown name ran")
 	}
 }

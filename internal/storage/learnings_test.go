@@ -854,7 +854,7 @@ func TestGetPulseLearningsSince(t *testing.T) {
 	s.InsertLearning(&models.Learning{SessionID: "s3", Category: "decision", Content: "not a pulse", Project: "proj", Source: "user_stated", Confidence: 1.0, CreatedAt: recent})
 
 	// Query since 1 hour ago — should get only the recent pulse
-	results, err := s.GetPulseLearningsSince("proj", now.Add(-1*time.Hour), 10)
+	results, err := s.GetPulseLearningsSince("", "proj", now.Add(-1*time.Hour), 10)
 	if err != nil {
 		t.Fatalf("GetPulseLearningsSince: %v", err)
 	}

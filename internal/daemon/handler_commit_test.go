@@ -158,7 +158,7 @@ func TestHandleInvalidateOnCommit_NoClient(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "invalidate_on_commit",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"hash":    "abc1234",
 			"project": "nemons",
 		},
@@ -178,7 +178,7 @@ func TestHandleInvalidateOnCommit_MissingHash(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "invalidate_on_commit",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"project": "nemons",
 		},
 	})
@@ -214,7 +214,7 @@ func TestHandleInvalidateOnCommit_NoAffectedLearnings(t *testing.T) {
 	// This will fail at gitChangedFiles (no real commit hash) and return affected:0
 	resp := h.Handle(Request{
 		Method: "invalidate_on_commit",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"hash":    "abc1234567890",
 			"project": "nemons",
 		},

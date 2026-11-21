@@ -28,7 +28,12 @@ func (h *Handler) handleCheckCitations(params map[string]any) Response {
 	if project == "" {
 		return errorResponse("check_citations: 'project' is required")
 	}
-	viewer, _ := params["_source_agent"].(string)
+	// Remediation 02 WS-A: the citation sweep serves one actor's view — the
+	// boundary-authenticated identity, never the raw caller claim.
+	viewer, verr := h.actorViewer(params, "check_citations")
+	if verr != nil {
+		return *verr
+	}
 	rows, err := h.store.GetActiveLearningsFiltered(storage.LearningsFilter{
 		Project: project, Viewer: viewer,
 	}, 0)
@@ -94,14 +99,21 @@ var assetAttributions = map[string]bool{
 func (h *Handler) handleProposeFromExperience(params map[string]any) Response {
 	id, _ := params["id"].(float64)
 	target, _ := params["target"].(string)
-	caller, _ := params["_source_agent"].(string)
 	if id == 0 {
 		return errorResponse("propose_from_experience: 'id' is required")
 	}
 	if target == "" {
 		return errorResponse("propose_from_experience: 'target' names the asset the change touches (e.g. a cap name)")
 	}
-	row, err := h.store.GetLearning(int64(id))
+	// Remediation 02 WS-A/B: the proposer is the boundary-authenticated actor —
+	// a claim never names the caller of a governance ask, and the experience
+	// row is read through the same view (another agent's private row reads as
+	// absent).
+	viewer, verr := h.actorViewer(params, "propose_from_experience")
+	if verr != nil {
+		return *verr
+	}
+	row, err := h.store.GetLearningForViewer(int64(id), viewer)
 	if err != nil || row.Category != "experience" {
 		return errorResponse("propose_from_experience: no experience row with that id")
 	}
@@ -127,7 +139,7 @@ func (h *Handler) handleProposeFromExperience(params map[string]any) Response {
 			"note": "an ask for this proposal already exists",
 		})
 	}
-	askID, err := h.store.RequestApproval(key, "propose_from_experience", caller, "daemon", 72*time.Hour)
+	askID, err := h.store.RequestApproval(key, "propose_from_experience", viewer, "daemon", 72*time.Hour)
 	if err != nil {
 		return errorResponse(fmt.Sprintf("propose_from_experience: %v", err))
 	}

@@ -104,14 +104,24 @@ func (s *Store) HasPulseForSession(sessionID string) (bool, error) {
 	return count > 0, nil
 }
 
-// GetPulseLearningsSince returns pulse learnings for a project created after since.
-func (s *Store) GetPulseLearningsSince(project string, since time.Time, limit int) ([]models.Learning, error) {
+// GetPulseLearningsSince returns pulse learnings for a project created after
+// since. The viewer is the scope-deciding agent (remediation 02 WS-B): the
+// same clause the filtered read applies, so a private pulse row is visible
+// only to its owner; the empty viewer stays the internal system read.
+func (s *Store) GetPulseLearningsSince(viewer, project string, since time.Time, limit int) ([]models.Learning, error) {
 	canonical := s.resolveCanonicalProject(project)
-	rows, err := s.readerDB().Query(`SELECT id, session_id, content, created_at FROM learnings
+	query := `SELECT id, session_id, content, created_at FROM learnings
 		WHERE category = 'pulse' AND canonical_project = ?
-		AND julianday(created_at) > julianday(?) AND `+models.RecallableLearningSQL+`
-		ORDER BY created_at ASC LIMIT ?`,
-		canonical, SQLiteFilterTime(fmtTime(since)), limit)
+		AND julianday(created_at) > julianday(?) AND ` + models.RecallableLearningSQL
+	args := []any{canonical, SQLiteFilterTime(fmtTime(since))}
+	if v := strings.ToLower(strings.TrimSpace(viewer)); v != "" {
+		query += ` AND (COALESCE(scope, '') IN ('', 'project', 'global', 'public') OR (scope = 'private' AND source_agent = ?))`
+		args = append(args, v)
+	}
+	query += `
+		ORDER BY created_at ASC LIMIT ?`
+	args = append(args, limit)
+	rows, err := s.readerDB().Query(query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("get pulse learnings: %w", err)
 	}
@@ -463,7 +473,11 @@ func (s *Store) GetLearningsByCategory(category, project string, limit int) ([]m
 
 // GetLearningsSince returns active learnings created after the given time.
 // Filters to decision, pattern, gotcha, pivot_moment categories (most useful for metamemory).
-func (s *Store) GetLearningsSince(project string, since time.Time, limit int) ([]models.Learning, error) {
+// GetLearningsSince returns recallable learnings for a project created after
+// since. The viewer is the scope-deciding agent (remediation 02 WS-B): shared
+// and published rows pass for every agent viewer, a private row only for its
+// owner, and the empty viewer stays the internal system read — unchanged.
+func (s *Store) GetLearningsSince(viewer, project string, since time.Time, limit int) ([]models.Learning, error) {
 	query := `SELECT id, session_id, category, content, project, confidence,
 		superseded_by, supersede_reason, created_at, expires_at, model_used, source,
 		COALESCE(hit_count, 0), COALESCE(emotional_intensity, 0.0), last_hit_at, COALESCE(session_flavor, ''), valid_until, supersedes, COALESCE(importance, 3), supersede_status, COALESCE(noise_count, 0), COALESCE(fail_count, 0),
@@ -476,13 +490,22 @@ func (s *Store) GetLearningsSince(project string, since time.Time, limit int) ([
 		FROM learnings WHERE ` + models.RecallableLearningSQL + `
 		AND (expires_at IS NULL OR julianday(expires_at) > julianday(?))
 		AND julianday(created_at) > julianday(?)
-		AND category IN ('decision', 'pattern', 'gotcha', 'pivot_moment', 'unfinished', 'explicit_teaching')
+		AND category IN ('decision', 'pattern', 'gotcha', 'pivot_moment', 'unfinished', 'explicit_teaching')`
+	args := []any{fmtTime(time.Now()), SQLiteFilterTime(fmtTime(since))}
+	// The sharing scope, judged at the query itself — the identical clause the
+	// filtered read applies, so this since-variant can never serve a private
+	// row the viewer does not own (remediation 02 WS-B finding).
+	if v := strings.ToLower(strings.TrimSpace(viewer)); v != "" {
+		query += ` AND (COALESCE(scope, '') IN ('', 'project', 'global', 'public') OR (scope = 'private' AND source_agent = ?))`
+		args = append(args, v)
+	}
+	query += `
 		AND canonical_project = ?
 		ORDER BY created_at DESC
 		LIMIT ?`
+	args = append(args, s.resolveCanonicalProject(project), limit)
 
-	canonical := s.resolveCanonicalProject(project)
-	rows, err := s.readerDB().Query(query, fmtTime(time.Now()), SQLiteFilterTime(fmtTime(since)), canonical, limit)
+	rows, err := s.readerDB().Query(query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("get learnings since: %w", err)
 	}

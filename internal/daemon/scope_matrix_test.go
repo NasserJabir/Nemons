@@ -45,6 +45,7 @@ func insertMatrixRows(t *testing.T, h *Handler) []int64 {
 func matrixHandle(h *Handler, actor, method string, params map[string]any) Response {
 	if actor != "" {
 		params["_source_agent"] = actor
+		params["_source_agent_source"] = "resolved"
 	}
 	return h.Handle(Request{Method: method, Params: params})
 }
@@ -179,21 +180,21 @@ func TestScopeMatrix_PackSurfaceFailsClosedWithoutIdentity(t *testing.T) {
 	// No identity at all: the pack surface refuses instead of reading as the
 	// system (the strict actorViewer).
 	resp := matrixHandle(h, "", "build_context_pack", map[string]any{"task": "t", "project": "/w"})
-	if resp.Error == "" || !strings.Contains(resp.Error, "no actor identity") {
+	if resp.Error == "" || !strings.Contains(resp.Error, "no authorized actor identity") {
 		t.Fatalf("build_context_pack without identity: %v", resp.Error)
 	}
 	resp = matrixHandle(h, "", "check_pack_loss", map[string]any{
 		"project":  "/w",
 		"delivered": []any{map[string]any{"id": float64(1), "content": "x"}},
 	})
-	if resp.Error == "" || !strings.Contains(resp.Error, "no actor identity") {
+	if resp.Error == "" || !strings.Contains(resp.Error, "no authorized actor identity") {
 		t.Fatalf("check_pack_loss without identity: %v", resp.Error)
 	}
 	// The four inherited read paths default to the least-privileged local
 	// identity — they never read as the system, but they stay usable.
 	resp = matrixHandle(h, "", "get_learnings", map[string]any{"project": "/w", "limit": float64(50)})
-	if resp.Error != "" || matrixContains(resp, "kaboom") {
-		t.Fatalf("identity-less list must serve scoped rows only: %v", resp.Error)
+	if resp.Error == "" || !strings.Contains(resp.Error, "no authorized actor identity") {
+		t.Fatalf("identity-less list must be refused (no fallback identity exists): %v", resp.Error)
 	}
 }
 

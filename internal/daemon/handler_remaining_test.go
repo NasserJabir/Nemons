@@ -31,7 +31,7 @@ func TestHandleResolveProject_MissingDir(t *testing.T) {
 func TestHandleGetLearningsSince(t *testing.T) {
 	h, _ := mustHandler(t)
 	since := time.Now().Add(-24 * time.Hour).Format(time.RFC3339)
-	resp := h.handleGetLearningsSince(map[string]any{"since": since, "project": "test"})
+	resp := h.handleGetLearningsSince(map[string]any{"since": since, "project": "test", "_source_agent": "claude", "_source_agent_source": "resolved"})
 	if resp.Error != "" {
 		t.Fatalf("error: %s", resp.Error)
 	}
@@ -133,7 +133,7 @@ func TestHandle_GetLearningsSince_Via_Dispatch(t *testing.T) {
 	since := time.Now().Add(-1 * time.Hour).Format(time.RFC3339)
 	resp := h.Handle(Request{
 		Method: "get_learnings_since",
-		Params: map[string]any{"since": since, "project": "nemons"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","since": since, "project": "nemons"},
 	})
 	if resp.Error != "" {
 		t.Fatalf("dispatch error: %s", resp.Error)
@@ -144,7 +144,7 @@ func TestHandle_ResolveProject_Via_Dispatch(t *testing.T) {
 	h, _ := mustHandler(t)
 	resp := h.Handle(Request{
 		Method: "resolve_project",
-		Params: map[string]any{"project_dir": "/tmp/test"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","project_dir": "/tmp/test"},
 	})
 	if resp.Error != "" {
 		t.Fatalf("dispatch error: %s", resp.Error)
@@ -171,7 +171,7 @@ func TestHandleGetSessionStart(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "get_session_start",
-		Params: map[string]any{"session_id": "test-session-abc"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": "test-session-abc"},
 	})
 	if resp.Error != "" {
 		t.Fatalf("unexpected error: %s", resp.Error)
@@ -196,7 +196,7 @@ func TestHandleGetSessionStart_NotFound(t *testing.T) {
 	h, _ := mustHandler(t)
 	resp := h.Handle(Request{
 		Method: "get_session_start",
-		Params: map[string]any{"session_id": "nonexistent-session"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": "nonexistent-session"},
 	})
 	if resp.Error == "" {
 		t.Fatal("expected error for nonexistent session")
@@ -207,7 +207,7 @@ func TestHandleGetSessionStart_MissingParam(t *testing.T) {
 	h, _ := mustHandler(t)
 	resp := h.Handle(Request{
 		Method: "get_session_start",
-		Params: map[string]any{},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",},
 	})
 	if resp.Error == "" {
 		t.Fatal("expected error for missing session_id")
@@ -218,7 +218,7 @@ func TestHandle_QuarantineSession_Via_Dispatch(t *testing.T) {
 	h, _ := mustHandler(t)
 	resp := h.Handle(Request{
 		Method: "quarantine_session",
-		Params: map[string]any{"session_id": "test-quarantine"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": "test-quarantine"},
 	})
 	if resp.Error != "" {
 		t.Fatalf("dispatch error: %s", resp.Error)

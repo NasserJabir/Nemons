@@ -30,7 +30,7 @@ func manifestSeed(t *testing.T, h *Handler, contents []string) {
 
 func buildPack(t *testing.T, h *Handler, actor, task string, extra map[string]any) map[string]any {
 	t.Helper()
-	params := map[string]any{"task": task, "project": "/w", "_source_agent": actor}
+	params := map[string]any{"task": task, "project": "/w", "_source_agent": actor, "_source_agent_source": "resolved"}
 	for k, v := range extra {
 		params[k] = v
 	}
@@ -58,7 +58,7 @@ func checkLoss(t *testing.T, h *Handler, delivered []any, manifest map[string]an
 	t.Helper()
 	params := map[string]any{
 		"task": "loss check", "project": "/w", "delivered": delivered,
-		"_source_agent": "claude",
+		"_source_agent": "claude", "_source_agent_source": "resolved",
 	}
 	if manifest != nil {
 		params["manifest"] = manifest
@@ -172,7 +172,7 @@ func TestBudgetLimitedDeliveryIsNotLoss(t *testing.T) {
 		t.Fatalf("budget exclusions were reported as loss (re-assembly reference): %v", out["counters"])
 	}
 	// With the presented manifest: the exact selection reference.
-	out = checkLoss(t, h, delivered, packManifestOf(t, built), nil)
+	out = checkLossBuilt(t, h, delivered, built)
 	if out["verdict"] != "lossless" {
 		t.Fatalf("budget exclusions were reported as loss (manifest reference): %v", out["counters"])
 	}
@@ -188,7 +188,7 @@ func TestManifestDetectsMissingSelectedItems(t *testing.T) {
 		t.Fatal("need at least two selected items")
 	}
 	delivered := deliveredFromItems(items[:len(items)-1]) // drop one selected item
-	out := checkLoss(t, h, delivered, packManifestOf(t, built), nil)
+	out := checkLossBuilt(t, h, delivered, built)
 	if out["verdict"] != "loss_detected" {
 		t.Fatal("a missing selected item was not detected")
 	}
@@ -207,7 +207,7 @@ func TestManifestDetectsAlteredItems(t *testing.T) {
 	delivered := deliveredFromItems(items)
 	first := delivered[0].(map[string]any)
 	first["content"] = first["content"].(string) + " (quietly amended)"
-	out := checkLoss(t, h, delivered, packManifestOf(t, built), nil)
+	out := checkLossBuilt(t, h, delivered, built)
 	if out["verdict"] != "loss_detected" {
 		t.Fatal("an altered selected item was not detected")
 	}
@@ -224,7 +224,7 @@ func TestManifestDetectsInjectedItems(t *testing.T) {
 	built := buildPack(t, h, "claude", "loss check", nil)
 	delivered := deliveredFromItems(packItemsFrom(t, built))
 	delivered = append(delivered, map[string]any{"id": float64(424242), "content": "fabricated claim"})
-	out := checkLoss(t, h, delivered, packManifestOf(t, built), nil)
+	out := checkLossBuilt(t, h, delivered, built)
 	if out["verdict"] != "loss_detected" {
 		t.Fatal("an injected item was not detected")
 	}
@@ -248,7 +248,7 @@ func TestManifestTamperingIsRefused(t *testing.T) {
 	first["content_hash"] = "deadbeef"
 	resp := h.Handle(Request{Method: "check_pack_loss", Params: map[string]any{
 		"task": "loss check", "project": "/w", "delivered": delivered,
-		"manifest": manifest, "_source_agent": "claude",
+		"manifest": manifest, "_source_agent": "claude", "_source_agent_source": "resolved",
 	}})
 	if resp.Error == "" || !strings.Contains(resp.Error, "fingerprint mismatch") {
 		t.Fatalf("a tampered manifest was accepted: %v", resp.Error)
@@ -263,7 +263,7 @@ func TestManifestUnknownSchemaRefused(t *testing.T) {
 	resp := h.Handle(Request{Method: "check_pack_loss", Params: map[string]any{
 		"task": "loss check", "project": "/w", "delivered": delivered,
 		"manifest": map[string]any{"schema_version": "9", "fingerprint": "x", "knowledge": []any{}},
-		"_source_agent": "claude",
+		"_source_agent": "claude", "_source_agent_source": "resolved",
 	}})
 	if resp.Error == "" || !strings.Contains(resp.Error, "schema") {
 		t.Fatalf("an unknown manifest schema was accepted: %v", resp.Error)
@@ -276,7 +276,7 @@ func TestManifestRecordsSkills(t *testing.T) {
 	resp := h.handleSaveCapFrom(map[string]any{
 		"name": "deploy_gate", "description": "checks the deploy gate",
 		"scripts": `[{"name":"run","runtime":"bash","sandbox":"none","schema":"{}","body":"echo gate"}]`,
-		"version": "v7", "_source_agent": "claude",
+		"version": "v7", "_source_agent": "claude", "_source_agent_source": "resolved",
 	}, "")
 	if resp.Error != "" {
 		t.Fatalf("seed cap: %v", resp.Error)
@@ -290,4 +290,23 @@ func TestManifestRecordsSkills(t *testing.T) {
 	if !strings.Contains(skills[0].(string), "deploy_gate@") {
 		t.Fatalf("skills entry = %v, want name@version", skills[0])
 	}
+}
+
+// packReceiptOf extracts the server-issued receipt from a build response
+// (remediation 02 WS-C: the presented-manifest reference is authentic only
+// under its receipt).
+func packReceiptOf(t *testing.T, built map[string]any) map[string]any {
+	t.Helper()
+	r, ok := built["receipt"].(map[string]any)
+	if !ok {
+		t.Fatalf("build response carries no receipt: %.200s", built)
+	}
+	return r
+}
+
+// checkLossBuilt runs the check against the presented-manifest reference,
+// carrying the build's own issuance receipt — the authentic flow.
+func checkLossBuilt(t *testing.T, h *Handler, delivered []any, built map[string]any) map[string]any {
+	t.Helper()
+	return checkLoss(t, h, delivered, packManifestOf(t, built), map[string]any{"receipt": packReceiptOf(t, built)})
 }

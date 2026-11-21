@@ -51,7 +51,7 @@ func TestContextPackCuratesKnowledgeAndSkills(t *testing.T) {
 	seedCapV1(t, h, "pack_test_cap")
 
 	resp := h.Handle(Request{Method: "build_context_pack", Params: map[string]any{
-		"task": "deploy the service", "project": "/w", "_source_agent": "claude"}})
+		"task": "deploy the service", "project": "/w", "_source_agent": "claude", "_source_agent_source": "resolved"}})
 	if resp.Error != "" {
 		t.Fatalf("pack: %v", resp.Error)
 	}
@@ -86,7 +86,7 @@ func TestContextPackHidesPrivateRowsFromOtherViewers(t *testing.T) {
 
 	// The pack served to gpt carries the shared row only.
 	resp := h.Handle(Request{Method: "build_context_pack", Params: map[string]any{
-		"task": "deploy", "project": "/w", "_source_agent": "gpt"}})
+		"task": "deploy", "project": "/w", "_source_agent": "gpt", "_source_agent_source": "resolved"}})
 	knowledge := packResult(t, resp)["pack"].(map[string]any)["knowledge"].([]any)
 	if len(knowledge) != 1 {
 		t.Fatalf("gpt's pack = %d rows, want the shared one only", len(knowledge))
@@ -98,7 +98,7 @@ func TestContextPackHidesPrivateRowsFromOtherViewers(t *testing.T) {
 
 	// Claude's own pack carries both.
 	resp = h.Handle(Request{Method: "build_context_pack", Params: map[string]any{
-		"task": "deploy", "project": "/w", "_source_agent": "claude"}})
+		"task": "deploy", "project": "/w", "_source_agent": "claude", "_source_agent_source": "resolved"}})
 	knowledge = packResult(t, resp)["pack"].(map[string]any)["knowledge"].([]any)
 	if len(knowledge) != 2 {
 		t.Errorf("claude's pack = %d rows, want both", len(knowledge))
@@ -107,10 +107,10 @@ func TestContextPackHidesPrivateRowsFromOtherViewers(t *testing.T) {
 
 func TestContextPackRequiresTaskAndProject(t *testing.T) {
 	h, _ := mustHandler(t)
-	if resp := h.Handle(Request{Method: "build_context_pack", Params: map[string]any{"project": "/w"}}); resp.Error == "" {
+	if resp := h.Handle(Request{Method: "build_context_pack", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","project": "/w"}}); resp.Error == "" {
 		t.Fatal("a pack was built without a task")
 	}
-	if resp := h.Handle(Request{Method: "build_context_pack", Params: map[string]any{"task": "x"}}); resp.Error == "" {
+	if resp := h.Handle(Request{Method: "build_context_pack", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","task": "x"}}); resp.Error == "" {
 		t.Fatal("a pack was built without a project")
 	}
 }
@@ -121,7 +121,7 @@ func TestContextPackRespectsTheCurationLimit(t *testing.T) {
 		seedPackLearning(t, h, "decision", "decision row number", "")
 	}
 	resp := h.Handle(Request{Method: "build_context_pack", Params: map[string]any{
-		"task": "review", "project": "/w", "max_items": 3.0, "_source_agent": "claude"}})
+		"task": "review", "project": "/w", "max_items": 3.0, "_source_agent": "claude", "_source_agent_source": "resolved"}})
 	knowledge := packResult(t, resp)["pack"].(map[string]any)["knowledge"].([]any)
 	if len(knowledge) != 3 {
 		t.Fatalf("knowledge = %d, want the bounded 3", len(knowledge))

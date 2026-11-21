@@ -24,11 +24,11 @@ func modelsLearningForTest(project, context string) *models.Learning {
 
 func TestCheckRegressionFlagsBaselineDrop(t *testing.T) {
 	h, _ := mustHandler(t)
-	h.Handle(Request{Method: "record_golden_result", Params: map[string]any{
+	h.Handle(Request{Method: "record_golden_result", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"task_id": "t1", "project": "/w", "passed": true}})
-	h.Handle(Request{Method: "record_golden_result", Params: map[string]any{
+	h.Handle(Request{Method: "record_golden_result", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"task_id": "t1", "project": "/w", "passed": false}})
-	resp := h.Handle(Request{Method: "check_regression", Params: map[string]any{
+	resp := h.Handle(Request{Method: "check_regression", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"project": "/w"}})
 	m := unpack(t, resp.Result)
 	if m["tasks_checked"].(float64) != 1 {
@@ -45,20 +45,20 @@ func TestCheckRegressionFlagsBaselineDrop(t *testing.T) {
 
 func TestCheckRegressionCleanAndAudits(t *testing.T) {
 	h, s := mustHandler(t)
-	h.Handle(Request{Method: "record_golden_result", Params: map[string]any{
+	h.Handle(Request{Method: "record_golden_result", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"task_id": "t2", "project": "/w", "passed": true}})
-	h.Handle(Request{Method: "record_golden_result", Params: map[string]any{
+	h.Handle(Request{Method: "record_golden_result", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"task_id": "t2", "project": "/w", "passed": true}})
-	resp := h.Handle(Request{Method: "check_regression", Params: map[string]any{
+	resp := h.Handle(Request{Method: "check_regression", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"project": "/w"}})
 	m := unpack(t, resp.Result)
 	if len(m["regressions"].([]any)) != 0 || m["clean"].(float64) != 1 {
 		t.Fatalf("a clean task was flagged: %v", m)
 	}
 	// The drop itself is audited for the governance gate.
-	h.Handle(Request{Method: "record_golden_result", Params: map[string]any{
+	h.Handle(Request{Method: "record_golden_result", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"task_id": "t2", "project": "/w", "passed": false}})
-	h.Handle(Request{Method: "check_regression", Params: map[string]any{
+	h.Handle(Request{Method: "check_regression", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"project": "/w"}})
 	events, _ := s.GovernanceSnapshot()
 	found := false
@@ -76,11 +76,11 @@ func TestRelateTypedClosedSetAndStorage(t *testing.T) {
 	h, _ := mustHandler(t)
 	a := seedPackLearning(t, h, "decision", "the decision row", "")
 	b := seedPackLearning(t, h, "gotcha", "the evidence row", "")
-	if resp := h.Handle(Request{Method: "relate_typed", Params: map[string]any{
+	if resp := h.Handle(Request{Method: "relate_typed", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"from_id": float64(a), "to_id": float64(b), "type": "supportive"}}); resp.Error == "" {
 		t.Fatal("a free-text relation type was accepted")
 	}
-	resp := h.Handle(Request{Method: "relate_typed", Params: map[string]any{
+	resp := h.Handle(Request{Method: "relate_typed", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"from_id": float64(a), "to_id": float64(b), "type": "EVIDENCES"}})
 	if resp.Error != "" {
 		t.Fatalf("closed-set relation refused: %v", resp.Error)
@@ -102,7 +102,7 @@ func TestRelateTypedRefusesCrossProject(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if resp := h.Handle(Request{Method: "relate_typed", Params: map[string]any{
+	if resp := h.Handle(Request{Method: "relate_typed", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"from_id": float64(a), "to_id": float64(id), "type": "SUPERSEDES"}}); resp.Error == "" {
 		t.Fatal("cross-project lineage was accepted")
 	}

@@ -18,6 +18,11 @@ var los10bOffset = time.FixedZone("LOS10B", 2*3600)
 // result IDs.
 func hybridSearchParams(t *testing.T, h *Handler, params map[string]any) map[string]bool {
 	t.Helper()
+	// The helper speaks the same boundary-resolved contract the callers do.
+	if _, ok := params["_source_agent"]; !ok {
+		params["_source_agent"] = "claude"
+		params["_source_agent_source"] = "resolved"
+	}
 	if _, ok := params["query"]; !ok {
 		params["query"] = "zzz qqq"
 	}
@@ -98,7 +103,7 @@ func TestSearchBoundsRejectUnparseableValuesLos10b(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "hybrid_search",
-		Params: map[string]any{"query": "los10b bound probe", "since": "gestern"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","query": "los10b bound probe", "since": "gestern"},
 	})
 	if resp.Error == "" {
 		t.Error("hybrid_search accepted since=gestern")
@@ -106,7 +111,7 @@ func TestSearchBoundsRejectUnparseableValuesLos10b(t *testing.T) {
 
 	resp = h.Handle(Request{
 		Method: "get_learnings",
-		Params: map[string]any{"before": "last week"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","before": "last week"},
 	})
 	if resp.Error == "" {
 		t.Error("get_learnings accepted before=last week")
@@ -116,7 +121,7 @@ func TestSearchBoundsRejectUnparseableValuesLos10b(t *testing.T) {
 	for _, bound := range []string{"2026-07-01", "2026-07-01T00:00:00Z", "2026-07-01T00:00:00+02:00"} {
 		resp := h.Handle(Request{
 			Method: "hybrid_search",
-			Params: map[string]any{"query": "los10b bound probe", "since": bound},
+			Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","query": "los10b bound probe", "since": bound},
 		})
 		if resp.Error != "" {
 			t.Errorf("hybrid_search rejected the documented bound %q: %s", bound, resp.Error)

@@ -128,7 +128,7 @@ func TestCallerWindowFromParams(t *testing.T) {
 		{"caller without window falls back to caller_session's window", map[string]any{"caller_session": "opencode:ses_main", "_session_id": "opencode:agent_x"}, "0x04c00004"},
 		{"only caller_session", map[string]any{"caller_session": "opencode:ses_main"}, "0x04c00004"},
 		{"only per-call session", map[string]any{"_session_id": "opencode:ses_b"}, "0x05a00004"},
-		{"nothing authoritative", map[string]any{"_caller_pid": float64(900), "_source_agent": "opencode"}, ""},
+		{"nothing authoritative", map[string]any{"_caller_pid": float64(900), "_source_agent": "opencode", "_source_agent_source": "resolved"}, ""},
 		{"no window anywhere", map[string]any{"caller_session": "opencode:x", "_session_id": "opencode:y"}, ""},
 		{"wrong types ignored", map[string]any{"caller_session": 42, "_session_id": true}, ""},
 	}
@@ -154,7 +154,7 @@ func TestCallerWindowFromParams_IgnoresLeakedEnvironmentID(t *testing.T) {
 
 	got := h.callerWindowFromParams(map[string]any{
 		"_session_id": "opencode:ses_FOREIGN", "_session_id_source": "env",
-		"_source_agent": "opencode", "_caller_pid": float64(opencodeSharedServicePID),
+		"_source_agent": "opencode", "_source_agent_source": "resolved", "_caller_pid": float64(opencodeSharedServicePID),
 		"caller_session": "opencode:ses_mine",
 	})
 	if got != "0x04c00004" {
@@ -174,7 +174,7 @@ func TestCallerWindowFromParams_KeepsInjectedSessionWindow(t *testing.T) {
 	h.terminalMap = map[string]string{}
 
 	got := h.callerWindowFromParams(map[string]any{
-		"_session_id": "opencode:ses_mine", "_source_agent": "opencode",
+		"_session_id": "opencode:ses_mine", "_source_agent": "opencode", "_source_agent_source": "resolved",
 		"_caller_pid": float64(opencodeSharedServicePID), "caller_session": "opencode:ses_other",
 	})
 	if got != "0x04c00004" {

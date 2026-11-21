@@ -494,7 +494,7 @@ func TestHandleUpdateAgentStatus_WritesHeartbeatAt(t *testing.T) {
 	before := time.Now().Add(-1 * time.Second)
 	resp := h.Handle(Request{
 		Method: "update_agent_status",
-		Params: map[string]any{"id": "hb-update-0", "phase": "implementing"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","id": "hb-update-0", "phase": "implementing"},
 	})
 	if resp.Error != "" {
 		t.Fatal(resp.Error)
@@ -2219,7 +2219,7 @@ func TestStopAgentForLimit_DoesNotSignalABystander(t *testing.T) {
 func TestHandleSpawnAgent_PersistsTheRestartStrategy(t *testing.T) {
 	h, s := mustHandler(t)
 
-	resp := h.Handle(Request{Method: "spawn_agent", Params: map[string]any{
+	resp := h.Handle(Request{Method: "spawn_agent", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"project": "proj", "section": "sec-restart-strategy",
 		"work_dir": t.TempDir(),
 		"backend":  "claude", "restart_strategy": "transient",
@@ -2250,7 +2250,7 @@ func TestHandleSpawnAgent_PersistsTheRestartStrategy(t *testing.T) {
 func TestHandleSpawnAgent_DefaultsTheRestartStrategyToTemporary(t *testing.T) {
 	h, s := mustHandler(t)
 
-	resp := h.Handle(Request{Method: "spawn_agent", Params: map[string]any{
+	resp := h.Handle(Request{Method: "spawn_agent", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"project": "proj", "section": "sec-restart-default", "backend": "claude",
 		"work_dir": t.TempDir(),
 	}})
@@ -2277,7 +2277,7 @@ func TestHandleSpawnAgent_RejectsAnUnknownOrUnboundedRestartStrategy(t *testing.
 		t.Run(strategy, func(t *testing.T) {
 			h, _ := mustHandler(t)
 
-			resp := h.Handle(Request{Method: "spawn_agent", Params: map[string]any{
+			resp := h.Handle(Request{Method: "spawn_agent", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 				"project": "proj", "section": "sec-restart-invalid",
 				"work_dir": t.TempDir(),
 				"backend":  "claude", "restart_strategy": strategy,
@@ -2296,7 +2296,7 @@ func TestAttemptRestart_AppliesTheStrategyPersistedAtSpawn(t *testing.T) {
 	spawn := stubRestartSpawnSync(t, "0.3")
 	h.disableAgentProcesses = false
 
-	resp := h.Handle(Request{Method: "spawn_agent", Params: map[string]any{
+	resp := h.Handle(Request{Method: "spawn_agent", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"project": "proj", "section": "sec-restart-chain",
 		"work_dir": t.TempDir(),
 		"backend":  "claude", "restart_strategy": "transient",

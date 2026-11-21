@@ -33,7 +33,7 @@ func TestDeepSearchContextFallsBackToContentBlobLos38y(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "deep_search",
-		Params: map[string]any{"query": "needle haystack", "limit": float64(5)},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","query": "needle haystack", "limit": float64(5)},
 	})
 	if resp.Error != "" {
 		t.Fatalf("deep_search error: %s", resp.Error)

@@ -106,7 +106,7 @@ func TestLos59bCapProposalAcceptTargetsTheProjectRowNotTheGlobalOne(t *testing.T
 	seedCap(t, h, "los59b_rank", "", "echo global-old\nexit 0\n", []string{"los59b_rank"})
 	propID := los59bSeedProposalForProject(t, h, "los59b_rank", project, "echo proposal-new\nexit 0\n")
 
-	resp := h.Handle(Request{Method: "cap_proposal_decide", Params: map[string]any{
+	resp := h.Handle(Request{Method: "cap_proposal_decide", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"id": float64(propID), "decision": "accept",
 	}})
 	if resp.Error != "" {

@@ -15,7 +15,7 @@ import (
 func bindViaOp(t *testing.T, h *Handler, agent, project string) {
 	t.Helper()
 	first := h.Handle(Request{Method: "governance_bind", Params: map[string]any{
-		"agent": agent, "project": project, "_source_agent": "operator"}})
+		"agent": agent, "project": project, "_source_agent": "operator", "_source_agent_source": "resolved"}})
 	if first.Error == "" || !strings.Contains(first.Error, "governance ask") {
 		t.Fatalf("expected the governed bind ask, got %q", first.Error)
 	}
@@ -24,7 +24,7 @@ func bindViaOp(t *testing.T, h *Handler, agent, project string) {
 		t.Fatalf("admit the bind: %v", err)
 	}
 	resp := h.Handle(Request{Method: "governance_bind", Params: map[string]any{
-		"agent": agent, "project": project, "_source_agent": "operator"}})
+		"agent": agent, "project": project, "_source_agent": "operator", "_source_agent_source": "resolved"}})
 	if resp.Error != "" {
 		t.Fatalf("governance_bind: %v", resp.Error)
 	}
@@ -54,7 +54,7 @@ func TestBoundAgentForeignClaimRefusedBeforeRows(t *testing.T) {
 		t.Fatalf("seed: %v", err)
 	}
 	resp := h.Handle(Request{Method: "get_learnings", Params: map[string]any{
-		"project": "/srv/other", "_source_agent": "codex"}})
+		"project": "/srv/other", "_source_agent": "codex", "_source_agent_source": "resolved"}})
 	if resp.Error == "" {
 		t.Fatal("the bound agent read the foreign project")
 	}
@@ -71,7 +71,7 @@ func TestBoundAgentSameClaimPasses(t *testing.T) {
 	h, _ := mustHandler(t)
 	bindViaOp(t, h, "codex", "/srv/demo")
 	resp := h.Handle(Request{Method: "get_learnings", Params: map[string]any{
-		"project": "/srv/demo", "_source_agent": "codex"}})
+		"project": "/srv/demo", "_source_agent": "codex", "_source_agent_source": "resolved"}})
 	if resp.Error != "" {
 		t.Fatalf("same-project read refused: %v", resp.Error)
 	}
@@ -80,7 +80,7 @@ func TestBoundAgentSameClaimPasses(t *testing.T) {
 func TestUnboundCallerKeepsBaseBehaviour(t *testing.T) {
 	h, _ := mustHandler(t)
 	resp := h.Handle(Request{Method: "get_learnings", Params: map[string]any{
-		"project": "/srv/anywhere", "_source_agent": "claude"}})
+		"project": "/srv/anywhere", "_source_agent": "claude", "_source_agent_source": "resolved"}})
 	if resp.Error != "" {
 		t.Fatalf("unbound caller refused: %v", resp.Error)
 	}
@@ -90,7 +90,7 @@ func TestBrokenBindingClosesTheCall(t *testing.T) {
 	h, _ := mustHandler(t)
 	h.store.Close()
 	resp := h.Handle(Request{Method: "get_learnings", Params: map[string]any{
-		"project": "/srv/demo", "_source_agent": "codex"}})
+		"project": "/srv/demo", "_source_agent": "codex", "_source_agent_source": "resolved"}})
 	if resp.Error == "" {
 		t.Fatal("a broken binding lookup passed: fail closed")
 	}

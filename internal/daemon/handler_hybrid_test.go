@@ -36,7 +36,7 @@ func TestHandleHybridSearch(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "hybrid_search",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"query": "nginx proxy",
 			"limit": float64(5),
 		},
@@ -56,7 +56,7 @@ func TestHandleHybridSearchWithoutVectorStore(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "hybrid_search",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"query": "test",
 			"limit": float64(5),
 		},
@@ -198,7 +198,7 @@ func TestGraphAugmentation(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "hybrid_search",
-		Params: map[string]any{"query": "proxy config restart", "limit": float64(10)},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","query": "proxy config restart", "limit": float64(10)},
 	})
 	if resp.Error != "" {
 		t.Fatalf("hybrid_search error: %s", resp.Error)
@@ -418,7 +418,7 @@ func hybridSearchRun(t *testing.T, h *Handler, query string) map[string]string {
 	t.Helper()
 	resp := h.Handle(Request{
 		Method: "hybrid_search",
-		Params: map[string]any{"query": query, "limit": float64(20)},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","query": query, "limit": float64(20)},
 	})
 	if resp.Error != "" {
 		t.Fatalf("hybrid_search error: %s", resp.Error)

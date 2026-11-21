@@ -135,7 +135,7 @@ func TestVerifyClaimsOperation(t *testing.T) {
 // claims cannot be checked against nothing.
 func TestVerifyClaimsRequiresARepository(t *testing.T) {
 	h, _ := mustHandler(t)
-	resp := h.Handle(Request{Method: "verify_claims", Params: map[string]any{"report": "[COMMIT: abc1234]\n"}})
+	resp := h.Handle(Request{Method: "verify_claims", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","report": "[COMMIT: abc1234]\n"}})
 	if resp.Error == "" {
 		t.Fatalf("expected an error, got result %s", resp.Result)
 	}

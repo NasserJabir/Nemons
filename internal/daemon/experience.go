@@ -160,7 +160,10 @@ func (h *Handler) handleGetExperienceSummary(params map[string]any) Response {
 	if project == "" {
 		return errorResponse("get_experience_summary: 'project' is required")
 	}
-	viewer := h.actorViewerOrDefault(params, "get_experience_summary")
+	viewer, verr := h.actorViewer(params, "get_experience_summary")
+	if verr != nil {
+		return *verr
+	}
 	rows, err := h.store.GetActiveLearningsFiltered(storage.LearningsFilter{Project: project, Viewer: viewer}, 0)
 	if err != nil {
 		return errorResponse(fmt.Sprintf("get_experience_summary: %v", err))

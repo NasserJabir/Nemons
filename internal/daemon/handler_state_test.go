@@ -1019,7 +1019,7 @@ func TestHandleTrackSessionEnd_ViaDispatch(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "track_session_end",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"project":    "/home/testuser/projects/myapp",
 			"session_id": "dispatch-test",
 			"reason":     "clear",
@@ -1166,7 +1166,7 @@ func TestHandlePin_DispatchStoresCanonicalProjectPath(t *testing.T) {
 		t.Fatalf("seed session: %v", err)
 	}
 
-	resp := h.Handle(Request{Method: "pin", Params: map[string]any{
+	resp := h.Handle(Request{Method: "pin", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"content":     "short name pin",
 		"scope":       "session",
 		"project":     "myapp",
@@ -1182,7 +1182,7 @@ func TestHandlePin_DispatchStoresCanonicalProjectPath(t *testing.T) {
 		t.Fatalf("pin not stored under the canonical project path %q, got %d pins", project, len(pins))
 	}
 
-	resp = h.Handle(Request{Method: "track_session_end", Params: map[string]any{
+	resp = h.Handle(Request{Method: "track_session_end", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"project":    project,
 		"session_id": "sess-pin",
 		"reason":     "clear",
@@ -1212,7 +1212,7 @@ func TestHandlePin_DoesNotTrustEnvDerivedSession(t *testing.T) {
 		"_cwd":               project,
 		"_session_id":        "sess-foreign",
 		"_session_id_source": "env",
-		"_source_agent":      "opencode",
+		"_source_agent":      "opencode", "_source_agent_source": "resolved",
 		"_caller_pid":        float64(1),
 	}})
 	if resp.Error != "" {
@@ -1226,7 +1226,7 @@ func TestHandlePin_DoesNotTrustEnvDerivedSession(t *testing.T) {
 		t.Fatalf("expected the pin to be stored under the caller's project, got %d pins", len(pins))
 	}
 
-	resp = h.Handle(Request{Method: "track_session_end", Params: map[string]any{
+	resp = h.Handle(Request{Method: "track_session_end", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"project":    project,
 		"session_id": "sess-own",
 		"reason":     "clear",
@@ -1254,7 +1254,7 @@ func TestHandlePin_PermanentPinStaysGlobalWithoutSession(t *testing.T) {
 		"_cwd":               project,
 		"_session_id":        "sess-foreign",
 		"_session_id_source": "env",
-		"_source_agent":      "opencode",
+		"_source_agent":      "opencode", "_source_agent_source": "resolved",
 		"_caller_pid":        float64(1),
 	}})
 	if resp.Error != "" {

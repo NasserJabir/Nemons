@@ -18,7 +18,7 @@ func TestHandleGetSkillContent(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "get_skill_content",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"name":    "my-skill",
 			"project": "memory",
 		},

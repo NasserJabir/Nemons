@@ -31,6 +31,7 @@ import (
 	"github.com/NasserJabir/Nemons/internal/ingest"
 	"github.com/NasserJabir/Nemons/internal/ivf"
 	"github.com/NasserJabir/Nemons/internal/logrotate"
+	"github.com/NasserJabir/Nemons/internal/models"
 	"github.com/NasserJabir/Nemons/internal/repo"
 	"github.com/NasserJabir/Nemons/internal/sanitize"
 	"github.com/NasserJabir/Nemons/internal/storage"
@@ -1825,13 +1826,36 @@ var httpDeniedMethods = map[string]bool{
 	"get_config":                true,
 }
 
+// httpServiceAgent is the one identity the HTTP boundary vouches for
+// (remediation 02 WS-A3). The transport authenticates the OpenClaw
+// integration — localhost plus a bearer token — never a specific Coding Agent,
+// so every HTTP request acts as this explicit service identity: project and
+// published knowledge flow (the transport's documented purpose), private rows
+// of no agent ever surface (nothing writes as this identity), and the model
+// has no say in it — the boundary resolved it, not the request.
+const httpServiceAgent = "openclaw-http"
+
+// httpIdentityParams enforces the WS-A3 policy on the wire: the caller's trust
+// markers are stripped (a marker is boundary-authored, so one from the wire is
+// forged by definition), and the params carry the service identity with its
+// server-authored resolved marker. A caller-supplied _source_agent label is
+// overwritten, not honored — over this transport it can only be an attempt to
+// impersonate an agent.
+func httpIdentityParams(params map[string]any) map[string]any {
+	delete(params, models.MarkSourceAgentSource)
+	delete(params, models.MarkSessionIDSource)
+	params["_source_agent"] = httpServiceAgent
+	params[models.MarkSourceAgentSource] = models.SourceAgentSourceResolved
+	return params
+}
+
 func (a *handlerAdapter) Handle(req httpapi.RPCRequest) httpapi.RPCResponse {
 	if httpDeniedMethods[req.Method] {
 		return httpapi.RPCResponse{Error: "method is not available over the HTTP API"}
 	}
 	resp := a.h.Handle(Request{
 		Method: req.Method,
-		Params: req.Params,
+		Params: httpIdentityParams(req.Params),
 	})
 	return httpapi.RPCResponse{
 		Result: resp.Result,

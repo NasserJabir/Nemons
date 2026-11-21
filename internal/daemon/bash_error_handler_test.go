@@ -231,7 +231,7 @@ func TestAutoCorrect_DoesNotPersistWhenSandboxUnavailable(t *testing.T) {
 	original := minimalOriginal
 	saveResp := h.Handle(Request{
 		Method: "save_cap",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"name":         "broken_cap",
 			"description":  "intentionally failing cap for T0 regression",
 			"handler_bash": original,
@@ -311,7 +311,7 @@ func TestAutoCorrect_MinimalDiffPersistsDirectly(t *testing.T) {
 		t.Fatalf("add job: %v", err)
 	}
 	scripts := `[{"name":"run","kind":"handler","runtime":"bash","lang":"bash","body":` + jsonString(body) + `}]`
-	if resp := h.Handle(Request{Method: "save_cap", Params: map[string]any{
+	if resp := h.Handle(Request{Method: "save_cap", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"name": "minimal_cap", "description": "minimal", "scripts": scripts,
 	}}); resp.Error != "" {
 		t.Fatalf("seed save_cap: %s", resp.Error)
@@ -382,7 +382,7 @@ func TestAutoCorrect_SubstantialDiffCreatesProposalAndDoesNotChangeActiveCap(t *
 		t.Fatalf("add job: %v", err)
 	}
 	scripts := `[{"name":"run","kind":"handler","runtime":"bash","lang":"bash","body":` + jsonString(body) + `}]`
-	if resp := h.Handle(Request{Method: "save_cap", Params: map[string]any{
+	if resp := h.Handle(Request{Method: "save_cap", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"name": "big_cap", "description": "big", "scripts": scripts,
 	}}); resp.Error != "" {
 		t.Fatalf("seed save_cap: %s", resp.Error)
@@ -450,7 +450,7 @@ func TestPersistProposalForReview_FindsBashByRuntime(t *testing.T) {
 	h, _ := mustHandler(t)
 	saveResp := h.Handle(Request{
 		Method: "save_cap",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"name":         "demo_persist",
 			"description":  "demo cap for persistProposalForReview",
 			"handler_bash": "echo old\nexit 0\n",
@@ -736,7 +736,7 @@ func TestPersistProposalForReview_MultiBashTargetsScriptByName(t *testing.T) {
 		`]`
 	saveResp := h.Handle(Request{
 		Method: "save_cap",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"name":        "tg_bundle",
 			"description": "two bash handlers",
 			"scripts":     scriptsJSON,

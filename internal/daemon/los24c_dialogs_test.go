@@ -26,7 +26,7 @@ func TestResolveActiveSessionFallback_OpencodeCallerStillResolves(t *testing.T) 
 		t.Fatalf("seed proxy state: %v", err)
 	}
 
-	got := h.resolveActiveSessionFallback(map[string]any{"_source_agent": "opencode"})
+	got := h.resolveActiveSessionFallback(map[string]any{"_source_agent": "opencode", "_source_agent_source": "resolved"})
 	if got != "opencode:ses-42" {
 		t.Errorf("opencode fallback = %q, want opencode:ses-42", got)
 	}
@@ -40,7 +40,7 @@ func TestResolveActiveSessionFallback_OpencodeLabelDoesNotUnlockACodexChannel(t 
 		t.Fatalf("seed proxy state: %v", err)
 	}
 
-	if got := h.resolveActiveSessionFallback(map[string]any{"_source_agent": "opencode"}); got != "" {
+	if got := h.resolveActiveSessionFallback(map[string]any{"_source_agent": "opencode", "_source_agent_source": "resolved"}); got != "" {
 		t.Errorf("fallback = %q, want empty for a value outside the opencode namespace", got)
 	}
 }

@@ -32,7 +32,7 @@ func TestHandleContextualDocs(t *testing.T) {
 	// Query for .go extension → should return go-docs chunks
 	resp := h.Handle(Request{
 		Method: "contextual_docs",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"extensions": []any{".go"},
 			"project":    "test",
 			"limit":      float64(5),
@@ -71,7 +71,7 @@ func TestHandleContextualDocs(t *testing.T) {
 	// Query for .html.twig → should return twig-docs (compound extension)
 	resp = h.Handle(Request{
 		Method: "contextual_docs",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"extensions": []any{".html.twig"},
 			"project":    "test",
 		},
@@ -90,7 +90,7 @@ func TestHandleContextualDocs(t *testing.T) {
 	// Query for unregistered extension → empty
 	resp = h.Handle(Request{
 		Method: "contextual_docs",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"extensions": []any{".rs"},
 		},
 	})
@@ -102,7 +102,7 @@ func TestHandleContextualDocs(t *testing.T) {
 	// Missing extensions param → empty
 	resp = h.Handle(Request{
 		Method: "contextual_docs",
-		Params: map[string]any{},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",},
 	})
 	json.Unmarshal(resp.Result, &result)
 	if result.Total != 0 {
@@ -112,7 +112,7 @@ func TestHandleContextualDocs(t *testing.T) {
 	// Empty array → empty
 	resp = h.Handle(Request{
 		Method: "contextual_docs",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"extensions": []any{},
 		},
 	})
@@ -124,7 +124,7 @@ func TestHandleContextualDocs(t *testing.T) {
 	// All non-string elements → empty
 	resp = h.Handle(Request{
 		Method: "contextual_docs",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"extensions": []any{42, true, nil},
 		},
 	})
@@ -158,7 +158,7 @@ func TestHandleContextualDocs_ProjectFilter(t *testing.T) {
 	// Filter by proj-a
 	resp := h.Handle(Request{
 		Method: "contextual_docs",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"extensions": []any{".go"},
 			"project":    "proj-a",
 			"limit":      float64(10),
@@ -179,7 +179,7 @@ func TestHandleListTriggerExtensions(t *testing.T) {
 	// Empty DB
 	resp := h.Handle(Request{
 		Method: "list_trigger_extensions",
-		Params: map[string]any{},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",},
 	})
 	if resp.Error != "" {
 		t.Fatalf("error: %s", resp.Error)
@@ -200,7 +200,7 @@ func TestHandleListTriggerExtensions(t *testing.T) {
 
 	resp = h.Handle(Request{
 		Method: "list_trigger_extensions",
-		Params: map[string]any{},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",},
 	})
 	json.Unmarshal(resp.Result, &result)
 
@@ -239,7 +239,7 @@ func TestHandleDocsSearch_ExtensionsFilter(t *testing.T) {
 	// Search with extensions=[".go"] — should only return go-ref results
 	resp := h.Handle(Request{
 		Method: "docs_search",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"query":      "goroutine concurrency",
 			"extensions": []any{".go"},
 			"project":    "test",
@@ -272,7 +272,7 @@ func TestHandleDocsSearch_ExtensionsFilter(t *testing.T) {
 	// Search with extensions=[".twig"] — should only return twig-ref results
 	resp = h.Handle(Request{
 		Method: "docs_search",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"query":      "twig template filter",
 			"extensions": []any{".twig"},
 			"project":    "test",
@@ -306,7 +306,7 @@ func TestHandleDocsSearch_DocTypeFilter(t *testing.T) {
 	// With doc_type=reference and same .go extension — should not return style source
 	resp := h.Handle(Request{
 		Method: "docs_search",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"query":      "error handling interface",
 			"extensions": []any{".go"},
 			"doc_type":   "reference",
@@ -335,7 +335,7 @@ func TestHandleDocsSearch_DocTypeFilter(t *testing.T) {
 	// With doc_type=style — should only return style source
 	resp = h.Handle(Request{
 		Method: "docs_search",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"query":      "error handling interface",
 			"extensions": []any{".go"},
 			"doc_type":   "style",
@@ -368,7 +368,7 @@ func TestHandleDocsSearch_ProjectBoost(t *testing.T) {
 	// Search with project=my-project — project source should appear first (boosted)
 	resp := h.Handle(Request{
 		Method: "docs_search",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"query":   "setup configuration install",
 			"project": "my-project",
 			"limit":   float64(10),
@@ -404,7 +404,7 @@ func TestHandleIngestDocs_TriggerExtensions(t *testing.T) {
 	// but the trigger_extensions should be parseable — test the param parsing)
 	resp := h.Handle(Request{
 		Method: "ingest_docs",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"name":               "test-docs",
 			"path":               "/tmp/nonexistent-nemons-test",
 			"project":            "test",
@@ -419,7 +419,7 @@ func TestHandleIngestDocs_TriggerExtensions(t *testing.T) {
 	// We can verify this by checking that the handler doesn't error on empty array
 	resp = h.Handle(Request{
 		Method: "ingest_docs",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"name":               "test-docs-2",
 			"path":               "/tmp/nonexistent-nemons-test-2",
 			"project":            "test",
@@ -434,7 +434,7 @@ func TestHandleListDocs_Empty(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "list_docs",
-		Params: map[string]any{},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",},
 	})
 	if resp.Error != "" {
 		t.Fatalf("error: %s", resp.Error)
@@ -471,7 +471,7 @@ func TestHandleListDocs_WithData(t *testing.T) {
 	// Unfiltered: both sources
 	resp := h.Handle(Request{
 		Method: "list_docs",
-		Params: map[string]any{},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",},
 	})
 	if resp.Error != "" {
 		t.Fatalf("error: %s", resp.Error)
@@ -497,7 +497,7 @@ func TestHandleListDocs_WithData(t *testing.T) {
 	// Filtered by project
 	resp = h.Handle(Request{
 		Method: "list_docs",
-		Params: map[string]any{"project": "proj-a"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","project": "proj-a"},
 	})
 	if err := json.Unmarshal(resp.Result, &result); err != nil {
 		t.Fatalf("unmarshal filtered: %v", err)
@@ -518,7 +518,7 @@ func TestHandleRemoveDocs_MissingName(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remove_docs",
-		Params: map[string]any{},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",},
 	})
 	if resp.Error == "" {
 		t.Fatal("expected error for missing name")
@@ -533,7 +533,7 @@ func TestHandleRemoveDocs_NotFound(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remove_docs",
-		Params: map[string]any{"name": "nonexistent"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","name": "nonexistent"},
 	})
 	if resp.Error == "" {
 		t.Fatal("expected error for nonexistent source")
@@ -561,7 +561,7 @@ func TestHandleRemoveDocs_Success(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remove_docs",
-		Params: map[string]any{"name": "removeme", "project": "test"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","name": "removeme", "project": "test"},
 	})
 	if resp.Error != "" {
 		t.Fatalf("remove error: %s", resp.Error)
@@ -595,7 +595,7 @@ func TestHandleGetRulesBlock_Empty(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "get_rules_block",
-		Params: map[string]any{"project": "nonexistent"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","project": "nonexistent"},
 	})
 	if resp.Error != "" {
 		t.Fatalf("error: %s", resp.Error)
@@ -629,7 +629,7 @@ func TestHandleGetRulesBlock_WithRules(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "get_rules_block",
-		Params: map[string]any{"project": "myproj"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","project": "myproj"},
 	})
 	if resp.Error != "" {
 		t.Fatalf("error: %s", resp.Error)
@@ -655,7 +655,7 @@ func TestHandleDocsSearch_EmptyQuery(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "docs_search",
-		Params: map[string]any{"query": ""},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","query": ""},
 	})
 	if resp.Error == "" {
 		t.Fatal("expected error for empty query")
@@ -670,7 +670,7 @@ func TestHandleDocsSearch_NoResults(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "docs_search",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"query": "xyznonexistenttermxyz",
 			"limit": float64(5),
 		},
@@ -711,7 +711,7 @@ func TestHandleDocsSearch_SourceFilter(t *testing.T) {
 	// Filter by source name
 	resp := h.Handle(Request{
 		Method: "docs_search",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"query":  "database connection pool",
 			"source": "alpha-docs",
 			"limit":  float64(10),
@@ -753,7 +753,7 @@ func TestHandleDocsSearch_DocTypeWithoutExtensions(t *testing.T) {
 	// doc_type=style without extensions should filter by type alone
 	resp := h.Handle(Request{
 		Method: "docs_search",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"query":    "naming convention variable",
 			"doc_type": "style",
 			"limit":    float64(10),
@@ -788,7 +788,7 @@ func TestHandleIngestDocs_MissingParams(t *testing.T) {
 	// Missing name
 	resp := h.Handle(Request{
 		Method: "ingest_docs",
-		Params: map[string]any{"path": "/tmp/something"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","path": "/tmp/something"},
 	})
 	if resp.Error != "name is required" {
 		t.Errorf("missing name: error = %q, want 'name is required'", resp.Error)
@@ -797,7 +797,7 @@ func TestHandleIngestDocs_MissingParams(t *testing.T) {
 	// Missing path
 	resp = h.Handle(Request{
 		Method: "ingest_docs",
-		Params: map[string]any{"name": "something"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","name": "something"},
 	})
 	if resp.Error != "path is required" {
 		t.Errorf("missing path: error = %q, want 'path is required'", resp.Error)
@@ -821,7 +821,7 @@ func TestHandleContextualDocs_LimitDefault(t *testing.T) {
 	// No limit param: default is 3
 	resp := h.Handle(Request{
 		Method: "contextual_docs",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"extensions": []any{".py"},
 		},
 	})
@@ -858,7 +858,7 @@ func TestHandleDocsSearch_LimitRespected(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "docs_search",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"query": "golang interface embedding",
 			"limit": float64(3),
 		},

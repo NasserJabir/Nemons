@@ -68,7 +68,7 @@ func TestLos59bSetProxyStateRefusesAForeignPeerForASessionThreshold(t *testing.T
 		"session_override:token_threshold:ses_victim",
 		"session_override:token_threshold:opencode:ses_victim",
 	} {
-		resp := h.Handle(Request{Method: "set_proxy_state", Params: map[string]any{
+		resp := h.Handle(Request{Method: "set_proxy_state", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"key": key, "value": "1000", "_peer_pid": 4242,
 		}})
 		if resp.Error == "" {
@@ -94,7 +94,7 @@ func TestLos59bSetProxyStateKeepsTheModelSlotAndTheProxyWritable(t *testing.T) {
 		"config_override:token_threshold:glm-5.2",
 		"config_override:token_threshold:ses_looks-like-a-model",
 	} {
-		resp := h.Handle(Request{Method: "set_proxy_state", Params: map[string]any{
+		resp := h.Handle(Request{Method: "set_proxy_state", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"key": key, "value": "500000", "_peer_pid": 4242,
 		}})
 		if resp.Error != "" {
@@ -107,7 +107,7 @@ func TestLos59bSetProxyStateKeepsTheModelSlotAndTheProxyWritable(t *testing.T) {
 
 	h2, s2 := mustHandler(t)
 	los59bWithProcess(t, 4242, "/home/u/.local/bin/nemons\x00proxy\x00--port\x004000")
-	resp := h2.Handle(Request{Method: "set_proxy_state", Params: map[string]any{
+	resp := h2.Handle(Request{Method: "set_proxy_state", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"key": "session_override:token_threshold:ses_live", "value": "300000", "_peer_pid": 4242,
 	}})
 	if resp.Error != "" {
@@ -138,7 +138,7 @@ func TestLos59bGetProxyStateRefusesAForeignPeerForSessionState(t *testing.T) {
 		"frozen:ses_victim",
 		"session_override:token_threshold:ses_victim",
 	} {
-		resp := h.Handle(Request{Method: "get_proxy_state", Params: map[string]any{
+		resp := h.Handle(Request{Method: "get_proxy_state", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"key": key, "_peer_pid": 4242,
 		}})
 		if resp.Error == "" {
@@ -151,7 +151,7 @@ func TestLos59bGetProxyStateRefusesAForeignPeerForSessionState(t *testing.T) {
 
 	// The model slot is global configuration, and get_config answers it to every
 	// caller; refusing the read here would hide nothing and break the mirror.
-	resp := h.Handle(Request{Method: "get_proxy_state", Params: map[string]any{
+	resp := h.Handle(Request{Method: "get_proxy_state", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"key": "config_override:token_threshold:deepseek", "_peer_pid": 4242,
 	}})
 	if resp.Error != "" {
@@ -169,7 +169,7 @@ func TestLos59bGetProxyStateKeepsInternalReadsWorking(t *testing.T) {
 		t.Fatalf("seed: %v", err)
 	}
 
-	resp := h.Handle(Request{Method: "get_proxy_state", Params: map[string]any{
+	resp := h.Handle(Request{Method: "get_proxy_state", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"key": "frozen:ses_internal",
 	}})
 	if resp.Error != "" {
@@ -199,7 +199,7 @@ func TestLos59bDeleteProxyStatePrefixRefusesAForeignPeerForTheThresholdFamily(t 
 		"session_over",
 		"sess",
 	} {
-		resp := h.Handle(Request{Method: "delete_proxy_state_prefix", Params: map[string]any{
+		resp := h.Handle(Request{Method: "delete_proxy_state_prefix", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"prefix": prefix, "_peer_pid": 4242,
 		}})
 		if resp.Error == "" {
@@ -219,7 +219,7 @@ func TestLos59bSetConfigRefusesAnOverrideForAForeignSession(t *testing.T) {
 	h, s := mustHandler(t)
 	los59bWithProcess(t, 4242, "/home/u/.local/bin/nemons\x00mcp", "NEMONS_SESSION_ID=opencode:ses_own")
 
-	resp := h.Handle(Request{Method: "set_config", Params: map[string]any{
+	resp := h.Handle(Request{Method: "set_config", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"key":         "token_threshold",
 		"value":       "300000",
 		"session_id":  "ses_victim",
@@ -243,7 +243,7 @@ func TestLos59bSetConfigRefusesAForgedSelfReport(t *testing.T) {
 	h, s := mustHandler(t)
 	los59bWithProcess(t, 4242, "/home/u/.local/bin/nemons\x00mcp")
 
-	resp := h.Handle(Request{Method: "set_config", Params: map[string]any{
+	resp := h.Handle(Request{Method: "set_config", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"key":         "token_threshold",
 		"value":       "300000",
 		"session_id":  "ses_victim",
@@ -267,7 +267,7 @@ func TestLos59bSetConfigKeepsTheCallersOwnSessionWorking(t *testing.T) {
 	h, s := mustHandler(t)
 	los59bWithProcess(t, 4242, "/home/u/.local/bin/nemons\x00mcp", "NEMONS_SESSION_ID=opencode:ses_own")
 
-	resp := h.Handle(Request{Method: "set_config", Params: map[string]any{
+	resp := h.Handle(Request{Method: "set_config", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"key":        "token_threshold",
 		"value":      "300000",
 		"session_id": "ses_own",
@@ -286,7 +286,7 @@ func TestLos59bSetConfigKeepsTheCallersOwnSessionWorking(t *testing.T) {
 func TestLos59bSetConfigKeepsInternalSessionWritesWorking(t *testing.T) {
 	h, s := mustHandler(t)
 
-	resp := h.Handle(Request{Method: "set_config", Params: map[string]any{
+	resp := h.Handle(Request{Method: "set_config", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"key":        "token_threshold",
 		"value":      "300000",
 		"session_id": "ses_internal",
@@ -310,7 +310,7 @@ func TestLos59bGetConfigRefusesAForeignSessionsOverride(t *testing.T) {
 	}
 	los59bWithProcess(t, 4242, "/home/u/.local/bin/nemons\x00mcp", "NEMONS_SESSION_ID=opencode:ses_own")
 
-	resp := h.Handle(Request{Method: "get_config", Params: map[string]any{
+	resp := h.Handle(Request{Method: "get_config", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"key":        "token_threshold",
 		"session_id": "ses_victim",
 		"_peer_pid":  4242,
@@ -332,7 +332,7 @@ func TestLos59bGetConfigKeepsTheCallersOwnReadWorking(t *testing.T) {
 	los59bWithProcess(t, 4242, "/home/u/.local/bin/nemons\x00mcp", "NEMONS_SESSION_ID=opencode:ses_own")
 
 	for _, named := range []string{"ses_own", "opencode:ses_own"} {
-		resp := h.Handle(Request{Method: "get_config", Params: map[string]any{
+		resp := h.Handle(Request{Method: "get_config", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"key": "token_threshold", "session_id": named, "_peer_pid": 4242,
 		}})
 		if resp.Error != "" {
@@ -354,7 +354,7 @@ func TestLos59bGetConfigRefusesAnUnidentifiableCaller(t *testing.T) {
 	}
 	los59bForeignPeer(t)
 
-	resp := h.Handle(Request{Method: "get_config", Params: map[string]any{
+	resp := h.Handle(Request{Method: "get_config", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"key": "token_threshold", "session_id": "ses_own", "_peer_pid": 4242,
 	}})
 	if resp.Error == "" {

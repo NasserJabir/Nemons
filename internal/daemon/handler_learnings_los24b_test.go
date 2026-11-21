@@ -39,6 +39,7 @@ func TestGetLearningsTaskTypeSurvivesNewerOtherTypes(t *testing.T) {
 		"category":  "unfinished",
 		"task_type": "task",
 		"limit":     float64(30),
+		"_source_agent": "claude", "_source_agent_source": "resolved",
 	})
 	if resp.Error != "" {
 		t.Fatalf("get_learnings: %s", resp.Error)
@@ -66,7 +67,7 @@ func TestGetLearningsWithoutTaskTypeKeepsAllTypes(t *testing.T) {
 	los24bInsert(t, s, "unfinished", "idea", "an idea", time.Minute)
 	los24bInsert(t, s, "unfinished", "task", "a task", 2*time.Minute)
 
-	resp := h.handleGetLearnings(map[string]any{"category": "unfinished", "limit": float64(30)})
+	resp := h.handleGetLearnings(map[string]any{"category": "unfinished", "limit": float64(30), "_source_agent": "claude", "_source_agent_source": "resolved"})
 	if resp.Error != "" {
 		t.Fatalf("get_learnings: %s", resp.Error)
 	}

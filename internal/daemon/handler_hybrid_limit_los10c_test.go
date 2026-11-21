@@ -39,7 +39,7 @@ func TestHybridSearchClampsCallerLimitLos10c(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			resp := h.Handle(Request{
 				Method: "hybrid_search",
-				Params: map[string]any{
+				Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 					"query": "los10c limit anchor",
 					"limit": tc.limit,
 				},

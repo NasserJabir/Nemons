@@ -27,7 +27,7 @@ func TestSendTo_ExplicitForeignSenderDoesNotAck(t *testing.T) {
 	if _, err := s.SendChannelMessage(testOcB, "someone", "for B", "command"); err != nil {
 		t.Fatal(err)
 	}
-	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{
+	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"target": "orchestrator", "content": "hi", "sender": testOcB,
 		"_session_id": testOcA,
 	}})
@@ -44,7 +44,7 @@ func TestSendTo_ExplicitSenderMatchingCallerAcks(t *testing.T) {
 	if _, err := s.SendChannelMessage(testOcA, "someone", "for A", "command"); err != nil {
 		t.Fatal(err)
 	}
-	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{
+	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"target": "orchestrator", "content": "hi", "sender": testOcA,
 		"_session_id": testOcA,
 	}})
@@ -61,7 +61,7 @@ func TestSendTo_DerivedProvenCallerAcks(t *testing.T) {
 	if _, err := s.SendChannelMessage(testOcA, "someone", "for A", "command"); err != nil {
 		t.Fatal(err)
 	}
-	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{
+	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"target": "orchestrator", "content": "hi", "_session_id": testOcA,
 	}})
 	if resp.Error != "" {
@@ -78,7 +78,7 @@ func TestSendTo_PaddedForeignSenderDoesNotAck(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, pad := range []string{" ", "\t", "\n"} {
-		resp := h.Handle(Request{Method: "send_to", Params: map[string]any{
+		resp := h.Handle(Request{Method: "send_to", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"target": "orchestrator", "content": "hi", "sender": pad + testOcB,
 			"_session_id": testOcA,
 		}})
@@ -96,7 +96,7 @@ func TestSendTo_UnderscoreSenderIsNoProof(t *testing.T) {
 	if _, err := s.SendChannelMessage(testOcB, "someone", "for B", "command"); err != nil {
 		t.Fatal(err)
 	}
-	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{
+	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"target": "orchestrator", "content": "hi", "sender": testOcB, "_sender": testOcB,
 	}})
 	if resp.Error != "" {
@@ -119,7 +119,7 @@ func TestSendTo_SyntheticAliasOfProvenCallerAcks(t *testing.T) {
 	if _, err := s.SendChannelMessage(testOcA, "someone", "for A", "command"); err != nil {
 		t.Fatal(err)
 	}
-	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{
+	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"target": "orchestrator", "content": "hi", "sender": synthetic, "_session_id": testOcA,
 	}})
 	if resp.Error != "" {
@@ -135,7 +135,7 @@ func TestSendTo_NamedChannelSenderKeepsLegacyAck(t *testing.T) {
 	if _, err := s.SendChannelMessage("telegram-bridge-48631", "someone", "for the bridge", "command"); err != nil {
 		t.Fatal(err)
 	}
-	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{
+	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"target": "orchestrator", "content": "hi", "sender": "telegram-bridge-48631",
 	}})
 	if resp.Error != "" {
@@ -165,7 +165,7 @@ func TestSendTo_GuessedSenderDoesNotDropStatusMessages(t *testing.T) {
 	h.activeSessionID = testOcA
 	h.activeSessionMu.Unlock()
 
-	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{
+	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"target": testOcA, "content": "status report", "msg_type": "status",
 	}})
 	if resp.Error != "" {
@@ -198,7 +198,7 @@ func TestSendTo_ImplicitAckDoesNotConsumeAPingedMessage(t *testing.T) {
 		t.Fatalf("MarkMessageNotified: %v", err)
 	}
 
-	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{
+	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"target": "orchestrator", "content": "hi", "_session_id": testOcA,
 	}})
 	if resp.Error != "" {
@@ -217,7 +217,7 @@ func TestSendTo_GlobalFallbackSenderDoesNotAck(t *testing.T) {
 	h.activeSessionMu.Lock()
 	h.activeSessionID = testOcB
 	h.activeSessionMu.Unlock()
-	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{
+	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"target": "orchestrator", "content": "hi",
 	}})
 	if resp.Error != "" {

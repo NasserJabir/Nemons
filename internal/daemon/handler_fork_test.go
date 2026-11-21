@@ -21,7 +21,7 @@ func TestHandleForkExtractLearnings(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "fork_extract_learnings",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learnings": string(learningsJSON),
 		},
 	})
@@ -70,7 +70,7 @@ func TestHandleForkExtractLearnings_PreservesTaskType(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "fork_extract_learnings",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learnings": string(learningsJSON),
 		},
 	})
@@ -102,7 +102,7 @@ func TestHandleForkExtractLearnings_SkipsEmpty(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "fork_extract_learnings",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learnings": string(learningsJSON),
 		},
 	})
@@ -125,7 +125,7 @@ func TestHandleForkExtractLearnings_InvalidJSON(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "fork_extract_learnings",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learnings": "not valid json",
 		},
 	})
@@ -149,7 +149,7 @@ func TestHandleForkEvaluateLearning_Boost(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "fork_evaluate_learning",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_id": float64(id),
 			"verdict":     "useful",
 			"reason":      "Prevented a bug",
@@ -188,7 +188,7 @@ func TestHandleForkEvaluateLearning_Noise(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "fork_evaluate_learning",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_id": float64(id),
 			"verdict":     "noise",
 			"reason":      "Not relevant",
@@ -220,7 +220,7 @@ func TestHandleForkEvaluateLearning_Save(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "fork_evaluate_learning",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_id": float64(id),
 			"verdict":     "critical_save",
 			"reason":      "Essential knowledge",
@@ -252,7 +252,7 @@ func TestHandleForkEvaluateLearning_Flag(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "fork_evaluate_learning",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_id": float64(id),
 			"verdict":     "wrong",
 			"reason":      "Factually incorrect",
@@ -275,7 +275,7 @@ func TestHandleForkEvaluateLearning_Skip(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "fork_evaluate_learning",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_id": float64(999),
 			"verdict":     "irrelevant",
 			"reason":      "Not applicable",
@@ -309,7 +309,7 @@ func TestHandleForkEvaluateLearning_ZeroImpactScore(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "fork_evaluate_learning",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_id":  float64(id),
 			"action":       "boost",
 			"impact_score": float64(0.0),
@@ -336,7 +336,7 @@ func TestHandleForkExtractLearnings_SkipsInvalidated(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "fork_extract_learnings",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learnings": string(learningsJSON),
 		},
 	})
@@ -378,7 +378,7 @@ func TestHandleForkUpdateImpact(t *testing.T) {
 	// Valid update
 	resp := h.Handle(Request{
 		Method: "fork_update_impact",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_id":  float64(id),
 			"impact_score": 0.8,
 		},
@@ -390,7 +390,7 @@ func TestHandleForkUpdateImpact(t *testing.T) {
 	// Missing learning_id
 	resp = h.Handle(Request{
 		Method: "fork_update_impact",
-		Params: map[string]any{},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",},
 	})
 	if resp.Error == "" {
 		t.Error("expected error for missing learning_id")
@@ -403,7 +403,7 @@ func TestHandleGetForkLearnings(t *testing.T) {
 	// Empty / nonexistent session — should not error
 	resp := h.Handle(Request{
 		Method: "get_fork_learnings",
-		Params: map[string]any{"session_id": "nonexistent"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": "nonexistent"},
 	})
 	if resp.Error != "" {
 		t.Fatalf("unexpected error: %s", resp.Error)
@@ -412,7 +412,7 @@ func TestHandleGetForkLearnings(t *testing.T) {
 	// Missing session_id
 	resp = h.Handle(Request{
 		Method: "get_fork_learnings",
-		Params: map[string]any{},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",},
 	})
 	if resp.Error == "" {
 		t.Error("expected error for missing session_id")
@@ -441,7 +441,7 @@ func TestHandleForkResolveContradiction(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "fork_resolve_contradiction",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_a":  float64(idA),
 			"learning_b":  float64(idB),
 			"description": "A contradicts B",
@@ -454,7 +454,7 @@ func TestHandleForkResolveContradiction(t *testing.T) {
 	// Missing learning_a
 	resp = h.Handle(Request{
 		Method: "fork_resolve_contradiction",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_b": float64(idB),
 		},
 	})
@@ -465,7 +465,7 @@ func TestHandleForkResolveContradiction(t *testing.T) {
 	// Missing learning_b
 	resp = h.Handle(Request{
 		Method: "fork_resolve_contradiction",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_a": float64(idA),
 		},
 	})
@@ -482,7 +482,7 @@ func TestHandleForkResolveContradiction_WritesEdge(t *testing.T) {
 
 	h.Handle(Request{
 		Method: "fork_resolve_contradiction",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_a":  float64(idA),
 			"learning_b":  float64(idB),
 			"description": "A contradicts B",
@@ -510,7 +510,7 @@ func TestHandleFlagContradiction_WritesEdges(t *testing.T) {
 
 	h.Handle(Request{
 		Method: "flag_contradiction",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"description":  "A, B and C contradict each other",
 			"learning_ids": []any{float64(idA), float64(idB), float64(idC)},
 		},
@@ -544,7 +544,7 @@ func TestHandleForkExtractLearnings_WritesEntityOverlapEdges(t *testing.T) {
 
 	h.Handle(Request{
 		Method: "fork_extract_learnings",
-		Params: map[string]any{"learnings": string(learningsJSON)},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","learnings": string(learningsJSON)},
 	})
 
 	// Find the newly created learning
@@ -580,7 +580,7 @@ func TestHandleRelate(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "relate_learnings",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_id_a": float64(idA),
 			"learning_id_b": float64(idB),
 			"relation_type": "supports",
@@ -601,7 +601,7 @@ func TestHandleRelate_InvalidType(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "relate_learnings",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_id_a": float64(1),
 			"learning_id_b": float64(2),
 			"relation_type": "loves",
@@ -617,7 +617,7 @@ func TestHandleRelate_MissingIDs(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "relate_learnings",
-		Params: map[string]any{"relation_type": "supports"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","relation_type": "supports"},
 	})
 	if resp.Error == "" {
 		t.Error("expected error for missing IDs")
@@ -631,7 +631,7 @@ func TestHandleForkExtractLearnings_MissingParam(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "fork_extract_learnings",
-		Params: map[string]any{},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",},
 	})
 	if resp.Error == "" {
 		t.Error("expected error for missing learnings param")
@@ -649,7 +649,7 @@ func TestHandleForkExtractLearnings_InvalidCategory(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "fork_extract_learnings",
-		Params: map[string]any{"learnings": string(learningsJSON)},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","learnings": string(learningsJSON)},
 	})
 	if resp.Error != "" {
 		t.Fatalf("unexpected error: %s", resp.Error)
@@ -667,7 +667,7 @@ func TestHandleForkEvaluateLearning_MissingID(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "fork_evaluate_learning",
-		Params: map[string]any{"action": "boost"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","action": "boost"},
 	})
 	if resp.Error == "" {
 		t.Error("expected error for missing learning_id")
@@ -683,7 +683,7 @@ func TestHandleForkEvaluateLearning_UnknownAction(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "fork_evaluate_learning",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_id": float64(id),
 			"action":      "explode",
 		},
@@ -702,7 +702,7 @@ func TestHandleForkEvaluateLearning_Supersede(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "fork_evaluate_learning",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_id": float64(id),
 			"action":      "supersede",
 			"reason":      "replaced by newer info",
@@ -733,7 +733,7 @@ func TestHandleForkEvaluateLearning_WithImpactScore(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "fork_evaluate_learning",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_id":  float64(id),
 			"action":       "boost",
 			"impact_score": 0.75,
@@ -754,7 +754,7 @@ func TestHandleForkEvaluateLearning_WithImpactScore(t *testing.T) {
 	// which confirms the store accepted it without error)
 	resp2 := h.Handle(Request{
 		Method: "fork_update_impact",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_id":  float64(id),
 			"impact_score": 0.5,
 		},
@@ -779,7 +779,7 @@ func TestHandleGetForkLearnings_WithData(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "get_fork_learnings",
-		Params: map[string]any{"session_id": "sess-fork-1"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": "sess-fork-1"},
 	})
 	if resp.Error != "" {
 		t.Fatalf("unexpected error: %s", resp.Error)
@@ -808,7 +808,7 @@ func TestHandleForkResolveContradiction_BothMissing(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "fork_resolve_contradiction",
-		Params: map[string]any{"description": "no IDs"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","description": "no IDs"},
 	})
 	if resp.Error == "" {
 		t.Error("expected error when both learning_a and learning_b missing")
@@ -824,7 +824,7 @@ func TestHandleForkUpdateImpact_ZeroScore(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "fork_update_impact",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_id":  float64(id),
 			"impact_score": float64(0),
 		},
@@ -849,7 +849,7 @@ func TestHandleGetContradictingPairs(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "get_contradicting_pairs",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"new_ids":      []any{float64(idA)},
 			"previous_ids": []any{float64(idB)},
 		},
@@ -881,7 +881,7 @@ func TestHandleGetContradictingPairs_NoPairs(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "get_contradicting_pairs",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"new_ids":      []any{float64(idA)},
 			"previous_ids": []any{float64(idB)},
 		},
@@ -972,7 +972,7 @@ func TestForkExtractLearningsAttributesProject(t *testing.T) {
 	}
 
 	content := "touched " + attrNemons + "/internal/daemon and " + attrNemons + "/internal/proxy"
-	resp := h.Handle(Request{Method: "fork_extract_learnings", Params: map[string]any{
+	resp := h.Handle(Request{Method: "fork_extract_learnings", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"learnings":  `[{"content":` + jsonQuote(content) + `,"category":"gotcha"}]`,
 		"project":    attrOpenencode,
 		"session_id": "fork-attr-1",
@@ -1004,7 +1004,7 @@ func TestForkExtractLearningsKeepsSessionProject(t *testing.T) {
 	h, s := mustHandler(t)
 
 	content := "generic note without any path signal"
-	resp := h.Handle(Request{Method: "fork_extract_learnings", Params: map[string]any{
+	resp := h.Handle(Request{Method: "fork_extract_learnings", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"learnings":  `[{"content":` + jsonQuote(content) + `,"category":"gotcha"}]`,
 		"project":    attrOpenencode,
 		"session_id": "fork-attr-2",

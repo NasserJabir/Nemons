@@ -110,7 +110,7 @@ func TestLos35bProposalRepairsProjectBoundCapWithoutSandboxLine(t *testing.T) {
 
 	resp := h.handleCapProposalDecide(Request{
 		Method: "cap_proposal_decide",
-		Params: map[string]any{"id": float64(id), "decision": "accept"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","id": float64(id), "decision": "accept"},
 	})
 	if resp.Error != "" {
 		t.Fatalf("proposal repair failed: %s", resp.Error)

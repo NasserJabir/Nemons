@@ -32,24 +32,24 @@ func seedExperience(t *testing.T, h *Handler, task, outcome, attribution, eviden
 func TestLogExperienceRequiresAttributionAndEvidenceForFailure(t *testing.T) {
 	h, _ := mustHandler(t)
 	// A bare "it failed" is not learnable: no attribution, no row.
-	if resp := h.Handle(Request{Method: "log_experience", Params: map[string]any{
+	if resp := h.Handle(Request{Method: "log_experience", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"task": "deploy", "project": "/w", "outcome": "failure"}}); resp.Error == "" {
 		t.Fatal("a failure without attribution was accepted")
 	}
 	// Attribution without evidence is still not learnable.
-	if resp := h.Handle(Request{Method: "log_experience", Params: map[string]any{
+	if resp := h.Handle(Request{Method: "log_experience", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"task": "deploy", "project": "/w", "outcome": "failure", "attribution": "SKILL"}}); resp.Error == "" {
 		t.Fatal("a failure without evidence was accepted")
 	}
 	// UNKNOWN is a legal explicit attribution.
-	resp := h.Handle(Request{Method: "log_experience", Params: map[string]any{
+	resp := h.Handle(Request{Method: "log_experience", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"task": "deploy", "project": "/w", "outcome": "failure", "attribution": "UNKNOWN",
 		"evidence": "exit 1 on every retry, log at /tmp/x.log"}})
 	if resp.Error != "" {
 		t.Fatalf("UNKNOWN attribution rejected: %v", resp.Error)
 	}
 	// A success must not carry an attribution.
-	if resp := h.Handle(Request{Method: "log_experience", Params: map[string]any{
+	if resp := h.Handle(Request{Method: "log_experience", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"task": "deploy", "project": "/w", "outcome": "success", "attribution": "SKILL"}}); resp.Error == "" {
 		t.Fatal("a success with an attribution was accepted")
 	}
@@ -62,7 +62,7 @@ func TestExperienceSummaryAggregatesAndRespectsScope(t *testing.T) {
 	seedExperience(t, h, "claude-only trap", "failure", "TOOL", "cli flag moved", "claude")
 
 	resp := h.Handle(Request{Method: "get_experience_summary", Params: map[string]any{
-		"project": "/w", "_source_agent": "gpt"}})
+		"project": "/w", "_source_agent": "gpt", "_source_agent_source": "resolved"}})
 	if resp.Error != "" {
 		t.Fatalf("summary: %v", resp.Error)
 	}
@@ -78,7 +78,7 @@ func TestExperienceSummaryAggregatesAndRespectsScope(t *testing.T) {
 		t.Errorf("attribution tally wrong: %v", byAtt)
 	}
 	resp = h.Handle(Request{Method: "get_experience_summary", Params: map[string]any{
-		"project": "/w", "_source_agent": "claude"}})
+		"project": "/w", "_source_agent": "claude", "_source_agent_source": "resolved"}})
 	json.Unmarshal(resp.Result, &m)
 	if m["failure"].(float64) != 2 {
 		t.Errorf("claude sees failure=%v, want 2 (own private row visible)", m["failure"])
@@ -88,13 +88,13 @@ func TestExperienceSummaryAggregatesAndRespectsScope(t *testing.T) {
 func TestValidateExperienceChecksEvidenceAndAudits(t *testing.T) {
 	h, s := mustHandler(t)
 	row := seedExperience(t, h, "no evidence task", "failure", "ENVIRONMENT", "", "")
-	if resp := h.Handle(Request{Method: "validate_experience", Params: map[string]any{
+	if resp := h.Handle(Request{Method: "validate_experience", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"id": float64(row.ID)}}); resp.Error == "" {
 		t.Fatal("an evidence-free experience was validated")
 	}
 	row2 := seedExperience(t, h, "evidenced task", "failure", "TOOL", "flag removed in v2", "")
 	resp := h.Handle(Request{Method: "validate_experience", Params: map[string]any{
-		"id": float64(row2.ID), "_source_agent": "gpt"}})
+		"id": float64(row2.ID), "_source_agent": "gpt", "_source_agent_source": "resolved"}})
 	if resp.Error != "" {
 		t.Fatalf("validation failed: %v", resp.Error)
 	}
@@ -115,7 +115,7 @@ func TestExperienceSummaryListsRecentFailuresForReuse(t *testing.T) {
 	seedExperience(t, h, "trap one", "failure", "SKILL", "e1", "")
 	seedExperience(t, h, "trap two", "failure", "KNOWLEDGE", "e2", "")
 	resp := h.Handle(Request{Method: "get_experience_summary", Params: map[string]any{
-		"project": "/w", "_source_agent": "claude"}})
+		"project": "/w", "_source_agent": "claude", "_source_agent_source": "resolved"}})
 	var m map[string]any
 	json.Unmarshal(resp.Result, &m)
 	recent := m["recent_failures"].([]any)

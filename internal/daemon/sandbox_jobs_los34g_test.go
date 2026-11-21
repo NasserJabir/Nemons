@@ -341,7 +341,7 @@ func TestLos34gAutoCorrectSkipsARefusedVerificationRun(t *testing.T) {
 		t.Fatalf("add job: %v", err)
 	}
 	scripts := `[{"name":"run","kind":"handler","runtime":"bash","lang":"bash","body":` + jsonString(body) + `}]`
-	if resp := h.Handle(Request{Method: "save_cap", Params: map[string]any{
+	if resp := h.Handle(Request{Method: "save_cap", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"name": "mask_cap", "description": "mask", "scripts": scripts,
 	}}); resp.Error != "" {
 		t.Fatalf("seed save_cap: %s", resp.Error)

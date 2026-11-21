@@ -19,7 +19,7 @@ func TestHandleResolve(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "resolve",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_id": float64(id), // JSON numbers are float64
 			"reason":      "fixed in commit abc123",
 		},
@@ -49,7 +49,7 @@ func TestHandleResolveMissingID(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "resolve",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"reason": "some reason",
 		},
 	})
@@ -64,7 +64,7 @@ func TestHandleResolveNonExistent(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "resolve",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"learning_id": float64(99999),
 			"reason":      "does not exist",
 		},
@@ -92,7 +92,7 @@ func TestHandleResolveByText(t *testing.T) {
 	// and only when one item contains every word (YM-251).
 	resp := h.Handle(Request{
 		Method: "resolve_by_text",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":    "login authentication bug",
 			"project": "myproject",
 		},
@@ -125,7 +125,7 @@ func TestHandleResolveByTextNoMatch(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "resolve_by_text",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":    "nonexistent task xyz",
 			"project": "myproject",
 		},

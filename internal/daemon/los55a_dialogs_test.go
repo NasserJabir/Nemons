@@ -64,7 +64,7 @@ func TestHandleBroadcast_LabelsWithThePeerSessionLos55a(t *testing.T) {
 		t.Fatalf("AgentCreate: %v", err)
 	}
 
-	resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{
+	resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"project":     "/srv/los55a-bc-proven",
 		"content":     "status",
 		"_session_id": "opencode:ses_the_orchestrator",
@@ -103,7 +103,7 @@ func TestHandleBroadcast_ParentClaimIsCheckedAgainstProcLos55a(t *testing.T) {
 		t.Fatalf("AgentCreate: %v", err)
 	}
 
-	resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{
+	resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"project": "los55a-bc-parent", "content": "status",
 		"_peer_pid":   os.Getpid(),
 		"_caller_pid": float64(4242), // not the peer's parent
@@ -129,7 +129,7 @@ func TestHandleBroadcast_ParentClaimIsCheckedAgainstProcLos55a(t *testing.T) {
 func TestHandleJobSocket_BroadcastKeepsItsFixedSenderLos55a(t *testing.T) {
 	h, s := mustHandler(t)
 
-	resp := h.handleJobSocket(Request{Method: "broadcast", Params: map[string]any{
+	resp := h.handleJobSocket(Request{Method: "broadcast", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"project": "/srv/los55a-bc-job",
 		"content": "job finished",
 		"sender":  "opencode:ses_the_orchestrator",
@@ -162,7 +162,7 @@ func TestHandleBroadcast_AcceptsTheSessionFromAnMCPPeerLos55a(t *testing.T) {
 	readProcExe = func(int) (string, error) { return "/usr/local/bin/nemons", nil }
 	t.Cleanup(func() { readProcExe = prevExe })
 
-	resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{
+	resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"project":     "/srv/los55a-bc-mcp",
 		"content":     "status",
 		"_session_id": "opencode:ses_mcp_caller",
@@ -187,7 +187,7 @@ func TestHandleBroadcast_AcceptsTheSessionFromAnMCPPeerLos55a(t *testing.T) {
 func TestHandleBroadcast_AbstainsWithoutAPeerCredentialLos55a(t *testing.T) {
 	h, s := mustHandler(t)
 
-	resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{
+	resp := h.Handle(Request{Method: "broadcast", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"project":     "/srv/los55a-bc-nopeer",
 		"content":     "status",
 		"_session_id": "opencode:ses_unverifiable",
@@ -229,7 +229,7 @@ func TestHandleBroadcast_RejectsAClaimedWorktreeLos55a(t *testing.T) {
 	claimed := map[string]any{
 		"project":       "los55a-bc-cwd",
 		"content":       "status",
-		"_source_agent": "opencode",
+		"_source_agent": "opencode", "_source_agent_source": "resolved",
 		"_cwd":          otherWorktree, // the test process does not run there
 		"_peer_pid":     os.Getpid(),
 	}

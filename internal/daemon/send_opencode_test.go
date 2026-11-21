@@ -504,7 +504,7 @@ func TestHandleSendTo_GuessedCallerDoesNotSuppressDelivery(t *testing.T) {
 	h.activeSessionMu.Unlock()
 
 	// The shape a daemon-internal report has: no sender, no caller evidence.
-	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{
+	resp := h.Handle(Request{Method: "send_to", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"target": sendOcTarget, "content": "report", "msg_type": "status",
 	}})
 	if resp.Error != "" {

@@ -29,7 +29,7 @@ func insertDaemonTask(t *testing.T, s *storage.Store, content string) int64 {
 
 func resolveByCommitResult(t *testing.T, h *Handler, message, project string) map[string]any {
 	t.Helper()
-	resp := h.Handle(Request{Method: "resolve_by_commit", Params: map[string]any{
+	resp := h.Handle(Request{Method: "resolve_by_commit", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"message": message,
 		"project": project,
 	}})

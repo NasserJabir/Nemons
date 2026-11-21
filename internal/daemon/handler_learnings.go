@@ -70,8 +70,14 @@ func (h *Handler) handleRemember(params map[string]any) Response {
 		}
 		// The supersede target is read as this caller's agent sees it: another
 		// agent's private row reads as absent here, so its existence is not
-		// confirmed through a supersede either.
-		rawCaller := h.resolveActor(params).ActorID
+		// confirmed through a supersede either. Remediation 02 WS-A: the
+		// judging identity is the boundary-authenticated one — a claim-only
+		// caller may still write rows (attribution), but retiring an existing
+		// row is a destructive act that requires an authorized identity.
+		rawCaller, authErr := h.actorViewer(params, "remember")
+		if authErr != nil {
+			return errorResponse("remember: superseding a learning requires a boundary-resolved agent identity — a caller claim is attribution only and never authorizes a supersede")
+		}
 		target, targetErr = h.store.GetLearningForViewer(int64(supersedesID), rawCaller)
 	}
 
@@ -548,8 +554,12 @@ func (h *Handler) rememberModel(params map[string]any) string {
 
 func (h *Handler) handleGetLearnings(params map[string]any) Response {
 	// Scope enforcement (remediation WS-B): every agent-facing read goes out
-	// through the actor's view. No identity, no read.
-	viewer := h.actorViewerOrDefault(params, "get_learnings")
+	// through the boundary-authenticated actor's view. No identity, no read —
+	// a caller claim is attribution and never becomes the viewer (02 WS-A).
+	viewer, verr := h.actorViewer(params, "get_learnings")
+	if verr != nil {
+		return *verr
+	}
 	// Single learning by ID
 	if id, ok := params["id"].(float64); ok && id > 0 {
 		if history, _ := params["history"].(bool); history {
@@ -631,7 +641,10 @@ func (h *Handler) handleGetLearnings(params map[string]any) Response {
 }
 
 func (h *Handler) handleQueryFacts(params map[string]any) Response {
-	viewer := h.actorViewerOrDefault(params, "query_facts")
+	viewer, verr := h.actorViewer(params, "query_facts")
+	if verr != nil {
+		return *verr
+	}
 	opts := storage.QueryFactsOpts{
 		Entity:   stringOr(params, "entity", ""),
 		Action:   stringOr(params, "action", ""),
@@ -1084,7 +1097,14 @@ func (h *Handler) handleGetLearningsSince(params map[string]any) Response {
 		return errorResponse("invalid 'since' timestamp: " + err.Error())
 	}
 
-	learnings, err := h.store.GetLearningsSince(project, since, limit)
+	// Scope enforcement (remediation 02 WS-B): this path leaked private rows
+	// before — the since-read now goes out through the same authenticated
+	// actor's view as every other knowledge read.
+	viewer, verr := h.actorViewer(params, "get_learnings_since")
+	if verr != nil {
+		return *verr
+	}
+	learnings, err := h.store.GetLearningsSince(viewer, project, since, limit)
 	if err != nil {
 		return errorResponse(err.Error())
 	}
@@ -1129,7 +1149,13 @@ func (h *Handler) handleGetPulseLearningsSince(params map[string]any) Response {
 		return errorResponse("invalid 'since' timestamp: " + err.Error())
 	}
 
-	pulses, err := h.store.GetPulseLearningsSince(project, since, limit)
+	// Scope enforcement (remediation 02 WS-B): the pulse read carries the same
+	// authenticated actor's view — no identity, no knowledge content.
+	viewer, verr := h.actorViewer(params, "get_pulse_learnings_since")
+	if verr != nil {
+		return *verr
+	}
+	pulses, err := h.store.GetPulseLearningsSince(viewer, project, since, limit)
 	if err != nil {
 		return errorResponse(err.Error())
 	}

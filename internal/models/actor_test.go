@@ -86,3 +86,29 @@ func TestActorFromParams_SpoofedSourceMarkerDoesNotAuthenticate(t *testing.T) {
 		t.Fatalf("literal marker path authenticates by contract")
 	}
 }
+
+// Remediation 02 WS-A1/A2: the authorization identity is the actor id exactly
+// when a trusted boundary authenticated it. A claim, a session-only identity
+// and no identity all authorize nothing.
+func TestAuthorizationID_RequiresBoundaryResolvedIdentity(t *testing.T) {
+	resolved := ActorFromParams(map[string]any{
+		"_source_agent": "codex:thread-1", MarkSourceAgentSource: SourceAgentSourceResolved,
+	})
+	if got := resolved.AuthorizationID(); got != "codex:thread-1" {
+		t.Fatalf("resolved authorization id = %q, want codex:thread-1", got)
+	}
+	claim := ActorFromParams(map[string]any{"_source_agent": "codex:thread-1"})
+	if got := claim.AuthorizationID(); got != "" {
+		t.Fatalf("a claim authorized as %q — claims never authorize", got)
+	}
+	if got := claim.AttributionID(); got != "codex:thread-1" {
+		t.Fatalf("claim attribution = %q, want codex:thread-1 (audit keeps the label)", got)
+	}
+	sessionOnly := ActorContext{SessionID: "sess-1", IdentitySource: IdentitySourceSession, Authenticated: true}
+	if got := sessionOnly.AuthorizationID(); got != "" {
+		t.Fatalf("a session-only identity authorized as %q — a session is not an agent", got)
+	}
+	if got := (ActorContext{}).AuthorizationID(); got != "" {
+		t.Fatalf("no identity authorized as %q", got)
+	}
+}

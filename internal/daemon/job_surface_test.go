@@ -14,7 +14,7 @@ import (
 )
 
 func jobBindParams() map[string]any {
-	return map[string]any{"agent": "codex", "project": "/w", "role": "worker", "_source_agent": "codex"}
+	return map[string]any{"agent": "codex", "project": "/w", "role": "worker", "_source_agent": "codex", "_source_agent_source": "resolved"}
 }
 
 // admitJobCall opens and approves the ask a job packet owes. The key is parsed

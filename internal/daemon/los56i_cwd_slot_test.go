@@ -15,7 +15,7 @@ func TestLos56i_HandleDoesNotPersistAWorkingDirectoryWithoutAReader(t *testing.T
 		Params: map[string]any{
 			"_cwd":          "/home/someone/projects/los56i",
 			"_session_id":   "opencode:ses_los56i",
-			"_source_agent": "opencode",
+			"_source_agent": "opencode", "_source_agent_source": "resolved",
 			"_caller_pid":   float64(0),
 		},
 	})

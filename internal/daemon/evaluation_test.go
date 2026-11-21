@@ -26,12 +26,12 @@ func unpack(t *testing.T, data []byte) map[string]any {
 
 func TestCitationGateRequiresSourceHash(t *testing.T) {
 	h, _ := mustHandler(t)
-	if resp := h.Handle(Request{Method: "remember", Params: map[string]any{
+	if resp := h.Handle(Request{Method: "remember", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"text": "a claim citing a file", "category": "gotcha", "project": "/w",
 		"source_file": "/w/docs/design.md"}}); resp.Error == "" {
 		t.Fatal("a citation without its hash was stored")
 	}
-	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
+	resp := h.Handle(Request{Method: "remember", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"text": "a claim citing a file", "category": "gotcha", "project": "/w",
 		"source_file": "/w/docs/design.md", "source_hash": "abc123"}})
 	if resp.Error != "" {
@@ -61,13 +61,13 @@ func TestVerifyCitationChecksTheRealBytes(t *testing.T) {
 		CreatedAt: time.Now(), ModelUsed: "test",
 		SourceFile: filepath.Join(dir, "missing.md")}
 	badID, _ := h.store.InsertLearning(bad)
-	if resp := h.Handle(Request{Method: "verify_citation", Params: map[string]any{
+	if resp := h.Handle(Request{Method: "verify_citation", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"id": float64(badID)}}); resp.Error == "" {
 		t.Fatal("a citation to a missing file verified anyway")
 	}
 
 	// First verification records the computed hash.
-	resp := h.Handle(Request{Method: "verify_citation", Params: map[string]any{
+	resp := h.Handle(Request{Method: "verify_citation", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"id": float64(id)}})
 	if resp.Error != "" {
 		t.Fatalf("first verification: %v", resp.Error)
@@ -89,7 +89,7 @@ func TestVerifyCitationChecksTheRealBytes(t *testing.T) {
 
 func TestGoldenBaselineFirstResult(t *testing.T) {
 	h, _ := mustHandler(t)
-	r1 := h.Handle(Request{Method: "record_golden_result", Params: map[string]any{
+	r1 := h.Handle(Request{Method: "record_golden_result", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"task_id": "t1", "project": "/w", "passed": true}})
 	if r1.Error != "" {
 		t.Fatalf("first result: %s", r1.Error)
@@ -97,7 +97,7 @@ func TestGoldenBaselineFirstResult(t *testing.T) {
 	if unpack(t, r1.Result)["baseline"] != true {
 		t.Error("the first recorded run is not marked as the baseline")
 	}
-	r2 := h.Handle(Request{Method: "record_golden_result", Params: map[string]any{
+	r2 := h.Handle(Request{Method: "record_golden_result", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"task_id": "t1", "project": "/w", "passed": false}})
 	if unpack(t, r2.Result)["baseline"] == true {
 		t.Error("a later run was marked as the baseline")
@@ -111,7 +111,7 @@ func TestEvaluationSummaryTalliesAgainstBaseline(t *testing.T) {
 	h.Handle(Request{Method: "record_golden_result", Params: map[string]any{
 		"task_id": "t1", "project": "/w", "passed": false}})
 	resp := h.Handle(Request{Method: "get_evaluation_summary", Params: map[string]any{
-		"project": "/w", "_source_agent": "claude"}})
+		"project": "/w", "_source_agent": "claude", "_source_agent_source": "resolved"}})
 	m := unpack(t, resp.Result)
 	tasks := m["golden_tasks"].([]any)
 	if len(tasks) != 1 {
@@ -137,7 +137,7 @@ func TestTokenEconomySurfacesIdleKnowledge(t *testing.T) {
 		t.Fatal(err)
 	}
 	resp := h.Handle(Request{Method: "get_evaluation_summary", Params: map[string]any{
-		"project": "/w", "_source_agent": "claude"}})
+		"project": "/w", "_source_agent": "claude", "_source_agent_source": "resolved"}})
 	m := unpack(t, resp.Result)
 	economy := m["token_economy"].(map[string]any)
 	if economy["injected"].(float64) != 2 || economy["used"].(float64) != 1 {

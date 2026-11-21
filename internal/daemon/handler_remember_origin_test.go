@@ -10,7 +10,7 @@ func TestHandleRemember_StoresExplicitOrigin(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":     "Expliziter Origin-Wert soll gespeichert werden",
 			"category": "decision",
 			"project":  "nemons",
@@ -46,7 +46,7 @@ func TestHandleRemember_DefaultsOriginToUser(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text":     "Ohne Origin-Param soll user als Default gesetzt werden",
 			"category": "decision",
 			"project":  "nemons",

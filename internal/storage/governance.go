@@ -413,3 +413,25 @@ func (s *Store) UpdateLearningContext(id int64, context string) error {
 	_, err := s.db.Exec(`UPDATE learnings SET context = ? WHERE id = ?`, context, id)
 	return err
 }
+
+// PendingApprovals lists every open ask, oldest first — the operator's queue.
+// A decided or expired row is history, not work.
+func (s *Store) PendingApprovals() ([]GovernanceApproval, error) {
+	rows, err := s.db.Query(`SELECT id, key, method, caller, surface, status, COALESCE(decision, ''),
+		COALESCE(requested_at, ''), COALESCE(decided_at, ''), COALESCE(expires_at, '')
+		FROM governance_approvals WHERE status = ? ORDER BY id`, ApprovalOpen)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []GovernanceApproval
+	for rows.Next() {
+		var a GovernanceApproval
+		if err := rows.Scan(&a.ID, &a.Key, &a.Method, &a.Caller, &a.Surface,
+			&a.Status, &a.Decision, &a.RequestedAt, &a.DecidedAt, &a.ExpiresAt); err != nil {
+			return nil, err
+		}
+		out = append(out, a)
+	}
+	return out, rows.Err()
+}

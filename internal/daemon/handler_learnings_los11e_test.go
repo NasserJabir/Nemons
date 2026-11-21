@@ -63,7 +63,7 @@ func TestJobSocketRefusesForceSupersedeLos11e(t *testing.T) {
 		t.Fatalf("insert note: %v", err)
 	}
 
-	forced := h.handleJobSocket(Request{Method: "remember", Params: map[string]any{
+	forced := h.handleJobSocket(Request{Method: "remember", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"text": "job overwrites memory", "category": "gotcha", "project": "nemons",
 		"supersedes": float64(noteID), "force_supersede": true, "supersede_reason": "trust me",
 	}})
@@ -71,7 +71,7 @@ func TestJobSocketRefusesForceSupersedeLos11e(t *testing.T) {
 		t.Fatal("force_supersede must be refused on the job socket")
 	}
 
-	capTarget := h.handleJobSocket(Request{Method: "remember", Params: map[string]any{
+	capTarget := h.handleJobSocket(Request{Method: "remember", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"text": "retire the cap", "category": "gotcha", "project": "nemons",
 		"supersedes": float64(capID),
 	}})
@@ -87,7 +87,7 @@ func TestJobSocketRefusesForceSupersedeLos11e(t *testing.T) {
 	}
 
 	// The guard is narrow: an ordinary supersede of a non-cap row still works.
-	ordinary := h.handleJobSocket(Request{Method: "remember", Params: map[string]any{
+	ordinary := h.handleJobSocket(Request{Method: "remember", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"text": "job corrects its own note", "category": "gotcha", "project": "nemons",
 		"supersedes": float64(noteID),
 	}})
@@ -107,7 +107,7 @@ func TestHandleRememberForceSupersedeSanitizesReasonLos11e(t *testing.T) {
 	reason := "veraltet\r\nZeile zwei\n" + long
 	resp := h.Handle(Request{
 		Method: "remember",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"text": "Sandbox bietet Run statt BuildSandboxedCommand", "category": "gotcha",
 			"project": "nemons", "supersedes": float64(oldID),
 			"force_supersede": true, "supersede_reason": reason,

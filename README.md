@@ -108,15 +108,29 @@ Agent identity is established by the trusted integration boundary — the MCP
 server resolves the agent type from its own environment and overwrites anything
 the model wrote (`_source_agent_source=resolved`); session identity stays
 caller-first because the shared-service env may name the last-created session.
+Only a boundary-resolved identity authorizes: a caller claim (`_source_agent`
+without the resolved marker) is attribution for audit lines and never becomes
+the scope-deciding viewer, and an identity-less request is refused rather than
+served under a hardcoded default (remediation 02). The HTTP boundary
+authenticates the OpenClaw integration as one explicit service identity
+(`openclaw-http`) — it cannot select an agent's viewer from request arguments,
+and no agent's private rows cross it.
 Sharing scopes are canonical (`global` / `project` / `private`); the legacy
 `public` value migrates to `global` at open time without widening access, and
 global writes require the operator's `memory.public_write` standing grant.
 The pack build returns a manifest whose fingerprint covers the delivered
-content (item ids, content hashes, positions) — `check_pack_loss` verifies the
-delivery against that manifest or the deterministic re-assembly, so budget
-exclusions are never reported as loss. Governance decisions are authenticated
-by the operator token (first-run bootstrap, constant-time comparison) — the
-decision authority stands outside the gate it operates.
+content (item ids, content hashes, positions) together with a **server-signed
+receipt** (HMAC-SHA256 under a locally protected key, bound to viewer, project
+and task, with an expiry) — `check_pack_loss` verifies the receipt before
+trusting any presented manifest, so a rewritten manifest with a recomputed
+hash is refused; against the manifest or the deterministic re-assembly, budget
+exclusions are never reported as loss. Pack selection earns the decision tier
+from the row's recorded approval provenance (`user_stated` / `agreed_upon`),
+never from the category name. Governance decisions are authenticated by the
+operator token (first-run bootstrap, constant-time comparison) — the decision
+authority stands outside the gate it operates, and the human surface is the
+operator CLI (`nemons governance …`; see
+`docs/remediation/02/OPERATOR_GUIDE.md`).
 
 ## Configuration
 

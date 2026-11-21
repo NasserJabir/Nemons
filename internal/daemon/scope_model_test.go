@@ -98,7 +98,7 @@ func TestRemember_GlobalScopeRequiresTheStandingGrant(t *testing.T) {
 	h, _ := mustHandler(t)
 	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
 		"content": "published everywhere claim", "project": "/w",
-		"scope": "global", "_source_agent": "claude",
+		"scope": "global", "_source_agent": "claude", "_source_agent_source": "resolved",
 	}})
 	if resp.Error == "" || !strings.Contains(resp.Error, "memory.public_write grant") {
 		t.Fatalf("a global write without the standing grant was accepted: %v", resp.Error)
@@ -108,7 +108,7 @@ func TestRemember_GlobalScopeRequiresTheStandingGrant(t *testing.T) {
 func TestRemember_UnknownScopeStillRefused(t *testing.T) {
 	h, _ := mustHandler(t)
 	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
-		"content": "x", "project": "/w", "scope": "team", "_source_agent": "claude",
+		"content": "x", "project": "/w", "scope": "team", "_source_agent": "claude", "_source_agent_source": "resolved",
 	}})
 	if resp.Error == "" || !strings.Contains(resp.Error, "unknown sharing scope") {
 		t.Fatalf("an unknown scope was accepted: %v", resp.Error)
@@ -118,7 +118,7 @@ func TestRemember_UnknownScopeStillRefused(t *testing.T) {
 func TestRemember_DefaultStaysProjectNoImplicitPromotion(t *testing.T) {
 	h, s := mustHandler(t)
 	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
-		"content": "ordinary claim", "project": "/w", "_source_agent": "claude",
+		"content": "ordinary claim", "project": "/w", "_source_agent": "claude", "_source_agent_source": "resolved",
 	}})
 	if resp.Error != "" {
 		t.Fatalf("ordinary remember refused: %v", resp.Error)

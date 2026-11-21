@@ -67,7 +67,7 @@ func TestVectorSearchDropsQuarantinedAnticipatedQueryHitLos10b(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "vector_search",
-		Params: map[string]any{"query": "los10b probe", "limit": float64(5)},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","query": "los10b probe", "limit": float64(5)},
 	})
 	if resp.Error != "" {
 		t.Fatalf("vector_search error: %s", resp.Error)

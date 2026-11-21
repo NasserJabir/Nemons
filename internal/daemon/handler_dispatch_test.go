@@ -34,7 +34,7 @@ func TestHandle_UpdateFixationRatio(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "update_fixation_ratio",
-		Params: map[string]any{"session_id": "sess-fix", "fixation_ratio": 0.5},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": "sess-fix", "fixation_ratio": 0.5},
 	})
 	if resp.Error != "" {
 		t.Fatalf("update fixation ratio: %s", resp.Error)
@@ -56,7 +56,7 @@ func TestHandle_UpdateFixationRatio_MissingSession(t *testing.T) {
 	h, _ := mustHandler(t)
 	resp := h.Handle(Request{
 		Method: "update_fixation_ratio",
-		Params: map[string]any{"fixation_ratio": 0.5},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","fixation_ratio": 0.5},
 	})
 	if resp.Error == "" {
 		t.Fatal("expected error for missing session_id")
@@ -67,7 +67,7 @@ func TestHandle_TrackProxyUsage(t *testing.T) {
 	h, _ := mustHandler(t)
 	resp := h.Handle(Request{
 		Method: "track_proxy_usage",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"day":                   "2026-04-01",
 			"input_tokens":          float64(1000),
 			"output_tokens":         float64(500),
@@ -84,7 +84,7 @@ func TestHandle_TrackProxyUsage_AutoDay(t *testing.T) {
 	h, _ := mustHandler(t)
 	resp := h.Handle(Request{
 		Method: "track_proxy_usage",
-		Params: map[string]any{"input_tokens": float64(100)},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","input_tokens": float64(100)},
 	})
 	if resp.Error != "" {
 		t.Fatalf("error: %s", resp.Error)
@@ -95,7 +95,7 @@ func TestHandle_TrackForkUsage(t *testing.T) {
 	h, _ := mustHandler(t)
 	resp := h.Handle(Request{
 		Method: "track_fork_usage",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"day":           "2026-04-01",
 			"input_tokens":  float64(500),
 			"output_tokens": float64(200),
@@ -118,7 +118,7 @@ func TestHandle_IdleTickUpdatesTime(t *testing.T) {
 	h, _ := mustHandler(t)
 	resp := h.Handle(Request{
 		Method: "idle_tick",
-		Params: map[string]any{"thread_id": "t-idle", "session_id": "s-idle"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","thread_id": "t-idle", "session_id": "s-idle"},
 	})
 	if resp.Error != "" {
 		t.Fatalf("idle_tick error: %s", resp.Error)
@@ -132,7 +132,7 @@ func TestHandle_IncrementCounters(t *testing.T) {
 	for _, method := range idMethods {
 		resp := h.Handle(Request{
 			Method: method,
-			Params: map[string]any{"ids": []any{float64(1), float64(2)}},
+			Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","ids": []any{float64(1), float64(2)}},
 		})
 		if resp.Error != "" {
 			t.Errorf("%s error: %s", method, resp.Error)
@@ -142,7 +142,7 @@ func TestHandle_IncrementCounters(t *testing.T) {
 	// increment_turn needs project, not ids
 	resp := h.Handle(Request{
 		Method: "increment_turn",
-		Params: map[string]any{"project": "nemons"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","project": "nemons"},
 	})
 	if resp.Error != "" {
 		t.Errorf("increment_turn error: %s", resp.Error)
@@ -153,7 +153,7 @@ func TestHandle_SkipIndexing(t *testing.T) {
 	h, _ := mustHandler(t)
 	resp := h.Handle(Request{
 		Method: "skip_indexing",
-		Params: map[string]any{"session_id": "s-skip"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","session_id": "s-skip"},
 	})
 	if resp.Error != "" {
 		t.Fatalf("skip_indexing error: %s", resp.Error)
@@ -199,11 +199,11 @@ func TestResolveProjectParam_ForeignSessionDoesNotSupplyTheProject(t *testing.T)
 		params map[string]any
 	}{
 		{"shared service PID", map[string]any{
-			"_source_agent": "opencode", "_caller_pid": float64(opencodeSharedServicePID),
+			"_source_agent": "opencode", "_source_agent_source": "resolved", "_caller_pid": float64(opencodeSharedServicePID),
 		}},
 		{"leaked environment id", map[string]any{
 			"_session_id": "opencode:ses_ENVLEAK", "_session_id_source": "env",
-			"_source_agent": "opencode", "_caller_pid": float64(opencodeSharedServicePID),
+			"_source_agent": "opencode", "_source_agent_source": "resolved", "_caller_pid": float64(opencodeSharedServicePID),
 		}},
 	}
 	for _, c := range cases {
@@ -226,7 +226,7 @@ func TestResolveProjectParam_PerCallSessionSuppliesTheProject(t *testing.T) {
 	h := mustHandlerWithAmbiguousProbeProjects(t)
 
 	resolved := h.resolveProjectParam(map[string]any{
-		"project": "probe", "_session_id": "opencode:ses_LASTREG", "_source_agent": "opencode",
+		"project": "probe", "_session_id": "opencode:ses_LASTREG", "_source_agent": "opencode", "_source_agent_source": "resolved",
 	})
 	if got := resolved["project"]; got != "/elsewhere/probe" {
 		t.Fatalf("project = %v, want the caller's own session project", got)
@@ -258,7 +258,7 @@ func TestInjectExcludeSession_UsesCallerDirectoryForLeakedEnvironmentID(t *testi
 
 	params := map[string]any{
 		"_session_id": "opencode:ses_FOREIGN", "_session_id_source": "env",
-		"_source_agent": "opencode", "_caller_pid": float64(opencodeSharedServicePID),
+		"_source_agent": "opencode", "_source_agent_source": "resolved", "_caller_pid": float64(opencodeSharedServicePID),
 		"_cwd": worktree,
 	}
 	h.injectExcludeSession(params)
@@ -274,7 +274,7 @@ func TestInjectExcludeSession_LeakedIDWithoutDirectoryExcludesNothing(t *testing
 	isolateHome(t)
 	params := map[string]any{
 		"_session_id": "opencode:ses_FOREIGN", "_session_id_source": "env",
-		"_source_agent": "opencode", "_caller_pid": float64(opencodeSharedServicePID),
+		"_source_agent": "opencode", "_source_agent_source": "resolved", "_caller_pid": float64(opencodeSharedServicePID),
 	}
 	h.injectExcludeSession(params)
 	if got, exists := params["exclude_session"]; exists {
@@ -288,7 +288,7 @@ func TestInjectExcludeSession_KeepsInjectedSession(t *testing.T) {
 	h, _ := mustHandler(t)
 	isolateHome(t)
 	params := map[string]any{
-		"_session_id": "opencode:ses_mine", "_source_agent": "opencode",
+		"_session_id": "opencode:ses_mine", "_source_agent": "opencode", "_source_agent_source": "resolved",
 		"_caller_pid": float64(opencodeSharedServicePID),
 	}
 	h.injectExcludeSession(params)
@@ -738,7 +738,7 @@ func TestResolveProjectParam_SessionContextDisambiguation(t *testing.T) {
 	}
 
 	// Register a caller PID that maps to session /proj/a/shared.
-	h.Handle(Request{Method: "register_pid", Params: map[string]any{
+	h.Handle(Request{Method: "register_pid", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"session_id": "sess-/proj/a/shared", "pid": float64(77777),
 	}})
 

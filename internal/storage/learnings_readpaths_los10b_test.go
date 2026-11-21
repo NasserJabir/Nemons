@@ -83,7 +83,7 @@ func TestPromptReadPathsExcludeQuarantinedLos10b(t *testing.T) {
 		}
 	}
 
-	pulses, err := s.GetPulseLearningsSince(project, time.Now().Add(-time.Hour), 10)
+	pulses, err := s.GetPulseLearningsSince("", project, time.Now().Add(-time.Hour), 10)
 	if err != nil {
 		t.Fatalf("get pulse learnings: %v", err)
 	}

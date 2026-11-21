@@ -2869,7 +2869,7 @@ func TestHandleAgentDispatch_SpawnViaHandle(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "spawn_agent",
-		Params: map[string]any{"project": "proj", "section": "dispatch-test", "work_dir": t.TempDir()},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","project": "proj", "section": "dispatch-test", "work_dir": t.TempDir()},
 	})
 	if resp.Error != "" {
 		t.Fatalf("unexpected error: %s", resp.Error)
@@ -2884,7 +2884,7 @@ func TestHandleAgentDispatch_ListViaHandle(t *testing.T) {
 	h, _ := mustHandler(t)
 	resp := h.Handle(Request{
 		Method: "list_agents",
-		Params: map[string]any{},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",},
 	})
 	if resp.Error != "" {
 		t.Fatalf("unexpected error: %s", resp.Error)
@@ -2901,7 +2901,7 @@ func TestHandleAgentDispatch_GetViaHandle(t *testing.T) {
 
 	resp := h.Handle(Request{
 		Method: "get_agent",
-		Params: map[string]any{"to": "agent-1"},
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved","to": "agent-1"},
 	})
 	if resp.Error != "" {
 		t.Fatalf("unexpected error: %s", resp.Error)
@@ -2912,7 +2912,7 @@ func TestHandleAgentDispatch_TrackUsageViaHandle(t *testing.T) {
 	h, _ := mustHandler(t)
 	resp := h.Handle(Request{
 		Method: "_track_usage",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"thread_id": "t-1", "input_tokens": float64(10), "output_tokens": float64(5),
 		},
 	})
@@ -3440,7 +3440,7 @@ func TestBuildAgentExtraEnv_EmptySessionID(t *testing.T) {
 func TestHandleOpenAgentTerminal_Resume(t *testing.T) {
 	h, _ := mustHandler(t)
 	h.disableAgentProcesses = true
-	resp := h.Handle(Request{Method: "open_agent_terminal", Params: map[string]any{
+	resp := h.Handle(Request{Method: "open_agent_terminal", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"session_id": "ses_abc123",
 		"work_dir":   "/home/tester/projects/deepseek",
 		"project":    "deepseek",
@@ -3473,7 +3473,7 @@ func TestHandleOpenAgentTerminal_Resume(t *testing.T) {
 func TestHandleOpenAgentTerminal_New(t *testing.T) {
 	h, _ := mustHandler(t)
 	h.disableAgentProcesses = true
-	resp := h.Handle(Request{Method: "open_agent_terminal", Params: map[string]any{
+	resp := h.Handle(Request{Method: "open_agent_terminal", Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 		"work_dir": "/home/tester/projects/greenwebsite",
 		"project":  "greenwebsite",
 		"backend":  "opencode",

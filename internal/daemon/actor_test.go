@@ -15,7 +15,7 @@ func TestActorViewerFailsClosedWithoutIdentity(t *testing.T) {
 	if id != "" || refusal == nil {
 		t.Fatal("a request without any identity must fail closed")
 	}
-	if !strings.Contains(refusal.Error, "no actor identity") {
+	if !strings.Contains(refusal.Error, "no authorized actor identity") {
 		t.Errorf("refusal %q does not name the missing identity", refusal.Error)
 	}
 }

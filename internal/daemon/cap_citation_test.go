@@ -23,7 +23,7 @@ func seedCapV1(t *testing.T, h *Handler, name string) {
 	t.Helper()
 	resp := h.handleSaveCapFrom(map[string]any{
 		"name": name, "description": "v1",
-		"scripts": capScriptV1, "_source_agent": "claude",
+		"scripts": capScriptV1, "_source_agent": "claude", "_source_agent_source": "resolved",
 	}, "")
 	if resp.Error != "" {
 		t.Fatalf("seed v1 %s: %v", name, resp.Error)
@@ -52,7 +52,7 @@ func TestCapConnectedUpgradeWithoutCitationRefused(t *testing.T) {
 	seedCapV1(t, h, "cite_refused_cap")
 	resp := h.handleSaveCapFrom(map[string]any{
 		"name": "cite_refused_cap", "description": "v2",
-		"scripts": capScriptV2, "_source_agent": "claude",
+		"scripts": capScriptV2, "_source_agent": "claude", "_source_agent_source": "resolved",
 	}, "")
 	if resp.Error == "" {
 		t.Fatal("an upgrade landed without a citation")
@@ -85,7 +85,7 @@ func TestCapUpgradeWithAliveLearningCitationLands(t *testing.T) {
 	id := seedAliveLearning(t, h, "the note that asked for v2")
 	resp := h.handleSaveCapFrom(map[string]any{
 		"name": "cite_ok_cap", "description": "v2",
-		"scripts": capScriptV2, "_source_agent": "claude",
+		"scripts": capScriptV2, "_source_agent": "claude", "_source_agent_source": "resolved",
 		"citation": "learning:" + strconv.FormatInt(id, 10),
 	}, "")
 	if resp.Error != "" {
@@ -121,7 +121,7 @@ func TestCapUpgradeCitingASupersededLearningRefused(t *testing.T) {
 	}
 	resp := h.handleSaveCapFrom(map[string]any{
 		"name": "cite_dead_cap", "description": "v2",
-		"scripts": capScriptV2, "_source_agent": "claude",
+		"scripts": capScriptV2, "_source_agent": "claude", "_source_agent_source": "resolved",
 		"citation": "learning:" + strconv.FormatInt(id1, 10),
 	}, "")
 	if resp.Error == "" {
@@ -138,7 +138,7 @@ func TestCapUpgradeCitingUnknownRowsRefused(t *testing.T) {
 	for _, cite := range []string{"learning:999999", "session:no-such-session", "team:notes", "text:"} {
 		resp := h.handleSaveCapFrom(map[string]any{
 			"name": "cite_unknown_cap", "description": "v2",
-			"scripts": capScriptV2, "_source_agent": "claude",
+			"scripts": capScriptV2, "_source_agent": "claude", "_source_agent_source": "resolved",
 			"citation": cite,
 		}, "")
 		if resp.Error == "" {

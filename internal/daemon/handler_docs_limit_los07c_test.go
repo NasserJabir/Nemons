@@ -77,7 +77,7 @@ func TestHandleDocsSearch_NegativeLimitDoesNotPanicLos07c(t *testing.T) {
 
 	resp, rec := los07cCallHandlerNoPanic(t, h, Request{
 		Method: "docs_search",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"query": "golang interface embedding",
 			"limit": float64(-5),
 		},
@@ -100,7 +100,7 @@ func TestHandleDocsSearch_AbsurdLimitDoesNotPanicLos07c(t *testing.T) {
 	// 1e19 is above math.MaxInt64: int(float64) overflows to a negative value.
 	resp, rec := los07cCallHandlerNoPanic(t, h, Request{
 		Method: "docs_search",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"query": "golang interface embedding",
 			"limit": float64(1e19),
 		},
@@ -137,7 +137,7 @@ func TestHandleDocsSearch_RejectsOverlongQueryLos07c(t *testing.T) {
 
 	resp, rec := los07cCallHandlerNoPanic(t, h, Request{
 		Method: "docs_search",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"query": overlong,
 		},
 	})
@@ -176,7 +176,7 @@ func TestHandleDocsSearch_ClampsTheLimitToTheCapLos07c(t *testing.T) {
 
 	resp, rec := los07cCallHandlerNoPanic(t, h, Request{
 		Method: "docs_search",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"query": "golang interface embedding",
 			"limit": float64(los07cMaxDocsSearchLimit * 10),
 		},
@@ -209,7 +209,7 @@ func TestHandleDocsSearch_AcceptsQueryAtTheCapLos07c(t *testing.T) {
 
 	resp, rec := los07cCallHandlerNoPanic(t, h, Request{
 		Method: "docs_search",
-		Params: map[string]any{
+		Params: map[string]any{"_source_agent": "claude", "_source_agent_source": "resolved",
 			"query": atCap,
 		},
 	})

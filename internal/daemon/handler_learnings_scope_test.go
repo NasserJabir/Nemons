@@ -35,7 +35,7 @@ func containsLearning(rows []models.Learning, content string) bool {
 func TestRememberScopeDefaultsShared(t *testing.T) {
 	h, _ := mustHandler(t)
 	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
-		"text": "shared by default", "project": "/w", "_source_agent": "claude"}})
+		"text": "shared by default", "project": "/w", "_source_agent": "claude", "_source_agent_source": "resolved"}})
 	if resp.Error != "" {
 		t.Fatalf("remember: %v", resp.Error)
 	}
@@ -48,6 +48,9 @@ func TestRememberScopeDefaultsShared(t *testing.T) {
 
 func TestRememberPrivateNeedsTheCallerItBelongsTo(t *testing.T) {
 	h, s := mustHandler(t)
+	// Deliberately no identity at all: a private write without any caller is
+	// refused (the caller requirement predates and outlives the identity
+	// contract).
 	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
 		"text": "orphan private", "project": "/w", "scope": "private"}})
 	if resp.Error == "" {
@@ -67,7 +70,7 @@ func TestRememberPrivateNeedsTheCallerItBelongsTo(t *testing.T) {
 func TestRememberPrivateWithCallerStoredAndHiddenFromOthers(t *testing.T) {
 	h, _ := mustHandler(t)
 	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
-		"text": "claude only", "project": "/w", "scope": "private", "_source_agent": "claude"}})
+		"text": "claude only", "project": "/w", "scope": "private", "_source_agent": "claude", "_source_agent_source": "resolved"}})
 	if resp.Error != "" {
 		t.Fatalf("remember: %v", resp.Error)
 	}
@@ -82,7 +85,7 @@ func TestRememberPrivateWithCallerStoredAndHiddenFromOthers(t *testing.T) {
 func TestRememberUnknownScopeRefused(t *testing.T) {
 	h, _ := mustHandler(t)
 	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
-		"text": "team scope?", "project": "/w", "scope": "team", "_source_agent": "claude"}})
+		"text": "team scope?", "project": "/w", "scope": "team", "_source_agent": "claude", "_source_agent_source": "resolved"}})
 	if resp.Error == "" {
 		t.Fatal("an unknown scope value was accepted")
 	}
@@ -99,7 +102,7 @@ func TestRememberUnknownScopeRefused(t *testing.T) {
 func TestRememberPublicNeedsTheGrant(t *testing.T) {
 	h, s := mustHandler(t)
 	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
-		"text": "publish me", "project": "/w", "scope": "global", "_source_agent": "claude"}})
+		"text": "publish me", "project": "/w", "scope": "global", "_source_agent": "claude", "_source_agent_source": "resolved"}})
 	if resp.Error == "" {
 		t.Fatal("a public write passed without the grant")
 	}
@@ -119,7 +122,7 @@ func TestRememberPublicNeedsTheGrant(t *testing.T) {
 		t.Fatalf("allow grant: %v", err)
 	}
 	resp = h.Handle(Request{Method: "remember", Params: map[string]any{
-		"text": "publish me", "project": "/w", "scope": "global", "_source_agent": "claude"}})
+		"text": "publish me", "project": "/w", "scope": "global", "_source_agent": "claude", "_source_agent_source": "resolved"}})
 	if resp.Error != "" {
 		t.Fatalf("granted public write refused: %v", resp.Error)
 	}
@@ -133,7 +136,7 @@ func TestRememberPublicNeedsTheGrant(t *testing.T) {
 func TestRememberCapRowsStayShared(t *testing.T) {
 	h, _ := mustHandler(t)
 	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
-		"text": "a cap note", "category": "cap", "project": "/w", "scope": "private", "_source_agent": "claude"}})
+		"text": "a cap note", "category": "cap", "project": "/w", "scope": "private", "_source_agent": "claude", "_source_agent_source": "resolved"}})
 	if resp.Error != "" {
 		t.Fatalf("remember cap: %v", resp.Error)
 	}
@@ -149,7 +152,7 @@ func TestRememberCapRowsStayShared(t *testing.T) {
 func TestRememberCannotSupersedeAnotherAgentsPrivateRow(t *testing.T) {
 	h, _ := mustHandler(t)
 	seed := h.Handle(Request{Method: "remember", Params: map[string]any{
-		"text": "claude secret", "project": "/w", "scope": "private", "_source_agent": "claude"}})
+		"text": "claude secret", "project": "/w", "scope": "private", "_source_agent": "claude", "_source_agent_source": "resolved"}})
 	if seed.Error != "" {
 		t.Fatalf("seed remember: %v", seed.Error)
 	}
@@ -162,7 +165,7 @@ func TestRememberCannotSupersedeAnotherAgentsPrivateRow(t *testing.T) {
 	}
 	resp := h.Handle(Request{Method: "remember", Params: map[string]any{
 		"text": "codex retires it", "project": "/w", "supersedes": id,
-		"_source_agent": "codex"}})
+		"_source_agent": "codex", "_source_agent_source": "resolved"}})
 	if resp.Error == "" {
 		t.Fatal("codex superseded claude's private row")
 	}
